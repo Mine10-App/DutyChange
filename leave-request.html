@@ -81,7 +81,8 @@
         }
         
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 14px;
             border: 2px solid #e0e0e0;
@@ -91,7 +92,8 @@
         }
         
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             border-color: #667eea;
             outline: none;
         }
@@ -222,7 +224,7 @@
                 
                 <div class="form-group">
                     <label for="reason">Reason (Optional)</label>
-                    <textarea id="reason" rows="4" placeholder="Brief reason for leave..." style="width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 10px;"></textarea>
+                    <textarea id="reason" rows="4" placeholder="Brief reason for leave..."></textarea>
                 </div>
                 
                 <button type="submit" class="submit-btn" id="submitBtn">Submit Leave Request</button>
@@ -232,10 +234,14 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db } from './dcfire.js';
-        import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
+    <!-- Firebase SDK Version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase configuration -->
+    <script src="./dcfire.js"></script>
+    
+    <script>
         // Check if user is logged in
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser) {
@@ -252,7 +258,6 @@
             e.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
-            const messageDiv = document.getElementById('message');
             
             // Get form values
             const leaveDate = document.getElementById('leaveDate').value;
@@ -260,6 +265,12 @@
             const dutyType = document.getElementById('dutyType').value;
             const leaveType = document.getElementById('leaveType').value;
             const reason = document.getElementById('reason').value;
+            
+            // Validate required fields
+            if (!leaveDate || !dutyTime || !leaveType) {
+                showMessage('error', 'Please fill in all required fields!');
+                return;
+            }
             
             // Validate date
             if (new Date(leaveDate) < new Date().setHours(0, 0, 0, 0)) {
@@ -287,7 +298,7 @@
             
             try {
                 // Save to Firestore
-                await addDoc(collection(db, 'leaveRequests'), {
+                await db.collection('leaveRequests').add({
                     username: currentUser.username,
                     name: currentUser.name,
                     leaveDate: leaveDate,
@@ -296,7 +307,7 @@
                     leaveType: leaveType,
                     reason: reason,
                     status: 'Pending',
-                    submittedAt: serverTimestamp(),
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     approvedBy: null,
                     approvedAt: null
                 });
@@ -306,6 +317,7 @@
                 
                 // Reset date min to today
                 document.getElementById('leaveDate').min = today;
+                document.getElementById('dutyType').value = 'Day'; // Reset to default
                 
             } catch (error) {
                 console.error('Error submitting leave request:', error);
@@ -331,6 +343,9 @@
         function goBack() {
             window.location.href = 'dashboard.html';
         }
+        
+        // Make functions available globally
+        window.goBack = goBack;
     </script>
 </body>
 </html>
