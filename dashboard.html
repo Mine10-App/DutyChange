@@ -212,10 +212,14 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db } from './dcfire.js';
-        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
+    <!-- Firebase SDK Version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase configuration -->
+    <script src="./dcfire.js"></script>
+    
+    <script>
         // Check if user is logged in
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser) {
@@ -228,9 +232,10 @@
         // Fetch user's leave balance
         async function loadLeaveBalance() {
             try {
-                const usersRef = collection(db, 'users');
-                const q = query(usersRef, where('username', '==', currentUser.username));
-                const querySnapshot = await getDocs(q);
+                const usersRef = db.collection('users');
+                const querySnapshot = await usersRef
+                    .where('username', '==', currentUser.username)
+                    .get();
                 
                 if (!querySnapshot.empty) {
                     querySnapshot.forEach((doc) => {
@@ -244,8 +249,6 @@
                 console.error('Error loading leave balance:', error);
             }
         }
-        
-        loadLeaveBalance();
         
         function goToLeaveRequest() {
             window.location.href = 'leave-request.html';
@@ -263,6 +266,17 @@
             localStorage.removeItem('currentUser');
             window.location.href = 'index.html';
         }
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeaveBalance();
+        });
+        
+        // Make functions available globally for onclick events
+        window.goToLeaveRequest = goToLeaveRequest;
+        window.goToDutyChange = goToDutyChange;
+        window.goToHistory = goToHistory;
+        window.logout = logout;
     </script>
 </body>
 </html>
