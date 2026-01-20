@@ -139,17 +139,17 @@
         </div>
     </div>
 
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
-        // Import your firebase config
-        import { db } from './dcfire.js';
-        
-        // Import user data
-        import { users } from './user.js';
-        
+    <!-- Firebase SDK Version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase configuration -->
+    <script src="./dcfire.js"></script>
+    
+    <!-- Your user data file -->
+    <script src="./user.js"></script>
+    
+    <script>
         // Display available users
         const userListDiv = document.getElementById('userList');
         users.forEach(user => {
@@ -160,7 +160,7 @@
             `;
             userListDiv.appendChild(userDiv);
         });
-        
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -168,7 +168,7 @@
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            // Simple hash function (in production, use proper hashing)
+            // Simple hash function
             async function sha256(message) {
                 const msgBuffer = new TextEncoder().encode(message);
                 const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -189,20 +189,19 @@
                     }));
                     
                     // Create or update user in Firestore
-                    const usersRef = collection(db, 'users');
-                    const q = query(usersRef, where('username', '==', user.username));
-                    const querySnapshot = await getDocs(q);
+                    const usersRef = db.collection('users');
+                    const querySnapshot = await usersRef.where('username', '==', user.username).get();
                     
                     if (querySnapshot.empty) {
                         // Add new user to Firestore with default leave balances
-                        await addDoc(usersRef, {
+                        await usersRef.add({
                             username: user.username,
                             name: user.name,
                             level: user.Level,
                             sickLeave: 10,
                             annualLeave: 20,
                             frlLeave: 5,
-                            createdAt: new Date()
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     }
                     
