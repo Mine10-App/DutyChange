@@ -431,7 +431,7 @@
     <script src="./user.js"></script>
     
             <script>
-        // Global variable to store current user with location
+// Global variable to store current user with location
 let currentUser = null;
 let usersList = []; // Store users from user.js
 
@@ -440,15 +440,22 @@ async function initializeUser() {
     try {
         const storedUser = JSON.parse(localStorage.getItem('currentUser'));
         
+        // Debug: Show what's in localStorage
+        console.log('Stored user from localStorage:', storedUser);
+        
         if (!storedUser) {
             console.log('No user found in localStorage - redirecting to login');
             window.location.href = 'index.html';
             return;
         }
         
-        // Check if user is supervisor - using 'Level' field from user.js
-        if (storedUser.Level !== 'Supervisor') {
-            console.log('User is not supervisor, level:', storedUser.Level, '- redirecting to login');
+        // Check if user is supervisor - check both 'Level' and 'level'
+        const userLevel = storedUser.Level || storedUser.level;
+        
+        console.log('User level detected:', userLevel);
+        
+        if (userLevel !== 'Supervisor') {
+            console.log('User is not supervisor, level:', userLevel, '- redirecting to login');
             window.location.href = 'index.html';
             return;
         }
@@ -457,39 +464,33 @@ async function initializeUser() {
         currentUser = storedUser;
         
         // Get users from the imported user.js file
-        // 'users' variable should be available from user.js
         if (typeof users !== 'undefined') {
             usersList = users;
+            console.log('Loaded users from user.js:', usersList.length);
         } else {
             // Fallback to localStorage if user.js not loaded
             usersList = JSON.parse(localStorage.getItem('users') || '[]');
+            console.log('Loaded users from localStorage:', usersList.length);
         }
         
         // Set a default location for all users since user.js doesn't have location
-        currentUser.location = 'Default';
+        if (!currentUser.location) {
+            currentUser.location = 'Default';
+        }
         
         // Update UI
         document.getElementById('userName').textContent = currentUser.name || currentUser.username || 'User';
         document.getElementById('welcomeName').textContent = currentUser.name || currentUser.username || 'User';
-        document.getElementById('userLocation').textContent = currentUser.location || 'Default';
-        document.getElementById('welcomeLocation').textContent = currentUser.location || 'Default';
-        document.getElementById('locationTitle').textContent = currentUser.location || 'Default';
+        document.getElementById('userLocation').textContent = currentUser.location;
+        document.getElementById('welcomeLocation').textContent = currentUser.location;
+        document.getElementById('locationTitle').textContent = currentUser.location;
         
-        console.log('User initialized:', currentUser);
+        console.log('User initialized successfully:', currentUser);
         
     } catch (error) {
         console.error('Error in initializeUser:', error);
-        // Show error but don't redirect immediately
-        document.body.innerHTML = `
-            <div style="padding: 50px; text-align: center; font-family: Arial, sans-serif;">
-                <h2 style="color: #e74c3c;">Session Error</h2>
-                <p style="margin: 20px 0;">There was an error initializing your session.</p>
-                <p style="color: #666; margin-bottom: 30px;">Please login again.</p>
-                <button onclick="logout()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                    Return to Login Page
-                </button>
-            </div>
-        `;
+        alert('Session error: ' + error.message);
+        window.location.href = 'index.html';
     }
 }
 
@@ -717,6 +718,8 @@ async function loadUsers() {
                 };
             }
         });
+        
+        console.log('Firebase users found:', Object.keys(firebaseUsersMap).length);
         
         // Display all users from user.js in table
         localUsers.forEach((localUser) => {
@@ -962,8 +965,13 @@ async function updateSelectedUserBalance() {
         return;
     }
     
-    if (parseInt(sickLeave) < 0 || parseInt(annualLeave) < 0 || parseInt(frlLeave) < 0) {
-        alert('Leave values cannot be negative');
+    const sickVal = parseInt(sickLeave);
+    const annualVal = parseInt(annualLeave);
+    const frlVal = parseInt(frlLeave);
+    
+    if (isNaN(sickVal) || isNaN(annualVal) || isNaN(frlVal) || 
+        sickVal < 0 || annualVal < 0 || frlVal < 0) {
+        alert('Please enter valid numbers (0 or higher)');
         return;
     }
     
@@ -971,9 +979,9 @@ async function updateSelectedUserBalance() {
         // Update in Firebase
         const userRef = db.collection('users').doc(userId);
         await userRef.update({
-            sickLeave: parseInt(sickLeave),
-            annualLeave: parseInt(annualLeave),
-            frlLeave: parseInt(frlLeave)
+            sickLeave: sickVal,
+            annualLeave: annualVal,
+            frlLeave: frlVal
         });
         
         alert('Leave balance updated successfully in Firebase!');
@@ -991,34 +999,39 @@ async function updateSelectedUserBalance() {
 
 // Load data on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    await initializeUser();
-    loadLeaveRequests();
-    
-    // When user is selected in dropdown, populate the input fields with Firebase data
-    document.getElementById('selectUser').addEventListener('change', async function() {
-        const userId = this.value;
-        if (userId) {
-            try {
-                // Fetch current values from Firebase for the selected user
-                const userRef = db.collection('users').doc(userId);
-                const userDoc = await userRef.get();
-                
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    document.getElementById('sickLeave').value = userData.sickLeave || 0;
-                    document.getElementById('annualLeave').value = userData.annualLeave || 0;
-                    document.getElementById('frlLeave').value = userData.frlLeave || 0;
+    try {
+        await initializeUser();
+        loadLeaveRequests();
+        
+        // When user is selected in dropdown, populate the input fields with Firebase data
+        document.getElementById('selectUser').addEventListener('change', async function() {
+            const userId = this.value;
+            if (userId) {
+                try {
+                    // Fetch current values from Firebase for the selected user
+                    const userRef = db.collection('users').doc(userId);
+                    const userDoc = await userRef.get();
+                    
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        document.getElementById('sickLeave').value = userData.sickLeave || 0;
+                        document.getElementById('annualLeave').value = userData.annualLeave || 0;
+                        document.getElementById('frlLeave').value = userData.frlLeave || 0;
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data from Firebase:', error);
+                    // Fallback to dropdown attributes
+                    const selectedOption = this.options[this.selectedIndex];
+                    document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
+                    document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
+                    document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
                 }
-            } catch (error) {
-                console.error('Error fetching user data from Firebase:', error);
-                // Fallback to dropdown attributes
-                const selectedOption = this.options[this.selectedIndex];
-                document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
-                document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
-                document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error during page load:', error);
+        alert('Error loading page: ' + error.message);
+    }
 });
 
 function logout() {
