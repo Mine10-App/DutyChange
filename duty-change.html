@@ -81,7 +81,8 @@
         }
         
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 14px;
             border: 2px solid #e0e0e0;
@@ -91,7 +92,8 @@
         }
         
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             border-color: #667eea;
             outline: none;
         }
@@ -222,7 +224,7 @@
                 
                 <div class="form-group">
                     <label for="changeReason">Reason for Change (Optional)</label>
-                    <textarea id="changeReason" rows="4" placeholder="Brief reason for duty change..." style="width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 10px;"></textarea>
+                    <textarea id="changeReason" rows="4" placeholder="Brief reason for duty change..."></textarea>
                 </div>
                 
                 <button type="submit" class="submit-btn" id="submitBtn">Submit Request</button>
@@ -232,10 +234,14 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db } from './dcfire.js';
-        import { addDoc, collection, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
+    <!-- Firebase SDK Version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase configuration -->
+    <script src="./dcfire.js"></script>
+    
+    <script>
         // Check if user is logged in
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser) {
@@ -252,25 +258,25 @@
         // Populate staff dropdown
         async function populateStaffDropdown() {
             try {
-                const usersRef = collection(db, 'users');
-                const q = query(usersRef, where('username', '!=', currentUser.username));
-                const querySnapshot = await getDocs(q);
+                const usersRef = db.collection('users');
+                const querySnapshot = await usersRef.get();
                 
                 const select = document.getElementById('acceptedStaff');
                 querySnapshot.forEach((doc) => {
                     const user = doc.data();
-                    const option = document.createElement('option');
-                    option.value = user.username;
-                    option.textContent = `${user.name} (${user.username})`;
-                    select.appendChild(option);
+                    if (user.username !== currentUser.username) {
+                        const option = document.createElement('option');
+                        option.value = user.username;
+                        option.textContent = `${user.name} (${user.username})`;
+                        select.appendChild(option);
+                    }
                 });
             } catch (error) {
                 console.error('Error loading staff:', error);
             }
         }
         
-        populateStaffDropdown();
-        
+        // Form submission
         document.getElementById('dutyChangeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -297,19 +303,23 @@
             
             try {
                 // Get accepted staff name
-                const usersRef = collection(db, 'users');
-                const q = query(usersRef, where('username', '==', acceptedStaff));
-                const querySnapshot = await getDocs(q);
+                const usersRef = db.collection('users');
+                const querySnapshot = await usersRef
+                    .where('username', '==', acceptedStaff)
+                    .get();
+                
                 let acceptedStaffName = '';
+                let acceptedStaffId = '';
                 
                 if (!querySnapshot.empty) {
                     querySnapshot.forEach((doc) => {
                         acceptedStaffName = doc.data().name;
+                        acceptedStaffId = doc.id;
                     });
                 }
                 
                 // Save to Firestore
-                await addDoc(collection(db, 'dutyChanges'), {
+                await db.collection('dutyChanges').add({
                     requestorUsername: currentUser.username,
                     requestorName: currentUser.name,
                     requestorRcNo: yourRcNo,
@@ -317,13 +327,14 @@
                     requestorDutyTime: yourDutyTime,
                     acceptedStaffUsername: acceptedStaff,
                     acceptedStaffName: acceptedStaffName,
+                    acceptedStaffId: acceptedStaffId,
                     acceptedStaffRcNo: acceptedStaffRcNo,
                     acceptedStaffDutyTime: acceptedStaffDutyTime,
                     reason: changeReason,
-                    status: 'Pending', // Pending → Accepted → Approved → Rejected
+                    status: 'Pending',
                     acceptedByStaff: false,
                     acceptedBySupervisor: false,
-                    submittedAt: serverTimestamp(),
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     staffAcceptedAt: null,
                     supervisorApprovedAt: null
                 });
@@ -357,6 +368,14 @@
         function goBack() {
             window.location.href = 'dashboard.html';
         }
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateStaffDropdown();
+        });
+        
+        // Make functions available globally
+        window.goBack = goBack;
     </script>
 </body>
 </html>
