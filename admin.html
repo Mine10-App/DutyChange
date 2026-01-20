@@ -708,11 +708,18 @@ async function loadUsers() {
         
         // Create a map of Firebase users by username for easy lookup
         const firebaseUsersMap = {};
+        const firebaseUsersByEmail = {}; // Also check by email
         querySnapshot.forEach((docItem) => {
             const userData = docItem.data();
             const userId = docItem.id;
             if (userData.username) {
-                firebaseUsersMap[userData.username] = {
+                firebaseUsersMap[userData.username.toLowerCase()] = {
+                    id: userId,
+                    data: userData
+                };
+            }
+            if (userData.email) {
+                firebaseUsersByEmail[userData.email.toLowerCase()] = {
                     id: userId,
                     data: userData
                 };
@@ -726,10 +733,25 @@ async function loadUsers() {
             const isSupervisor = localUser.Level === 'Supervisor';
             const isCurrentUser = localUser.username === currentUser.username;
             
-            // Find matching user in Firebase
+            // Find matching user in Firebase (check by username first, then by other fields)
             let firebaseUser = null;
-            if (localUser.username && firebaseUsersMap[localUser.username]) {
-                firebaseUser = firebaseUsersMap[localUser.username];
+            if (localUser.username) {
+                const usernameKey = localUser.username.toLowerCase();
+                if (firebaseUsersMap[usernameKey]) {
+                    firebaseUser = firebaseUsersMap[usernameKey];
+                }
+            }
+            
+            // If not found by username, check by name or other fields
+            if (!firebaseUser && localUser.name) {
+                // Try to find by name (if email in Firebase contains the name)
+                for (const email in firebaseUsersByEmail) {
+                    if (localUser.name.toLowerCase().includes(email.split('@')[0]) || 
+                        email.includes(localUser.name.toLowerCase().split(' ')[0])) {
+                        firebaseUser = firebaseUsersByEmail[email];
+                        break;
+                    }
+                }
             }
             
             // Use Firebase data if available, otherwise use defaults
@@ -779,10 +801,20 @@ async function loadUsers() {
             
             tbody.appendChild(row);
             
-            // Add to dropdown (only non-supervisors with Firebase ID)
-            if (!isSupervisor && userId) {
+            // Add to dropdown (ALL non-supervisors from user.js, even if not in Firebase)
+            if (!isSupervisor) {
                 const option = document.createElement('option');
-                option.value = userId;
+                // If user exists in Firebase, use Firebase ID
+                // If not, we'll need to create them in Firebase when updating
+                if (userId) {
+                    option.value = userId;
+                } else {
+                    // Create a custom ID for users not in Firebase
+                    option.value = `new_${localUser.username || localUser.name.replace(/\s+/g, '_')}`;
+                    option.setAttribute('data-is-new', 'true');
+                    option.setAttribute('data-username', localUser.username);
+                    option.setAttribute('data-name', localUser.name);
+                }
                 option.textContent = `${localUser.name || 'Unknown'} (${localUser.username || 'No username'})`;
                 option.setAttribute('data-sick', sickLeave);
                 option.setAttribute('data-annual', annualLeave);
@@ -955,6 +987,7 @@ async function editUserLeave(userId, userName) {
 
 async function updateSelectedUserBalance() {
     const select = document.getElementById('selectUser');
+    const selectedOption = select.options[select.selectedIndex];
     const userId = select.value;
     const sickLeave = document.getElementById('sickLeave').value;
     const annualLeave = document.getElementById('annualLeave').value;
@@ -976,15 +1009,45 @@ async function updateSelectedUserBalance() {
     }
     
     try {
-        // Update in Firebase
-        const userRef = db.collection('users').doc(userId);
-        await userRef.update({
-            sickLeave: sickVal,
-            annualLeave: annualVal,
-            frlLeave: frlVal
-        });
+        // Check if this is a new user (not in Firebase yet)
+        const isNewUser = selectedOption.getAttribute('data-is-new') === 'true';
         
-        alert('Leave balance updated successfully in Firebase!');
+        if (isNewUser) {
+            // Create new user in Firebase
+            const username = selectedOption.getAttribute('data-username');
+            const name = selectedOption.getAttribute('data-name');
+            
+            // Ask for confirmation to create user
+            if (!confirm(`User ${name} (${username}) is not in Firebase. Create new user with these leave balances?`)) {
+                return;
+            }
+            
+            const newUserRef = await db.collection('users').add({
+                username: username,
+                name: name,
+                level: 'User',
+                location: currentUser.location || 'Default',
+                sickLeave: sickVal,
+                annualLeave: annualVal,
+                frlLeave: frlVal,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            alert(`User created successfully in Firebase with ID: ${newUserRef.id}!`);
+            
+        } else {
+            // Update existing user in Firebase
+            const userRef = db.collection('users').doc(userId);
+            await userRef.update({
+                sickLeave: sickVal,
+                annualLeave: annualVal,
+                frlLeave: frlVal
+            });
+            
+            alert('Leave balance updated successfully in Firebase!');
+        }
+        
+        // Refresh the user list
         loadUsers();
         document.getElementById('sickLeave').value = '';
         document.getElementById('annualLeave').value = '';
@@ -993,7 +1056,7 @@ async function updateSelectedUserBalance() {
         
     } catch (error) {
         console.error('Error updating leave balance in Firebase:', error);
-        alert('Failed to update leave balance in Firebase');
+        alert('Failed to update leave balance in Firebase: ' + error.message);
     }
 }
 
@@ -1003,28 +1066,38 @@ document.addEventListener('DOMContentLoaded', async function() {
         await initializeUser();
         loadLeaveRequests();
         
-        // When user is selected in dropdown, populate the input fields with Firebase data
+        // When user is selected in dropdown, populate the input fields
         document.getElementById('selectUser').addEventListener('change', async function() {
             const userId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            
             if (userId) {
-                try {
-                    // Fetch current values from Firebase for the selected user
-                    const userRef = db.collection('users').doc(userId);
-                    const userDoc = await userRef.get();
-                    
-                    if (userDoc.exists) {
-                        const userData = userDoc.data();
-                        document.getElementById('sickLeave').value = userData.sickLeave || 0;
-                        document.getElementById('annualLeave').value = userData.annualLeave || 0;
-                        document.getElementById('frlLeave').value = userData.frlLeave || 0;
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data from Firebase:', error);
-                    // Fallback to dropdown attributes
-                    const selectedOption = this.options[this.selectedIndex];
+                const isNewUser = selectedOption.getAttribute('data-is-new') === 'true';
+                
+                if (isNewUser) {
+                    // For new users, use the default values from the option attributes
                     document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
                     document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
                     document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
+                } else {
+                    try {
+                        // For existing users, fetch current values from Firebase
+                        const userRef = db.collection('users').doc(userId);
+                        const userDoc = await userRef.get();
+                        
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            document.getElementById('sickLeave').value = userData.sickLeave || 0;
+                            document.getElementById('annualLeave').value = userData.annualLeave || 0;
+                            document.getElementById('frlLeave').value = userData.frlLeave || 0;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user data from Firebase:', error);
+                        // Fallback to dropdown attributes
+                        document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
+                        document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
+                        document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
+                    }
                 }
             }
         });
