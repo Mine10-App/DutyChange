@@ -432,711 +432,719 @@
     
             <script>
         // Global variable to store current user with location
-        let currentUser = null;
-        
-        // Initialize and check user authentication
-        async function initializeUser() {
-            try {
-                const storedUser = JSON.parse(localStorage.getItem('currentUser'));
-                
-                if (!storedUser) {
-                    console.log('No user found in localStorage - redirecting to login');
-                    window.location.href = 'index.html';
-                    return;
-                }
-                
-                // Check if user is supervisor
-                if (storedUser.level !== 'Supervisor') {
-                    console.log('User is not supervisor, level:', storedUser.level, '- redirecting to login');
-                    window.location.href = 'index.html';
-                    return;
-                }
-                
-                // Use stored user data as is
-                currentUser = storedUser;
-                
-                // If location is not in stored data, try to get it from user.js format
-                if (!currentUser.location) {
-                    try {
-                        // Try to get location from user.js format in localStorage
-                        const users = JSON.parse(localStorage.getItem('users') || '[]');
-                        const userFromStorage = users.find(u => 
-                            u.username === currentUser.username || 
-                            u.email === currentUser.email
-                        );
-                        
-                        if (userFromStorage && userFromStorage.location) {
-                            currentUser.location = userFromStorage.location;
-                        }
-                    } catch (e) {
-                        console.log('Could not fetch location:', e);
-                        currentUser.location = 'Unknown';
-                    }
-                }
-                
-                // Update UI
-                document.getElementById('userName').textContent = currentUser.name || currentUser.username || 'User';
-                document.getElementById('welcomeName').textContent = currentUser.name || currentUser.username || 'User';
-                document.getElementById('userLocation').textContent = currentUser.location || 'Unknown';
-                document.getElementById('welcomeLocation').textContent = currentUser.location || 'Unknown';
-                document.getElementById('locationTitle').textContent = currentUser.location || 'Unknown';
-                
-                console.log('User initialized:', currentUser);
-                
-            } catch (error) {
-                console.error('Error in initializeUser:', error);
-                // Show error but don't redirect immediately
-                document.body.innerHTML = `
-                    <div style="padding: 50px; text-align: center; font-family: Arial, sans-serif;">
-                        <h2 style="color: #e74c3c;">Session Error</h2>
-                        <p style="margin: 20px 0;">There was an error initializing your session.</p>
-                        <p style="color: #666; margin-bottom: 30px;">Please login again.</p>
-                        <button onclick="logout()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                            Return to Login Page
-                        </button>
-                    </div>
-                `;
-            }
-        }
-        
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab').forEach(tabBtn => {
-                tabBtn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked tab button
-            event.target.classList.add('active');
-            
-            // Load data for the tab
-            if (tabName === 'leaveRequests') {
-                loadLeaveRequests();
-            } else if (tabName === 'dutyChanges') {
-                loadDutyChanges();
-            } else if (tabName === 'manageUsers') {
-                loadUsers();
-            }
-        }
-        
-        async function loadLeaveRequests() {
-            try {
-                const leaveRef = db.collection('leaveRequests');
-                const querySnapshot = await leaveRef
-                    .where('status', '==', 'Pending')
-                    .where('location', '==', currentUser.location || 'Unknown')
-                    .get();
-                
-                const tbody = document.getElementById('leaveRequestsBody');
-                tbody.innerHTML = '';
-                
-                // Convert to array and sort manually
-                const requests = [];
-                querySnapshot.forEach((docItem) => {
-                    requests.push({
-                        id: docItem.id,
-                        data: docItem.data()
-                    });
-                });
-                
-                // Sort manually by submittedAt
-                requests.sort((a, b) => {
-                    const dateA = a.data.submittedAt ? (a.data.submittedAt.toDate ? a.data.submittedAt.toDate() : new Date(a.data.submittedAt)) : new Date(0);
-                    const dateB = b.data.submittedAt ? (b.data.submittedAt.toDate ? b.data.submittedAt.toDate() : new Date(b.data.submittedAt)) : new Date(0);
-                    return dateB - dateA; // Descending
-                });
-                
-                // For each request, fetch user's current leave balance
-                for (let item of requests) {
-                    const data = item.data;
-                    
-                    // Fetch user's current leave balance from Firebase
-                    let currentBalance = 'N/A';
-                    if (data.userId) {
-                        try {
-                            const userRef = db.collection('users').doc(data.userId);
-                            const userDoc = await userRef.get();
-                            if (userDoc.exists) {
-                                const userData = userDoc.data();
-                                const leaveField = `${data.leaveType?.toLowerCase()}Leave` || 'sickLeave';
-                                currentBalance = userData[leaveField] || 0;
-                            }
-                        } catch (e) {
-                            console.error('Error fetching user balance from Firebase:', e);
-                        }
-                    }
-                    
-                    const row = document.createElement('tr');
-                    
-                    // Format date if it's a Firebase timestamp
-                    let leaveDate = data.leaveDate;
-                    if (data.leaveDate && data.leaveDate.toDate) {
-                        leaveDate = data.leaveDate.toDate().toLocaleDateString();
-                    } else if (data.leaveDate) {
-                        leaveDate = data.leaveDate;
-                    }
-                    
-                    // Create leave type badge
-                    let leaveTypeBadge = '';
-                    if (data.leaveType) {
-                        const badgeClass = data.leaveType.toLowerCase() === 'sick' ? 'sick-badge' : 
-                                         data.leaveType.toLowerCase() === 'annual' ? 'annual-badge' : 'frl-badge';
-                        leaveTypeBadge = `<span class="leave-type-badge ${badgeClass}">${data.leaveType}</span>`;
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${leaveDate || 'N/A'}</td>
-                        <td>${data.name || 'N/A'}</td>
-                        <td>${leaveTypeBadge}</td>
-                        <td>${data.dutyTime || 'N/A'} (${data.dutyType || 'N/A'})</td>
-                        <td><strong>${currentBalance}</strong> days remaining</td>
-                        <td>${data.reason || '-'}</td>
-                        <td class="status-pending">${data.status || 'Pending'}</td>
-                        <td>
-                            <button class="action-btn approve-btn" onclick="approveLeave('${item.id}')">Approve</button>
-                            <button class="action-btn reject-btn" onclick="rejectLeave('${item.id}')">Reject</button>
-                        </td>
-                    `;
-                    
-                    tbody.appendChild(row);
-                }
-                
-                if (requests.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">No pending leave requests</td></tr>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading leave requests:', error);
-                document.getElementById('leaveRequestsBody').innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
-                            Error loading leave requests: ${error.message}
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-        
-        async function loadDutyChanges() {
-            try {
-                const dutyRef = db.collection('dutyChanges');
-                const querySnapshot = await dutyRef
-                    .where('status', '==', 'Accepted')
-                    .where('location', '==', currentUser.location || 'Unknown')
-                    .get();
-                
-                const tbody = document.getElementById('dutyChangesBody');
-                tbody.innerHTML = '';
-                
-                // Convert to array and sort manually
-                const changes = [];
-                querySnapshot.forEach((docItem) => {
-                    changes.push({
-                        id: docItem.id,
-                        data: docItem.data()
-                    });
-                });
-                
-                // Sort manually by staffAcceptedAt
-                changes.sort((a, b) => {
-                    const dateA = a.data.staffAcceptedAt ? (a.data.staffAcceptedAt.toDate ? a.data.staffAcceptedAt.toDate() : new Date(a.data.staffAcceptedAt)) : new Date(0);
-                    const dateB = b.data.staffAcceptedAt ? (b.data.staffAcceptedAt.toDate ? b.data.staffAcceptedAt.toDate() : new Date(b.data.staffAcceptedAt)) : new Date(0);
-                    return dateB - dateA; // Descending
-                });
-                
-                // Display sorted results
-                changes.forEach((item) => {
-                    const data = item.data;
-                    const row = document.createElement('tr');
-                    
-                    // Format date if it's a Firebase timestamp
-                    let changeDate = data.changeDate;
-                    if (data.changeDate && data.changeDate.toDate) {
-                        changeDate = data.changeDate.toDate().toLocaleDateString();
-                    } else if (data.changeDate) {
-                        changeDate = data.changeDate;
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${changeDate || 'N/A'}</td>
-                        <td>${data.requestorName || 'N/A'}</td>
-                        <td>${data.acceptedStaffName || 'N/A'}</td>
-                        <td>${data.requestorDutyTime || 'N/A'}</td>
-                        <td>${data.acceptedStaffDutyTime || 'N/A'}</td>
-                        <td>${data.acceptedByStaff ? 'Yes' : 'No'}</td>
-                        <td class="status-accepted">${data.status || 'Accepted'}</td>
-                        <td>
-                            <button class="action-btn approve-btn" onclick="approveDutyChange('${item.id}')">Approve</button>
-                            <button class="action-btn reject-btn" onclick="rejectDutyChange('${item.id}')">Reject</button>
-                        </td>
-                    `;
-                    
-                    tbody.appendChild(row);
-                });
-                
-                if (changes.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">No pending duty changes</td></tr>';
-                }
-                
-            } catch (error) {
-                console.error('Error loading duty changes:', error);
-                document.getElementById('dutyChangesBody').innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
-                            Error loading duty changes: ${error.message}
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-        
-        async function loadUsers() {
-            try {
-                const tbody = document.getElementById('usersTableBody');
-                const selectUser = document.getElementById('selectUser');
-                tbody.innerHTML = '';
-                selectUser.innerHTML = '<option value="">Select User</option>';
+let currentUser = null;
+let usersList = []; // Store users from user.js
 
-                // Get users from localStorage (from user.js format) for dropdown
-                let usersFromLocal = JSON.parse(localStorage.getItem('users') || '[]');
-                
-                // Filter users by the same location as the supervisor
-                usersFromLocal = usersFromLocal.filter(user => user.location === currentUser.location);
-                
-                // Also fetch users from Firebase to display current balances
-                const usersRef = db.collection('users');
-                const querySnapshot = await usersRef
-                    .where('location', '==', currentUser.location || 'Unknown')
-                    .get();
-                
-                // Display users in table from Firebase
-                querySnapshot.forEach((docItem) => {
-                    const userData = docItem.data();
-                    const userId = docItem.id;
-                    const isSupervisor = userData.level === 'Supervisor';
-                    const isCurrentUser = userData.username === currentUser.username;
-                    
-                    // Find matching user in local storage for name
-                    const localUser = usersFromLocal.find(u => 
-                        u.username === userData.username || 
-                        u.email === userData.email
-                    );
-                    
-                    const userName = localUser ? localUser.name : userData.name || userData.username;
-                    
-                    // Add to table (all users including supervisor)
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
-                        <td>${userData.username || 'N/A'} ${isCurrentUser ? '(You)' : ''}</td>
-                        <td>${userName || 'N/A'}</td>
-                        <td>${userData.level || 'N/A'}</td>
-                        <td>
-                            <span class="editable-leave" data-user-id="${userId}" data-leave-type="sickLeave">
-                                ${userData.sickLeave || 0}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="editable-leave" data-user-id="${userId}" data-leave-type="annualLeave">
-                                ${userData.annualLeave || 0}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="editable-leave" data-user-id="${userId}" data-leave-type="frlLeave">
-                                ${userData.frlLeave || 0}
-                            </span>
-                        </td>
-                        <td>
-                            ${!isSupervisor ? `<button class="edit-btn" onclick="editUserLeave('${userId}')">Edit All</button>` : ''}
-                        </td>
-                    `;
-                    
-                    if (isCurrentUser) {
-                        row.style.backgroundColor = '#f0f8ff';
-                    }
-                    
-                    tbody.appendChild(row);
-                });
-                
-                // Populate dropdown with users from user.js (localStorage) - only non-supervisors
-                usersFromLocal.forEach((user) => {
-                    const isSupervisor = user.level === 'Supervisor';
-                    
-                    if (!isSupervisor) {
-                        const option = document.createElement('option');
-                        option.value = user.userId || user.id;
-                        option.textContent = `${user.name || 'Unknown'} (${user.username || 'No username'})`;
-                        option.setAttribute('data-sick', user.sickLeave || 0);
-                        option.setAttribute('data-annual', user.annualLeave || 0);
-                        option.setAttribute('data-frl', user.frlLeave || 0);
-                        selectUser.appendChild(option);
-                    }
-                });
-                
-                if (querySnapshot.empty && usersFromLocal.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #666;">No users found in your location</td></tr>';
-                    selectUser.innerHTML = '<option value="">No users available</option>';
-                    return;
-                }
-                
-                // Add click event to editable leave values
-                document.querySelectorAll('.editable-leave').forEach(element => {
-                    element.addEventListener('click', function() {
-                        editSingleLeaveValue(this);
-                    });
-                });
-                
-            } catch (error) {
-                console.error('Error loading users:', error);
-                document.getElementById('usersTableBody').innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: #e74c3c;">
-                            Error loading users: ${error.message}
-                        </td>
-                    </tr>
-                `;
-            }
+// Initialize and check user authentication
+async function initializeUser() {
+    try {
+        const storedUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if (!storedUser) {
+            console.log('No user found in localStorage - redirecting to login');
+            window.location.href = 'index.html';
+            return;
         }
         
-        function editSingleLeaveValue(element) {
-            const currentValue = element.textContent.trim();
-            const userId = element.getAttribute('data-user-id');
-            const leaveType = element.getAttribute('data-leave-type');
-            
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.min = '0';
-            input.value = currentValue;
-            input.className = 'edit-input';
-            
-            // Save function - updates ONLY to Firebase
-            const save = async () => {
-                const newValue = parseInt(input.value);
-                if (isNaN(newValue) || newValue < 0) {
-                    alert('Please enter a valid number (0 or higher)');
-                    return;
-                }
-                
-                try {
-                    // Update in Firebase
-                    const userRef = db.collection('users').doc(userId);
-                    await userRef.update({
-                        [leaveType]: newValue
-                    });
-                    
-                    element.textContent = newValue;
-                    element.parentElement.innerHTML = `<span class="editable-leave" data-user-id="${userId}" data-leave-type="${leaveType}">${newValue}</span>`;
-                    
-                    // Re-add click event
-                    element.parentElement.querySelector('.editable-leave').addEventListener('click', function() {
-                        editSingleLeaveValue(this);
-                    });
-                    
-                    alert('Leave balance updated successfully in Firebase!');
-                } catch (error) {
-                    console.error('Error updating leave in Firebase:', error);
-                    alert('Failed to update leave balance in Firebase');
-                }
-            };
-            
-            // Cancel function
-            const cancel = () => {
-                element.parentElement.innerHTML = `<span class="editable-leave" data-user-id="${userId}" data-leave-type="${leaveType}">${currentValue}</span>`;
-                element.parentElement.querySelector('.editable-leave').addEventListener('click', function() {
-                    editSingleLeaveValue(this);
-                });
-            };
-            
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') save();
-                if (e.key === 'Escape') cancel();
-            });
-            
-            element.parentElement.innerHTML = '';
-            element.parentElement.appendChild(input);
-            
-            // Add save and cancel buttons
-            const saveBtn = document.createElement('button');
-            saveBtn.textContent = '✓';
-            saveBtn.className = 'save-btn';
-            saveBtn.style.marginLeft = '5px';
-            saveBtn.onclick = save;
-            
-            const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = '✗';
-            cancelBtn.className = 'cancel-btn';
-            cancelBtn.style.marginLeft = '5px';
-            cancelBtn.onclick = cancel;
-            
-            element.parentElement.appendChild(saveBtn);
-            element.parentElement.appendChild(cancelBtn);
-            
-            input.focus();
+        // Check if user is supervisor - using 'Level' field from user.js
+        if (storedUser.Level !== 'Supervisor') {
+            console.log('User is not supervisor, level:', storedUser.Level, '- redirecting to login');
+            window.location.href = 'index.html';
+            return;
         }
         
-        async function editUserLeave(userId) {
-            try {
-                // Fetch user data from Firebase
-                const userRef = db.collection('users').doc(userId);
-                const userDoc = await userRef.get();
-                
-                if (!userDoc.exists) {
-                    alert('User not found in Firebase');
-                    return;
-                }
-                
-                const userData = userDoc.data();
-                
-                // Get user name from user.js (localStorage)
-                let userName = userData.name || userData.username;
-                const usersFromLocal = JSON.parse(localStorage.getItem('users') || '[]');
-                const localUser = usersFromLocal.find(u => 
-                    u.username === userData.username || 
-                    u.email === userData.email
-                );
-                
-                if (localUser && localUser.name) {
-                    userName = localUser.name;
-                }
-                
-                const sickLeave = prompt(`Enter new Sick Leave balance for ${userName}:`, userData.sickLeave || 0);
-                if (sickLeave === null) return;
-                
-                const annualLeave = prompt(`Enter new Annual Leave balance for ${userName}:`, userData.annualLeave || 0);
-                if (annualLeave === null) return;
-                
-                const frlLeave = prompt(`Enter new FRL Leave balance for ${userName}:`, userData.frlLeave || 0);
-                if (frlLeave === null) return;
-                
-                // Validate inputs
-                const sickVal = parseInt(sickLeave);
-                const annualVal = parseInt(annualLeave);
-                const frlVal = parseInt(frlLeave);
-                
-                if (isNaN(sickVal) || isNaN(annualVal) || isNaN(frlVal) || 
-                    sickVal < 0 || annualVal < 0 || frlVal < 0) {
-                    alert('Please enter valid numbers (0 or higher)');
-                    return;
-                }
-                
-                // Update in Firebase
-                await userRef.update({
-                    sickLeave: sickVal,
-                    annualLeave: annualVal,
-                    frlLeave: frlVal
-                });
-                
-                alert(`Leave balances updated successfully for ${userName}!`);
-                loadUsers();
-                
-            } catch (error) {
-                console.error('Error updating user leaves in Firebase:', error);
-                alert('Failed to update leave balances in Firebase');
-            }
+        // Use stored user data as is
+        currentUser = storedUser;
+        
+        // Get users from the imported user.js file
+        // 'users' variable should be available from user.js
+        if (typeof users !== 'undefined') {
+            usersList = users;
+        } else {
+            // Fallback to localStorage if user.js not loaded
+            usersList = JSON.parse(localStorage.getItem('users') || '[]');
         }
         
-        async function updateSelectedUserBalance() {
-            const select = document.getElementById('selectUser');
-            const userId = select.value;
-            const sickLeave = document.getElementById('sickLeave').value;
-            const annualLeave = document.getElementById('annualLeave').value;
-            const frlLeave = document.getElementById('frlLeave').value;
-            
-            if (!userId) {
-                alert('Please select a user');
-                return;
-            }
-            
-            if (parseInt(sickLeave) < 0 || parseInt(annualLeave) < 0 || parseInt(frlLeave) < 0) {
-                alert('Leave values cannot be negative');
-                return;
-            }
-            
-            try {
-                // Update in Firebase
-                const userRef = db.collection('users').doc(userId);
-                await userRef.update({
-                    sickLeave: parseInt(sickLeave),
-                    annualLeave: parseInt(annualLeave),
-                    frlLeave: parseInt(frlLeave)
-                });
-                
-                alert('Leave balance updated successfully in Firebase!');
-                loadUsers();
-                document.getElementById('sickLeave').value = '';
-                document.getElementById('annualLeave').value = '';
-                document.getElementById('frlLeave').value = '';
-                select.selectedIndex = 0;
-                
-            } catch (error) {
-                console.error('Error updating leave balance in Firebase:', error);
-                alert('Failed to update leave balance in Firebase');
-            }
-        }
+        // Set a default location for all users since user.js doesn't have location
+        currentUser.location = 'Default';
         
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            await initializeUser();
-            loadLeaveRequests();
-            
-            // When user is selected in dropdown, populate the input fields with Firebase data
-            document.getElementById('selectUser').addEventListener('change', async function() {
-                const userId = this.value;
-                if (userId) {
-                    try {
-                        // Fetch current values from Firebase for the selected user
-                        const userRef = db.collection('users').doc(userId);
-                        const userDoc = await userRef.get();
-                        
-                        if (userDoc.exists) {
-                            const userData = userDoc.data();
-                            document.getElementById('sickLeave').value = userData.sickLeave || 0;
-                            document.getElementById('annualLeave').value = userData.annualLeave || 0;
-                            document.getElementById('frlLeave').value = userData.frlLeave || 0;
-                        }
-                    } catch (error) {
-                        console.error('Error fetching user data from Firebase:', error);
-                        // Fallback to dropdown attributes
-                        const selectedOption = this.options[this.selectedIndex];
-                        document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
-                        document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
-                        document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
-                    }
-                }
+        // Update UI
+        document.getElementById('userName').textContent = currentUser.name || currentUser.username || 'User';
+        document.getElementById('welcomeName').textContent = currentUser.name || currentUser.username || 'User';
+        document.getElementById('userLocation').textContent = currentUser.location || 'Default';
+        document.getElementById('welcomeLocation').textContent = currentUser.location || 'Default';
+        document.getElementById('locationTitle').textContent = currentUser.location || 'Default';
+        
+        console.log('User initialized:', currentUser);
+        
+    } catch (error) {
+        console.error('Error in initializeUser:', error);
+        // Show error but don't redirect immediately
+        document.body.innerHTML = `
+            <div style="padding: 50px; text-align: center; font-family: Arial, sans-serif;">
+                <h2 style="color: #e74c3c;">Session Error</h2>
+                <p style="margin: 20px 0;">There was an error initializing your session.</p>
+                <p style="color: #666; margin-bottom: 30px;">Please login again.</p>
+                <button onclick="logout()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Return to Login Page
+                </button>
+            </div>
+        `;
+    }
+}
+
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab').forEach(tabBtn => {
+        tabBtn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+    
+    // Add active class to clicked tab button
+    event.target.classList.add('active');
+    
+    // Load data for the tab
+    if (tabName === 'leaveRequests') {
+        loadLeaveRequests();
+    } else if (tabName === 'dutyChanges') {
+        loadDutyChanges();
+    } else if (tabName === 'manageUsers') {
+        loadUsers();
+    }
+}
+
+async function loadLeaveRequests() {
+    try {
+        const leaveRef = db.collection('leaveRequests');
+        const querySnapshot = await leaveRef
+            .where('status', '==', 'Pending')
+            .where('location', '==', currentUser.location || 'Default')
+            .get();
+        
+        const tbody = document.getElementById('leaveRequestsBody');
+        tbody.innerHTML = '';
+        
+        // Convert to array and sort manually
+        const requests = [];
+        querySnapshot.forEach((docItem) => {
+            requests.push({
+                id: docItem.id,
+                data: docItem.data()
             });
         });
         
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
+        // Sort manually by submittedAt
+        requests.sort((a, b) => {
+            const dateA = a.data.submittedAt ? (a.data.submittedAt.toDate ? a.data.submittedAt.toDate() : new Date(a.data.submittedAt)) : new Date(0);
+            const dateB = b.data.submittedAt ? (b.data.submittedAt.toDate ? b.data.submittedAt.toDate() : new Date(b.data.submittedAt)) : new Date(0);
+            return dateB - dateA; // Descending
+        });
+        
+        // For each request, fetch user's current leave balance
+        for (let item of requests) {
+            const data = item.data;
+            
+            // Fetch user's current leave balance from Firebase
+            let currentBalance = 'N/A';
+            if (data.userId) {
+                try {
+                    const userRef = db.collection('users').doc(data.userId);
+                    const userDoc = await userRef.get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        const leaveField = `${data.leaveType?.toLowerCase()}Leave` || 'sickLeave';
+                        currentBalance = userData[leaveField] || 0;
+                    }
+                } catch (e) {
+                    console.error('Error fetching user balance from Firebase:', e);
+                }
+            }
+            
+            const row = document.createElement('tr');
+            
+            // Format date if it's a Firebase timestamp
+            let leaveDate = data.leaveDate;
+            if (data.leaveDate && data.leaveDate.toDate) {
+                leaveDate = data.leaveDate.toDate().toLocaleDateString();
+            } else if (data.leaveDate) {
+                leaveDate = data.leaveDate;
+            }
+            
+            // Create leave type badge
+            let leaveTypeBadge = '';
+            if (data.leaveType) {
+                const badgeClass = data.leaveType.toLowerCase() === 'sick' ? 'sick-badge' : 
+                                 data.leaveType.toLowerCase() === 'annual' ? 'annual-badge' : 'frl-badge';
+                leaveTypeBadge = `<span class="leave-type-badge ${badgeClass}">${data.leaveType}</span>`;
+            }
+            
+            row.innerHTML = `
+                <td>${leaveDate || 'N/A'}</td>
+                <td>${data.name || 'N/A'}</td>
+                <td>${leaveTypeBadge}</td>
+                <td>${data.dutyTime || 'N/A'} (${data.dutyType || 'N/A'})</td>
+                <td><strong>${currentBalance}</strong> days remaining</td>
+                <td>${data.reason || '-'}</td>
+                <td class="status-pending">${data.status || 'Pending'}</td>
+                <td>
+                    <button class="action-btn approve-btn" onclick="approveLeave('${item.id}')">Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectLeave('${item.id}')">Reject</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
         }
         
-        async function approveLeave(leaveId) {
-            if (confirm('Are you sure you want to approve this leave request?')) {
-                try {
-                    const leaveRef = db.collection('leaveRequests').doc(leaveId);
-                    const leaveDoc = await leaveRef.get();
-                    const leaveData = leaveDoc.data();
+        if (requests.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">No pending leave requests</td></tr>';
+        }
+        
+    } catch (error) {
+        console.error('Error loading leave requests:', error);
+        document.getElementById('leaveRequestsBody').innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
+                    Error loading leave requests: ${error.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function loadDutyChanges() {
+    try {
+        const dutyRef = db.collection('dutyChanges');
+        const querySnapshot = await dutyRef
+            .where('status', '==', 'Accepted')
+            .where('location', '==', currentUser.location || 'Default')
+            .get();
+        
+        const tbody = document.getElementById('dutyChangesBody');
+        tbody.innerHTML = '';
+        
+        // Convert to array and sort manually
+        const changes = [];
+        querySnapshot.forEach((docItem) => {
+            changes.push({
+                id: docItem.id,
+                data: docItem.data()
+            });
+        });
+        
+        // Sort manually by staffAcceptedAt
+        changes.sort((a, b) => {
+            const dateA = a.data.staffAcceptedAt ? (a.data.staffAcceptedAt.toDate ? a.data.staffAcceptedAt.toDate() : new Date(a.data.staffAcceptedAt)) : new Date(0);
+            const dateB = b.data.staffAcceptedAt ? (b.data.staffAcceptedAt.toDate ? b.data.staffAcceptedAt.toDate() : new Date(b.data.staffAcceptedAt)) : new Date(0);
+            return dateB - dateA; // Descending
+        });
+        
+        // Display sorted results
+        changes.forEach((item) => {
+            const data = item.data;
+            const row = document.createElement('tr');
+            
+            // Format date if it's a Firebase timestamp
+            let changeDate = data.changeDate;
+            if (data.changeDate && data.changeDate.toDate) {
+                changeDate = data.changeDate.toDate().toLocaleDateString();
+            } else if (data.changeDate) {
+                changeDate = data.changeDate;
+            }
+            
+            row.innerHTML = `
+                <td>${changeDate || 'N/A'}</td>
+                <td>${data.requestorName || 'N/A'}</td>
+                <td>${data.acceptedStaffName || 'N/A'}</td>
+                <td>${data.requestorDutyTime || 'N/A'}</td>
+                <td>${data.acceptedStaffDutyTime || 'N/A'}</td>
+                <td>${data.acceptedByStaff ? 'Yes' : 'No'}</td>
+                <td class="status-accepted">${data.status || 'Accepted'}</td>
+                <td>
+                    <button class="action-btn approve-btn" onclick="approveDutyChange('${item.id}')">Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectDutyChange('${item.id}')">Reject</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+        
+        if (changes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">No pending duty changes</td></tr>';
+        }
+        
+    } catch (error) {
+        console.error('Error loading duty changes:', error);
+        document.getElementById('dutyChangesBody').innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
+                    Error loading duty changes: ${error.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function loadUsers() {
+    try {
+        const tbody = document.getElementById('usersTableBody');
+        const selectUser = document.getElementById('selectUser');
+        tbody.innerHTML = '';
+        selectUser.innerHTML = '<option value="">Select User</option>';
+
+        // Get users from the imported user.js file
+        const localUsers = usersList || [];
+        
+        // Also fetch users from Firebase to display current balances
+        const usersRef = db.collection('users');
+        const querySnapshot = await usersRef.get();
+        
+        // Create a map of Firebase users by username for easy lookup
+        const firebaseUsersMap = {};
+        querySnapshot.forEach((docItem) => {
+            const userData = docItem.data();
+            const userId = docItem.id;
+            if (userData.username) {
+                firebaseUsersMap[userData.username] = {
+                    id: userId,
+                    data: userData
+                };
+            }
+        });
+        
+        // Display all users from user.js in table
+        localUsers.forEach((localUser) => {
+            const isSupervisor = localUser.Level === 'Supervisor';
+            const isCurrentUser = localUser.username === currentUser.username;
+            
+            // Find matching user in Firebase
+            let firebaseUser = null;
+            if (localUser.username && firebaseUsersMap[localUser.username]) {
+                firebaseUser = firebaseUsersMap[localUser.username];
+            }
+            
+            // Use Firebase data if available, otherwise use defaults
+            const sickLeave = firebaseUser ? (firebaseUser.data.sickLeave || 0) : 0;
+            const annualLeave = firebaseUser ? (firebaseUser.data.annualLeave || 0) : 0;
+            const frlLeave = firebaseUser ? (firebaseUser.data.frlLeave || 0) : 0;
+            const userId = firebaseUser ? firebaseUser.id : null;
+            
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>${localUser.username || 'N/A'} ${isCurrentUser ? '(You)' : ''}</td>
+                <td>${localUser.name || 'N/A'}</td>
+                <td>${localUser.Level || 'N/A'}</td>
+                <td>
+                    <span class="editable-leave" data-user-id="${userId}" data-leave-type="sickLeave" data-username="${localUser.username}">
+                        ${sickLeave}
+                    </span>
+                </td>
+                <td>
+                    <span class="editable-leave" data-user-id="${userId}" data-leave-type="annualLeave" data-username="${localUser.username}">
+                        ${annualLeave}
+                    </span>
+                </td>
+                <td>
+                    <span class="editable-leave" data-user-id="${userId}" data-leave-type="frlLeave" data-username="${localUser.username}">
+                        ${frlLeave}
+                    </span>
+                </td>
+                <td>
+                    ${!isSupervisor && userId ? `<button class="edit-btn" onclick="editUserLeave('${userId}', '${localUser.name.replace(/'/g, "\\'")}')">Edit All</button>` : ''}
+                </td>
+            `;
+            
+            if (isCurrentUser) {
+                row.style.backgroundColor = '#f0f8ff';
+            }
+            
+            // If user doesn't exist in Firebase, show a warning
+            if (!firebaseUser && !isSupervisor) {
+                const warningCell = document.createElement('td');
+                warningCell.style.color = '#ff9800';
+                warningCell.style.fontSize = '12px';
+                warningCell.textContent = 'User not in Firebase';
+                row.appendChild(warningCell);
+            }
+            
+            tbody.appendChild(row);
+            
+            // Add to dropdown (only non-supervisors with Firebase ID)
+            if (!isSupervisor && userId) {
+                const option = document.createElement('option');
+                option.value = userId;
+                option.textContent = `${localUser.name || 'Unknown'} (${localUser.username || 'No username'})`;
+                option.setAttribute('data-sick', sickLeave);
+                option.setAttribute('data-annual', annualLeave);
+                option.setAttribute('data-frl', frlLeave);
+                selectUser.appendChild(option);
+            }
+        });
+        
+        if (localUsers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #666;">No users found</td></tr>';
+            selectUser.innerHTML = '<option value="">No users available</option>';
+            return;
+        }
+        
+        // Add click event to editable leave values
+        document.querySelectorAll('.editable-leave').forEach(element => {
+            element.addEventListener('click', function() {
+                editSingleLeaveValue(this);
+            });
+        });
+        
+    } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #e74c3c;">
+                    Error loading users: ${error.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function editSingleLeaveValue(element) {
+    const currentValue = element.textContent.trim();
+    const userId = element.getAttribute('data-user-id');
+    const leaveType = element.getAttribute('data-leave-type');
+    const username = element.getAttribute('data-username');
+    
+    // Check if user exists in Firebase
+    if (!userId) {
+        alert(`User ${username} is not registered in Firebase. Please add them to Firebase first.`);
+        return;
+    }
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.value = currentValue;
+    input.className = 'edit-input';
+    
+    // Save function - updates ONLY to Firebase
+    const save = async () => {
+        const newValue = parseInt(input.value);
+        if (isNaN(newValue) || newValue < 0) {
+            alert('Please enter a valid number (0 or higher)');
+            return;
+        }
+        
+        try {
+            // Update in Firebase
+            const userRef = db.collection('users').doc(userId);
+            await userRef.update({
+                [leaveType]: newValue
+            });
+            
+            element.textContent = newValue;
+            element.parentElement.innerHTML = `<span class="editable-leave" data-user-id="${userId}" data-leave-type="${leaveType}" data-username="${username}">${newValue}</span>`;
+            
+            // Re-add click event
+            element.parentElement.querySelector('.editable-leave').addEventListener('click', function() {
+                editSingleLeaveValue(this);
+            });
+            
+            alert('Leave balance updated successfully in Firebase!');
+        } catch (error) {
+            console.error('Error updating leave in Firebase:', error);
+            alert('Failed to update leave balance in Firebase');
+        }
+    };
+    
+    // Cancel function
+    const cancel = () => {
+        element.parentElement.innerHTML = `<span class="editable-leave" data-user-id="${userId}" data-leave-type="${leaveType}" data-username="${username}">${currentValue}</span>`;
+        element.parentElement.querySelector('.editable-leave').addEventListener('click', function() {
+            editSingleLeaveValue(this);
+        });
+    };
+    
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') save();
+        if (e.key === 'Escape') cancel();
+    });
+    
+    element.parentElement.innerHTML = '';
+    element.parentElement.appendChild(input);
+    
+    // Add save and cancel buttons
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = '✓';
+    saveBtn.className = 'save-btn';
+    saveBtn.style.marginLeft = '5px';
+    saveBtn.onclick = save;
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '✗';
+    cancelBtn.className = 'cancel-btn';
+    cancelBtn.style.marginLeft = '5px';
+    cancelBtn.onclick = cancel;
+    
+    element.parentElement.appendChild(saveBtn);
+    element.parentElement.appendChild(cancelBtn);
+    
+    input.focus();
+}
+
+async function editUserLeave(userId, userName) {
+    if (!userId) {
+        alert('User is not registered in Firebase. Please add them to Firebase first.');
+        return;
+    }
+    
+    try {
+        // Fetch user data from Firebase
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+        
+        if (!userDoc.exists) {
+            alert('User not found in Firebase');
+            return;
+        }
+        
+        const userData = userDoc.data();
+        
+        const sickLeave = prompt(`Enter new Sick Leave balance for ${userName}:`, userData.sickLeave || 0);
+        if (sickLeave === null) return;
+        
+        const annualLeave = prompt(`Enter new Annual Leave balance for ${userName}:`, userData.annualLeave || 0);
+        if (annualLeave === null) return;
+        
+        const frlLeave = prompt(`Enter new FRL Leave balance for ${userName}:`, userData.frlLeave || 0);
+        if (frlLeave === null) return;
+        
+        // Validate inputs
+        const sickVal = parseInt(sickLeave);
+        const annualVal = parseInt(annualLeave);
+        const frlVal = parseInt(frlLeave);
+        
+        if (isNaN(sickVal) || isNaN(annualVal) || isNaN(frlVal) || 
+            sickVal < 0 || annualVal < 0 || frlVal < 0) {
+            alert('Please enter valid numbers (0 or higher)');
+            return;
+        }
+        
+        // Update in Firebase
+        await userRef.update({
+            sickLeave: sickVal,
+            annualLeave: annualVal,
+            frlLeave: frlVal
+        });
+        
+        alert(`Leave balances updated successfully for ${userName}!`);
+        loadUsers();
+        
+    } catch (error) {
+        console.error('Error updating user leaves in Firebase:', error);
+        alert('Failed to update leave balances in Firebase');
+    }
+}
+
+async function updateSelectedUserBalance() {
+    const select = document.getElementById('selectUser');
+    const userId = select.value;
+    const sickLeave = document.getElementById('sickLeave').value;
+    const annualLeave = document.getElementById('annualLeave').value;
+    const frlLeave = document.getElementById('frlLeave').value;
+    
+    if (!userId) {
+        alert('Please select a user');
+        return;
+    }
+    
+    if (parseInt(sickLeave) < 0 || parseInt(annualLeave) < 0 || parseInt(frlLeave) < 0) {
+        alert('Leave values cannot be negative');
+        return;
+    }
+    
+    try {
+        // Update in Firebase
+        const userRef = db.collection('users').doc(userId);
+        await userRef.update({
+            sickLeave: parseInt(sickLeave),
+            annualLeave: parseInt(annualLeave),
+            frlLeave: parseInt(frlLeave)
+        });
+        
+        alert('Leave balance updated successfully in Firebase!');
+        loadUsers();
+        document.getElementById('sickLeave').value = '';
+        document.getElementById('annualLeave').value = '';
+        document.getElementById('frlLeave').value = '';
+        select.selectedIndex = 0;
+        
+    } catch (error) {
+        console.error('Error updating leave balance in Firebase:', error);
+        alert('Failed to update leave balance in Firebase');
+    }
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await initializeUser();
+    loadLeaveRequests();
+    
+    // When user is selected in dropdown, populate the input fields with Firebase data
+    document.getElementById('selectUser').addEventListener('change', async function() {
+        const userId = this.value;
+        if (userId) {
+            try {
+                // Fetch current values from Firebase for the selected user
+                const userRef = db.collection('users').doc(userId);
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    document.getElementById('sickLeave').value = userData.sickLeave || 0;
+                    document.getElementById('annualLeave').value = userData.annualLeave || 0;
+                    document.getElementById('frlLeave').value = userData.frlLeave || 0;
+                }
+            } catch (error) {
+                console.error('Error fetching user data from Firebase:', error);
+                // Fallback to dropdown attributes
+                const selectedOption = this.options[this.selectedIndex];
+                document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
+                document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
+                document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
+            }
+        }
+    });
+});
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html';
+}
+
+async function approveLeave(leaveId) {
+    if (confirm('Are you sure you want to approve this leave request?')) {
+        try {
+            const leaveRef = db.collection('leaveRequests').doc(leaveId);
+            const leaveDoc = await leaveRef.get();
+            const leaveData = leaveDoc.data();
+            
+            // Update leave request status
+            await leaveRef.update({
+                status: 'Approved',
+                approvedBy: currentUser.name || currentUser.username,
+                approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Deduct leave from user's balance in Firebase
+            if (leaveData.userId) {
+                const userRef = db.collection('users').doc(leaveData.userId);
+                const userDoc = await userRef.get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    const leaveType = leaveData.leaveType || 'sick';
+                    const leaveField = `${leaveType.toLowerCase()}Leave`;
                     
-                    // Update leave request status
-                    await leaveRef.update({
-                        status: 'Approved',
-                        approvedBy: currentUser.name || currentUser.username,
-                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Deduct leave from user's balance in Firebase
-                    if (leaveData.userId) {
-                        const userRef = db.collection('users').doc(leaveData.userId);
-                        const userDoc = await userRef.get();
-                        
-                        if (userDoc.exists) {
-                            const userData = userDoc.data();
-                            const leaveType = leaveData.leaveType || 'sick';
-                            const leaveField = `${leaveType.toLowerCase()}Leave`;
+                    if (userData[leaveField] !== undefined) {
+                        let newBalance = userData[leaveField];
+                        if (newBalance > 0) {
+                            newBalance -= 1;
+                            await userRef.update({
+                                [leaveField]: newBalance
+                            });
                             
-                            if (userData[leaveField] !== undefined) {
-                                let newBalance = userData[leaveField];
-                                if (newBalance > 0) {
-                                    newBalance -= 1;
-                                    await userRef.update({
-                                        [leaveField]: newBalance
-                                    });
-                                    
-                                    // Show success message with details
-                                    alert(`Leave request approved!\n\n${leaveData.name}'s ${leaveType} leave balance:\nBefore: ${userData[leaveField]}\nAfter: ${newBalance}`);
-                                } else {
-                                    alert(`Leave request approved!\n\nNote: ${leaveData.name} had 0 ${leaveType} leave remaining.`);
-                                }
-                            }
+                            // Show success message with details
+                            alert(`Leave request approved!\n\n${leaveData.name}'s ${leaveType} leave balance:\nBefore: ${userData[leaveField]}\nAfter: ${newBalance}`);
+                        } else {
+                            alert(`Leave request approved!\n\nNote: ${leaveData.name} had 0 ${leaveType} leave remaining.`);
                         }
                     }
-                    
-                    loadLeaveRequests();
-                } catch (error) {
-                    console.error('Error approving leave:', error);
-                    alert('Failed to approve leave request');
                 }
             }
+            
+            loadLeaveRequests();
+        } catch (error) {
+            console.error('Error approving leave:', error);
+            alert('Failed to approve leave request');
         }
-        
-        async function rejectLeave(leaveId) {
-            if (confirm('Are you sure you want to reject this leave request?')) {
-                try {
-                    const leaveRef = db.collection('leaveRequests').doc(leaveId);
-                    await leaveRef.update({
-                        status: 'Rejected',
-                        approvedBy: currentUser.name || currentUser.username,
-                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert('Leave request rejected!');
-                    loadLeaveRequests();
-                } catch (error) {
-                    console.error('Error rejecting leave:', error);
-                    alert('Failed to reject leave request');
-                }
-            }
+    }
+}
+
+async function rejectLeave(leaveId) {
+    if (confirm('Are you sure you want to reject this leave request?')) {
+        try {
+            const leaveRef = db.collection('leaveRequests').doc(leaveId);
+            await leaveRef.update({
+                status: 'Rejected',
+                approvedBy: currentUser.name || currentUser.username,
+                approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            alert('Leave request rejected!');
+            loadLeaveRequests();
+        } catch (error) {
+            console.error('Error rejecting leave:', error);
+            alert('Failed to reject leave request');
         }
-        
-        async function approveDutyChange(dutyId) {
-            if (confirm('Are you sure you want to approve this duty change?')) {
-                try {
-                    const dutyRef = db.collection('dutyChanges').doc(dutyId);
-                    await dutyRef.update({
-                        status: 'Approved',
-                        acceptedBySupervisor: true,
-                        supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert('Duty change approved!');
-                    loadDutyChanges();
-                } catch (error) {
-                    console.error('Error approving duty change:', error);
-                    alert('Failed to approve duty change');
-                }
-            }
+    }
+}
+
+async function approveDutyChange(dutyId) {
+    if (confirm('Are you sure you want to approve this duty change?')) {
+        try {
+            const dutyRef = db.collection('dutyChanges').doc(dutyId);
+            await dutyRef.update({
+                status: 'Approved',
+                acceptedBySupervisor: true,
+                supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            alert('Duty change approved!');
+            loadDutyChanges();
+        } catch (error) {
+            console.error('Error approving duty change:', error);
+            alert('Failed to approve duty change');
         }
-        
-        async function rejectDutyChange(dutyId) {
-            if (confirm('Are you sure you want to reject this duty change?')) {
-                try {
-                    const dutyRef = db.collection('dutyChanges').doc(dutyId);
-                    await dutyRef.update({
-                        status: 'Rejected',
-                        acceptedBySupervisor: false,
-                        supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert('Duty change rejected!');
-                    loadDutyChanges();
-                } catch (error) {
-                    console.error('Error rejecting duty change:', error);
-                    alert('Failed to reject duty change');
-                }
-            }
+    }
+}
+
+async function rejectDutyChange(dutyId) {
+    if (confirm('Are you sure you want to reject this duty change?')) {
+        try {
+            const dutyRef = db.collection('dutyChanges').doc(dutyId);
+            await dutyRef.update({
+                status: 'Rejected',
+                acceptedBySupervisor: false,
+                supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            alert('Duty change rejected!');
+            loadDutyChanges();
+        } catch (error) {
+            console.error('Error rejecting duty change:', error);
+            alert('Failed to reject duty change');
         }
-        
-        // Make functions available globally
-        window.switchTab = switchTab;
-        window.loadLeaveRequests = loadLeaveRequests;
-        window.loadDutyChanges = loadDutyChanges;
-        window.loadUsers = loadUsers;
-        window.logout = logout;
-        window.approveLeave = approveLeave;
-        window.rejectLeave = rejectLeave;
-        window.approveDutyChange = approveDutyChange;
-        window.rejectDutyChange = rejectDutyChange;
-        window.editUserLeave = editUserLeave;
-        window.updateSelectedUserBalance = updateSelectedUserBalance;
-        window.editSingleLeaveValue = editSingleLeaveValue;
+    }
+}
+
+// Make functions available globally
+window.switchTab = switchTab;
+window.loadLeaveRequests = loadLeaveRequests;
+window.loadDutyChanges = loadDutyChanges;
+window.loadUsers = loadUsers;
+window.logout = logout;
+window.approveLeave = approveLeave;
+window.rejectLeave = rejectLeave;
+window.approveDutyChange = approveDutyChange;
+window.rejectDutyChange = rejectDutyChange;
+window.editUserLeave = editUserLeave;
+window.updateSelectedUserBalance = updateSelectedUserBalance;
+window.editSingleLeaveValue = editSingleLeaveValue;
     </script>
 </body>
 </html>
