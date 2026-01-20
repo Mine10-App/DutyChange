@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Request</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo h2 {
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .form-card h2 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .duty-time {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        
+        .info-box h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .info-box ul {
+            padding-left: 20px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <h2><i class="fas fa-calendar-plus"></i> Leave Request</h2>
+        </div>
+        <div class="user-info">
+            <span id="userName"></span>
+            <button class="back-btn" onclick="goBack()">Back to Dashboard</button>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="info-box">
+            <h4><i class="fas fa-info-circle"></i> Important Notes:</h4>
+            <ul>
+                <li>Sick Leave: Can be applied minimum 2 hours before duty time</li>
+                <li>FRL: Can be applied minimum 1 hour before duty time</li>
+                <li>No back-dated leave applications allowed</li>
+                <li>All applications are subject to supervisor approval</li>
+            </ul>
+        </div>
+        
+        <div class="form-card">
+            <h2>Apply for Leave</h2>
+            
+            <form id="leaveForm">
+                <div class="form-group">
+                    <label for="leaveDate">Date *</label>
+                    <input type="date" id="leaveDate" required>
+                </div>
+                
+                <div class="form-group duty-time">
+                    <div>
+                        <label for="dutyTime">Duty Time *</label>
+                        <input type="time" id="dutyTime" required>
+                    </div>
+                    <div>
+                        <label for="dutyType">Duty Type</label>
+                        <select id="dutyType">
+                            <option value="Day">Day Duty</option>
+                            <option value="Night">Night Duty</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="leaveType">Leave Type *</label>
+                    <select id="leaveType" required>
+                        <option value="">Select Leave Type</option>
+                        <option value="Sick">Sick Leave</option>
+                        <option value="Annual">Annual Leave</option>
+                        <option value="FRL">FRL</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reason">Reason (Optional)</label>
+                    <textarea id="reason" rows="4" placeholder="Brief reason for leave..." style="width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 10px;"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Leave Request</button>
+            </form>
+            
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from './dcfire.js';
+        import { addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        // Check if user is logged in
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        }
+        
+        document.getElementById('userName').textContent = currentUser.name;
+        
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('leaveDate').min = today;
+        
+        document.getElementById('leaveForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+            
+            // Get form values
+            const leaveDate = document.getElementById('leaveDate').value;
+            const dutyTime = document.getElementById('dutyTime').value;
+            const dutyType = document.getElementById('dutyType').value;
+            const leaveType = document.getElementById('leaveType').value;
+            const reason = document.getElementById('reason').value;
+            
+            // Validate date
+            if (new Date(leaveDate) < new Date().setHours(0, 0, 0, 0)) {
+                showMessage('error', 'Back-dated leave applications are not allowed!');
+                return;
+            }
+            
+            // Validate time constraints
+            const dutyDateTime = new Date(`${leaveDate}T${dutyTime}`);
+            const now = new Date();
+            const hoursDifference = (dutyDateTime - now) / (1000 * 60 * 60);
+            
+            if (leaveType === 'Sick' && hoursDifference < 2) {
+                showMessage('error', 'Sick leave must be applied at least 2 hours before duty time!');
+                return;
+            }
+            
+            if (leaveType === 'FRL' && hoursDifference < 1) {
+                showMessage('error', 'FRL must be applied at least 1 hour before duty time!');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                // Save to Firestore
+                await addDoc(collection(db, 'leaveRequests'), {
+                    username: currentUser.username,
+                    name: currentUser.name,
+                    leaveDate: leaveDate,
+                    dutyTime: dutyTime,
+                    dutyType: dutyType,
+                    leaveType: leaveType,
+                    reason: reason,
+                    status: 'Pending',
+                    submittedAt: serverTimestamp(),
+                    approvedBy: null,
+                    approvedAt: null
+                });
+                
+                showMessage('success', 'Leave request submitted successfully! Waiting for supervisor approval.');
+                document.getElementById('leaveForm').reset();
+                
+                // Reset date min to today
+                document.getElementById('leaveDate').min = today;
+                
+            } catch (error) {
+                console.error('Error submitting leave request:', error);
+                showMessage('error', 'Failed to submit leave request. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Leave Request';
+            }
+        });
+        
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
