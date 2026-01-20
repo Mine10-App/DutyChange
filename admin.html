@@ -193,7 +193,7 @@
             font-weight: 500;
         }
         
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             border: 2px solid #e0e0e0;
@@ -340,19 +340,14 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db } from './dcfire.js';
-        import { 
-            collection, 
-            getDocs, 
-            query, 
-            where, 
-            orderBy, 
-            updateDoc, 
-            doc,
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
+    <!-- Firebase SDK Version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase configuration (make sure it initializes db variable) -->
+    <script src="./dcfire.js"></script>
+    
+    <script>
         // Check if user is logged in and is supervisor
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser || currentUser.level !== 'Supervisor') {
@@ -391,9 +386,11 @@
         
         async function loadLeaveRequests() {
             try {
-                const leaveRef = collection(db, 'leaveRequests');
-                const q = query(leaveRef, where('status', '==', 'Pending'), orderBy('submittedAt', 'desc'));
-                const querySnapshot = await getDocs(q);
+                const leaveRef = db.collection('leaveRequests');
+                const querySnapshot = await leaveRef
+                    .where('status', '==', 'Pending')
+                    .orderBy('submittedAt', 'desc')
+                    .get();
                 
                 const tbody = document.getElementById('leaveRequestsBody');
                 tbody.innerHTML = '';
@@ -402,13 +399,19 @@
                     const data = docItem.data();
                     const row = document.createElement('tr');
                     
+                    // Format date if it's a Firebase timestamp
+                    let leaveDate = data.leaveDate;
+                    if (data.leaveDate && data.leaveDate.toDate) {
+                        leaveDate = data.leaveDate.toDate().toLocaleDateString();
+                    }
+                    
                     row.innerHTML = `
-                        <td>${data.leaveDate}</td>
-                        <td>${data.name}</td>
-                        <td>${data.leaveType}</td>
-                        <td>${data.dutyTime} (${data.dutyType})</td>
+                        <td>${leaveDate}</td>
+                        <td>${data.name || 'N/A'}</td>
+                        <td>${data.leaveType || 'N/A'}</td>
+                        <td>${data.dutyTime || 'N/A'} (${data.dutyType || 'N/A'})</td>
                         <td>${data.reason || '-'}</td>
-                        <td class="status-pending">${data.status}</td>
+                        <td class="status-pending">${data.status || 'Pending'}</td>
                         <td>
                             <button class="action-btn approve-btn" onclick="approveLeave('${docItem.id}')">Approve</button>
                             <button class="action-btn reject-btn" onclick="rejectLeave('${docItem.id}')">Reject</button>
@@ -429,9 +432,11 @@
         
         async function loadDutyChanges() {
             try {
-                const dutyRef = collection(db, 'dutyChanges');
-                const q = query(dutyRef, where('status', '==', 'Accepted'), orderBy('staffAcceptedAt', 'desc'));
-                const querySnapshot = await getDocs(q);
+                const dutyRef = db.collection('dutyChanges');
+                const querySnapshot = await dutyRef
+                    .where('status', '==', 'Accepted')
+                    .orderBy('staffAcceptedAt', 'desc')
+                    .get();
                 
                 const tbody = document.getElementById('dutyChangesBody');
                 tbody.innerHTML = '';
@@ -440,14 +445,20 @@
                     const data = docItem.data();
                     const row = document.createElement('tr');
                     
+                    // Format date if it's a Firebase timestamp
+                    let changeDate = data.changeDate;
+                    if (data.changeDate && data.changeDate.toDate) {
+                        changeDate = data.changeDate.toDate().toLocaleDateString();
+                    }
+                    
                     row.innerHTML = `
-                        <td>${data.changeDate}</td>
-                        <td>${data.requestorName}</td>
-                        <td>${data.acceptedStaffName}</td>
-                        <td>${data.requestorDutyTime}</td>
-                        <td>${data.acceptedStaffDutyTime}</td>
+                        <td>${changeDate}</td>
+                        <td>${data.requestorName || 'N/A'}</td>
+                        <td>${data.acceptedStaffName || 'N/A'}</td>
+                        <td>${data.requestorDutyTime || 'N/A'}</td>
+                        <td>${data.acceptedStaffDutyTime || 'N/A'}</td>
                         <td>${data.acceptedByStaff ? 'Yes' : 'No'}</td>
-                        <td class="status-accepted">${data.status}</td>
+                        <td class="status-accepted">${data.status || 'Accepted'}</td>
                         <td>
                             <button class="action-btn approve-btn" onclick="approveDutyChange('${docItem.id}')">Approve</button>
                             <button class="action-btn reject-btn" onclick="rejectDutyChange('${docItem.id}')">Reject</button>
@@ -468,8 +479,8 @@
         
         async function loadUsers() {
             try {
-                const usersRef = collection(db, 'users');
-                const querySnapshot = await getDocs(usersRef);
+                const usersRef = db.collection('users');
+                const querySnapshot = await usersRef.get();
                 
                 const tbody = document.getElementById('usersTableBody');
                 const selectUser = document.getElementById('selectUser');
@@ -482,9 +493,9 @@
                     // Add to table
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${data.username}</td>
-                        <td>${data.name}</td>
-                        <td>${data.level}</td>
+                        <td>${data.username || 'N/A'}</td>
+                        <td>${data.name || 'N/A'}</td>
+                        <td>${data.level || 'N/A'}</td>
                         <td>${data.sickLeave || 0}</td>
                         <td>${data.annualLeave || 0}</td>
                         <td>${data.frlLeave || 0}</td>
@@ -494,7 +505,7 @@
                     // Add to dropdown
                     const option = document.createElement('option');
                     option.value = docItem.id;
-                    option.textContent = `${data.name} (${data.username})`;
+                    option.textContent = `${data.name || 'Unknown'} (${data.username || 'No username'})`;
                     selectUser.appendChild(option);
                 });
                 
@@ -504,36 +515,38 @@
         }
         
         // Load data on page load
-        loadLeaveRequests();
-        
-        // Setup leave balance form
-        document.getElementById('leaveBalanceForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeaveRequests();
             
-            const userId = document.getElementById('selectUser').value;
-            const sickLeave = document.getElementById('sickLeave').value;
-            const annualLeave = document.getElementById('annualLeave').value;
-            
-            if (!userId) {
-                alert('Please select a user');
-                return;
-            }
-            
-            try {
-                const userRef = doc(db, 'users', userId);
-                await updateDoc(userRef, {
-                    sickLeave: parseInt(sickLeave),
-                    annualLeave: parseInt(annualLeave)
-                });
+            // Setup leave balance form
+            document.getElementById('leaveBalanceForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                alert('Leave balance updated successfully!');
-                loadUsers();
-                document.getElementById('leaveBalanceForm').reset();
+                const userId = document.getElementById('selectUser').value;
+                const sickLeave = document.getElementById('sickLeave').value;
+                const annualLeave = document.getElementById('annualLeave').value;
                 
-            } catch (error) {
-                console.error('Error updating leave balance:', error);
-                alert('Failed to update leave balance');
-            }
+                if (!userId) {
+                    alert('Please select a user');
+                    return;
+                }
+                
+                try {
+                    const userRef = db.collection('users').doc(userId);
+                    await userRef.update({
+                        sickLeave: parseInt(sickLeave),
+                        annualLeave: parseInt(annualLeave)
+                    });
+                    
+                    alert('Leave balance updated successfully!');
+                    loadUsers();
+                    document.getElementById('leaveBalanceForm').reset();
+                    
+                } catch (error) {
+                    console.error('Error updating leave balance:', error);
+                    alert('Failed to update leave balance');
+                }
+            });
         });
         
         function logout() {
@@ -541,19 +554,14 @@
             window.location.href = 'index.html';
         }
         
-        // Make functions available globally
-        window.switchTab = switchTab;
-        window.loadLeaveRequests = loadLeaveRequests;
-        window.loadDutyChanges = loadDutyChanges;
-        window.loadUsers = loadUsers;
-        window.approveLeave = async function(leaveId) {
+        async function approveLeave(leaveId) {
             if (confirm('Are you sure you want to approve this leave request?')) {
                 try {
-                    const leaveRef = doc(db, 'leaveRequests', leaveId);
-                    await updateDoc(leaveRef, {
+                    const leaveRef = db.collection('leaveRequests').doc(leaveId);
+                    await leaveRef.update({
                         status: 'Approved',
                         approvedBy: currentUser.name,
-                        approvedAt: serverTimestamp()
+                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     alert('Leave request approved!');
@@ -563,16 +571,16 @@
                     alert('Failed to approve leave request');
                 }
             }
-        };
+        }
         
-        window.rejectLeave = async function(leaveId) {
+        async function rejectLeave(leaveId) {
             if (confirm('Are you sure you want to reject this leave request?')) {
                 try {
-                    const leaveRef = doc(db, 'leaveRequests', leaveId);
-                    await updateDoc(leaveRef, {
+                    const leaveRef = db.collection('leaveRequests').doc(leaveId);
+                    await leaveRef.update({
                         status: 'Rejected',
                         approvedBy: currentUser.name,
-                        approvedAt: serverTimestamp()
+                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     alert('Leave request rejected!');
@@ -582,16 +590,16 @@
                     alert('Failed to reject leave request');
                 }
             }
-        };
+        }
         
-        window.approveDutyChange = async function(dutyId) {
+        async function approveDutyChange(dutyId) {
             if (confirm('Are you sure you want to approve this duty change?')) {
                 try {
-                    const dutyRef = doc(db, 'dutyChanges', dutyId);
-                    await updateDoc(dutyRef, {
+                    const dutyRef = db.collection('dutyChanges').doc(dutyId);
+                    await dutyRef.update({
                         status: 'Approved',
                         acceptedBySupervisor: true,
-                        supervisorApprovedAt: serverTimestamp()
+                        supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     alert('Duty change approved!');
@@ -601,16 +609,16 @@
                     alert('Failed to approve duty change');
                 }
             }
-        };
+        }
         
-        window.rejectDutyChange = async function(dutyId) {
+        async function rejectDutyChange(dutyId) {
             if (confirm('Are you sure you want to reject this duty change?')) {
                 try {
-                    const dutyRef = doc(db, 'dutyChanges', dutyId);
-                    await updateDoc(dutyRef, {
+                    const dutyRef = db.collection('dutyChanges').doc(dutyId);
+                    await dutyRef.update({
                         status: 'Rejected',
                         acceptedBySupervisor: false,
-                        supervisorApprovedAt: serverTimestamp()
+                        supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
                     alert('Duty change rejected!');
@@ -620,7 +628,18 @@
                     alert('Failed to reject duty change');
                 }
             }
-        };
+        }
+        
+        // Make functions available globally
+        window.switchTab = switchTab;
+        window.loadLeaveRequests = loadLeaveRequests;
+        window.loadDutyChanges = loadDutyChanges;
+        window.loadUsers = loadUsers;
+        window.logout = logout;
+        window.approveLeave = approveLeave;
+        window.rejectLeave = rejectLeave;
+        window.approveDutyChange = approveDutyChange;
+        window.rejectDutyChange = rejectDutyChange;
     </script>
 </body>
 </html>
