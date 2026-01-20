@@ -3,844 +3,624 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <title>Admin Panel</title>
     <style>
-        :root {
-            --admin-primary: #4e54c8;
-            --admin-secondary: #8f94fb;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         body {
-            background-color: #f8f9fa;
+            background: #f5f7fa;
         }
-        .admin-sidebar {
-            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            min-height: 100vh;
-            position: fixed;
-            width: 250px;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        .admin-sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 20px;
-            margin: 5px 0;
+        
+        .logo h2 {
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .welcome-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .welcome-card h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 12px 30px;
+            background: #f0f0f0;
+            border: none;
             border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
             transition: all 0.3s;
         }
-        .admin-sidebar .nav-link:hover,
-        .admin-sidebar .nav-link.active {
+        
+        .tab.active {
+            background: #667eea;
             color: white;
-            background: rgba(255,255,255,0.1);
         }
-        .admin-main {
-            margin-left: 250px;
-            padding: 20px;
+        
+        .tab:hover:not(.active) {
+            background: #e0e0e0;
         }
-        .stat-card-admin {
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--admin-primary);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
-        .nav-tabs .nav-link.active {
-            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .status-pending {
+            color: #f39c12;
+            font-weight: 500;
+        }
+        
+        .status-accepted {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .status-rejected {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 3px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .approve-btn {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .reject-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .view-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            padding: 10px 20px;
+            background: #667eea;
             color: white;
             border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
         }
-        .table-hover tbody tr:hover {
-            background-color: rgba(78, 84, 200, 0.1);
-        }
-        .badge-admin {
-            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
-        }
-        .btn-admin {
-            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+        
+        .refresh-btn {
+            float: right;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
             border: none;
-            color: white;
-        }
-        .btn-admin:hover {
-            color: white;
-            opacity: 0.9;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Admin Sidebar -->
-    <nav class="admin-sidebar">
-        <div class="p-3">
-            <h4 class="text-center"><i class="bi bi-shield-lock"></i> Admin Panel</h4>
-            <hr class="bg-light">
+    <nav class="navbar">
+        <div class="logo">
+            <h2><i class="fas fa-user-shield"></i> Supervisor Panel</h2>
         </div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link active" href="#" onclick="showSection('dashboard')">
-                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" onclick="showSection('leaveRequests')">
-                    <i class="bi bi-calendar-check me-2"></i> Leave Requests
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" onclick="showSection('dutyChanges')">
-                    <i class="bi bi-arrow-left-right me-2"></i> Duty Changes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" onclick="showSection('manageUsers')">
-                    <i class="bi bi-people me-2"></i> Manage Users
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" onclick="showSection('leaveBalances')">
-                    <i class="bi bi-calendar me-2"></i> Leave Balances
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a class="nav-link" href="index.html">
-                    <i class="bi bi-box-arrow-left me-2"></i> Logout
-                </a>
-            </li>
-        </ul>
+        <div class="user-info">
+            <span id="userName"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
     </nav>
-
-    <!-- Main Content -->
-    <div class="admin-main">
-        <!-- Top Bar -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3>Admin Dashboard</h3>
-            <div>
-                <span class="badge badge-admin p-2 me-2" id="currentDate"></span>
-                <span class="text-muted">Welcome, <strong id="adminName">Admin</strong></span>
+    
+    <div class="container">
+        <div class="welcome-card">
+            <h2>Welcome, <span id="welcomeName"></span>!</h2>
+            <p>Manage leave requests, duty changes, and user settings from this panel.</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('leaveRequests')">Leave Requests</button>
+            <button class="tab" onclick="switchTab('dutyChanges')">Duty Changes</button>
+            <button class="tab" onclick="switchTab('manageUsers')">Manage Users</button>
+        </div>
+        
+        <!-- Leave Requests Tab -->
+        <div id="leaveRequests" class="tab-content active">
+            <button class="refresh-btn" onclick="loadLeaveRequests()">Refresh</button>
+            <div class="card">
+                <h3>Pending Leave Requests</h3>
+                <table id="leaveRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Staff</th>
+                            <th>Leave Type</th>
+                            <th>Duty Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveRequestsBody">
+                        <!-- Leave requests will be loaded here -->
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <!-- Content Sections -->
-        <div id="contentSections">
-            <!-- Dashboard Section -->
-            <section id="dashboardSection" class="content-section">
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="stat-card-admin">
-                            <h6 class="text-muted">Total Users</h6>
-                            <h3 id="totalUsers">0</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card-admin">
-                            <h6 class="text-muted">Pending Leaves</h6>
-                            <h3 id="pendingLeaves">0</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card-admin">
-                            <h6 class="text-muted">Pending Duty Changes</h6>
-                            <h3 id="pendingDutyChanges">0</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card-admin">
-                            <h6 class="text-muted">Today's Leaves</h6>
-                            <h3 id="todayLeaves">0</h3>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Recent Leave Requests</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="recentLeaveTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Staff</th>
-                                                <th>Date</th>
-                                                <th>Type</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Dynamic content -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Recent Duty Changes</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="recentDutyTable">
-                                        <thead>
-                                            <tr>
-                                                <th>From</th>
-                                                <th>To</th>
-                                                <th>Date</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Dynamic content -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Leave Requests Section -->
-            <section id="leaveRequestsSection" class="content-section" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">All Leave Requests</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover" id="leaveRequestsTable">
-                            <thead>
-                                <tr>
-                                    <th>Staff</th>
-                                    <th>RC No</th>
-                                    <th>Date</th>
-                                    <th>Duty Time</th>
-                                    <th>Type</th>
-                                    <th>Reason</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Dynamic content -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Duty Changes Section -->
-            <section id="dutyChangesSection" class="content-section" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Duty Change Requests</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover" id="dutyChangesTable">
-                            <thead>
-                                <tr>
-                                    <th>Requested By</th>
-                                    <th>Accepted By</th>
-                                    <th>Date</th>
-                                    <th>Duty Time</th>
-                                    <th>Accepted Duty Time</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Dynamic content -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Manage Users Section -->
-            <section id="manageUsersSection" class="content-section" style="display: none;">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Manage Users</h5>
-                        <button class="btn btn-admin" onclick="openAddUserModal()">
-                            <i class="bi bi-person-plus me-2"></i> Add User
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover" id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Username</th>
-                                    <th>RC No</th>
-                                    <th>Role</th>
-                                    <th>Leave Balances</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Dynamic content -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Leave Balances Section -->
-            <section id="leaveBalancesSection" class="content-section" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Manage Leave Balances</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="leaveBalancesTable">
-                                <thead>
-                                    <tr>
-                                        <th>Staff</th>
-                                        <th>RC No</th>
-                                        <th>Sick Leave</th>
-                                        <th>FRL</th>
-                                        <th>Annual Leave</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Dynamic content -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        
+        <!-- Duty Changes Tab -->
+        <div id="dutyChanges" class="tab-content">
+            <button class="refresh-btn" onclick="loadDutyChanges()">Refresh</button>
+            <div class="card">
+                <h3>Pending Duty Changes</h3>
+                <table id="dutyChangesTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Requestor</th>
+                            <th>Accepted Staff</th>
+                            <th>Requestor Time</th>
+                            <th>Staff Time</th>
+                            <th>Staff Accepted</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dutyChangesBody">
+                        <!-- Duty changes will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-
-    <!-- Modals -->
-    <div class="modal fade" id="addUserModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New User</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addUserForm">
-                        <div class="mb-3">
-                            <label class="form-label">Full Name *</label>
-                            <input type="text" class="form-control" id="newUserName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Username *</label>
-                            <input type="text" class="form-control" id="newUserUsername" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password *</label>
-                            <input type="password" class="form-control" id="newUserPassword" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" id="newUserEmail">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">RC Number *</label>
-                            <input type="text" class="form-control" id="newUserRcNo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Role *</label>
-                            <select class="form-select" id="newUserRole" required>
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
+        
+        <!-- Manage Users Tab -->
+        <div id="manageUsers" class="tab-content">
+            <button class="refresh-btn" onclick="loadUsers()">Refresh</button>
+            <div class="card">
+                <h3>Set Leave Balances</h3>
+                <form id="leaveBalanceForm" style="margin-top: 20px;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select User</label>
+                            <select id="selectUser" required>
+                                <option value="">Select User</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Initial Leave Balances</label>
-                            <div class="row">
-                                <div class="col-4">
-                                    <input type="number" class="form-control" id="newUserSick" value="10" min="0">
-                                    <small class="text-muted">Sick</small>
-                                </div>
-                                <div class="col-4">
-                                    <input type="number" class="form-control" id="newUserFrl" value="5" min="0">
-                                    <small class="text-muted">FRL</small>
-                                </div>
-                                <div class="col-4">
-                                    <input type="number" class="form-control" id="newUserAnnual" value="20" min="0">
-                                    <small class="text-muted">Annual</small>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label>Sick Leave</label>
+                            <input type="number" id="sickLeave" min="0" required>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-admin" onclick="addNewUser()">Add User</button>
-                </div>
+                        <div class="form-group">
+                            <label>Annual Leave</label>
+                            <input type="number" id="annualLeave" min="0" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Update Balance</button>
+                    </div>
+                </form>
+                
+                <h3 style="margin-top: 30px;">User List</h3>
+                <table style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Level</th>
+                            <th>Sick Leave</th>
+                            <th>Annual Leave</th>
+                            <th>FRL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script type="module">
         import { db } from './dcfire.js';
         import { 
             collection, 
-            getDocs,
-            query,
-            where,
-            orderBy,
+            getDocs, 
+            query, 
+            where, 
+            orderBy, 
+            updateDoc, 
             doc,
-            updateDoc,
-            setDoc,
-            deleteDoc,
-            addDoc
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Check authentication
-        const user = JSON.parse(sessionStorage.getItem('currentUser'));
-        if (!user || user.role !== 'admin') {
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        // Check if user is logged in and is supervisor
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.level !== 'Supervisor') {
             window.location.href = 'index.html';
         }
-
-        // Display admin name
-        document.getElementById('adminName').textContent = user.name;
-
-        // Update date
-        function updateDate() {
-            const now = new Date();
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-        updateDate();
-
-        // Show/hide sections
-        window.showSection = function(sectionName) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.style.display = 'none';
+        
+        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('welcomeName').textContent = currentUser.name;
+        
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
             
-            // Remove active class from all nav links
-            document.querySelectorAll('.admin-sidebar .nav-link').forEach(link => {
-                link.classList.remove('active');
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(tabBtn => {
+                tabBtn.classList.remove('active');
             });
             
-            // Show selected section and activate nav link
-            document.getElementById(sectionName + 'Section').style.display = 'block';
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab button
             event.target.classList.add('active');
             
-            // Load data for the section
-            switch(sectionName) {
-                case 'dashboard':
-                    loadDashboardStats();
-                    break;
-                case 'leaveRequests':
-                    loadLeaveRequests();
-                    break;
-                case 'dutyChanges':
-                    loadDutyChanges();
-                    break;
-                case 'manageUsers':
-                    loadUsers();
-                    break;
-                case 'leaveBalances':
-                    loadLeaveBalances();
-                    break;
-            }
-        };
-
-        // Load dashboard statistics
-        async function loadDashboardStats() {
-            try {
-                // Count total users
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                document.getElementById('totalUsers').textContent = usersSnapshot.size;
-
-                // Count pending leaves
-                const leavesRef = collection(db, 'leaveRequests');
-                const leavesQuery = query(leavesRef, where("status", "==", "pending"));
-                const leavesSnapshot = await getDocs(leavesQuery);
-                document.getElementById('pendingLeaves').textContent = leavesSnapshot.size;
-
-                // Count pending duty changes
-                const dutyRef = collection(db, 'dutyChanges');
-                const dutyQuery = query(dutyRef, where("status", "==", "pending"));
-                const dutySnapshot = await getDocs(dutyQuery);
-                document.getElementById('pendingDutyChanges').textContent = dutySnapshot.size;
-
-                // Count today's leaves
-                const today = new Date().toISOString().split('T')[0];
-                const todayQuery = query(leavesRef, where("date", "==", today));
-                const todaySnapshot = await getDocs(todayQuery);
-                document.getElementById('todayLeaves').textContent = todaySnapshot.size;
-
-                // Load recent leaves
-                const recentLeavesQuery = query(leavesRef, orderBy("createdAt", "desc"), limit(5));
-                const recentLeavesSnapshot = await getDocs(recentLeavesQuery);
-                const recentLeaveTable = document.getElementById('recentLeaveTable').querySelector('tbody');
-                recentLeaveTable.innerHTML = '';
-                
-                recentLeavesSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const row = recentLeaveTable.insertRow();
-                    row.innerHTML = `
-                        <td>${data.userName}</td>
-                        <td>${new Date(data.date).toLocaleDateString()}</td>
-                        <td><span class="badge bg-${getLeaveTypeColor(data.leaveType)}">${data.leaveType}</span></td>
-                        <td><span class="badge bg-${getStatusColor(data.status)}">${data.status}</span></td>
-                    `;
-                });
-
-                // Load recent duty changes
-                const recentDutyQuery = query(dutyRef, orderBy("createdAt", "desc"), limit(5));
-                const recentDutySnapshot = await getDocs(recentDutyQuery);
-                const recentDutyTable = document.getElementById('recentDutyTable').querySelector('tbody');
-                recentDutyTable.innerHTML = '';
-                
-                recentDutySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const row = recentDutyTable.insertRow();
-                    row.innerHTML = `
-                        <td>${data.requestedByName}</td>
-                        <td>${data.acceptedStaffName || 'N/A'}</td>
-                        <td>${new Date(data.date).toLocaleDateString()}</td>
-                        <td><span class="badge bg-${getStatusColor(data.status)}">${data.status}</span></td>
-                    `;
-                });
-
-            } catch (error) {
-                console.error('Error loading dashboard stats:', error);
+            // Load data for the tab
+            if (tabName === 'leaveRequests') {
+                loadLeaveRequests();
+            } else if (tabName === 'dutyChanges') {
+                loadDutyChanges();
+            } else if (tabName === 'manageUsers') {
+                loadUsers();
             }
         }
-
-        // Load leave requests
+        
         async function loadLeaveRequests() {
             try {
-                const leavesRef = collection(db, 'leaveRequests');
-                const leavesQuery = query(leavesRef, orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(leavesQuery);
+                const leaveRef = collection(db, 'leaveRequests');
+                const q = query(leaveRef, where('status', '==', 'Pending'), orderBy('submittedAt', 'desc'));
+                const querySnapshot = await getDocs(q);
                 
-                const table = document.getElementById('leaveRequestsTable').querySelector('tbody');
-                table.innerHTML = '';
+                const tbody = document.getElementById('leaveRequestsBody');
+                tbody.innerHTML = '';
                 
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const row = table.insertRow();
+                querySnapshot.forEach((docItem) => {
+                    const data = docItem.data();
+                    const row = document.createElement('tr');
+                    
                     row.innerHTML = `
-                        <td>${data.userName}</td>
-                        <td>${data.userRcNo}</td>
-                        <td>${new Date(data.date).toLocaleDateString()}</td>
-                        <td>${data.dutyTime}</td>
-                        <td><span class="badge bg-${getLeaveTypeColor(data.leaveType)}">${data.leaveType}</span></td>
-                        <td>${data.reason}</td>
-                        <td><span class="badge bg-${getStatusColor(data.status)}">${data.status}</span></td>
+                        <td>${data.leaveDate}</td>
+                        <td>${data.name}</td>
+                        <td>${data.leaveType}</td>
+                        <td>${data.dutyTime} (${data.dutyType})</td>
+                        <td>${data.reason || '-'}</td>
+                        <td class="status-pending">${data.status}</td>
                         <td>
-                            ${data.status === 'pending' ? `
-                                <button class="btn btn-sm btn-success me-1" onclick="approveLeave('${doc.id}')">Approve</button>
-                                <button class="btn btn-sm btn-danger" onclick="rejectLeave('${doc.id}')">Reject</button>
-                            ` : 'No action needed'}
+                            <button class="action-btn approve-btn" onclick="approveLeave('${docItem.id}')">Approve</button>
+                            <button class="action-btn reject-btn" onclick="rejectLeave('${docItem.id}')">Reject</button>
                         </td>
                     `;
+                    
+                    tbody.appendChild(row);
                 });
                 
-                // Initialize DataTable if not already initialized
-                if (!$.fn.DataTable.isDataTable('#leaveRequestsTable')) {
-                    $('#leaveRequestsTable').DataTable();
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No pending leave requests</td></tr>';
                 }
                 
             } catch (error) {
                 console.error('Error loading leave requests:', error);
             }
         }
-
-        // Load duty changes
+        
         async function loadDutyChanges() {
             try {
                 const dutyRef = collection(db, 'dutyChanges');
-                const dutyQuery = query(dutyRef, orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(dutyQuery);
+                const q = query(dutyRef, where('status', '==', 'Accepted'), orderBy('staffAcceptedAt', 'desc'));
+                const querySnapshot = await getDocs(q);
                 
-                const table = document.getElementById('dutyChangesTable').querySelector('tbody');
-                table.innerHTML = '';
+                const tbody = document.getElementById('dutyChangesBody');
+                tbody.innerHTML = '';
                 
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const row = table.insertRow();
+                querySnapshot.forEach((docItem) => {
+                    const data = docItem.data();
+                    const row = document.createElement('tr');
+                    
                     row.innerHTML = `
-                        <td>${data.requestedByName}</td>
-                        <td>${data.acceptedStaffName || 'Not accepted'}</td>
-                        <td>${new Date(data.date).toLocaleDateString()}</td>
-                        <td>${data.dutyTime}</td>
-                        <td>${data.acceptedStaffDutyTime || 'N/A'}</td>
-                        <td><span class="badge bg-${getStatusColor(data.status)}">${data.status}</span></td>
+                        <td>${data.changeDate}</td>
+                        <td>${data.requestorName}</td>
+                        <td>${data.acceptedStaffName}</td>
+                        <td>${data.requestorDutyTime}</td>
+                        <td>${data.acceptedStaffDutyTime}</td>
+                        <td>${data.acceptedByStaff ? 'Yes' : 'No'}</td>
+                        <td class="status-accepted">${data.status}</td>
                         <td>
-                            ${data.status === 'accepted' ? `
-                                <button class="btn btn-sm btn-success me-1" onclick="approveDutyChange('${doc.id}')">Approve</button>
-                                <button class="btn btn-sm btn-danger" onclick="rejectDutyChange('${doc.id}')">Reject</button>
-                            ` : data.status === 'pending' ? 'Waiting for acceptance' : 'No action needed'}
+                            <button class="action-btn approve-btn" onclick="approveDutyChange('${docItem.id}')">Approve</button>
+                            <button class="action-btn reject-btn" onclick="rejectDutyChange('${docItem.id}')">Reject</button>
                         </td>
                     `;
+                    
+                    tbody.appendChild(row);
                 });
                 
-                if (!$.fn.DataTable.isDataTable('#dutyChangesTable')) {
-                    $('#dutyChangesTable').DataTable();
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No pending duty changes</td></tr>';
                 }
                 
             } catch (error) {
                 console.error('Error loading duty changes:', error);
             }
         }
-
-        // Load users
+        
         async function loadUsers() {
             try {
                 const usersRef = collection(db, 'users');
                 const querySnapshot = await getDocs(usersRef);
                 
-                const table = document.getElementById('usersTable').querySelector('tbody');
-                table.innerHTML = '';
+                const tbody = document.getElementById('usersTableBody');
+                const selectUser = document.getElementById('selectUser');
+                tbody.innerHTML = '';
+                selectUser.innerHTML = '<option value="">Select User</option>';
                 
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const row = table.insertRow();
+                querySnapshot.forEach((docItem) => {
+                    const data = docItem.data();
+                    
+                    // Add to table
+                    const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${data.name}</td>
                         <td>${data.username}</td>
-                        <td>${data.rcNo}</td>
-                        <td><span class="badge ${data.role === 'admin' ? 'bg-danger' : 'bg-primary'}">${data.role}</span></td>
-                        <td>
-                            <small>Sick: ${data.leaveBalance?.sick || 0}</small><br>
-                            <small>FRL: ${data.leaveBalance?.frl || 0}</small><br>
-                            <small>Annual: ${data.leaveBalance?.annual || 0}</small>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-warning me-1" onclick="editUser('${doc.id}')">Edit</button>
-                            ${data.role !== 'admin' ? `
-                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${doc.id}', '${data.name}')">Delete</button>
-                            ` : ''}
-                        </td>
+                        <td>${data.name}</td>
+                        <td>${data.level}</td>
+                        <td>${data.sickLeave || 0}</td>
+                        <td>${data.annualLeave || 0}</td>
+                        <td>${data.frlLeave || 0}</td>
                     `;
+                    tbody.appendChild(row);
+                    
+                    // Add to dropdown
+                    const option = document.createElement('option');
+                    option.value = docItem.id;
+                    option.textContent = `${data.name} (${data.username})`;
+                    selectUser.appendChild(option);
                 });
-                
-                if (!$.fn.DataTable.isDataTable('#usersTable')) {
-                    $('#usersTable').DataTable();
-                }
                 
             } catch (error) {
                 console.error('Error loading users:', error);
             }
         }
-
-        // Load leave balances
-        async function loadLeaveBalances() {
+        
+        // Load data on page load
+        loadLeaveRequests();
+        
+        // Setup leave balance form
+        document.getElementById('leaveBalanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('selectUser').value;
+            const sickLeave = document.getElementById('sickLeave').value;
+            const annualLeave = document.getElementById('annualLeave').value;
+            
+            if (!userId) {
+                alert('Please select a user');
+                return;
+            }
+            
             try {
-                const usersRef = collection(db, 'users');
-                const querySnapshot = await getDocs(usersRef);
-                
-                const table = document.getElementById('leaveBalancesTable').querySelector('tbody');
-                table.innerHTML = '';
-                
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.role === 'user') {
-                        const row = table.insertRow();
-                        row.innerHTML = `
-                            <td>${data.name}</td>
-                            <td>${data.rcNo}</td>
-                            <td>
-                                <input type="number" class="form-control form-control-sm" 
-                                       value="${data.leaveBalance?.sick || 0}" 
-                                       onchange="updateLeaveBalance('${doc.id}', 'sick', this.value)">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control form-control-sm" 
-                                       value="${data.leaveBalance?.frl || 0}" 
-                                       onchange="updateLeaveBalance('${doc.id}', 'frl', this.value)">
-                            </td>
-                            <td>
-                                <input type="number" class="form-control form-control-sm" 
-                                       value="${data.leaveBalance?.annual || 0}" 
-                                       onchange="updateLeaveBalance('${doc.id}', 'annual', this.value)">
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-success" onclick="saveLeaveBalances('${doc.id}')">
-                                    <i class="bi bi-check"></i> Save
-                                </button>
-                            </td>
-                        `;
-                    }
+                const userRef = doc(db, 'users', userId);
+                await updateDoc(userRef, {
+                    sickLeave: parseInt(sickLeave),
+                    annualLeave: parseInt(annualLeave)
                 });
                 
-                if (!$.fn.DataTable.isDataTable('#leaveBalancesTable')) {
-                    $('#leaveBalancesTable').DataTable();
-                }
-                
-            } catch (error) {
-                console.error('Error loading leave balances:', error);
-            }
-        }
-
-        // Helper functions
-        function getLeaveTypeColor(type) {
-            switch(type.toLowerCase()) {
-                case 'sick': return 'danger';
-                case 'frl': return 'warning';
-                case 'annual': return 'success';
-                default: return 'secondary';
-            }
-        }
-
-        function getStatusColor(status) {
-            switch(status.toLowerCase()) {
-                case 'approved': return 'success';
-                case 'pending': return 'warning';
-                case 'rejected': return 'danger';
-                case 'accepted': return 'info';
-                default: return 'secondary';
-            }
-        }
-
-        // Action functions
-        window.approveLeave = async function(leaveId) {
-            try {
-                const leaveRef = doc(db, 'leaveRequests', leaveId);
-                await updateDoc(leaveRef, {
-                    status: 'approved',
-                    updatedAt: new Date().toISOString()
-                });
-                alert('Leave approved successfully!');
-                loadLeaveRequests();
-            } catch (error) {
-                console.error('Error approving leave:', error);
-                alert('Error approving leave');
-            }
-        };
-
-        window.rejectLeave = async function(leaveId) {
-            try {
-                const leaveRef = doc(db, 'leaveRequests', leaveId);
-                await updateDoc(leaveRef, {
-                    status: 'rejected',
-                    updatedAt: new Date().toISOString()
-                });
-                alert('Leave rejected successfully!');
-                loadLeaveRequests();
-            } catch (error) {
-                console.error('Error rejecting leave:', error);
-                alert('Error rejecting leave');
-            }
-        };
-
-        window.approveDutyChange = async function(dutyId) {
-            try {
-                const dutyRef = doc(db, 'dutyChanges', dutyId);
-                await updateDoc(dutyRef, {
-                    status: 'approved',
-                    adminApproved: true,
-                    updatedAt: new Date().toISOString()
-                });
-                alert('Duty change approved successfully!');
-                loadDutyChanges();
-            } catch (error) {
-                console.error('Error approving duty change:', error);
-                alert('Error approving duty change');
-            }
-        };
-
-        window.rejectDutyChange = async function(dutyId) {
-            try {
-                const dutyRef = doc(db, 'dutyChanges', dutyId);
-                await updateDoc(dutyRef, {
-                    status: 'rejected',
-                    adminApproved: false,
-                    updatedAt: new Date().toISOString()
-                });
-                alert('Duty change rejected successfully!');
-                loadDutyChanges();
-            } catch (error) {
-                console.error('Error rejecting duty change:', error);
-                alert('Error rejecting duty change');
-            }
-        };
-
-        window.openAddUserModal = function() {
-            const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
-            modal.show();
-        };
-
-        window.addNewUser = async function() {
-            try {
-                const newUser = {
-                    name: document.getElementById('newUserName').value,
-                    username: document.getElementById('newUserUsername').value,
-                    password: document.getElementById('newUserPassword').value,
-                    email: document.getElementById('newUserEmail').value || `${document.getElementById('newUserUsername').value}@leelidc.com`,
-                    rcNo: document.getElementById('newUserRcNo').value,
-                    role: document.getElementById('newUserRole').value,
-                    leaveBalance: {
-                        sick: parseInt(document.getElementById('newUserSick').value) || 0,
-                        frl: parseInt(document.getElementById('newUserFrl').value) || 0,
-                        annual: parseInt(document.getElementById('newUserAnnual').value) || 0
-                    },
-                    createdAt: new Date().toISOString()
-                };
-
-                // Generate ID based on existing users
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                newUser.id = usersSnapshot.size + 1;
-
-                const userRef = doc(db, 'users', newUser.username);
-                await setDoc(userRef, newUser);
-
-                alert('User added successfully!');
-                bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+                alert('Leave balance updated successfully!');
                 loadUsers();
+                document.getElementById('leaveBalanceForm').reset();
                 
-            } catch (error) {
-                console.error('Error adding user:', error);
-                alert('Error adding user');
-            }
-        };
-
-        window.updateLeaveBalance = async function(userId, type, value) {
-            try {
-                // Get user by ID
-                const usersRef = collection(db, 'users');
-                const q = query(usersRef, where("id", "==", parseInt(userId)));
-                const querySnapshot = await getDocs(q);
-                
-                if (!querySnapshot.empty) {
-                    const userDoc = querySnapshot.docs[0];
-                    const userData = userDoc.data();
-                    
-                    const updatedBalances = {
-                        ...userData.leaveBalance,
-                        [type]: parseInt(value) || 0
-                    };
-                    
-                    await updateDoc(doc(db, 'users', userDoc.id), {
-                        leaveBalance: updatedBalances
-                    });
-                }
             } catch (error) {
                 console.error('Error updating leave balance:', error);
+                alert('Failed to update leave balance');
+            }
+        });
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+        
+        // Make functions available globally
+        window.switchTab = switchTab;
+        window.loadLeaveRequests = loadLeaveRequests;
+        window.loadDutyChanges = loadDutyChanges;
+        window.loadUsers = loadUsers;
+        window.approveLeave = async function(leaveId) {
+            if (confirm('Are you sure you want to approve this leave request?')) {
+                try {
+                    const leaveRef = doc(db, 'leaveRequests', leaveId);
+                    await updateDoc(leaveRef, {
+                        status: 'Approved',
+                        approvedBy: currentUser.name,
+                        approvedAt: serverTimestamp()
+                    });
+                    
+                    alert('Leave request approved!');
+                    loadLeaveRequests();
+                } catch (error) {
+                    console.error('Error approving leave:', error);
+                    alert('Failed to approve leave request');
+                }
             }
         };
-
-        window.saveLeaveBalances = async function(userId) {
-            alert('Leave balances saved successfully!');
-            loadLeaveBalances();
+        
+        window.rejectLeave = async function(leaveId) {
+            if (confirm('Are you sure you want to reject this leave request?')) {
+                try {
+                    const leaveRef = doc(db, 'leaveRequests', leaveId);
+                    await updateDoc(leaveRef, {
+                        status: 'Rejected',
+                        approvedBy: currentUser.name,
+                        approvedAt: serverTimestamp()
+                    });
+                    
+                    alert('Leave request rejected!');
+                    loadLeaveRequests();
+                } catch (error) {
+                    console.error('Error rejecting leave:', error);
+                    alert('Failed to reject leave request');
+                }
+            }
         };
-
-        // Initialize dashboard on page load
-        loadDashboardStats();
-
+        
+        window.approveDutyChange = async function(dutyId) {
+            if (confirm('Are you sure you want to approve this duty change?')) {
+                try {
+                    const dutyRef = doc(db, 'dutyChanges', dutyId);
+                    await updateDoc(dutyRef, {
+                        status: 'Approved',
+                        acceptedBySupervisor: true,
+                        supervisorApprovedAt: serverTimestamp()
+                    });
+                    
+                    alert('Duty change approved!');
+                    loadDutyChanges();
+                } catch (error) {
+                    console.error('Error approving duty change:', error);
+                    alert('Failed to approve duty change');
+                }
+            }
+        };
+        
+        window.rejectDutyChange = async function(dutyId) {
+            if (confirm('Are you sure you want to reject this duty change?')) {
+                try {
+                    const dutyRef = doc(db, 'dutyChanges', dutyId);
+                    await updateDoc(dutyRef, {
+                        status: 'Rejected',
+                        acceptedBySupervisor: false,
+                        supervisorApprovedAt: serverTimestamp()
+                    });
+                    
+                    alert('Duty change rejected!');
+                    loadDutyChanges();
+                } catch (error) {
+                    console.error('Error rejecting duty change:', error);
+                    alert('Failed to reject duty change');
+                }
+            }
+        };
     </script>
 </body>
 </html>
