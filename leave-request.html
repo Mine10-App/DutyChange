@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Request</title>
+    <title>Leave Application - Duty Management</title>
     <style>
         * {
             margin: 0;
@@ -16,106 +16,205 @@
             background: #f5f7fa;
         }
         
-        .navbar {
+        .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px 30px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
-        .logo h2 {
+        .logo {
             font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
         
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .user-details {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .user-role {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
             color: white;
             padding: 8px 20px;
-            border-radius: 5px;
+            border-radius: 20px;
             cursor: pointer;
             transition: background 0.3s;
         }
         
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         
-        .container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .form-card {
+        .nav-menu {
             background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 30px;
         }
         
-        .form-card h2 {
+        .nav-item {
+            color: #555;
+            text-decoration: none;
+            padding: 10px 0;
+            position: relative;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .nav-item:hover {
+            color: #667eea;
+        }
+        
+        .main-content {
+            padding: 30px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .page-title {
             color: #333;
             margin-bottom: 30px;
-            text-align: center;
+            font-size: 28px;
+        }
+        
+        .leave-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
         
         .form-group {
             margin-bottom: 25px;
         }
         
-        .form-group label {
+        .form-label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
+            color: #333;
             font-weight: 500;
         }
         
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-input {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: border 0.3s;
         }
         
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: #667eea;
+        .form-input:focus {
             outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        .duty-time {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .info-title {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
         }
         
         .submit-btn {
-            width: 100%;
-            padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
+            padding: 15px 30px;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
             transition: transform 0.2s;
-            margin-top: 20px;
         }
         
         .submit-btn:hover {
@@ -123,229 +222,365 @@
         }
         
         .submit-btn:disabled {
-            background: #cccccc;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
         
         .message {
             padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             text-align: center;
-            display: none;
+            font-weight: 500;
         }
         
-        .success {
+        .message.success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
         
-        .error {
+        .message.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
         
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 5px;
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
         
-        .info-box h4 {
-            color: #333;
+        .user-details-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .detail-row {
+            display: flex;
             margin-bottom: 10px;
         }
         
-        .info-box ul {
-            padding-left: 20px;
-            color: #555;
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 150px;
+        }
+        
+        .detail-value {
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
+    <div class="header">
         <div class="logo">
-            <h2><i class="fas fa-calendar-plus"></i> Leave Request</h2>
+            📊 Duty Management System
         </div>
         <div class="user-info">
-            <span id="userName"></span>
-            <button class="back-btn" onclick="goBack()">Back to Dashboard</button>
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-role" id="userRole"></div>
+                <div class="user-rc" id="userRc"></div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
-    </nav>
+    </div>
     
-    <div class="container">
-        <div class="info-box">
-            <h4><i class="fas fa-info-circle"></i> Important Notes:</h4>
-            <ul>
-                <li>Sick Leave: Can be applied minimum 2 hours before duty time</li>
-                <li>FRL: Can be applied minimum 1 hour before duty time</li>
-                <li>No back-dated leave applications allowed</li>
-                <li>All applications are subject to supervisor approval</li>
-            </ul>
-        </div>
+    <div class="nav-menu">
+        <a href="dashboard.html" class="nav-item">Dashboard</a>
+        <a href="duty-change.html" class="nav-item">Duty Change</a>
+        <a href="leave-application.html" class="nav-item active">Leave Application</a>
+        <a href="history.html" class="nav-item">History</a>
+    </div>
+    
+    <div class="main-content">
+        <h1 class="page-title">Leave Application</h1>
         
-        <div class="form-card">
-            <h2>Apply for Leave</h2>
+        <div class="leave-form">
+            <div id="messageContainer"></div>
+            
+            <div class="user-details-display">
+                <div class="detail-row">
+                    <div class="detail-label">Name:</div>
+                    <div class="detail-value" id="displayName">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">RC No:</div>
+                    <div class="detail-value" id="displayRc">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Current Duty Time:</div>
+                    <div class="detail-value" id="displayDutyTime">-</div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">⚠️ Important Notice</div>
+                <div class="info-text">
+                    • Sick Leave: Must be applied at least 2 hours before duty time<br>
+                    • FRL (Frequent Routine Leave): Must be applied at least 1 hour before duty time<br>
+                    • Applications submitted after these deadlines will be automatically rejected
+                </div>
+            </div>
             
             <form id="leaveForm">
                 <div class="form-group">
-                    <label for="leaveDate">Date *</label>
-                    <input type="date" id="leaveDate" required>
-                </div>
-                
-                <div class="form-group duty-time">
-                    <div>
-                        <label for="dutyTime">Duty Time *</label>
-                        <input type="time" id="dutyTime" required>
-                    </div>
-                    <div>
-                        <label for="dutyType">Duty Type</label>
-                        <select id="dutyType">
-                            <option value="Day">Day Duty</option>
-                            <option value="Night">Night Duty</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="leaveType">Leave Type *</label>
-                    <select id="leaveType" required>
+                    <label class="form-label" for="leaveType">Leave Type *</label>
+                    <select class="form-select" id="leaveType" name="leaveType" required>
                         <option value="">Select Leave Type</option>
-                        <option value="Sick">Sick Leave</option>
-                        <option value="Annual">Annual Leave</option>
-                        <option value="FRL">FRL</option>
+                        <option value="sick">Sick Leave</option>
+                        <option value="frl">FRL (Frequent Routine Leave)</option>
+                        <option value="casual">Casual Leave</option>
+                        <option value="earned">Earned Leave</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="reason">Reason (Optional)</label>
-                    <textarea id="reason" rows="4" placeholder="Brief reason for leave..."></textarea>
+                    <label class="form-label" for="dutyDate">Duty Date *</label>
+                    <input type="date" class="form-input" id="dutyDate" name="dutyDate" required>
                 </div>
                 
-                <button type="submit" class="submit-btn" id="submitBtn">Submit Leave Request</button>
+                <div class="form-group">
+                    <label class="form-label" for="dutyTime">Duty Time *</label>
+                    <input type="time" class="form-input" id="dutyTime" name="dutyTime" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="reason">Reason for Leave *</label>
+                    <textarea class="form-textarea" id="reason" name="reason" 
+                              placeholder="Please provide a detailed reason for your leave application..." 
+                              required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="additionalInfo">Additional Information (Optional)</label>
+                    <textarea class="form-textarea" id="additionalInfo" name="additionalInfo" 
+                              placeholder="Any additional information or documents reference..."></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Submit Leave Application
+                </button>
             </form>
-            
-            <div id="message" class="message"></div>
         </div>
     </div>
 
-    <!-- Firebase SDK Version 8 -->
+    <!-- External Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <!-- Your Firebase configuration -->
-    <script src="./dcfire.js"></script>
-    
+    <script src="dcfire.js"></script>
+    <script src="user.js"></script>
     <script>
-        // Check if user is logged in
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            window.location.href = 'index.html';
-        }
-        
-        document.getElementById('userName').textContent = currentUser.name;
-        
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('leaveDate').min = today;
-        
-        document.getElementById('leaveForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
+            const userNameElement = document.getElementById('userName');
+            const userRoleElement = document.getElementById('userRole');
+            const userRcElement = document.getElementById('userRc');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const displayName = document.getElementById('displayName');
+            const displayRc = document.getElementById('displayRc');
+            const displayDutyTime = document.getElementById('displayDutyTime');
+            const leaveForm = document.getElementById('leaveForm');
             const submitBtn = document.getElementById('submitBtn');
+            const messageContainer = document.getElementById('messageContainer');
             
-            // Get form values
-            const leaveDate = document.getElementById('leaveDate').value;
-            const dutyTime = document.getElementById('dutyTime').value;
-            const dutyType = document.getElementById('dutyType').value;
-            const leaveType = document.getElementById('leaveType').value;
-            const reason = document.getElementById('reason').value;
+            // Check if user is logged in
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             
-            // Validate required fields
-            if (!leaveDate || !dutyTime || !leaveType) {
-                showMessage('error', 'Please fill in all required fields!');
+            if (!currentUser) {
+                window.location.href = 'index.html';
                 return;
             }
             
-            // Validate date
-            if (new Date(leaveDate) < new Date().setHours(0, 0, 0, 0)) {
-                showMessage('error', 'Back-dated leave applications are not allowed!');
-                return;
+            // Display user info
+            userNameElement.textContent = currentUser.name || 'User';
+            userRoleElement.textContent = currentUser.role ? `Role: ${currentUser.role}` : '';
+            userRcElement.textContent = currentUser.rcNo ? `RC No: ${currentUser.rcNo}` : '';
+            displayName.textContent = currentUser.name || 'Not available';
+            displayRc.textContent = currentUser.rcNo || 'Not available';
+            
+            // Set default duty time (you can fetch this from Firebase)
+            displayDutyTime.textContent = '08:00 - 16:00';
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dutyDate').min = today;
+            
+            // Logout functionality
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            });
+            
+            // Form submission
+            leaveForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const leaveType = document.getElementById('leaveType').value;
+                const dutyDate = document.getElementById('dutyDate').value;
+                const dutyTime = document.getElementById('dutyTime').value;
+                const reason = document.getElementById('reason').value;
+                const additionalInfo = document.getElementById('additionalInfo').value;
+                
+                // Validate required fields
+                if (!leaveType || !dutyDate || !dutyTime || !reason) {
+                    showMessage('Please fill all required fields', 'error');
+                    return;
+                }
+                
+                // Validate application time based on leave type
+                const validationResult = validateLeaveApplicationTime(leaveType, dutyDate, dutyTime);
+                if (!validationResult.valid) {
+                    showMessage(validationResult.message, 'warning');
+                    return;
+                }
+                
+                // Disable submit button and show loading
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                try {
+                    // Here you would save to Firebase
+                    const leaveApplication = {
+                        userId: currentUser.id || currentUser.rcNo,
+                        userName: currentUser.name,
+                        userRc: currentUser.rcNo,
+                        leaveType: leaveType,
+                        dutyDate: dutyDate,
+                        dutyTime: dutyTime,
+                        reason: reason,
+                        additionalInfo: additionalInfo,
+                        status: 'pending',
+                        appliedAt: new Date().toISOString(),
+                        deadlineInfo: validationResult.deadlineMessage
+                    };
+                    
+                    // Simulate API call - Replace with actual Firebase code
+                    await simulateFirebaseSave(leaveApplication);
+                    
+                    showMessage('Leave application submitted successfully!', 'success');
+                    leaveForm.reset();
+                    
+                    // Redirect to history page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'history.html';
+                    }, 2000);
+                    
+                } catch (error) {
+                    showMessage('Error submitting application. Please try again.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Leave Application';
+                }
+            });
+            
+            // Function to validate leave application time
+            function validateLeaveApplicationTime(leaveType, dutyDate, dutyTime) {
+                const now = new Date();
+                const dutyDateTime = new Date(`${dutyDate}T${dutyTime}`);
+                
+                // Check if duty date/time is in the past
+                if (dutyDateTime < now) {
+                    return {
+                        valid: false,
+                        message: 'Cannot apply leave for past duty time'
+                    };
+                }
+                
+                // Calculate time difference in hours
+                const timeDiffHours = (dutyDateTime - now) / (1000 * 60 * 60);
+                
+                if (leaveType === 'sick') {
+                    if (timeDiffHours < 2) {
+                        return {
+                            valid: false,
+                            message: 'Sick leave must be applied at least 2 hours before duty time',
+                            deadlineMessage: 'Required: 2 hours before duty'
+                        };
+                    }
+                    return {
+                        valid: true,
+                        deadlineMessage: 'Applied within valid time (2+ hours before duty)'
+                    };
+                } else if (leaveType === 'frl') {
+                    if (timeDiffHours < 1) {
+                        return {
+                            valid: false,
+                            message: 'FRL must be applied at least 1 hour before duty time',
+                            deadlineMessage: 'Required: 1 hour before duty'
+                        };
+                    }
+                    return {
+                        valid: true,
+                        deadlineMessage: 'Applied within valid time (1+ hours before duty)'
+                    };
+                }
+                
+                // For other leave types, just check if it's in the future
+                if (timeDiffHours < 0) {
+                    return {
+                        valid: false,
+                        message: 'Cannot apply leave for past duty'
+                    };
+                }
+                
+                return {
+                    valid: true,
+                    deadlineMessage: 'Applied for future duty'
+                };
             }
             
-            // Validate time constraints
-            const dutyDateTime = new Date(`${leaveDate}T${dutyTime}`);
-            const now = new Date();
-            const hoursDifference = (dutyDateTime - now) / (1000 * 60 * 60);
-            
-            if (leaveType === 'Sick' && hoursDifference < 2) {
-                showMessage('error', 'Sick leave must be applied at least 2 hours before duty time!');
-                return;
+            // Function to show message
+            function showMessage(message, type) {
+                messageContainer.innerHTML = `
+                    <div class="message ${type}">
+                        ${message}
+                    </div>
+                `;
+                
+                // Auto-remove message after 5 seconds
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 5000);
             }
             
-            if (leaveType === 'FRL' && hoursDifference < 1) {
-                showMessage('error', 'FRL must be applied at least 1 hour before duty time!');
-                return;
-            }
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            try {
-                // Save to Firestore
-                await db.collection('leaveRequests').add({
-                    username: currentUser.username,
-                    name: currentUser.name,
-                    leaveDate: leaveDate,
-                    dutyTime: dutyTime,
-                    dutyType: dutyType,
-                    leaveType: leaveType,
-                    reason: reason,
-                    status: 'Pending',
-                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    approvedBy: null,
-                    approvedAt: null
+            // Simulate Firebase save (replace with actual Firebase code)
+            function simulateFirebaseSave(data) {
+                return new Promise((resolve) => {
+                    // Save to localStorage for demo purposes
+                    const existingApplications = JSON.parse(localStorage.getItem('leaveApplications') || '[]');
+                    existingApplications.push(data);
+                    localStorage.setItem('leaveApplications', JSON.stringify(existingApplications));
+                    
+                    // Simulate network delay
+                    setTimeout(() => {
+                        resolve(data);
+                    }, 1000);
                 });
-                
-                showMessage('success', 'Leave request submitted successfully! Waiting for supervisor approval.');
-                document.getElementById('leaveForm').reset();
-                
-                // Reset date min to today
-                document.getElementById('leaveDate').min = today;
-                document.getElementById('dutyType').value = 'Day'; // Reset to default
-                
-            } catch (error) {
-                console.error('Error submitting leave request:', error);
-                showMessage('error', 'Failed to submit leave request. Please try again.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Leave Request';
             }
-        });
-        
-        function showMessage(type, text) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
             
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        function goBack() {
-            window.location.href = 'dashboard.html';
-        }
-        
-        // Make functions available globally
-        window.goBack = goBack;
+            // Update time validation message when leave type changes
+            document.getElementById('leaveType').addEventListener('change', function() {
+                const leaveType = this.value;
+                const dutyDate = document.getElementById('dutyDate').value;
+                const dutyTime = document.getElementById('dutyTime').value;
+                
+                if (leaveType && dutyDate && dutyTime) {
+                    const validation = validateLeaveApplicationTime(leaveType, dutyDate, dutyTime);
+                    if (!validation.valid) {
+                        showMessage(validation.message, 'warning');
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
