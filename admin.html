@@ -5,11 +5,341 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supervisor Panel</title>
     <style>
-        /* ... (CSS remains the same) ... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo h2 {
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .welcome-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .welcome-card h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 12px 30px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #e0e0e0;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .status-pending {
+            color: #f39c12;
+            font-weight: 500;
+        }
+        
+        .status-approved {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .status-rejected {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        
+        .status-accepted {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 3px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .approve-btn {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .reject-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .view-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .save-btn {
+            background: #27ae60;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        
+        .cancel-btn {
+            background: #95a5a6;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .refresh-btn {
+            float: right;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        
+        .location-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .edit-input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            text-align: center;
+        }
+        
+        .leave-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .sick-badge {
+            background: #ffeaa7;
+            color: #d35400;
+        }
+        
+        .annual-badge {
+            background: #a29bfe;
+            color: #2d3436;
+        }
+        
+        .frl-badge {
+            background: #fd79a8;
+            color: white;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            background: white;
+            font-size: 14px;
+        }
+        
+        .status-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
-    <!-- ... (HTML structure remains the same) ... -->
+    <nav class="navbar">
+        <div class="logo">
+            <h2><i class="fas fa-user-shield"></i> Supervisor Panel</h2>
+        </div>
+        <div class="user-info">
+            <span id="userName"></span>
+            <span class="location-badge" id="userLocation"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
     
     <div class="container">
         <div class="welcome-card">
@@ -58,7 +388,90 @@
             </div>
         </div>
         
-        <!-- ... (Rest of HTML remains the same) ... -->
+        <!-- Duty Changes Tab -->
+        <div id="dutyChanges" class="tab-content">
+            <div class="filter-controls">
+                <select id="dutyStatusFilter" class="filter-select" onchange="filterDutyChanges()">
+                    <option value="all">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted by Staff</option>
+                    <option value="Approved">Approved by Supervisor</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+                <button class="refresh-btn" onclick="loadDutyChanges()">Refresh</button>
+            </div>
+            <div class="card">
+                <h3>All Duty Changes - <span id="dutyFilterStatus">All</span></h3>
+                <table id="dutyChangesTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Requestor</th>
+                            <th>Accepted Staff</th>
+                            <th>Requestor Time</th>
+                            <th>Staff Time</th>
+                            <th>Staff Accepted</th>
+                            <th>Status</th>
+                            <th>Applied On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dutyChangesBody">
+                        <!-- Duty changes will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Manage Users Tab -->
+        <div id="manageUsers" class="tab-content">
+            <button class="refresh-btn" onclick="loadUsers()">Refresh</button>
+            <div class="card">
+                <h3>Staff Leave Balances - <span id="locationTitle"></span></h3>
+                <p style="margin-bottom: 20px; color: #666;">Click on leave values to edit. Changes are saved automatically.</p>
+                <table style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Level</th>
+                            <th>Sick Leave</th>
+                            <th>Annual Leave</th>
+                            <th>FRL Leave</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4>Quick Bulk Update</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select User</label>
+                            <select id="selectUser" required>
+                                <option value="">Select User</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sick Leave</label>
+                            <input type="number" id="sickLeave" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Annual Leave</label>
+                            <input type="number" id="annualLeave" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>FRL Leave</label>
+                            <input type="number" id="frlLeave" min="0" required>
+                        </div>
+                        <button type="button" class="btn-primary" onclick="updateSelectedUserBalance()">Update Balance</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK Version 8 -->
@@ -205,7 +618,7 @@
             tbody.innerHTML = '';
             
             if (allLeaveRequests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #666;">No leave requests found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="no-data">No leave requests found</td></tr>';
                 return;
             }
             
@@ -215,7 +628,7 @@
                 : allLeaveRequests.filter(item => item.data.status === filterValue);
             
             if (filteredRequests.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 40px; color: #666;">No ${filterValue.toLowerCase()} leave requests</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="no-data">No ${filterValue.toLowerCase()} leave requests</td></tr>`;
                 return;
             }
             
@@ -284,7 +697,7 @@
                     actionButtons = `
                         <div style="font-size: 12px;">
                             <div style="color: #27ae60;">✓ Approved</div>
-                            <div style="color: #666; font-size: 11px;">
+                            <div class="status-info">
                                 By: ${approvedBy}<br>
                                 On: ${approvedAt}
                             </div>
@@ -299,7 +712,7 @@
                     actionButtons = `
                         <div style="font-size: 12px;">
                             <div style="color: #e74c3c;">✗ Rejected</div>
-                            <div style="color: #666; font-size: 11px;">
+                            <div class="status-info">
                                 By: ${approvedBy}<br>
                                 On: ${approvedAt}
                             </div>
@@ -369,7 +782,7 @@
             tbody.innerHTML = '';
             
             if (allDutyChanges.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #666;">No duty changes found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="no-data">No duty changes found</td></tr>';
                 return;
             }
             
@@ -392,7 +805,7 @@
             }
             
             if (filteredChanges.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 40px; color: #666;">No ${filterValue.toLowerCase()} duty changes</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="no-data">No ${filterValue.toLowerCase()} duty changes</td></tr>`;
                 return;
             }
             
@@ -449,7 +862,7 @@
                     actionButtons = `
                         <div style="font-size: 12px;">
                             <div style="color: #27ae60;">✓ Approved</div>
-                            <div style="color: #666; font-size: 11px;">
+                            <div class="status-info">
                                 By: ${approvedBy}<br>
                                 On: ${approvedAt}
                             </div>
@@ -464,7 +877,7 @@
                     actionButtons = `
                         <div style="font-size: 12px;">
                             <div style="color: #e74c3c;">✗ Rejected</div>
-                            <div style="color: #666; font-size: 11px;">
+                            <div class="status-info">
                                 By: ${rejectedBy}<br>
                                 On: ${rejectedAt}
                             </div>
@@ -607,7 +1020,7 @@
                 });
                 
                 if (localUsers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #666;">No users found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="no-data">No users found</td></tr>';
                     selectUser.innerHTML = '<option value="">No users available</option>';
                     return;
                 }
