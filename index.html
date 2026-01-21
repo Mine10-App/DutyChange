@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Duty & Leave System</title>
+    <title>Login - Duty Management System</title>
     <style>
         * {
             margin: 0;
@@ -18,60 +18,56 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
         
         .login-container {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 40px;
             width: 100%;
             max-width: 400px;
+            animation: slideUp 0.5s ease;
         }
         
-        .logo {
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            color: #333;
             text-align: center;
             margin-bottom: 30px;
-        }
-        
-        .logo h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        
-        .logo p {
-            color: #666;
-            font-size: 14px;
+            font-weight: 600;
         }
         
         .form-group {
             margin-bottom: 20px;
         }
         
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 8px;
             color: #555;
             font-weight: 500;
         }
         
-        .form-group input {
+        input {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s;
         }
         
-        .form-group input:focus {
-            border-color: #667eea;
+        input:focus {
             outline: none;
+            border-color: #667eea;
         }
         
-        .btn-login {
+        .btn {
             width: 100%;
             padding: 14px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -84,141 +80,76 @@
             transition: transform 0.2s;
         }
         
-        .btn-login:hover {
+        .btn:hover {
             transform: translateY(-2px);
         }
         
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .error-message {
+        .error {
             color: #e74c3c;
             text-align: center;
             margin-top: 15px;
-            min-height: 20px;
+            font-size: 14px;
+            display: none;
         }
         
-        .user-type {
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
             display: inline-block;
-            margin-left: 10px;
-            padding: 3px 8px;
-            background: #667eea;
-            color: white;
-            border-radius: 5px;
-            font-size: 12px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="logo">
-            <h1>👮‍♂️ DC System</h1>
-            <p>Duty Change & Leave Management</p>
-        </div>
-        
+        <div class="logo">🔐 Duty Management</div>
+        <h1>Login</h1>
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" placeholder="Enter your username" required>
             </div>
-            
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Enter your password" required>
             </div>
-            
-            <button type="submit" class="btn-login">Login</button>
-            
-            <div class="error-message" id="errorMessage"></div>
+            <button type="submit" class="btn">Login</button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div> Authenticating...
+            </div>
+            <div class="error" id="error">Invalid username or password</div>
         </form>
-        
-        <div style="margin-top: 30px; text-align: center;">
-            <h3>Available Users:</h3>
-            <div id="userList" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
-        </div>
     </div>
 
-    <!-- Firebase SDK Version 8 -->
+    <!-- External Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <!-- Your Firebase configuration -->
-    <script src="./dcfire.js"></script>
-    
-    <!-- Your user data file -->
-    <script src="./user.js"></script>
-    
-    <script>
-        // Display available users
-        const userListDiv = document.getElementById('userList');
-        users.forEach(user => {
-            const userDiv = document.createElement('div');
-            userDiv.innerHTML = `
-                <strong>${user.username}</strong> - ${user.name} 
-                <span class="user-type">${user.Level}</span>
-            `;
-            userListDiv.appendChild(userDiv);
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // Simple hash function
-            async function sha256(message) {
-                const msgBuffer = new TextEncoder().encode(message);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-            
-            try {
-                const hash = await sha256(password);
-                const user = users.find(u => u.username === username && u.passwordHash === hash);
-                
-                if (user) {
-                    // Store user in localStorage
-                    localStorage.setItem('currentUser', JSON.stringify({
-                        username: user.username,
-                        name: user.name,
-                        level: user.Level
-                    }));
-                    
-                    // Create or update user in Firestore
-                    const usersRef = db.collection('users');
-                    const querySnapshot = await usersRef.where('username', '==', user.username).get();
-                    
-                    if (querySnapshot.empty) {
-                        // Add new user to Firestore with default leave balances
-                        await usersRef.add({
-                            username: user.username,
-                            name: user.name,
-                            level: user.Level,
-                            sickLeave: 10,
-                            annualLeave: 20,
-                            frlLeave: 5,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                    
-                    // Redirect based on user level
-                    if (user.Level === 'Supervisor') {
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = 'dashboard.html';
-                    }
-                } else {
-                    errorMessage.textContent = 'Invalid username or password!';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                errorMessage.textContent = 'An error occurred. Please try again.';
-            }
-        });
-    </script>
+    <script src="dcfire.js"></script>
+    <script src="user.js"></script>
+    <script src="auth.js"></script>
 </body>
 </html>
