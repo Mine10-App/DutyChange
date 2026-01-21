@@ -3,1726 +3,3359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supervisor Panel</title>
+    <title>Flight Passenger Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        
+       :root {
+            --primary: #d4af37;
+            --primary-light: #f9f5e7;
+            --primary-dark: #b8941f;
+            --secondary: #8b7d3a;
+            --success: #34a853;
+            --danger: #ea4335;
+            --warning: #f9ab00;
+            --light: #fefcf0;
+            --dark: #3c3c2a;
+            --border: #e6d8a5;
+            --card-bg: #fffdf5;
+            --hover: #f5f0e1;
+            --shadow: 0 1px 2px 0 rgba(140, 130, 80, 0.3), 0 1px 3px 1px rgba(140, 130, 80, 0.15);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Roboto', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: #f5f7fa;
+            background-color: #fefcf0;
+            color: var(--dark);
+            line-height: 1.5;
+            padding: 0;
         }
-        
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
         }
-        
-        .logo h2 {
+
+        .header h1 {
             font-size: 24px;
-        }
-        
-        .user-info {
+            font-weight: 600;
+            color: var(--dark);
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
-        
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+
+        .header h1 i {
+            color: var(--primary);
+        }
+
+        .company-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--secondary);
+            display: none;
+        }
+
+        .company-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            padding: 8px 20px;
-            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Toolbar - Removed as buttons are moved to header */
+        .toolbar {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+
+        .card:hover {
+            box-shadow: 0 2px 6px 0 rgba(140, 130, 80, 0.2), 0 2px 8px 2px rgba(140, 130, 80, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Form Elements */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            transition: var(--transition);
+            background: var(--light);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+
+        .time-input {
+            font-family: monospace;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
             cursor: pointer;
-            transition: background 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #2e8b47;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #d33426;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-light);
+        }
+
+        /* Flight Info */
+        .flight-info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: var(--secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-open {
+            background: rgba(52,168,83,0.1);
+            color: var(--success);
+        }
+
+        .status-closed {
+            background: rgba(234,67,53,0.1);
+            color: var(--danger);
+        }
+
+        .flight-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--light);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: var(--hover);
+        }
+
+        .editable-cell {
+            border-radius: 4px;
+            padding: 6px 8px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .editable-cell:focus {
+            background: #fff9d9;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .icon-btn:hover {
+            background: var(--hover);
+            color: var(--dark);
+        }
+
+        .delete-btn {
+            color: var(--danger);
+        }
+
+        .delete-btn:hover {
+            background: rgba(234,67,53,0.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Warning */
+        .warning-banner {
+            background: rgba(234,67,53,0.1);
+            color: var(--danger);
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .warning-banner i {
+            font-size: 18px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .flight-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toolbar {
+                flex-direction: column;
+            }
+            
+            .toolbar a {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* New styles for the redesigned layout */
+        .small-card {
+            padding: 16px;
+        }
+
+        .small-card .card-header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+        }
+
+        .small-card .form-group {
+            margin-bottom: 12px;
+        }
+
+        .small-card .form-row {
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .save-time-btn {
+            margin-top: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        /* Header buttons styling */
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            margin-right: 16px;
+        }
+
+        .header-buttons a {
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            border: none;
+            background: var(--card-bg);
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-decoration: none;
+            border: 1px solid var(--border);
+        }
+
+        .header-buttons a:hover {
+            background: var(--hover);
+            color: var(--dark);
+        }
+
+        .header-buttons a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Refresh notification */
+        .refresh-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 1;
+            transition: opacity 0.5s;
+        }
+        .unknown-flights-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: var(--radius);
+            display: none;
         }
         
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .welcome-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .welcome-card h2 {
-            color: #333;
+        .unknown-flights-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
         
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-        }
-        
-        .tab {
-            padding: 12px 30px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
+        .unknown-flights-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ff9800;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .tab:hover:not(.active) {
-            background: #e0e0e0;
-        }
-        
-        .notification-badge {
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        tr:hover {
-            background: #f9f9f9;
-        }
-        
-        .status-pending {
-            color: #f39c12;
-            font-weight: 500;
-        }
-        
-        .status-approved {
-            color: #27ae60;
-            font-weight: 500;
-        }
-        
-        .status-rejected {
-            color: #e74c3c;
-            font-weight: 500;
-        }
-        
-        .status-accepted {
-            color: #27ae60;
-            font-weight: 500;
-        }
-        
-        .action-btn {
-            padding: 6px 12px;
-            margin: 0 3px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        
-        .approve-btn {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .reject-btn {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .view-btn {
-            background: #3498db;
-            color: white;
-        }
-        
-        .edit-btn {
-            background: #f39c12;
-            color: white;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .save-btn {
-            background: #27ae60;
-            color: white;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 5px;
-        }
-        
-        .cancel-btn {
-            background: #95a5a6;
-            color: white;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr auto;
-            gap: 15px;
-            align-items: end;
-        }
-        
-        .form-group {
-            flex: 1;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        
-        .btn-primary {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .refresh-btn {
-            float: right;
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .unknown-flights-list {
+            max-height: 200px;
+            overflow-y: auto;
             margin-bottom: 10px;
         }
         
-        .location-badge {
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 10px;
-        }
-        
-        .edit-input {
-            width: 80px;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            text-align: center;
-        }
-        
-        .leave-type-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-right: 5px;
-        }
-        
-        .sick-badge {
-            background: #ffeaa7;
-            color: #d35400;
-        }
-        
-        .annual-badge {
-            background: #a29bfe;
-            color: #2d3436;
-        }
-        
-        .frl-badge {
-            background: #fd79a8;
-            color: white;
-        }
-        
-        .filter-controls {
+        .unknown-flight-item {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            border-left: 3px solid #ff9800;
+        }
+        
+        .unknown-flight-info {
+            flex: 1;
+        }
+        
+        .unknown-flight-name {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--dark);
+        }
+        
+        .unknown-flight-details {
+            font-size: 12px;
+            color: var(--secondary);
+            display: flex;
+            gap: 12px;
+            margin-top: 2px;
+        }
+        
+        .unknown-flight-actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .delete-single-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(234, 67, 53, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .delete-single-btn:hover {
+            background: rgba(234, 67, 53, 0.2);
+        }
+        
+        .unknown-flights-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        .unknown-count {
+            font-size: 12px;
+            color: #ff9800;
+            font-weight: 500;
+        }
+        
+        .delete-all-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        
+        .delete-all-btn:hover {
+            background: #d33426;
+            transform: translateY(-1px);
+        }
+        
+        .delete-all-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
         
-        .filter-select {
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        
+        .modal-close:hover {
+            background: var(--hover);
+            color: var(--dark);
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .confirmation-text {
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+        
+        .confirmation-details {
+            background: var(--primary-light);
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        
+        .confirmation-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+        
+        .confirmation-item {
             padding: 8px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            background: white;
-            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
         }
         
-        .status-info {
+        .confirmation-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Button in flight selection card */
+        .show-unknown-btn {
+            padding: 6px 12px;
             font-size: 12px;
-            color: #666;
-            margin-top: 5px;
+            background: transparent;
+            border: 1px solid #ff9800;
+            color: #ff9800;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+            margin-top: 10px;
         }
         
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-style: italic;
+        .show-unknown-btn:hover {
+            background: rgba(255, 152, 0, 0.1);
         }
         
-        .warning-badge {
+        /* Warning banner for unknown flights */
+        .unknown-warning-banner {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ff9800;
+            padding: 10px 14px;
+            border-radius: var(--radius);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            border-left: 4px solid #ff9800;
+        }
+    
+        .duplicate-warning-banner {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            border-left: 4px solid #ff9800;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+        
+        .duplicate-actions {
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(255, 152, 0, 0.1);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .duplicate-count {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ff9800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .duplicate-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .manage-duplicates-btn {
+            padding: 6px 12px;
+            font-size: 12px;
             background: #ff9800;
             color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 11px;
-            margin-left: 5px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
         }
         
-        .info-message {
-            background: #e7f3ff;
-            border-left: 4px solid #667eea;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-size: 14px;
+        .manage-duplicates-btn:hover {
+            background: #f57c00;
+            transform: translateY(-1px);
         }
         
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
+        .ignore-duplicates-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: transparent;
+            border: 1px solid #ff9800;
+            color: #ff9800;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
         }
+        
+        .ignore-duplicates-btn:hover {
+            background: rgba(255, 152, 0, 0.1);
+        }
+        
+        /* Modal styles for duplicates */
+        .duplicate-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        
+        .duplicate-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .duplicate-item:last-child {
+            border-bottom: none;
+        }
+        
+        .duplicate-checkbox {
+            margin-right: 10px;
+        }
+        
+        .duplicate-info {
+            flex: 1;
+        }
+        
+        .duplicate-name {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--dark);
+        }
+        
+        .duplicate-details {
+            font-size: 12px;
+            color: var(--secondary);
+            display: flex;
+            gap: 12px;
+            margin-top: 3px;
+        }
+        
+        .duplicate-actions-modal {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .select-all-row {
+            padding: 10px 15px;
+            background: var(--primary-light);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        /* Highlight duplicate rows in table */
+        .duplicate-row {
+            background: rgba(255, 152, 0, 0.1) !important;
+            border-left: 3px solid #ff9800;
+        }
+
+        const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .seat-edit-container {
+        animation: slideDown 0.2s ease-out;
+    }
+`;
+document.head.appendChild(styleSheet);
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">
-            <h2><i class="fas fa-user-shield"></i> Supervisor Panel</h2>
-        </div>
-        <div class="user-info">
-            <span id="userName">Loading...</span>
-            <span class="location-badge" id="userLocation">Loading...</span>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </nav>
-    
     <div class="container">
-        <div class="welcome-card">
-            <h2>Welcome, <span id="welcomeName">Loading...</span>!</h2>
-            <p>Manage leave requests, duty changes, and update staff leave balances from this panel.</p>
-            <p style="margin-top: 10px; color: #666;">Location: <span id="welcomeLocation">Loading...</span></p>
-        </div>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('leaveRequests')">
-                All Leave Requests
-                <span id="leaveNotification" class="notification-badge" style="display: none;"></span>
-            </button>
-            <button class="tab" onclick="switchTab('dutyChanges')">
-                All Duty Changes
-                <span id="dutyNotification" class="notification-badge" style="display: none;"></span>
-            </button>
-            <button class="tab" onclick="switchTab('manageUsers')">Manage Leave Balances</button>
-        </div>
-        
-        <!-- Leave Requests Tab -->
-        <div id="leaveRequests" class="tab-content active">
-            <div class="filter-controls">
-                <select id="leaveStatusFilter" class="filter-select" onchange="filterLeaveRequests()">
-                    <option value="all">All Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-                <button class="refresh-btn" onclick="loadLeaveRequests()">Refresh</button>
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-plane"></i> Flight Passenger Management</h1>
+            <div class="header-buttons">
+                <a href="dash.html" class="active"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a>
+                <a href="dashP.html" class="active"><i class="fas fa-tachometer-alt"></i> walkin Dashboard</a>
+                <a href="shiftend1.html"><i class="fas fa-file-alt"></i> Shift End Report</a>
+                <a href="cardentry1.html" class="btn-outline"><i class="fas fa-user-plus"></i> Passenger Entry</a>
+                <!-- REMOVED REFRESH BUTTON -->
             </div>
-            <div class="info-message">
-                <strong>Note:</strong> Only showing requests from your location: <strong id="currentLocationDisplay">Loading...</strong>
+            <div class="company-info">
+                <div class="company-logo" id="companyLogo"></div>
+                <span id="companyName"></span>
             </div>
-            <div class="card">
-                <h3>All Leave Requests - <span id="leaveFilterStatus">All</span></h3>
-                <table id="leaveRequestsTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Staff</th>
-                            <th>Leave Type</th>
-                            <th>Duty Time</th>
-                            <th>Current Balance</th>
-                            <th>Reason</th>
-                            <th>Status</th>
-                            <th>Applied On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaveRequestsBody">
-                        <tr>
-                            <td colspan="9" class="loading">Loading leave requests...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="user-actions">
+                <button class="btn btn-outline"><i class="fas fa-user"></i> <span id="loggedInUser">Loading...</span></button>
+                <a href="logout.html" class="btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
-        
-        <!-- Duty Changes Tab -->
-        <div id="dutyChanges" class="tab-content">
-            <div class="filter-controls">
-                <select id="dutyStatusFilter" class="filter-select" onchange="filterDutyChanges()">
-                    <option value="all">All Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Accepted">Accepted by Staff</option>
-                    <option value="Approved">Approved by Supervisor</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-                <button class="refresh-btn" onclick="loadDutyChanges()">Refresh</button>
-            </div>
-            <div class="info-message">
-                <strong>Note:</strong> Only showing duty changes from your location: <strong id="dutyLocationDisplay">Loading...</strong>
-            </div>
-            <div class="card">
-                <h3>All Duty Changes - <span id="dutyFilterStatus">All</span></h3>
-                <table id="dutyChangesTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Requestor</th>
-                            <th>Accepted Staff</th>
-                            <th>Requestor Time</th>
-                            <th>Staff Time</th>
-                            <th>Staff Accepted</th>
-                            <th>Status</th>
-                            <th>Applied On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dutyChangesBody">
-                        <tr>
-                            <td colspan="9" class="loading">Loading duty changes...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Manage Users Tab -->
-        <div id="manageUsers" class="tab-content">
-            <button class="refresh-btn" onclick="loadUsers()">Refresh</button>
-            <div class="info-message">
-                <strong>Note:</strong> Managing users from your location: <strong id="userLocationDisplay">Loading...</strong>
-            </div>
-            <div class="card">
-                <h3>Staff Leave Balances</h3>
-                <p style="margin-bottom: 20px; color: #666;">Click on leave values to edit. Changes are saved automatically.</p>
-                <table style="margin-top: 20px;">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Name</th>
-                            <th>Level</th>
-                            <th>Location</th>
-                            <th>Sick Leave</th>
-                            <th>Annual Leave</th>
-                            <th>FRL Leave</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody">
-                        <tr>
-                            <td colspan="8" class="loading">Loading users...</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                    <h4>Quick Bulk Update</h4>
+
+        <div class="main-content">
+            <div class="left-column">
+                <!-- Flight Selection Card -->
+                <div class="card small-card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-search"></i> Flight Selection</div>
+                        <button id="refreshAllBtn" class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">
+                            <i class="fas fa-sync"></i> Refresh All Flights
+                        </button>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Select User</label>
-                            <select id="selectUser" required>
-                                <option value="">Select User</option>
+                            <label for="filterDate"><i class="far fa-calendar-alt"></i> Date</label>
+                            <input type="date" id="filterDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="filterFlight"><i class="fas fa-plane-departure"></i> Flight Number</label>
+                            <select id="filterFlight">
+                                <option value="">Select Flight</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Sick Leave</label>
-                            <input type="number" id="sickLeave" min="0" required>
+                    </div>
+                    
+                    <!-- Duplicate warning banner -->
+                    <div id="duplicateWarningBanner" class="duplicate-warning-banner" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="duplicateWarningText">Duplicate passengers detected!</span>
+                    </div>
+                    
+                    <!-- Duplicate actions -->
+                    <div id="duplicateActions" class="duplicate-actions" style="display: none;">
+                        <div class="duplicate-count">
+                            <i class="fas fa-users"></i>
+                            <span id="duplicateCount">0 duplicates found</span>
                         </div>
-                        <div class="form-group">
-                            <label>Annual Leave</label>
-                            <input type="number" id="annualLeave" min="0" required>
+                        <div class="duplicate-buttons">
+                            <button id="ignoreDuplicatesBtn" class="ignore-duplicates-btn">Ignore</button>
+                            <button id="manageDuplicatesBtn" class="manage-duplicates-btn">
+                                <i class="fas fa-cog"></i> Manage Duplicates
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label>FRL Leave</label>
-                            <input type="number" id="frlLeave" min="0" required>
+                    </div>
+                    
+                    <!-- Unknown flights warning banner -->
+                    <div id="unknownWarningBanner" class="unknown-warning-banner" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="unknownWarningText">Unknown flights detected</span>
+                    </div>
+                    
+                    <!-- Button to show unknown flights -->
+                    <button id="showUnknownBtn" class="show-unknown-btn" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i> Show Unknown Flights
+                    </button>
+                    
+                    <div id="closedWarning" class="warning-banner" style="display:none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Flight is closed. To edit, flight needs to be in Open status.</span>
+                    </div>
+                    
+                    <!-- Unknown Flights Section -->
+                    <div id="unknownFlightsSection" class="unknown-flights-section">
+                        <div class="unknown-flights-header">
+                            <div class="unknown-flights-title">
+                                <i class="fas fa-exclamation-circle"></i> Unknown Flight & Airline Passengers
+                            </div>
                         </div>
-                        <button type="button" class="btn-primary" onclick="updateSelectedUserBalance()">Update Balance</button>
+                        <div class="unknown-flights-list" id="unknownFlightsList">
+                            <!-- Unknown flights will be populated here -->
+                        </div>
+                        <div class="unknown-flights-footer">
+                            <div class="unknown-count" id="unknownCount">0 unknown passengers</div>
+                            <button id="deleteAllUnknownBtn" class="delete-all-btn" disabled>
+                                <i class="fas fa-trash"></i> Delete All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passenger List Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-users"></i> Passenger List</div>
+                        <div class="passenger-count" id="passengerCount">0 Passengers</div>
+                    </div>
+                    <div class="table-container">
+                        <table id="reportTable">
+                            <thead>
+                                <tr id="tableHeader">
+                                    <!-- Table headers will be dynamically generated -->
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="emptyState" class="empty-state" style="display:none;">
+                        <div class="empty-state-icon"><i class="fas fa-user-slash"></i></div>
+                        <h3>No Passengers Found</h3>
+                        <p>Select a date and flight number to view passenger data.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column: Flight info -->
+            <div class="right-column">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-info-circle"></i> Flight Information</div>
+                        <div class="status-badge" id="flightStatusBadge">Status: Open</div>
+                    </div>
+
+                    <div class="flight-info-grid">
+                        <div class="info-item">
+                            <span class="info-label">First Passenger Time</span>
+                            <input type="text" id="firstPaxTimeInput" class="time-input" placeholder="HH:MM" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" title="Enter time in 24-hour format (00:00 to 23:59)">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Scheduled Departure (STD)</span>
+                            <input type="text" id="stdTimeInput" class="time-input" placeholder="HH:MM" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" title="Enter time in 24-hour format (00:00 to 23:59)">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Passenger Left</span>
+                            <input type="text" id="lastPaxTimeInput" class="time-input" placeholder="HH:MM" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" title="Enter time in 24-hour format (00:00 to 23:59)">
+                        </div>
+                    </div>
+
+                    <div class="flight-actions">
+                        <button id="toggleFlightBtn" class="btn btn-success"><i class="fas fa-lock-open"></i> Flight Open</button>
+                        <button id="printBtn" class="btn"><i class="fas fa-print"></i> Print</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK Version 8 -->
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-trash-alt"></i> Confirm Deletion
+                </div>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-text" id="confirmationText">
+                    Are you sure you want to delete these passengers?
+                </div>
+                <div class="confirmation-details" id="confirmationDetails">
+                    <!-- Details will be populated here -->
+                </div>
+                <div class="confirmation-list" id="confirmationList">
+                    <!-- List of items to delete will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Duplicate Management Modal -->
+    <div id="duplicateModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-clone"></i> Manage Duplicate Passengers
+                </div>
+                <button class="modal-close" id="closeDuplicateModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-text">
+                    Select duplicate passengers to delete. Duplicates are identified by matching Name, Seat Number, and Flight Number.
+                </div>
+                
+                <div class="select-all-row">
+                    <input type="checkbox" id="selectAllDuplicates">
+                    <label for="selectAllDuplicates">Select All Duplicates</label>
+                    <span style="margin-left: auto; font-size: 12px; color: var(--secondary);">
+                        <span id="selectedCount">0</span> selected
+                    </span>
+                </div>
+                
+                <div class="duplicate-list" id="duplicateList">
+                    <!-- Duplicate list will be populated here -->
+                </div>
+                
+                <div class="confirmation-details" style="margin-top: 15px;">
+                    <strong>Note:</strong> Only one entry per unique combination (Name + Seat + Flight) should be kept. 
+                    The system will keep the first entry (by timeAdded) and delete the selected duplicates.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelDuplicateBtn">Cancel</button>
+                <button class="btn btn-danger" id="deleteSelectedDuplicatesBtn" disabled>
+                    <i class="fas fa-trash"></i> Delete Selected (<span id="selectedToDeleteCount">0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="fireR.js"></script>
+    <script src="Co.js"></script>
+
+  <script>
+  // Elements
+const tableBody = document.getElementById("tableBody");
+const tableHeader = document.getElementById("tableHeader");
+const filterDate = document.getElementById("filterDate");
+const filterFlight = document.getElementById("filterFlight");
+const emptyState = document.getElementById("emptyState");
+const passengerCount = document.getElementById("passengerCount");
+const firstPaxTimeInput = document.getElementById("firstPaxTimeInput");
+const stdTimeInput = document.getElementById("stdTimeInput");
+const lastPaxTimeInput = document.getElementById("lastPaxTimeInput");
+const toggleFlightBtn = document.getElementById("toggleFlightBtn");
+const flightStatusBadge = document.getElementById("flightStatusBadge");
+const printBtn = document.getElementById("printBtn");
+const closedWarning = document.getElementById("closedWarning");
+const companyLogo = document.getElementById("companyLogo");
+const companyName = document.getElementById("companyName");
+const loggedInUserElement = document.getElementById("loggedInUser");
+const refreshAllBtn = document.getElementById("refreshAllBtn");
+const showUnknownBtn = document.getElementById("showUnknownBtn");
+const unknownFlightsSection = document.getElementById("unknownFlightsSection");
+const unknownFlightsList = document.getElementById("unknownFlightsList");
+const unknownCount = document.getElementById("unknownCount");
+const deleteAllUnknownBtn = document.getElementById("deleteAllUnknownBtn");
+const confirmationModal = document.getElementById("confirmationModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+const confirmationText = document.getElementById("confirmationText");
+const confirmationDetails = document.getElementById("confirmationDetails");
+const confirmationList = document.getElementById("confirmationList");
+const unknownWarningBanner = document.getElementById("unknownWarningBanner");
+const unknownWarningText = document.getElementById("unknownWarningText");
+
+// New duplicate handling elements
+const duplicateWarningBanner = document.getElementById("duplicateWarningBanner");
+const duplicateWarningText = document.getElementById("duplicateWarningText");
+const duplicateActions = document.getElementById("duplicateActions");
+const duplicateCount = document.getElementById("duplicateCount");
+const ignoreDuplicatesBtn = document.getElementById("ignoreDuplicatesBtn");
+const manageDuplicatesBtn = document.getElementById("manageDuplicatesBtn");
+const duplicateModal = document.getElementById("duplicateModal");
+const closeDuplicateModalBtn = document.getElementById("closeDuplicateModalBtn");
+const cancelDuplicateBtn = document.getElementById("cancelDuplicateBtn");
+const duplicateList = document.getElementById("duplicateList");
+const selectAllDuplicates = document.getElementById("selectAllDuplicates");
+const selectedCount = document.getElementById("selectedCount");
+const deleteSelectedDuplicatesBtn = document.getElementById("deleteSelectedDuplicatesBtn");
+const selectedToDeleteCount = document.getElementById("selectedToDeleteCount");
+
+let passengers = [], flightDocId = null, flightStatus = "Open", flightListener = null;
+let loggedInUserName = "Loading...";
+let autoSaveTimeout = null;
+let currentFlightNo = "";
+let currentDate = "";
+let currentFlightNumber = "";
+
+// Store duplicate detection data
+let duplicates = [];
+let selectedDuplicates = new Set();
+
+// Store unknown flights data
+let unknownFlights = [];
+let currentDeleteType = ""; // "single", "all", or "specific"
+let currentDeleteData = null; // Data for current deletion operation
+
+// Simple cache for current session only
+let passengerCache = {};
+let flightInfoCache = {};
+
+// Default date
+const today = new Date();
+const yyyy = today.getFullYear();
+const mm = String(today.getMonth()+1).padStart(2,'0');
+const dd = String(today.getDate()).padStart(2,'0');
+filterDate.value = `${yyyy}-${mm}-${dd}`;
+currentDate = filterDate.value;
+
+// Helper function to convert time string to minutes
+function timeToMinutes(timeStr) {
+    if (!timeStr) return 1439; // 23:59 in minutes (end of day)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+    if (!timeRegex.test(timeStr)) return 1439;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return (hours * 60) + minutes;
+}
+
+// Function to calculate passengers from seat numbers
+function calculatePaxFromSeatNo(seatNo) {
+    if (!seatNo) return 1;
     
-    <!-- Your Firebase configuration (make sure it initializes db variable) -->
-    <script src="./dcfire.js"></script>
+    // Remove spaces and convert to uppercase
+    const cleanSeatNo = seatNo.trim().toUpperCase();
     
-    <script>
-        // Global variable to store current user with location
-        let currentUser = null;
-        let usersList = []; // Store users from user.js or localStorage
-        let allLeaveRequests = []; // Store all leave requests for filtering
-        let allDutyChanges = []; // Store all duty changes for filtering
-        let notificationInterval; // Store interval ID for notifications
-        let isInitialized = false; // Track if initialization is complete
-
-        // Safe DOM element getter with null check
-        function getElement(id) {
-            const element = document.getElementById(id);
-            if (!element) {
-                console.warn(`Element with id '${id}' not found`);
-            }
-            return element;
+    // Count the number of alphanumeric groups separated by slashes
+    const seatGroups = cleanSeatNo.split('/');
+    
+    // Count total seats by checking each group
+    let totalSeats = 0;
+    
+    seatGroups.forEach(group => {
+        if (group) {
+            // Extract only alphabetic characters from the group
+            const letters = group.replace(/[^A-Z]/g, '');
+            
+            // Count the number of letters (each letter represents one passenger)
+            totalSeats += letters.length || 1;
         }
+    });
+    
+    return totalSeats || 1; // Return at least 1
+}
 
-        // Safe textContent setter
-        function setTextContent(id, text) {
-            const element = getElement(id);
-            if (element) {
-                element.textContent = text;
-            }
-        }
-
-        // Safe innerHTML setter
-        function setInnerHTML(id, html) {
-            const element = getElement(id);
-            if (element) {
-                element.innerHTML = html;
-            }
-        }
-
-        // Initialize and check user authentication
-        async function initializeUser() {
-            try {
-                console.log('Initializing supervisor panel...');
-                
-                const storedUser = JSON.parse(localStorage.getItem('currentUser'));
-                
-                if (!storedUser) {
-                    console.log('No user found in localStorage - redirecting to login');
-                    window.location.href = 'index.html';
-                    return false;
-                }
-                
-                // Check if user is supervisor - check both 'Level' and 'level'
-                const userLevel = storedUser.Level || storedUser.level;
-                
-                console.log('User level detected:', userLevel);
-                
-                if (userLevel !== 'Supervisor') {
-                    console.log('User is not supervisor, level:', userLevel, '- redirecting to login');
-                    window.location.href = 'index.html';
-                    return false;
-                }
-                
-                // Use stored user data as is
-                currentUser = storedUser;
-                
-                // Ensure location is set
-                if (!currentUser.location) {
-                    currentUser.location = 'Default';
-                    // Update in localStorage too
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                }
-                
-                // Load users from localStorage or user.js
-                try {
-                    // Try to load from user.js first
-                    if (typeof users !== 'undefined') {
-                        usersList = users;
-                        console.log('Loaded users from user.js:', usersList.length);
-                    } else {
-                        // Fallback to localStorage
-                        usersList = JSON.parse(localStorage.getItem('users') || '[]');
-                        console.log('Loaded users from localStorage:', usersList.length);
-                    }
-                } catch (error) {
-                    console.error('Error loading users list:', error);
-                    usersList = [];
-                }
-                
-                // Update UI with safe methods
-                setTextContent('userName', currentUser.name || currentUser.username || 'User');
-                setTextContent('welcomeName', currentUser.name || currentUser.username || 'User');
-                setTextContent('userLocation', currentUser.location);
-                setTextContent('welcomeLocation', currentUser.location);
-                setTextContent('currentLocationDisplay', currentUser.location);
-                setTextContent('dutyLocationDisplay', currentUser.location);
-                setTextContent('userLocationDisplay', currentUser.location);
-                
-                console.log('Supervisor initialized successfully:', currentUser);
-                isInitialized = true;
-                
-                // Start notification updates
-                startNotificationUpdates();
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Error in initializeUser:', error);
-                alert('Session error: ' + error.message);
-                window.location.href = 'index.html';
-                return false;
-            }
-        }
-
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
+// Function to detect duplicates based on name, seat, flight, and date
+function detectDuplicates(passengersList) {
+    const duplicates = [];
+    const seenCombinations = new Map(); // key -> first occurrence index
+    
+    // Sort by timeAdded to keep earliest entries
+    const sortedPassengers = [...passengersList].sort((a, b) => 
+        timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded)
+    );
+    
+    sortedPassengers.forEach((passenger, index) => {
+        // Create unique key: name + seat + flight + date
+        const nameKey = (passenger.name || "").trim().toLowerCase();
+        const seatKey = (passenger.seatNo || "").trim().toUpperCase();
+        const flightKey = (passenger.flightNo || "").trim().toUpperCase();
+        const dateKey = passenger.date || "";
+        
+        const combination = `${nameKey}|${seatKey}|${flightKey}|${dateKey}`;
+        
+        if (seenCombinations.has(combination)) {
+            // This is a duplicate
+            const firstIndex = seenCombinations.get(combination);
+            const firstPassenger = sortedPassengers[firstIndex];
+            
+            duplicates.push({
+                duplicate: passenger,
+                original: firstPassenger,
+                combination: combination
             });
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab').forEach(tabBtn => {
-                tabBtn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            const tabElement = getElement(tabName);
-            if (tabElement) {
-                tabElement.classList.add('active');
-            }
-            
-            // Add active class to clicked tab button
-            if (event && event.target) {
-                event.target.classList.add('active');
-            }
-            
-            // Load data for the tab
-            if (tabName === 'leaveRequests') {
-                loadLeaveRequests();
-            } else if (tabName === 'dutyChanges') {
-                loadDutyChanges();
-            } else if (tabName === 'manageUsers') {
-                loadUsers();
-            }
+        } else {
+            seenCombinations.set(combination, index);
         }
+    });
+    
+    return duplicates;
+}
 
-        async function loadLeaveRequests() {
-            if (!isInitialized) {
-                console.log('Not initialized yet, skipping loadLeaveRequests');
-                return;
-            }
-            
-            try {
-                const tbody = getElement('leaveRequestsBody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading leave requests...</td></tr>';
-                
-                const leaveRef = db.collection('leaveRequests');
-                const querySnapshot = await leaveRef
-                    .where('location', '==', currentUser.location || 'Default')
-                    .orderBy('submittedAt', 'desc')
-                    .get();
-                
-                allLeaveRequests = [];
-                querySnapshot.forEach((docItem) => {
-                    allLeaveRequests.push({
-                        id: docItem.id,
-                        data: docItem.data()
-                    });
-                });
-                
-                console.log('Loaded', allLeaveRequests.length, 'leave requests for location:', currentUser.location);
-                
-                // Apply initial filter
-                filterLeaveRequests();
-                
-            } catch (error) {
-                console.error('Error loading leave requests:', error);
-                const tbody = getElement('leaveRequestsBody');
-                if (tbody) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="9" style="text-align: center; padding: 40px; color: #e74c3c;">
-                                Error loading leave requests: ${error.message}
-                            </td>
-                        </tr>
-                    `;
-                }
-            }
-        }
+// Function to show duplicate warning
+function showDuplicateWarning(duplicateCount) {
+    if (duplicateCount > 0) {
+        duplicateWarningText.textContent = `Found ${duplicateCount} duplicate passenger(s)!`;
+        duplicateCount.textContent = `${duplicateCount} duplicate passenger(s) found`;
+        duplicateWarningBanner.style.display = "flex";
+        duplicateActions.style.display = "flex";
+        
+        // Highlight duplicate rows in table
+        highlightDuplicateRows();
+    } else {
+        duplicateWarningBanner.style.display = "none";
+        duplicateActions.style.display = "none";
+        clearDuplicateHighlights();
+    }
+}
 
-        async function filterLeaveRequests() {
-            if (!isInitialized) return;
-            
-            const filterValue = document.getElementById('leaveStatusFilter')?.value || 'all';
-            setTextContent('leaveFilterStatus', filterValue === 'all' ? 'All' : filterValue);
-            
-            const tbody = getElement('leaveRequestsBody');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            if (allLeaveRequests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="no-data">No leave requests found</td></tr>';
-                return;
+// Function to highlight duplicate rows in the table
+function highlightDuplicateRows() {
+    const rows = tableBody.querySelectorAll('tr');
+    
+    // Clear previous highlights
+    rows.forEach(row => row.classList.remove('duplicate-row'));
+    
+    // Highlight duplicate rows
+    duplicates.forEach(dup => {
+        const duplicateId = dup.duplicate.id;
+        rows.forEach(row => {
+            if (row.dataset.passengerId === duplicateId) {
+                row.classList.add('duplicate-row');
             }
-            
-            // Filter requests based on selected status
-            const filteredRequests = filterValue === 'all' 
-                ? allLeaveRequests 
-                : allLeaveRequests.filter(item => item.data.status === filterValue);
-            
-            if (filteredRequests.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="no-data">No ${filterValue.toLowerCase()} leave requests</td></tr>`;
-                return;
-            }
-            
-            // Display filtered results
-            for (const item of filteredRequests) {
-                const data = item.data;
-                
-                // Fetch user's current leave balance from Firebase
-                let currentBalance = 'N/A';
-                let userDocId = null;
-                if (data.username) {
-                    try {
-                        // Find user in Firebase by username
-                        const usersRef = db.collection('users');
-                        const userQuery = await usersRef
-                            .where('username', '==', data.username)
-                            .limit(1)
-                            .get();
-                        
-                        if (!userQuery.empty) {
-                            const userDoc = userQuery.docs[0];
-                            userDocId = userDoc.id;
-                            const userData = userDoc.data();
-                            const leaveField = `${data.leaveType?.toLowerCase()}Leave` || 'sickLeave';
-                            currentBalance = userData[leaveField] || 0;
-                        }
-                    } catch (e) {
-                        console.error('Error fetching user balance:', e);
-                    }
-                }
-                
-                const row = document.createElement('tr');
-                
-                // Format dates
-                let leaveDate = data.leaveDate;
-                if (data.leaveDate && data.leaveDate.toDate) {
-                    leaveDate = data.leaveDate.toDate().toLocaleDateString();
-                } else if (data.leaveDate) {
-                    leaveDate = data.leaveDate;
-                }
-                
-                let submittedDate = 'N/A';
-                if (data.submittedAt && data.submittedAt.toDate) {
-                    submittedDate = data.submittedAt.toDate().toLocaleString();
-                } else if (data.submittedAt) {
-                    submittedDate = new Date(data.submittedAt).toLocaleString();
-                }
-                
-                // Create leave type badge
-                let leaveTypeBadge = '';
-                if (data.leaveType) {
-                    const badgeClass = data.leaveType.toLowerCase() === 'sick' ? 'sick-badge' : 
-                                     data.leaveType.toLowerCase() === 'annual' ? 'annual-badge' : 'frl-badge';
-                    leaveTypeBadge = `<span class="leave-type-badge ${badgeClass}">${data.leaveType}</span>`;
-                }
-                
-                // Determine status class
-                const statusClass = `status-${data.status.toLowerCase()}`;
-                
-                // Determine action buttons based on status
-                let actionButtons = '';
-                if (data.status === 'Pending') {
-                    // Only show action buttons for Pending requests
-                    actionButtons = `
-                        <button class="action-btn approve-btn" onclick="approveLeave('${item.id}', '${userDocId || ''}')">Approve</button>
-                        <button class="action-btn reject-btn" onclick="rejectLeave('${item.id}')">Reject</button>
-                    `;
-                } else if (data.status === 'Approved') {
-                    // Show who approved it (read-only)
-                    const approvedBy = data.approvedBy || 'Supervisor';
-                    let approvedAt = 'N/A';
-                    if (data.approvedAt && data.approvedAt.toDate) {
-                        approvedAt = data.approvedAt.toDate().toLocaleString();
-                    } else if (data.approvedAt) {
-                        approvedAt = new Date(data.approvedAt).toLocaleString();
-                    }
-                    actionButtons = `
-                        <div style="font-size: 12px;">
-                            <div style="color: #27ae60;">✓ Approved</div>
-                            <div class="status-info">
-                                By: ${approvedBy}<br>
-                                On: ${approvedAt}
-                            </div>
-                        </div>
-                    `;
-                } else if (data.status === 'Rejected') {
-                    // Show who rejected it (read-only)
-                    const approvedBy = data.approvedBy || 'Supervisor';
-                    let approvedAt = 'N/A';
-                    if (data.approvedAt && data.approvedAt.toDate) {
-                        approvedAt = data.approvedAt.toDate().toLocaleString();
-                    } else if (data.approvedAt) {
-                        approvedAt = new Date(data.approvedAt).toLocaleString();
-                    }
-                    actionButtons = `
-                        <div style="font-size: 12px;">
-                            <div style="color: #e74c3c;">✗ Rejected</div>
-                            <div class="status-info">
-                                By: ${approvedBy}<br>
-                                On: ${approvedAt}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                row.innerHTML = `
-                    <td>${leaveDate || 'N/A'}</td>
-                    <td>${data.name || 'N/A'}<br><small style="color: #666;">${data.username || ''}</small></td>
-                    <td>${leaveTypeBadge}</td>
-                    <td>${data.dutyTime || 'N/A'} (${data.dutyType || 'N/A'})</td>
-                    <td><strong>${currentBalance}</strong> days remaining</td>
-                    <td>${data.reason || '-'}</td>
-                    <td class="${statusClass}">${data.status || 'Pending'}</td>
-                    <td>${submittedDate}</td>
-                    <td>${actionButtons}</td>
-                `;
-                
-                tbody.appendChild(row);
-            }
-        }
+        });
+    });
+}
 
-        async function loadDutyChanges() {
-            if (!isInitialized) return;
-            
-            try {
-                const tbody = getElement('dutyChangesBody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading duty changes...</td></tr>';
-                
-                const dutyRef = db.collection('dutyChanges');
-                const querySnapshot = await dutyRef
-                    .where('location', '==', currentUser.location || 'Default')
-                    .orderBy('submittedAt', 'desc')
-                    .get();
-                
-                allDutyChanges = [];
-                querySnapshot.forEach((docItem) => {
-                    allDutyChanges.push({
-                        id: docItem.id,
-                        data: docItem.data()
-                    });
-                });
-                
-                console.log('Loaded', allDutyChanges.length, 'duty changes for location:', currentUser.location);
-                
-                // Apply initial filter
-                filterDutyChanges();
-                
-            } catch (error) {
-                console.error('Error loading duty changes:', error);
-                const tbody = getElement('dutyChangesBody');
-                if (tbody) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="9" style="text-align: center; padding: 40px; color: #e74c3c;">
-                                Error loading duty changes: ${error.message}
-                            </td>
-                        </tr>
-                    `;
-                }
-            }
-        }
+// Function to clear duplicate highlights
+function clearDuplicateHighlights() {
+    const rows = tableBody.querySelectorAll('tr');
+    rows.forEach(row => row.classList.remove('duplicate-row'));
+}
 
-        function filterDutyChanges() {
-            if (!isInitialized) return;
-            
-            const filterSelect = getElement('dutyStatusFilter');
-            const filterValue = filterSelect ? filterSelect.value : 'all';
-            setTextContent('dutyFilterStatus', filterValue === 'all' ? 'All' : filterValue);
-            
-            const tbody = getElement('dutyChangesBody');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            if (allDutyChanges.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="no-data">No duty changes found</td></tr>';
-                return;
-            }
-            
-            // Filter changes based on selected status
-            let filteredChanges = [];
-            if (filterValue === 'all') {
-                filteredChanges = allDutyChanges;
-            } else if (filterValue === 'Accepted') {
-                // Show only duty changes accepted by staff (but not yet approved by supervisor)
-                filteredChanges = allDutyChanges.filter(item => 
-                    item.data.status === 'Accepted' && item.data.acceptedByStaff === true
-                );
-            } else if (filterValue === 'Approved') {
-                // Show duty changes approved by supervisor
-                filteredChanges = allDutyChanges.filter(item => 
-                    item.data.status === 'Approved' || item.data.acceptedBySupervisor === true
-                );
+// Function to populate duplicate modal
+function populateDuplicateModal() {
+    duplicateList.innerHTML = "";
+    selectedDuplicates.clear();
+    updateSelectedCount();
+    
+    duplicates.forEach((dup, index) => {
+        const duplicateItem = document.createElement("div");
+        duplicateItem.className = "duplicate-item";
+        
+        duplicateItem.innerHTML = `
+            <input type="checkbox" class="duplicate-checkbox" id="dup-${index}" data-index="${index}">
+            <div class="duplicate-info">
+                <div class="duplicate-name">${dup.duplicate.name || "Unknown"}</div>
+                <div class="duplicate-details">
+                    <span>Seat: ${dup.duplicate.seatNo || "N/A"}</span>
+                    <span>Flight: ${dup.duplicate.flightNo || "N/A"}</span>
+                    <span>Time: ${dup.duplicate.timeAdded || "N/A"}</span>
+                    <span>Pax: ${dup.duplicate.numPax || 1}</span>
+                </div>
+                <div class="duplicate-details" style="color: #666; font-size: 11px;">
+                    <i class="fas fa-info-circle"></i>
+                    Duplicate of: ${dup.original.name} (Added: ${dup.original.timeAdded})
+                </div>
+            </div>
+        `;
+        
+        duplicateList.appendChild(duplicateItem);
+        
+        // Add event listener to checkbox
+        const checkbox = duplicateItem.querySelector('.duplicate-checkbox');
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedDuplicates.add(index);
             } else {
-                filteredChanges = allDutyChanges.filter(item => item.data.status === filterValue);
+                selectedDuplicates.delete(index);
+            }
+            updateSelectedCount();
+            updateSelectAllCheckbox();
+        });
+    });
+    
+    // Update select all checkbox
+    updateSelectAllCheckbox();
+}
+
+// Function to update selected count
+function updateSelectedCount() {
+    const count = selectedDuplicates.size;
+    selectedCount.textContent = count;
+    selectedToDeleteCount.textContent = count;
+    deleteSelectedDuplicatesBtn.disabled = count === 0;
+}
+
+// Function to update select all checkbox
+function updateSelectAllCheckbox() {
+    const allChecked = selectedDuplicates.size === duplicates.length;
+    selectAllDuplicates.checked = allChecked && duplicates.length > 0;
+    selectAllDuplicates.indeterminate = selectedDuplicates.size > 0 && selectedDuplicates.size < duplicates.length;
+}
+
+// Function to delete selected duplicates
+async function deleteSelectedDuplicates() {
+    const selectedIndices = Array.from(selectedDuplicates);
+    
+    if (selectedIndices.length === 0) {
+        showNotification("Please select at least one duplicate to delete", "error");
+        return;
+    }
+    
+    try {
+        const deletePromises = selectedIndices.map(index => {
+            const dup = duplicates[index];
+            return db.collection("passengers").doc(dup.duplicate.id).delete();
+        });
+        
+        await Promise.all(deletePromises);
+        
+        // Remove from local arrays
+        selectedIndices.forEach(index => {
+            const dup = duplicates[index];
+            passengers = passengers.filter(p => p.id !== dup.duplicate.id);
+            
+            // Update cache
+            if (passengerCache[filterDate.value]) {
+                passengerCache[filterDate.value] = passengerCache[filterDate.value].filter(p => p.id !== dup.duplicate.id);
+            }
+        });
+        
+        // Clear duplicates array
+        duplicates = [];
+        
+        // Update UI
+        hideDuplicateModal();
+        showDuplicateWarning(0);
+        renderTable();
+        
+        showNotification(`Successfully deleted ${selectedIndices.length} duplicate passenger(s)`);
+        
+    } catch (error) {
+        console.error("Error deleting duplicates:", error);
+        showNotification("Error deleting duplicates. Please try again.", "error");
+    }
+}
+
+// Function to hide duplicate modal
+function hideDuplicateModal() {
+    duplicateModal.classList.remove("active");
+}
+
+// Time format validation
+function setupTimeInputs() {
+    const timeInputs = [firstPaxTimeInput, stdTimeInput, lastPaxTimeInput];
+    
+    timeInputs.forEach(input => {
+        // Auto-format as user types
+        input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            
+            if (value.length > 4) {
+                value = value.substring(0, 4);
             }
             
-            if (filteredChanges.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="no-data">No ${filterValue.toLowerCase()} duty changes</td></tr>`;
-                return;
+            if (value.length >= 3) {
+                e.target.value = value.substring(0, 2) + ':' + value.substring(2);
+            } else {
+                e.target.value = value;
             }
             
-            // Display filtered results
-            filteredChanges.forEach((item) => {
-                const data = item.data;
-                const row = document.createElement('tr');
+            // Auto-save after user stops typing (1 second delay)
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(saveFlightTimes, 1000);
+        });
+        
+        // Validate on blur
+        input.addEventListener('blur', function(e) {
+            const value = e.target.value;
+            if (value && !isValidTime(value)) {
+                alert('Please enter a valid time in 24-hour format (HH:MM)');
+                e.target.focus();
+            } else if (value) {
+                // Format with leading zeros
+                const [hours, minutes] = value.split(':');
+                const formattedHours = hours.padStart(2, '0');
+                const formattedMinutes = minutes.padStart(2, '0');
+                e.target.value = `${formattedHours}:${formattedMinutes}`;
                 
-                // Format dates
-                let changeDate = data.changeDate;
-                if (data.changeDate && data.changeDate.toDate) {
-                    changeDate = data.changeDate.toDate().toLocaleDateString();
-                } else if (data.changeDate) {
-                    changeDate = data.changeDate;
-                }
-                
-                let submittedDate = 'N/A';
-                if (data.submittedAt && data.submittedAt.toDate) {
-                    submittedDate = data.submittedAt.toDate().toLocaleString();
-                } else if (data.submittedAt) {
-                    submittedDate = new Date(data.submittedAt).toLocaleString();
-                }
-                
-                // Determine status class
-                let statusClass = '';
-                let displayStatus = data.status || 'Pending';
-                
-                if (data.status === 'Approved' || data.acceptedBySupervisor === true) {
-                    statusClass = 'status-approved';
-                    displayStatus = 'Approved by Supervisor';
-                } else if (data.status === 'Accepted' && data.acceptedByStaff === true) {
-                    statusClass = 'status-accepted';
-                    displayStatus = 'Accepted by Staff';
-                } else if (data.status === 'Rejected') {
-                    statusClass = 'status-rejected';
-                } else {
-                    statusClass = 'status-pending';
-                }
-                
-                // Determine action buttons based on status
-                let actionButtons = '';
-                if (data.status === 'Accepted' && data.acceptedByStaff === true && !data.acceptedBySupervisor) {
-                    // Only show action buttons for duty changes accepted by staff but not yet approved by supervisor
-                    actionButtons = `
-                        <button class="action-btn approve-btn" onclick="approveDutyChange('${item.id}')">Approve</button>
-                        <button class="action-btn reject-btn" onclick="rejectDutyChange('${item.id}')">Reject</button>
-                    `;
-                } else if (data.status === 'Approved' || data.acceptedBySupervisor === true) {
-                    // Show approval details (read-only)
-                    const approvedBy = data.approvedBy || 'Supervisor';
-                    let approvedAt = 'N/A';
-                    if (data.supervisorApprovedAt && data.supervisorApprovedAt.toDate) {
-                        approvedAt = data.supervisorApprovedAt.toDate().toLocaleString();
-                    } else if (data.supervisorApprovedAt) {
-                        approvedAt = new Date(data.supervisorApprovedAt).toLocaleString();
-                    }
-                    actionButtons = `
-                        <div style="font-size: 12px;">
-                            <div style="color: #27ae60;">✓ Approved</div>
-                            <div class="status-info">
-                                By: ${approvedBy}<br>
-                                On: ${approvedAt}
-                            </div>
-                        </div>
-                    `;
-                } else if (data.status === 'Rejected') {
-                    // Show rejection details (read-only)
-                    const rejectedBy = data.approvedBy || 'Supervisor';
-                    let rejectedAt = 'N/A';
-                    if (data.supervisorApprovedAt && data.supervisorApprovedAt.toDate) {
-                        rejectedAt = data.supervisorApprovedAt.toDate().toLocaleString();
-                    } else if (data.supervisorApprovedAt) {
-                        rejectedAt = new Date(data.supervisorApprovedAt).toLocaleString();
-                    }
-                    actionButtons = `
-                        <div style="font-size: 12px;">
-                            <div style="color: #e74c3c;">✗ Rejected</div>
-                            <div class="status-info">
-                                By: ${rejectedBy}<br>
-                                On: ${rejectedAt}
-                            </div>
-                        </div>
-                    `;
-                } else if (data.status === 'Accepted' && !data.acceptedByStaff) {
-                    actionButtons = `<span style="color: #f39c12; font-size: 12px;">Waiting for staff acceptance</span>`;
-                }
-                
-                row.innerHTML = `
-                    <td>${changeDate || 'N/A'}</td>
-                    <td>${data.requestorName || 'N/A'}</td>
-                    <td>${data.acceptedStaffName || 'N/A'}</td>
-                    <td>${data.requestorDutyTime || 'N/A'}</td>
-                    <td>${data.acceptedStaffDutyTime || 'N/A'}</td>
-                    <td>${data.acceptedByStaff ? 'Yes' : 'No'}</td>
-                    <td class="${statusClass}">${displayStatus}</td>
-                    <td>${submittedDate}</td>
-                    <td>${actionButtons}</td>
-                `;
-                
-                tbody.appendChild(row);
+                // Save immediately on blur
+                saveFlightTimes();
+            }
+        });
+    });
+}
+
+// Validate time format (HH:MM)
+function isValidTime(time) {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+}
+
+// Function to validate flight number format
+function isValidFlightNumber(flightNo) {
+    if (!flightNo) return false;
+    
+    // More flexible validation: Should be 1-5 letters followed by 1-4 numbers
+    const flightRegex = /^[A-Z]{1,5}\d{1,4}$/;
+    return flightRegex.test(flightNo.trim().toUpperCase());
+}
+
+// Function to check if airline is valid/known
+function isValidAirline(airline) {
+    if (!airline) return false;
+    
+    // Trim and check if airline is empty or contains only whitespace
+    const trimmedAirline = airline.trim();
+    if (trimmedAirline === "" || trimmedAirline === "Unknown" || trimmedAirline === "N/A") {
+        return false;
+    }
+    
+    // Check for common unknown airline patterns
+    const unknownPatterns = [
+        "unknown",
+        "test",
+        "demo",
+        "none",
+        "null",
+        "undefined",
+        "blank",
+        "empty",
+        "--",
+        "---"
+    ];
+    
+    const lowerAirline = trimmedAirline.toLowerCase();
+    return !unknownPatterns.some(pattern => lowerAirline.includes(pattern));
+}
+
+// Function to scan for unknown flights (both flight number AND airline unknown)
+async function scanForUnknownFlights() {
+    try {
+        console.log("Scanning for unknown flights and airlines...");
+        
+        // Get all passengers for today's date
+        const snapshot = await db.collection("passengers")
+            .where("date", "==", filterDate.value)
+            .get();
+        
+        if (snapshot.empty) {
+            console.log("No passengers found for today");
+            unknownFlights = [];
+            updateUnknownFlightsUI();
+            return;
+        }
+        
+        unknownFlights = [];
+        
+        snapshot.docs.forEach(doc => {
+            const passenger = doc.data();
+            const flightNo = passenger.flightNo || "";
+            const airline = passenger.airline || "";
+            
+            // Check if BOTH flight number AND airline are unknown/invalid
+            const isFlightNoInvalid = !isValidFlightNumber(flightNo);
+            const isAirlineInvalid = !isValidAirline(airline);
+            
+            if (isFlightNoInvalid && isAirlineInvalid) {
+                unknownFlights.push({
+                    id: doc.id,
+                    flightNo: flightNo || "Unknown",
+                    airline: airline || "Unknown",
+                    name: passenger.name || "Unknown",
+                    seatNo: passenger.seatNo || "",
+                    timeAdded: passenger.timeAdded || "",
+                    date: passenger.date
+                });
+            }
+        });
+        
+        console.log(`Found ${unknownFlights.length} passengers with unknown flight AND airline`);
+        updateUnknownFlightsUI();
+        
+    } catch (error) {
+        console.error("Error scanning for unknown flights:", error);
+        showNotification("Error scanning for unknown flights. Please try again.", "error");
+    }
+}
+
+// Update unknown flights UI
+function updateUnknownFlightsUI() {
+    if (unknownFlights.length === 0) {
+        showUnknownBtn.style.display = "none";
+        unknownFlightsSection.style.display = "none";
+        unknownWarningBanner.style.display = "none";
+        return;
+    }
+    
+    showUnknownBtn.style.display = "block";
+    unknownCount.textContent = `${unknownFlights.length} unknown passenger${unknownFlights.length !== 1 ? 's' : ''}`;
+    unknownWarningText.textContent = `Found ${unknownFlights.length} passenger(s) with unknown flight AND airline`;
+    unknownWarningBanner.style.display = "flex";
+    
+    // Populate the list
+    unknownFlightsList.innerHTML = "";
+    
+    unknownFlights.forEach((flight, index) => {
+        const flightItem = document.createElement("div");
+        flightItem.className = "unknown-flight-item";
+        
+        flightItem.innerHTML = `
+            <div class="unknown-flight-info">
+                <div class="unknown-flight-name">${flight.name}</div>
+                <div class="unknown-flight-details">
+                    <span>Flight: ${flight.flightNo}</span>
+                    <span>Airline: ${flight.airline}</span>
+                    <span>Seat: ${flight.seatNo || "N/A"}</span>
+                    <span>Time: ${flight.timeAdded || "N/A"}</span>
+                </div>
+            </div>
+            <div class="unknown-flight-actions">
+                <button class="delete-single-btn" data-index="${index}">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        `;
+        
+        unknownFlightsList.appendChild(flightItem);
+    });
+    
+    // Enable/disable delete all button
+    deleteAllUnknownBtn.disabled = unknownFlights.length === 0;
+    
+    // Add event listeners for delete buttons
+    document.querySelectorAll(".delete-single-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const index = parseInt(this.getAttribute("data-index"));
+            const flight = unknownFlights[index];
+            showDeleteConfirmation("single", flight);
+        });
+    });
+}
+
+// Show delete confirmation modal
+function showDeleteConfirmation(type, data = null) {
+    currentDeleteType = type;
+    currentDeleteData = data;
+    
+    if (type === "single") {
+        confirmationText.textContent = "Are you sure you want to delete this passenger?";
+        confirmationDetails.innerHTML = `
+            <strong>Passenger:</strong> ${data.name}<br>
+            <strong>Flight:</strong> ${data.flightNo}<br>
+            <strong>Airline:</strong> ${data.airline}<br>
+            <strong>Seat:</strong> ${data.seatNo || "N/A"}<br>
+            <strong>Time:</strong> ${data.timeAdded || "N/A"}
+        `;
+        confirmationList.innerHTML = "";
+    } else if (type === "all") {
+        confirmationText.textContent = `Are you sure you want to delete all ${unknownFlights.length} unknown passengers?`;
+        confirmationDetails.innerHTML = `
+            This action will permanently delete all passengers with unknown flight numbers AND airlines for ${filterDate.value}.
+            <br><br>
+            <strong>Total passengers to delete:</strong> ${unknownFlights.length}<br>
+            <strong>Criteria:</strong> Invalid flight number AND unknown airline
+        `;
+        
+        // Show first 5 items in the list
+        confirmationList.innerHTML = "";
+        const itemsToShow = Math.min(5, unknownFlights.length);
+        for (let i = 0; i < itemsToShow; i++) {
+            const item = unknownFlights[i];
+            const listItem = document.createElement("div");
+            listItem.className = "confirmation-item";
+            listItem.textContent = `${item.name} - Flight: ${item.flightNo}, Airline: ${item.airline}`;
+            confirmationList.appendChild(listItem);
+        }
+        
+        if (unknownFlights.length > 5) {
+            const moreItem = document.createElement("div");
+            moreItem.className = "confirmation-item";
+            moreItem.style.fontStyle = "italic";
+            moreItem.textContent = `... and ${unknownFlights.length - 5} more`;
+            confirmationList.appendChild(moreItem);
+        }
+    }
+    
+    confirmationModal.classList.add("active");
+}
+
+// Hide delete confirmation modal
+function hideDeleteConfirmation() {
+    confirmationModal.classList.remove("active");
+    currentDeleteType = "";
+    currentDeleteData = null;
+}
+
+// Delete unknown flight passenger
+async function deleteUnknownFlight(passengerId) {
+    try {
+        await db.collection("passengers").doc(passengerId).delete();
+        console.log(`Deleted unknown flight passenger: ${passengerId}`);
+        
+        // Remove from local array
+        unknownFlights = unknownFlights.filter(f => f.id !== passengerId);
+        
+        // Update cache if exists
+        if (passengerCache[filterDate.value]) {
+            passengerCache[filterDate.value] = passengerCache[filterDate.value].filter(p => p.id !== passengerId);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error("Error deleting unknown flight passenger:", error);
+        return false;
+    }
+}
+
+// Delete all unknown flights
+async function deleteAllUnknownFlights() {
+    try {
+        const deletePromises = unknownFlights.map(flight => 
+            db.collection("passengers").doc(flight.id).delete()
+        );
+        
+        await Promise.all(deletePromises);
+        console.log(`Deleted ${unknownFlights.length} unknown flight passengers`);
+        
+        // Clear local array
+        unknownFlights = [];
+        
+        // Update cache
+        if (passengerCache[filterDate.value]) {
+            passengerCache[filterDate.value] = passengerCache[filterDate.value].filter(p => {
+                const flightNo = p.flightNo || "";
+                const airline = p.airline || "";
+                const isFlightNoValid = isValidFlightNumber(flightNo);
+                const isAirlineValid = isValidAirline(airline);
+                return !(isFlightNoValid === false && isAirlineValid === false);
             });
         }
+        
+        return true;
+    } catch (error) {
+        console.error("Error deleting all unknown flights:", error);
+        return false;
+    }
+}
 
-        async function loadUsers() {
-            if (!isInitialized) return;
-            
-            try {
-                const tbody = getElement('usersTableBody');
-                const selectUser = getElement('selectUser');
-                if (!tbody || !selectUser) return;
-                
-                tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading users...</td></tr>';
-                selectUser.innerHTML = '<option value="">Select User</option>';
-
-                // Load users from local storage or user.js
-                const localUsers = usersList || [];
-                
-                // Get users from Firebase
-                const usersRef = db.collection('users');
-                const querySnapshot = await usersRef.get();
-                
-                const firebaseUsersMap = {};
-                querySnapshot.forEach((docItem) => {
-                    const userData = docItem.data();
-                    const userId = docItem.id;
-                    if (userData.username) {
-                        firebaseUsersMap[userData.username.toLowerCase()] = {
-                            id: userId,
-                            data: userData
-                        };
-                    }
-                });
-                
-                tbody.innerHTML = '';
-                
-                localUsers.forEach((localUser) => {
-                    const isSupervisor = localUser.Level === 'Supervisor';
-                    const isCurrentUser = localUser.username === currentUser.username;
-                    
-                    let firebaseUser = null;
-                    let userId = null;
-                    if (localUser.username) {
-                        const usernameKey = localUser.username.toLowerCase();
-                        if (firebaseUsersMap[usernameKey]) {
-                            firebaseUser = firebaseUsersMap[usernameKey];
-                            userId = firebaseUser.id;
-                        }
-                    }
-                    
-                    const sickLeave = firebaseUser ? (firebaseUser.data.sickLeave || 0) : 0;
-                    const annualLeave = firebaseUser ? (firebaseUser.data.annualLeave || 0) : 0;
-                    const frlLeave = firebaseUser ? (firebaseUser.data.frlLeave || 0) : 0;
-                    const userLocation = firebaseUser ? (firebaseUser.data.location || currentUser.location) : currentUser.location;
-                    
-                    const row = document.createElement('tr');
-                    
-                    // Highlight current user
-                    if (isCurrentUser) {
-                        row.style.backgroundColor = '#f0f8ff';
-                    }
-                    
-                    // Create Firebase status indicator
-                    const firebaseStatus = firebaseUser ? 
-                        `<span style="color: #27ae60; font-size: 12px;">✓ In Firebase</span>` : 
-                        `<span class="warning-badge">Not in Firebase</span>`;
-                    
-                    row.innerHTML = `
-                        <td>
-                            ${localUser.username || 'N/A'} 
-                            ${isCurrentUser ? '(You)' : ''}
-                            <br>${firebaseStatus}
-                        </td>
-                        <td>${localUser.name || 'N/A'}</td>
-                        <td>${localUser.Level || 'N/A'}</td>
-                        <td>${userLocation}</td>
-                        <td>
-                            <span class="editable-leave" data-user-id="${userId}" data-leave-type="sickLeave" data-username="${localUser.username}">
-                                ${sickLeave}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="editable-leave" data-user-id="${userId}" data-leave-type="annualLeave" data-username="${localUser.username}">
-                                ${annualLeave}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="editable-leave" data-user-id="${userId}" data-leave-type="frlLeave" data-username="${localUser.username}">
-                                ${frlLeave}
-                            </span>
-                        </td>
-                        <td>
-                            ${!isSupervisor && userId ? `<button class="edit-btn" onclick="editUserLeave('${userId}', '${localUser.name ? localUser.name.replace(/'/g, "\\'") : localUser.username}')">Edit All</button>` : ''}
-                        </td>
-                    `;
-                    
-                    tbody.appendChild(row);
-                    
-                    if (!isSupervisor) {
-                        const option = document.createElement('option');
-                        if (userId) {
-                            option.value = userId;
-                        } else {
-                            option.value = `new_${localUser.username || localUser.name.replace(/\s+/g, '_')}`;
-                            option.setAttribute('data-is-new', 'true');
-                            option.setAttribute('data-username', localUser.username);
-                            option.setAttribute('data-name', localUser.name);
-                        }
-                        option.textContent = `${localUser.name || 'Unknown'} (${localUser.username || 'No username'})`;
-                        option.setAttribute('data-sick', sickLeave);
-                        option.setAttribute('data-annual', annualLeave);
-                        option.setAttribute('data-frl', frlLeave);
-                        selectUser.appendChild(option);
-                    }
-                });
-                
-                if (localUsers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">No users found</td></tr>';
-                    selectUser.innerHTML = '<option value="">No users available</option>';
-                    return;
-                }
-                
-                // Add click events to editable leave values
-                document.querySelectorAll('.editable-leave').forEach(element => {
-                    element.addEventListener('click', function() {
-                        editSingleLeaveValue(this);
-                    });
-                });
-                
-            } catch (error) {
-                console.error('Error loading users:', error);
-                const tbody = getElement('usersTableBody');
-                if (tbody) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
-                                Error loading users: ${error.message}
-                            </td>
-                        </tr>
-                    `;
-                }
+// Function to show notification
+function showNotification(message, type = "success") {
+    const notification = document.createElement("div");
+    notification.className = "refresh-notification";
+    
+    // Set background color based on type
+    if (type === "error") {
+        notification.style.background = "var(--danger)";
+    } else if (type === "info") {
+        notification.style.background = "var(--warning)"; // Use warning color for info
+    } else {
+        notification.style.background = "var(--success)";
+    }
+    
+    // Set icon based on type
+    let icon = "fa-check-circle";
+    if (type === "error") icon = "fa-exclamation-triangle";
+    if (type === "info") icon = "fa-info-circle";
+    
+    notification.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = "0";
+        setTimeout(() => {
+            if (notification.parentNode) {
+                document.body.removeChild(notification);
             }
+        }, 500);
+    }, 3000);
+}
+
+// Check if user is logged in from localStorage
+function checkAuthState() {
+    const userData = localStorage.getItem('loggedInUser');
+    
+    if (userData) {
+        // User is logged in
+        const user = JSON.parse(userData);
+        loggedInUserName = user.name || user.email || "User";
+        loggedInUserElement.textContent = loggedInUserName;
+        
+        // Initialize the rest of the app
+        initializeCompanyInfo();
+        setupTimeInputs(); // Setup time input formatting
+        
+        // Scan for unknown flights on page load
+        scanForUnknownFlights();
+        
+        // Load flights for current date when page loads
+        loadFlightsForDate();
+        
+    } else {
+        // User is not logged in, redirect to login
+        window.location.href = "login.html";
+    }
+}
+
+// Initialize company info
+function initializeCompanyInfo() {
+    if (typeof companyInfo !== 'undefined' && companyInfo.name) {
+        companyName.textContent = companyInfo.name;
+        if (companyInfo.logo) {
+            companyLogo.textContent = companyInfo.logo.charAt(0).toUpperCase();
         }
+    } else {
+        companyName.textContent = "Airline Management";
+        companyLogo.textContent = "A";
+    }
+}
 
-        function editSingleLeaveValue(element) {
-            const currentValue = element.textContent.trim();
-            const userId = element.getAttribute('data-user-id');
-            const leaveType = element.getAttribute('data-leave-type');
-            const username = element.getAttribute('data-username');
+// Load flights for selected date (manual trigger)
+async function loadFlightsForDate() {
+    const dateVal = filterDate.value;
+    if (!dateVal) {
+        filterFlight.innerHTML = '<option value="">Select Flight</option>';
+        return;
+    }
+    
+    // Clear current flight selection
+    filterFlight.innerHTML = '<option value="">Select Flight</option>';
+    tableBody.innerHTML = "";
+    passengers = [];
+    renderTable();
+    
+    // Reset flight info
+    flightStatus = "Open";
+    stdTimeInput.value = "";
+    lastPaxTimeInput.value = "";
+    firstPaxTimeInput.value = "";
+    updateFlightButtonLabel();
+    
+    // Clear duplicate warnings
+    showDuplicateWarning(0);
+    
+    // Remove flight listener if exists
+    if (flightListener) {
+        flightListener();
+        flightListener = null;
+    }
+    
+    try {
+        // Fetch all flights for the selected date
+        const snapshot = await db.collection("passengers")
+            .where("date", "==", dateVal)
+            .get();
+        
+        // Extract unique flight numbers
+        const flightSet = new Set();
+        const allPassengers = [];
+        
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            const flightNo = data.flightNo;
             
-            if (!userId) {
-                alert(`User ${username} is not registered in Firebase. Please use the "Edit All" button or "Quick Bulk Update" section to add this user to Firebase first.`);
-                return;
+            // Store all passengers for caching
+            allPassengers.push({...data, id: doc.id});
+            
+            // Add flight to set if it's not empty
+            if (flightNo && flightNo.trim() !== "") {
+                // Basic validation: at least 1 letter followed by at least 1 number
+                const cleanFlightNo = flightNo.trim().toUpperCase();
+                // Allow: letters+numbers, numbers+letters+numbers, etc.
+                // Minimum 2 characters, maximum 7 characters (typical flight number length)
+                if (/^[A-Z0-9]{2,7}$/.test(cleanFlightNo) && 
+                    /[A-Z]/.test(cleanFlightNo) && // Must contain at least one letter
+                    /\d/.test(cleanFlightNo)) {    // Must contain at least one number
+                    flightSet.add(cleanFlightNo);
+                }
+            }
+        });
+        
+        // Convert set to array and sort
+        const flights = Array.from(flightSet).sort();
+        
+        // Populate flight dropdown
+        if (flights.length === 0) {
+            filterFlight.innerHTML = '<option value="">No flights found for this date</option>';
+        } else {
+            filterFlight.innerHTML = '<option value="">Select Flight</option>';
+            flights.forEach(f => {
+                const option = document.createElement("option");
+                option.value = f;
+                option.textContent = f;
+                filterFlight.appendChild(option);
+            });
+            
+            // Debug: Log available flights
+            console.log("Available flights for", dateVal, ":", flights);
+        }
+        
+        // Cache ALL passenger data for this date
+        passengerCache[dateVal] = allPassengers;
+        
+        currentDate = dateVal;
+        
+    } catch (error) {
+        console.error("Error fetching flights:", error);
+        filterFlight.innerHTML = '<option value="">Error loading flights</option>';
+    }
+}
+
+// Find earliest check-in time from passengers (using timeAdded)
+function findEarliestCheckinTime() {
+    if (passengers.length === 0) return null;
+    
+    // Filter only approved passengers
+    const approvedPassengers = passengers.filter(p => p.approved === true);
+    if (approvedPassengers.length === 0) return null;
+    
+    // Sort by timeAdded and get the earliest
+    const sortedPassengers = [...approvedPassengers].sort((a, b) => {
+        return timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded);
+    });
+    
+    return sortedPassengers[0]?.timeAdded || null;
+}
+
+// Load flight info manually
+async function loadFlightInfo() {
+    const dateVal = filterDate.value;
+    const flightVal = filterFlight.value;
+    
+    if (!dateVal || !flightVal) return;
+    
+    try {
+        // Fetch flight info
+        const snapshot = await db.collection("flightInfo")
+            .where("date", "==", dateVal)
+            .where("flightNo", "==", flightVal)
+            .limit(1)
+            .get();
+        
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            flightDocId = snapshot.docs[0].id;
+            flightStatus = data.status || "Open";
+            stdTimeInput.value = data.std || "";
+            lastPaxTimeInput.value = data.lastPaxLeft || "";
+            
+            // Only set first passenger time if it's not already set in Firebase
+            // Otherwise, use the earliest timeAdded from passengers
+            if (data.firstPax) {
+                firstPaxTimeInput.value = data.firstPax;
+            } else {
+                const earliestTime = findEarliestCheckinTime();
+                if (earliestTime) {
+                    firstPaxTimeInput.value = earliestTime;
+                } else {
+                    firstPaxTimeInput.value = "";
+                }
             }
             
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.min = '0';
-            input.value = currentValue;
-            input.className = 'edit-input';
-            
-            const save = async () => {
-                const newValue = parseInt(input.value);
-                if (isNaN(newValue) || newValue < 0) {
-                    alert('Please enter a valid number (0 or higher)');
-                    return;
-                }
-                
-                try {
-                    const userRef = db.collection('users').doc(userId);
-                    await userRef.update({
-                        [leaveType]: newValue
-                    });
-                    
-                    element.textContent = newValue;
-                    element.parentElement.innerHTML = `<span class="editable-leave" data-user-id="${userId}" data-leave-type="${leaveType}" data-username="${username}">${newValue}</span>`;
-                    
-                    // Reattach click event
-                    element.parentElement.querySelector('.editable-leave').addEventListener('click', function() {
-                        editSingleLeaveValue(this);
-                    });
-                    
-                    // Update the select dropdown if this user is selected
-                    const select = document.getElementById('selectUser');
-                    if (select) {
-                        for (let i = 0; i < select.options.length; i++) {
-                            if (select.options[i].value === userId) {
-                                select.options[i].setAttribute(`data-${leaveType.replace('Leave', '')}`, newValue);
-                                break;
-                            }
-                        }
-                    }
-                    
-                    alert('Leave balance updated successfully!');
-                } catch (error) {
-                    console.error('Error updating leave in Firebase:', error);
-                    alert('Failed to update leave balance: ' + error.message);
-                }
+            // Cache flight info
+            flightInfoCache[`${dateVal}_${flightVal}`] = {
+                data: data,
+                docId: flightDocId
             };
             
-            const cancel = () => {
-                element.parentElement.innerHTML = `<span class="editable-leave" data-user-id="${userId}" data-leave-type="${leaveType}" data-username="${username}">${currentValue}</span>`;
-                element.parentElement.querySelector('.editable-leave').addEventListener('click', function() {
-                    editSingleLeaveValue(this);
-                });
-            };
+        } else {
+            flightDocId = null;
+            flightStatus = "Open";
+            stdTimeInput.value = "";
+            lastPaxTimeInput.value = "";
             
-            element.parentElement.innerHTML = '';
-            element.parentElement.appendChild(input);
-            
-            const saveBtn = document.createElement('button');
-            saveBtn.textContent = '✓';
-            saveBtn.className = 'save-btn';
-            saveBtn.style.marginLeft = '5px';
-            saveBtn.onclick = save;
-            
-            const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = '✗';
-            cancelBtn.className = 'cancel-btn';
-            cancelBtn.style.marginLeft = '5px';
-            cancelBtn.onclick = cancel;
-            
-            element.parentElement.appendChild(saveBtn);
-            element.parentElement.appendChild(cancelBtn);
-            
-            input.focus();
-            input.select();
+            // Set first passenger time from earliest timeAdded
+            const earliestTime = findEarliestCheckinTime();
+            firstPaxTimeInput.value = earliestTime || "";
         }
+        
+        updateFlightButtonLabel();
+        
+    } catch (error) {
+        console.error("Error fetching flight info:", error);
+        flightStatus = "Open";
+        updateFlightButtonLabel();
+    }
+}
 
-        async function editUserLeave(userId, userName) {
-            if (!userId) {
-                alert('User is not registered in Firebase. Please use the "Quick Bulk Update" section to add this user to Firebase first.');
+// Update table headers based on flight type
+function updateTableHeaders() {
+    const isFZFlight = currentFlightNo.toUpperCase().startsWith('FZ');
+    
+    tableHeader.innerHTML = `
+        <th>Name</th>
+        <th>Seat No</th>
+        <th>No. of Pax</th>
+        <th>Flight No</th>
+        <th>Airline</th>
+        ${isFZFlight ? '<th>PNR</th>' : ''}
+        <th>FQTV</th>
+        <th>Serial</th>
+        <th>Time Added</th>
+        <th>Remarks</th>
+        <th>Actions</th>
+    `;
+}
+
+// Function to save passenger changes to Firebase
+function savePassengerChanges(passenger, row, fields) {
+    const updatedFields = {};
+    fields.forEach((field, idx) => {
+        updatedFields[field] = row.children[idx].textContent;
+    });
+    
+    // Convert numPax to number
+    if (updatedFields.numPax) {
+        updatedFields.numPax = parseInt(updatedFields.numPax) || 1;
+    }
+    
+    try {
+        db.collection("passengers").doc(passenger.id).update(updatedFields);
+        
+        // Update local passenger data
+        Object.assign(passenger, updatedFields);
+        
+        // Update cache
+        if (passengerCache[filterDate.value]) {
+            const cachedPassengers = passengerCache[filterDate.value];
+            const index = cachedPassengers.findIndex(p => p.id === passenger.id);
+            if (index !== -1) {
+                cachedPassengers[index] = { ...cachedPassengers[index], ...updatedFields };
+            }
+        }
+    } catch (error) {
+        console.error("Error updating passenger:", error);
+        showNotification("Error updating passenger. Please try again.", "error");
+    }
+}
+
+// NEW: Function to handle pax change with inline seat edit box
+function handlePaxChange(paxCell, seatCell, passenger, newPax, currentSeats, row, fields) {
+    // Create inline edit box instead of popup
+    const editContainer = document.createElement('div');
+    editContainer.className = 'seat-edit-container';
+    editContainer.style.cssText = `
+        position: absolute;
+        background: white;
+        border: 2px solid var(--primary);
+        border-radius: var(--radius);
+        padding: 16px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        width: 300px;
+        max-width: 90vw;
+        animation: slideDown 0.2s ease-out;
+    `;
+    
+    editContainer.innerHTML = `
+        <div style="margin-bottom: 12px; font-weight: 500; color: var(--dark);">
+            Enter ${newPax} seat number(s) for ${passenger.name}:
+        </div>
+        <div style="margin-bottom: 8px; font-size: 12px; color: var(--secondary);">
+            Current: <strong>${currentSeats || "No seats"}</strong>
+        </div>
+        <input type="text" 
+               id="seatEditInput" 
+               value="${currentSeats || ""}"
+               placeholder="e.g., 12A or 12A/12B/12C or 12ABC"
+               style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 12px;"
+               autofocus>
+        <div style="margin-bottom: 12px; font-size: 11px; color: #666; background: var(--primary-light); padding: 8px; border-radius: 4px;">
+            <div><strong>Format examples:</strong></div>
+            <div>• Single seat: 12A</div>
+            <div>• Multiple: 12A/12B/12C</div>
+            <div>• Adjacent: 12ABC</div>
+            <div>• Mixed: 12A/13B/14C</div>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button id="cancelSeatEdit" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="saveSeatEdit" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Update Seats
+            </button>
+        </div>
+    `;
+    
+    // Position the edit box near the seat cell
+    const rect = seatCell.getBoundingClientRect();
+    editContainer.style.left = `${rect.left}px`;
+    editContainer.style.top = `${rect.bottom + 5}px`;
+    
+    document.body.appendChild(editContainer);
+    
+    // Focus on input
+    setTimeout(() => {
+        const input = document.getElementById('seatEditInput');
+        input.focus();
+        input.select();
+        
+        // Add focus styling
+        input.addEventListener('focus', function() {
+            this.style.outline = 'none';
+            this.style.borderColor = 'var(--primary)';
+            this.style.boxShadow = '0 0 0 2px rgba(212, 175, 55, 0.2)';
+        });
+    }, 10);
+    
+    // Handle save
+    document.getElementById('saveSeatEdit').onclick = () => {
+        const enteredSeats = document.getElementById('seatEditInput').value.trim();
+        
+        if (!enteredSeats) {
+            alert("Please enter at least one seat number.");
+            return;
+        }
+        
+        const enteredPax = calculatePaxFromSeatNo(enteredSeats);
+        
+        // If seat count doesn't match requested pax, adjust pax to match seats
+        if (enteredPax !== newPax) {
+            // Auto-adjust pax to match seats without asking
+            passenger.numPax = enteredPax;
+            paxCell.textContent = enteredPax.toString();
+            passenger.seatNo = enteredSeats;
+            seatCell.textContent = enteredSeats;
+            
+            // Show a subtle notification instead of popup
+            showNotification(`Pax auto-adjusted to ${enteredPax} to match seat count`, "info");
+        } else {
+            // Seat count matches pax
+            passenger.numPax = newPax;
+            passenger.seatNo = enteredSeats;
+            seatCell.textContent = enteredSeats;
+        }
+        
+        // Save to Firebase
+        savePassengerChanges(passenger, row, fields);
+        
+        // Remove edit container
+        document.body.removeChild(editContainer);
+        document.removeEventListener('click', closeOnOutsideClick);
+        document.removeEventListener('keydown', closeOnEscape);
+    };
+    
+    // Handle cancel
+    document.getElementById('cancelSeatEdit').onclick = () => {
+        // Revert to original pax
+        paxCell.textContent = passenger.numPax || "";
+        document.body.removeChild(editContainer);
+        document.removeEventListener('click', closeOnOutsideClick);
+        document.removeEventListener('keydown', closeOnEscape);
+    };
+    
+    // Close on click outside
+    const closeOnOutsideClick = (e) => {
+        if (!editContainer.contains(e.target)) {
+            // Revert to original pax
+            paxCell.textContent = passenger.numPax || "";
+            document.body.removeChild(editContainer);
+            document.removeEventListener('click', closeOnOutsideClick);
+            document.removeEventListener('keydown', closeOnEscape);
+        }
+    };
+    
+    setTimeout(() => {
+        document.addEventListener('click', closeOnOutsideClick);
+    }, 100);
+    
+    // Close on escape key
+    const closeOnEscape = (e) => {
+        if (e.key === 'Escape') {
+            paxCell.textContent = passenger.numPax || "";
+            document.body.removeChild(editContainer);
+            document.removeEventListener('keydown', closeOnEscape);
+            document.removeEventListener('click', closeOnOutsideClick);
+        }
+    };
+    
+    document.addEventListener('keydown', closeOnEscape);
+}
+
+// NEW: Function to handle seat number changes (auto-update pax without popup)
+function handleSeatNumberToPax(seatCell, paxCell, passenger, row, fields) {
+    seatCell.addEventListener('blur', function() {
+        if (flightStatus === "Closed") {
+            alert("Flight is closed. Editing not allowed.");
+            seatCell.textContent = passenger.seatNo || "";
+            return;
+        }
+        
+        const newSeatNo = seatCell.textContent;
+        const calculatedPax = calculatePaxFromSeatNo(newSeatNo);
+        
+        // Auto-update pax to match seats without asking
+        if (calculatedPax !== passenger.numPax) {
+            passenger.seatNo = newSeatNo;
+            passenger.numPax = calculatedPax;
+            paxCell.textContent = calculatedPax.toString();
+            
+            // Save to Firebase
+            savePassengerChanges(passenger, row, fields);
+            
+            // Show notification
+            showNotification(`Pax auto-updated to ${calculatedPax} to match seats`, "info");
+        } else {
+            // Seat count matches existing pax
+            passenger.seatNo = newSeatNo;
+            passenger.numPax = calculatedPax;
+            
+            // Save to Firebase
+            savePassengerChanges(passenger, row, fields);
+        }
+    });
+}
+
+// NEW: Function to handle pax count changes (show inline edit for seat numbers)
+function handlePaxToSeatNumber(paxCell, seatCell, passenger, row, fields) {
+    paxCell.addEventListener('blur', function() {
+        if (flightStatus === "Closed") {
+            alert("Flight is closed. Editing not allowed.");
+            paxCell.textContent = passenger.numPax || "";
+            return;
+        }
+        
+        const newPax = parseInt(paxCell.textContent) || 1;
+        const currentSeats = seatCell.textContent;
+        const calculatedPaxFromSeats = calculatePaxFromSeatNo(currentSeats);
+        
+        // If pax is changing, show inline edit for seat numbers
+        if (newPax !== calculatedPaxFromSeats) {
+            handlePaxChange(paxCell, seatCell, passenger, newPax, currentSeats, row, fields);
+        } else {
+            // Just update the pax count if it matches existing seats
+            passenger.numPax = newPax;
+            savePassengerChanges(passenger, row, fields);
+        }
+    });
+}
+
+// Render table - Only show approved transactions
+function renderTable() {
+    tableBody.innerHTML = "";
+    
+    // Filter to show only approved passengers and sort by timeAdded
+    const approvedPassengers = passengers
+        .filter(p => p.approved === true)
+        .sort((a, b) => timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded));
+    
+    if (approvedPassengers.length === 0) {
+        emptyState.style.display = "block";
+        passengerCount.textContent = "0 Passengers";
+        return;
+    }
+    
+    emptyState.style.display = "none";
+    passengerCount.textContent = `${approvedPassengers.length} Passenger${approvedPassengers.length !== 1 ? 's' : ''}`;
+    
+    const isFZFlight = currentFlightNo.toUpperCase().startsWith('FZ');
+    
+    // Define fields to display
+    const fields = ["name", "seatNo", "numPax", "flightNo", "airline"];
+    if (isFZFlight) fields.push("pnr");
+    fields.push("fqtv", "serial", "timeAdded", "remarks");
+    
+    approvedPassengers.forEach((p, index) => {
+        const row = document.createElement("tr");
+        row.dataset.passengerId = p.id; // Add ID for highlighting duplicates
+        
+        // Track cells for seat and pax
+        let seatCell = null;
+        let paxCell = null;
+        
+        fields.forEach(field => {
+            const td = document.createElement("td");
+            const content = document.createElement("div");
+            content.className = "editable-cell";
+            content.textContent = p[field] || "";
+            content.contentEditable = false;
+            
+            // Store references to seat and pax cells
+            if (field === "seatNo") {
+                seatCell = content;
+            } else if (field === "numPax") {
+                paxCell = content;
+            }
+            
+            td.appendChild(content);
+            row.appendChild(td);
+        });
+        
+        // Add event listeners for two-way synchronization
+        if (seatCell && paxCell) {
+            // Seat number changes: auto-update pax without popup
+            handleSeatNumberToPax(seatCell, paxCell, p, row, fields);
+            
+            // Pax changes: show inline edit for seat numbers
+            handlePaxToSeatNumber(paxCell, seatCell, p, row, fields);
+        }
+        
+        const actionsTd = document.createElement("td");
+        actionsTd.className = "actions-cell";
+        
+        const editBtn = document.createElement("button");
+        editBtn.className = "icon-btn edit-btn";
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        let editing = false;
+        
+        editBtn.onclick = () => {
+            if (flightStatus === "Closed") {
+                alert("Flight is closed. Editing not allowed.");
                 return;
             }
             
-            try {
-                const userRef = db.collection('users').doc(userId);
-                const userDoc = await userRef.get();
-                
-                if (!userDoc.exists) {
-                    alert('User not found in Firebase');
-                    return;
-                }
-                
-                const userData = userDoc.data();
-                
-                const sickLeave = prompt(`Enter new Sick Leave balance for ${userName}:`, userData.sickLeave || 0);
-                if (sickLeave === null) return;
-                
-                const annualLeave = prompt(`Enter new Annual Leave balance for ${userName}:`, userData.annualLeave || 0);
-                if (annualLeave === null) return;
-                
-                const frlLeave = prompt(`Enter new FRL Leave balance for ${userName}:`, userData.frlLeave || 0);
-                if (frlLeave === null) return;
-                
-                const sickVal = parseInt(sickLeave);
-                const annualVal = parseInt(annualLeave);
-                const frlVal = parseInt(frlLeave);
-                
-                if (isNaN(sickVal) || isNaN(annualVal) || isNaN(frlVal) || 
-                    sickVal < 0 || annualVal < 0 || frlVal < 0) {
-                    alert('Please enter valid numbers (0 or higher)');
-                    return;
-                }
-                
-                await userRef.update({
-                    sickLeave: sickVal,
-                    annualLeave: annualVal,
-                    frlLeave: frlVal
-                });
-                
-                alert(`Leave balances updated successfully for ${userName}!`);
-                loadUsers();
-                
-            } catch (error) {
-                console.error('Error updating user leaves in Firebase:', error);
-                alert('Failed to update leave balances: ' + error.message);
+            editing = !editing;
+            row.querySelectorAll(".editable-cell").forEach(c => c.contentEditable = editing);
+            editBtn.innerHTML = editing ? '<i class="fas fa-save"></i>' : '<i class="fas fa-edit"></i>';
+            
+            if (!editing) {
+                // Save changes to Firebase
+                savePassengerChanges(p, row, fields);
             }
-        }
-
-        async function updateSelectedUserBalance() {
-            const select = getElement('selectUser');
-            if (!select) return;
-            
-            const selectedOption = select.options[select.selectedIndex];
-            const userId = select.value;
-            const sickLeave = getElement('sickLeave')?.value;
-            const annualLeave = getElement('annualLeave')?.value;
-            const frlLeave = getElement('frlLeave')?.value;
-            
-            if (!userId) {
-                alert('Please select a user');
+        };
+        
+        actionsTd.appendChild(editBtn);
+        
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "icon-btn delete-btn";
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        
+        deleteBtn.onclick = () => {
+            if (flightStatus === "Closed") {
+                alert("Flight is closed. Cannot delete.");
                 return;
             }
             
-            const sickVal = parseInt(sickLeave);
-            const annualVal = parseInt(annualLeave);
-            const frlVal = parseInt(frlLeave);
-            
-            if (isNaN(sickVal) || isNaN(annualVal) || isNaN(frlVal) || 
-                sickVal < 0 || annualVal < 0 || frlVal < 0) {
-                alert('Please enter valid numbers (0 or higher)');
+            if (confirm("Are you sure you want to delete this passenger?")) {
+                try {
+                    db.collection("passengers").doc(p.id).delete();
+                    passengers = passengers.filter(pass => pass.id !== p.id);
+                    
+                    // Update cache
+                    if (passengerCache[filterDate.value]) {
+                        const cachedPassengers = passengerCache[filterDate.value];
+                        const updatedCache = cachedPassengers.filter(pass => pass.id !== p.id);
+                        passengerCache[filterDate.value] = updatedCache;
+                    }
+                    
+                    renderTable();
+                    showNotification("Passenger deleted successfully");
+                } catch (error) {
+                    console.error("Error deleting passenger:", error);
+                    showNotification("Error deleting passenger. Please try again.", "error");
+                }
+            }
+        };
+        
+        actionsTd.appendChild(deleteBtn);
+        row.appendChild(actionsTd);
+        tableBody.appendChild(row);
+    });
+}
+
+// Flight button label & status
+function updateFlightButtonLabel() {
+    // Updated button text and icon based on flight status
+    if (flightStatus === "Open") {
+        toggleFlightBtn.innerHTML = '<i class="fas fa-lock-open"></i> Flight Open';
+        toggleFlightBtn.className = "btn btn-success";
+    } else {
+        toggleFlightBtn.innerHTML = '<i class="fas fa-lock"></i> Flight Closed';
+        toggleFlightBtn.className = "btn btn-danger";
+    }
+    
+    flightStatusBadge.textContent = `Status: ${flightStatus}`;
+    flightStatusBadge.className = `status-badge ${flightStatus === "Open" ? "status-open" : "status-closed"}`;
+    printBtn.disabled = flightStatus !== "Closed";
+    closedWarning.style.display = flightStatus === "Closed" ? "flex" : "none";
+}
+
+// Save flight times automatically
+async function saveFlightTimes() {
+    if (!filterFlight.value) {
+        return;
+    }
+    
+    // Validate times
+    const times = [firstPaxTimeInput.value, lastPaxTimeInput.value, stdTimeInput.value];
+    for (let time of times) {
+        if (time && !isValidTime(time)) {
+            return; // Don't save invalid times
+        }
+    }
+    
+    try {
+        if (flightDocId) {
+            // Update existing flight info
+            await db.collection("flightInfo").doc(flightDocId).update({
+                std: stdTimeInput.value,
+                firstPax: firstPaxTimeInput.value,
+                lastPaxLeft: lastPaxTimeInput.value
+            });
+        } else {
+            // Create new flight info
+            const docRef = await db.collection("flightInfo").add({
+                date: filterDate.value,
+                flightNo: filterFlight.value,
+                status: "Open",
+                std: stdTimeInput.value,
+                firstPax: firstPaxTimeInput.value,
+                lastPaxLeft: lastPaxTimeInput.value
+            });
+            flightDocId = docRef.id;
+        }
+        
+        // Update cache
+        const key = `${filterDate.value}_${filterFlight.value}`;
+        if (flightInfoCache[key]) {
+            flightInfoCache[key].data.std = stdTimeInput.value;
+            flightInfoCache[key].data.firstPax = firstPaxTimeInput.value;
+            flightInfoCache[key].data.lastPaxLeft = lastPaxTimeInput.value;
+        }
+        
+        console.log("Flight times saved automatically");
+    } catch (error) {
+        console.error("Error saving flight times:", error);
+    }
+}
+
+// Toggle flight
+toggleFlightBtn.onclick = async () => {
+    if (!filterFlight.value) {
+        alert("No flight selected");
+        return;
+    }
+    
+    if (flightStatus === "Open") {
+        // Validate times before closing flight
+        const times = [firstPaxTimeInput.value, lastPaxTimeInput.value, stdTimeInput.value];
+        for (let time of times) {
+            if (time && !isValidTime(time)) {
+                alert(`Please enter a valid time in 24-hour format (HH:MM) for all time fields.`);
                 return;
             }
-            
-            try {
-                const isNewUser = selectedOption.getAttribute('data-is-new') === 'true';
-                
-                if (isNewUser) {
-                    const username = selectedOption.getAttribute('data-username');
-                    const name = selectedOption.getAttribute('data-name');
-                    
-                    if (!username) {
-                        alert('Cannot create user without username');
-                        return;
-                    }
-                    
-                    if (!confirm(`User ${name || username} is not in Firebase. Create new user with these leave balances?`)) {
-                        return;
-                    }
-                    
-                    const newUserRef = await db.collection('users').add({
-                        username: username,
-                        name: name || username,
-                        level: 'User',
-                        location: currentUser.location || 'Default',
-                        sickLeave: sickVal,
-                        annualLeave: annualVal,
-                        frlLeave: frlVal,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert(`User created successfully in Firebase with ID: ${newUserRef.id}!`);
-                    
-                } else {
-                    const userRef = db.collection('users').doc(userId);
-                    await userRef.update({
-                        sickLeave: sickVal,
-                        annualLeave: annualVal,
-                        frlLeave: frlVal
-                    });
-                    
-                    alert('Leave balance updated successfully!');
-                }
-                
-                loadUsers();
-                if (getElement('sickLeave')) getElement('sickLeave').value = '';
-                if (getElement('annualLeave')) getElement('annualLeave').value = '';
-                if (getElement('frlLeave')) getElement('frlLeave').value = '';
-                select.selectedIndex = 0;
-                
-            } catch (error) {
-                console.error('Error updating leave balance:', error);
-                alert('Failed to update leave balance: ' + error.message);
-            }
         }
-
-        async function approveLeave(leaveId, userId = null) {
-            if (confirm('Are you sure you want to approve this leave request?')) {
-                try {
-                    const leaveRef = db.collection('leaveRequests').doc(leaveId);
-                    const leaveDoc = await leaveRef.get();
-                    const leaveData = leaveDoc.data();
-                    
-                    // Check if already approved/rejected
-                    if (leaveData.status !== 'Pending') {
-                        alert('This request has already been processed. Cannot change status.');
-                        return;
-                    }
-                    
-                    // Update leave request status
-                    await leaveRef.update({
-                        status: 'Approved',
-                        approvedBy: currentUser.name || currentUser.username,
-                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    // Try to update user's leave balance if user ID is provided
-                    if (userId) {
-                        try {
-                            const userRef = db.collection('users').doc(userId);
-                            const userDoc = await userRef.get();
-                            
-                            if (userDoc.exists) {
-                                const userData = userDoc.data();
-                                const leaveType = leaveData.leaveType || 'sick';
-                                const leaveField = `${leaveType.toLowerCase()}Leave`;
-                                
-                                if (userData[leaveField] !== undefined) {
-                                    let newBalance = userData[leaveField];
-                                    if (newBalance > 0) {
-                                        newBalance -= 1;
-                                        await userRef.update({
-                                            [leaveField]: newBalance
-                                        });
-                                        
-                                        alert(`Leave request approved!\n\n${leaveData.name}'s ${leaveType} leave balance:\nBefore: ${userData[leaveField]}\nAfter: ${newBalance}`);
-                                    } else {
-                                        alert(`Leave request approved!\n\nNote: ${leaveData.name} had 0 ${leaveType} leave remaining.`);
-                                    }
-                                }
-                            }
-                        } catch (userError) {
-                            console.error('Error updating user balance:', userError);
-                            // Continue even if user balance update fails
-                        }
-                    } else {
-                        alert('Leave request approved! (User balance not adjusted - user not found in Firebase)');
-                    }
-                    
-                    // Reload leave requests
-                    loadLeaveRequests();
-                    
-                } catch (error) {
-                    console.error('Error approving leave:', error);
-                    alert('Failed to approve leave request: ' + error.message);
-                }
-            }
+        
+        if (!firstPaxTimeInput.value || !lastPaxTimeInput.value || !stdTimeInput.value) {
+            alert("Cannot close flight. Enter First Passenger, Last Passenger, and STD.");
+            return;
         }
-
-        async function rejectLeave(leaveId) {
-            if (confirm('Are you sure you want to reject this leave request?')) {
-                try {
-                    const leaveRef = db.collection('leaveRequests').doc(leaveId);
-                    const leaveDoc = await leaveRef.get();
-                    const leaveData = leaveDoc.data();
-                    
-                    // Check if already approved/rejected
-                    if (leaveData.status !== 'Pending') {
-                        alert('This request has already been processed. Cannot change status.');
-                        return;
-                    }
-                    
-                    await leaveRef.update({
-                        status: 'Rejected',
-                        approvedBy: currentUser.name || currentUser.username,
-                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert('Leave request rejected!');
-                    loadLeaveRequests();
-                } catch (error) {
-                    console.error('Error rejecting leave:', error);
-                    alert('Failed to reject leave request: ' + error.message);
-                }
-            }
+    }
+    
+    const newStatus = flightStatus === "Open" ? "Closed" : "Open";
+    
+    try {
+        if (flightDocId) {
+            // Update existing flight info
+            await db.collection("flightInfo").doc(flightDocId).update({
+                status: newStatus,
+                std: stdTimeInput.value,
+                firstPax: firstPaxTimeInput.value,
+                lastPaxLeft: lastPaxTimeInput.value
+            });
+        } else {
+            // Create new flight info
+            const docRef = await db.collection("flightInfo").add({
+                date: filterDate.value,
+                flightNo: filterFlight.value,
+                status: newStatus,
+                std: stdTimeInput.value,
+                firstPax: firstPaxTimeInput.value,
+                lastPaxLeft: lastPaxTimeInput.value
+            });
+            flightDocId = docRef.id;
         }
-
-        async function approveDutyChange(dutyId) {
-            if (confirm('Are you sure you want to approve this duty change?')) {
-                try {
-                    const dutyRef = db.collection('dutyChanges').doc(dutyId);
-                    const dutyDoc = await dutyRef.get();
-                    const dutyData = dutyDoc.data();
-                    
-                    // Check if already approved/rejected
-                    if (dutyData.status === 'Approved' || dutyData.acceptedBySupervisor === true) {
-                        alert('This duty change has already been approved by supervisor.');
-                        return;
-                    }
-                    
-                    if (dutyData.status === 'Rejected') {
-                        alert('This duty change has already been rejected.');
-                        return;
-                    }
-                    
-                    await dutyRef.update({
-                        status: 'Approved',
-                        acceptedBySupervisor: true,
-                        approvedBy: currentUser.name || currentUser.username,
-                        supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert('Duty change approved!');
-                    loadDutyChanges();
-                } catch (error) {
-                    console.error('Error approving duty change:', error);
-                    alert('Failed to approve duty change: ' + error.message);
-                }
-            }
+        
+        flightStatus = newStatus;
+        
+        // Update cache
+        const key = `${filterDate.value}_${filterFlight.value}`;
+        if (flightInfoCache[key]) {
+            flightInfoCache[key].data.status = newStatus;
         }
+        
+        updateFlightButtonLabel();
+        showNotification(`Flight status changed to ${newStatus}`);
+    } catch (error) {
+        console.error("Error updating flight status:", error);
+        showNotification("Error updating flight status. Please try again.", "error");
+    }
+};
 
-        async function rejectDutyChange(dutyId) {
-            if (confirm('Are you sure you want to reject this duty change?')) {
-                try {
-                    const dutyRef = db.collection('dutyChanges').doc(dutyId);
-                    const dutyDoc = await dutyRef.get();
-                    const dutyData = dutyDoc.data();
-                    
-                    // Check if already approved/rejected
-                    if (dutyData.status === 'Approved' || dutyData.acceptedBySupervisor === true) {
-                        alert('This duty change has already been approved by supervisor.');
-                        return;
-                    }
-                    
-                    if (dutyData.status === 'Rejected') {
-                        alert('This duty change has already been rejected.');
-                        return;
-                    }
-                    
-                    await dutyRef.update({
-                        status: 'Rejected',
-                        acceptedBySupervisor: false,
-                        approvedBy: currentUser.name || currentUser.username,
-                        supervisorApprovedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    
-                    alert('Duty change rejected!');
-                    loadDutyChanges();
-                } catch (error) {
-                    console.error('Error rejecting duty change:', error);
-                    alert('Failed to reject duty change: ' + error.message);
-                }
-            }
-        }
+// Print report (Professional layout) - Updated for A4 paper
+printBtn.addEventListener("click", () => {
+    if (flightStatus !== "Closed") {
+        alert("You must close the flight before printing the report.");
+        return;
+    }
 
-        async function updateNotificationCount() {
-            if (!isInitialized) return;
-            
-            try {
-                // Count pending leave requests
-                const leaveRef = db.collection('leaveRequests');
-                const leaveQuery = await leaveRef
-                    .where('location', '==', currentUser.location || 'Default')
-                    .where('status', '==', 'Pending')
-                    .get();
-                
-                const pendingLeaveCount = leaveQuery.size;
-                
-                // Count pending duty changes (accepted by staff but not approved by supervisor)
-                const dutyRef = db.collection('dutyChanges');
-                const dutyQuery = await dutyRef
-                    .where('location', '==', currentUser.location || 'Default')
-                    .where('status', '==', 'Accepted')
-                    .where('acceptedByStaff', '==', true)
-                    .get();
-                
-                const pendingDutyCount = dutyQuery.size;
-                
-                // Update notification badges
-                const leaveNotification = getElement('leaveNotification');
-                const dutyNotification = getElement('dutyNotification');
-                
-                if (leaveNotification) {
-                    if (pendingLeaveCount > 0) {
-                        leaveNotification.textContent = pendingLeaveCount;
-                        leaveNotification.style.display = 'flex';
-                    } else {
-                        leaveNotification.style.display = 'none';
-                    }
-                }
-                
-                if (dutyNotification) {
-                    if (pendingDutyCount > 0) {
-                        dutyNotification.textContent = pendingDutyCount;
-                        dutyNotification.style.display = 'flex';
-                    } else {
-                        dutyNotification.style.display = 'none';
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error updating notification count:', error);
-            }
-        }
+    // Filter to show only approved passengers and sort by timeAdded
+    const approvedPassengers = passengers
+        .filter(p => p.approved === true)
+        .sort((a, b) => timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded));
+    
+    if (approvedPassengers.length === 0) {
+        alert("No approved passengers to print!");
+        return;
+    }
 
-        function startNotificationUpdates() {
-            // Update immediately
-            updateNotificationCount();
-            
-            // Update every 30 seconds
-            notificationInterval = setInterval(updateNotificationCount, 30000);
-        }
+    const flightNo = filterFlight.value;
+    const dateVal = filterDate.value;
+    const std = stdTimeInput.value || "--:--";
+    const firstPax = firstPaxTimeInput.value || "--:--";
+    const lastPax = lastPaxTimeInput.value || "--:--";
+    
+    const shift = approvedPassengers.length > 0 ? approvedPassengers[0].shift || "--" : "--";
+    const airline = approvedPassengers.length > 0 ? approvedPassengers[0].airline || "--" : "--";
+    const totalPax = approvedPassengers.reduce((sum, p) => sum + (p.numPax || 0), 0);
 
-        function logout() {
-            // Clear notification interval
-            if (notificationInterval) {
-                clearInterval(notificationInterval);
+    // Get company info from Co.js
+    const companyName = companyInfo?.name || "Company Name";
+    const companyaddress = companyInfo?.address || "Company Address";
+    const companyphone = companyInfo?.phone || "Company Phone";
+    const companylogo = companyInfo?.logo || "C";
+
+    // Format date to dd/mm/yyyy
+    const dateObj = new Date(dateVal);
+    const formattedDate = 
+        String(dateObj.getDate()).padStart(2, '0') + '/' +
+        String(dateObj.getMonth() + 1).padStart(2, '0') + '/' +
+        dateObj.getFullYear();
+
+    // Check if flight number starts with FZ to include PNR column
+    const isFZFlight = flightNo.toUpperCase().startsWith('FZ');
+    
+    let printWindow = window.open("", "_blank");
+    
+    // Calculate how many passengers per page - Increased to fit A4 better
+    const passengersPerPage = 30; // Increased from 20 to fit more on A4
+    const totalPages = Math.ceil(approvedPassengers.length / passengersPerPage);
+    
+    let html = `<html><head><title>Flight ${flightNo} Report</title>
+    <style>
+        @media print {
+            @page {
+                margin: 5mm 5mm 5mm 5mm; /* Reduced margins */
+                size: A4 portrait;
             }
             
-            localStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
-        }
-
-        // Main initialization
-        async function initializeApp() {
-            console.log('Starting app initialization...');
-            
-            // Wait for DOM to be fully loaded
-            if (document.readyState === 'loading') {
-                await new Promise(resolve => {
-                    document.addEventListener('DOMContentLoaded', resolve);
-                });
+            body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 0;
+                color: #2c3e50;
+                font-size: 11px; /* Reduced from 12px */
+                line-height: 1.3; /* Reduced from 1.4 */
+                background: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                width: 100%;
+                max-width: 100%;
             }
             
-            console.log('DOM loaded, initializing user...');
+            .print-container {
+                width: 100%;
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 0;
+                box-sizing: border-box;
+                page-break-inside: avoid;
+            }
             
-            // Initialize user
-            const initialized = await initializeUser();
+            .header-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 15px; /* Reduced from 25px */
+                padding-bottom: 10px; /* Reduced from 20px */
+                border-bottom: 2px solid #d4af37; /* Slightly thinner border */
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
             
-            if (initialized) {
-                console.log('App initialized successfully');
-                
-                // Load initial data
-                loadLeaveRequests();
-                
-                // Setup user selection change handler
-                const selectUser = getElement('selectUser');
-                if (selectUser) {
-                    selectUser.addEventListener('change', async function() {
-                        const userId = this.value;
-                        const selectedOption = this.options[this.selectedIndex];
-                        
-                        if (userId) {
-                            const isNewUser = selectedOption.getAttribute('data-is-new') === 'true';
-                            
-                            if (isNewUser) {
-                                if (getElement('sickLeave')) getElement('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
-                                if (getElement('annualLeave')) getElement('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
-                                if (getElement('frlLeave')) getElement('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
-                            } else {
-                                try {
-                                    const userRef = db.collection('users').doc(userId);
-                                    const userDoc = await userRef.get();
-                                    
-                                    if (userDoc.exists) {
-                                        const userData = userDoc.data();
-                                        if (getElement('sickLeave')) getElement('sickLeave').value = userData.sickLeave || 0;
-                                        if (getElement('annualLeave')) getElement('annualLeave').value = userData.annualLeave || 0;
-                                        if (getElement('frlLeave')) getElement('frlLeave').value = userData.frlLeave || 0;
-                                    }
-                                } catch (error) {
-                                    console.error('Error fetching user data:', error);
-                                    if (getElement('sickLeave')) getElement('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
-                                    if (getElement('annualLeave')) getElement('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
-                                    if (getElement('frlLeave')) getElement('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
-                                }
-                            }
-                        } else {
-                            if (getElement('sickLeave')) getElement('sickLeave').value = '';
-                            if (getElement('annualLeave')) getElement('annualLeave').value = '';
-                            if (getElement('frlLeave')) getElement('frlLeave').value = '';
-                        }
-                    });
-                }
-            } else {
-                console.error('Failed to initialize app');
+            .company-info {
+                flex: 1;
+                max-width: 60%;
+            }
+            
+            .company-header {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 10px; /* Reduced from 15px */
+                text-align: left;
+            }
+            
+            .company-logo {
+                width: 40px; /* Reduced from 50px */
+                height: 40px; /* Reduced from 50px */
+                background: #d4af37;
+                border-radius: 20%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                font-size: 16px; /* Reduced from 20px */
+                margin-left: 0; /* Removed large margin */
+                margin-bottom: 5px;
+            }
+            
+            .company-name {
+                font-size: 18px; /* Reduced from 22px */
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 2px; /* Reduced from 3px */
+                margin-left: 0; /* Removed margin */
+            }
+            
+            .company-details {
+                font-size: 10px; /* Reduced from 11px */
+                color: #7f8c8d;
+                line-height: 1.3; /* Reduced from 1.4 */
+                margin-left: 0; /* Removed margin */
+            }
+            
+            .flight-info {
+                text-align: right;
+                flex: 1;
+                max-width: 40%;
+            }
+            
+            .flight-details {
+                font-size: 11px; /* Reduced from 12px */
+                color: #2c3e50;
+                line-height: 1.6; /* Reduced from 1.8 */
+            }
+            
+            .flight-details-left {
+                margin-bottom: 8px; /* Reduced from 12px */
+                padding: 8px; /* Reduced from 12px */
+                background: #f9f5e7;
+                border-radius: 4px; /* Reduced from 6px */
+            }
+            
+            .flight-details-right {
+                margin-top: 0;
+                padding: 8px; /* Reduced from 12px */
+                background: #f9f5e7;
+                border-radius: 4px; /* Reduced from 6px */
+            }
+            
+            .detail-label {
+                font-weight: 600;
+                color: #3c3c2a;
+                display: inline-block;
+                width: 100px; /* Reduced from 120px */
+                font-size: 10px; /* Added font size */
+            }
+            
+            .detail-value {
+                color: #2c3e50;
+                font-size: 10px; /* Added font size */
+            }
+            
+            .passenger-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0; /* Reduced from 20px 0 */
+                font-size: 10px; /* Reduced from 11px */
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Reduced shadow */
+                table-layout: fixed; /* Added for better control */
+            }
+            
+            .passenger-table th {
+                background: #d4af37;
+                color: white;
+                padding: 6px 4px; /* Reduced from 10px 8px */
+                text-align: left;
+                border: 1px solid #b8941f;
+                font-weight: 600;
+                font-size: 10px; /* Reduced from 11px */
+                word-wrap: break-word;
+            }
+            
+            .passenger-table td {
+                padding: 5px 3px; /* Reduced from 8px */
+                border: 1px solid #e6d8a5;
+                font-size: 9px; /* Reduced from 10px */
+                word-wrap: break-word;
+                overflow: hidden;
+            }
+            
+            .passenger-table tr:nth-child(even) {
+                background: #f9f5e7;
+            }
+            
+            .total-row {
+                font-weight: bold;
+                background: #f5f0e1 !important;
+                font-size: 10px; /* Reduced from 11px */
+            }
+            
+            .summary-section {
+                margin: 15px 0; /* Reduced from 25px */
+                padding: 10px; /* Reduced from 15px */
+                background: linear-gradient(135deg, #d4af37, #b8941f);
+                border-radius: 6px; /* Reduced from 8px */
+                color: white;
+                page-break-inside: avoid;
+            }
+            
+            .summary-title {
+                font-size: 12px; /* Reduced from 14px */
+                font-weight: bold;
+                margin-bottom: 10px; /* Reduced from 15px */
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 0.5px; /* Reduced from 1px */
+            }
+            
+            .summary-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px; /* Reduced from 15px */
+                text-align: center;
+            }
+            
+            .summary-item {
+                padding: 8px; /* Reduced from 10px */
+            }
+            
+            .summary-value {
+                font-size: 16px; /* Reduced from 20px */
+                font-weight: bold;
+                margin-bottom: 3px; /* Reduced from 5px */
+            }
+            
+            .summary-label {
+                font-size: 10px; /* Reduced from 11px */
+                opacity: 0.9;
+            }
+            
+            .footer-section {
+                margin-top: 15px; /* Reduced from 25px */
+                display: flex;
+                justify-content: space-between;
+                font-size: 9px; /* Reduced from 10px */
+                padding-top: 10px; /* Reduced from 15px */
+                border-top: 1px solid #ddd;
+                color: #7f8c8d;
+                page-break-inside: avoid;
+            }
+            
+            .footer-section-last {
+                margin-top: 15px; /* Reduced from 25px */
+                display: flex;
+                justify-content: space-between;
+                font-size: 9px; /* Reduced from 10px */
+                padding-top: 10px; /* Reduced from 15px */
+                border-top: 1px solid #ddd;
+                color: #7f8c8d;
+                page-break-inside: avoid;
+            }
+            
+            .disclaimer {
+                margin-top: 10px; /* Reduced from 15px */
+                padding: 8px; /* Reduced from 10px */
+                background: #fff9d9;
+                border: 1px solid #e6d8a5;
+                border-radius: 3px; /* Reduced from 4px */
+                font-size: 9px; /* Reduced from 10px */
+                text-align: center;
+                color: #8b7d3a;
+                page-break-inside: avoid;
+            }
+            
+            .signature-area {
+                margin-top: 20px; /* Reduced from 30px */
+                display: flex;
+                justify-content: space-between;
+                page-break-inside: avoid;
+            }
+            
+            .signature-line {
+                border-top: 1px solid #333;
+                width: 150px; /* Reduced from 200px */
+                padding-top: 3px; /* Reduced from 5px */
+                font-size: 9px; /* Reduced from 10px */
+                text-align: center;
+            }
+            
+            .page-break {
+                page-break-after: always;
+            }
+            
+            .page-break-avoid {
+                page-break-inside: avoid;
+            }
+            
+            .total-section {
+                margin-top: 15px; /* Reduced from 20px */
+                padding: 10px; /* Reduced from 15px */
+                background: #f9f5e7;
+                border-radius: 4px; /* Reduced from 6px */
+                border: 1px solid #e6d8a5;
+                page-break-inside: avoid;
+            }
+            
+            .total-row-print {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px; /* Reduced from 8px */
+            }
+            
+            .total-label {
+                font-weight: 600;
+                color: #3c3c2a;
+                font-size: 10px; /* Added font size */
+            }
+            
+            .total-value {
+                font-weight: bold;
+                color: #2c3e50;
+                font-size: 10px; /* Added font size */
+            }
+            
+            /* Remove unnecessary spacing */
+            h1, h2, h3, h4, h5, h6 {
+                margin-top: 0;
+                margin-bottom: 8px;
+            }
+            
+            p {
+                margin-top: 0;
+                margin-bottom: 8px;
+            }
+            
+            /* Adjust for better printing */
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+            
+            /* Hide non-printable elements */
+            .no-print {
+                display: none !important;
+            }
+            
+            /* Force table to not break inside rows */
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            /* Adjust passengers per page calculation */
+            .passenger-table tr {
+                height: 18px; /* Fixed height for better page calculation */
+            }
+            
+            /* Add a subtle border for print */
+            .print-container {
+                border: 1px solid transparent; /* Creates a boundary */
             }
         }
+    </style>
+    </head><body>`;
 
-        // Start the application
-        initializeApp().catch(error => {
-            console.error('Fatal error during initialization:', error);
-            alert('Failed to initialize application. Please refresh the page.');
+    // Generate each page
+    for (let page = 0; page < totalPages; page++) {
+        const startIndex = page * passengersPerPage;
+        const endIndex = Math.min(startIndex + passengersPerPage, approvedPassengers.length);
+        const pagePassengers = approvedPassengers.slice(startIndex, endIndex);
+        
+        html += `<div class="print-container ${page === totalPages - 1 ? 'page-break-avoid' : ''}">`;
+        
+        // Header section (same for all pages)
+        html += `
+        <div class="header-section">
+            <div class="company-info">
+                <div class="company-header">
+                    <div class="company-logo">
+                        <img src="macl.png" alt="Company Logo" style="height:40px;">
+                    </div>
+                    <div class="company-name">${companyName}</div>
+                    <div class="company-details">
+                        ${companyaddress}<br>
+                        ${companyphone}
+                    </div>
+                </div>
+                <div class="flight-details-left">
+                    <div><span class="detail-label">Airline:</span> <span class="detail-value">${airline}</span></div>
+                    <div><span class="detail-label">Flight No:</span> <span class="detail-value">${flightNo}</span></div>
+                    <div><span class="detail-label">Date:</span> <span class="detail-value">${formattedDate}</span></div>
+                </div>
+            </div>
+            <div class="flight-info">
+                <div class="flight-details-right">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div><span class="detail-label">STD:</span> <span class="detail-value">${std}</span></div>
+                    <div><span class="detail-label">First Pax Enter:</span> <span class="detail-value">${firstPax}</span></div>
+                    <div><span class="detail-label">Last Pax Left:</span> <span class="detail-value">${lastPax}</span></div>
+                    <div><span class="detail-label">Shift:</span> <span class="detail-value">${shift}</span></div>
+                </div>
+            </div>
+        </div>`;
+
+        // Passenger table
+        html += `
+        <table class="passenger-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Seat No</th>
+                    <th>Pax</th>
+                    ${isFZFlight ? '<th>PNR</th>' : ''}
+                    <th>FQTV</th>
+                    <th>Serial No</th>
+                    <th>Time Added</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        pagePassengers.forEach(p => {
+            html += `<tr>
+                <td>${p.name || ""}</td>
+                <td>${p.seatNo || ""}</td>
+                <td>${p.numPax || 0}</td>
+                ${isFZFlight ? `<td>${p.pnr || ""}</td>` : ''}
+                <td>${p.fqtv || ""}</td>
+                <td>${p.serial || ""}</td>
+                <td>${p.timeAdded || ""}</td>
+                <td>${p.remarks || ""}</td>
+            </tr>`;
         });
 
-        // Make functions available globally
-        window.switchTab = switchTab;
-        window.loadLeaveRequests = loadLeaveRequests;
-        window.loadDutyChanges = loadDutyChanges;
-        window.loadUsers = loadUsers;
-        window.logout = logout;
-        window.approveLeave = approveLeave;
-        window.rejectLeave = rejectLeave;
-        window.approveDutyChange = approveDutyChange;
-        window.rejectDutyChange = rejectDutyChange;
-        window.editUserLeave = editUserLeave;
-        window.updateSelectedUserBalance = updateSelectedUserBalance;
-        window.editSingleLeaveValue = editSingleLeaveValue;
-        window.filterLeaveRequests = filterLeaveRequests;
-        window.filterDutyChanges = filterDutyChanges;
-    </script>
+        html += `</tbody>`;
+
+        // Only show the total row on the last page
+        if (page === totalPages - 1) {
+            html += `
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="2">TOTAL PASSENGERS</td>
+                    <td>${totalPax}</td>
+                    ${isFZFlight ? '<td colspan="5"></td>' : '<td colspan="4"></td>'}
+                </tr>
+            </tfoot>`;
+        }
+
+        html += `</table>`;
+
+        // Only show the disclaimer and signature on the last page
+        if (page === totalPages - 1) {
+            html += `
+            <div class="disclaimer">
+                <strong>Any discrepancy should be notified within 48 hours. Any delay claims will not be accepted.</strong>
+            </div>
+
+            <div class="signature-area">
+                <div class="signature-line">Prepared By: ${loggedInUserName}</div>
+                <div class="signature-line">Checked By: __________________</div>
+            </div>`;
+        }
+
+        // Footer section - different for last page
+        if (page === totalPages - 1) {
+            html += `
+            <div class="footer-section-last">
+                <div>Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</div>
+                <div>Page ${page + 1} of ${totalPages}</div>
+            </div>`;
+        } else {
+            html += `
+            <div class="footer-section">
+                <div>Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</div>
+                <div>Page ${page + 1} of ${totalPages}</div>
+            </div>`;
+        }
+
+        html += `</div>`;
+
+        // Add page break for all pages except the last one
+        if (page < totalPages - 1) {
+            html += `<div class="page-break"></div>`;
+        }
+    }
+
+    html += `</body></html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+});
+
+// Load passengers for selected flight (manual trigger)
+async function loadPassengersForFlight() {
+    const dateVal = filterDate.value;
+    const flightVal = filterFlight.value;
+    currentFlightNo = flightVal;
+    
+    if (!dateVal || !flightVal) {
+        tableBody.innerHTML = "";
+        passengers = [];
+        renderTable();
+        return;
+    }
+    
+    // Clear table first
+    tableBody.innerHTML = "";
+    emptyState.style.display = "none";
+    
+    // Check cache first
+    if (passengerCache[dateVal]) {
+        passengers = passengerCache[dateVal]
+            .filter(p => p.flightNo === flightVal)
+            .sort((a, b) => timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded));
+        
+        updateTableHeaders();
+        renderTable();
+        loadFlightInfo(); // Load flight info separately
+        
+        // Detect duplicates after loading
+        detectDuplicatesForCurrentFlight();
+        
+        return;
+    }
+    
+    try {
+        // Fetch passengers from Firebase
+        const snapshot = await db.collection("passengers")
+            .where("date", "==", dateVal)
+            .where("flightNo", "==", flightVal)
+            .get();
+            
+        passengers = snapshot.docs
+            .map(doc => ({...doc.data(), id: doc.id}))
+            .sort((a, b) => timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded));
+        
+        // Cache the results
+        passengerCache[dateVal] = passengers;
+        
+        updateTableHeaders();
+        renderTable();
+        loadFlightInfo(); // Load flight info separately
+        
+        // Detect duplicates after loading
+        detectDuplicatesForCurrentFlight();
+        
+    } catch (error) {
+        console.error("Error fetching passengers:", error);
+        // Fallback to demo data if Firebase fails
+        passengers = [
+            {
+                id: "demo1",
+                name: "John Smith",
+                seatNo: "21AB",
+                numPax: 2,
+                flightNo: flightVal,
+                airline: "American",
+                fqtv: "Yes",
+                serial: "001",
+                timeAdded: "12:45",
+                remarks: "VIP passenger",
+                pnr: flightVal.toUpperCase().startsWith('FZ') ? "ABC123" : "",
+                approved: true,
+                date: dateVal
+            },
+            {
+                id: "demo2",
+                name: "Maria Garcia",
+                seatNo: "1A/2A/3C",
+                numPax: 3,
+                flightNo: flightVal,
+                airline: "United",
+                fqtv: "No",
+                serial: "002",
+                timeAdded: "13:20",
+                remarks: "Special meal requested",
+                pnr: flightVal.toUpperCase().startsWith('FZ') ? "DEF456" : "",
+                approved: true,
+                date: dateVal
+            },
+            {
+                id: "demo3",
+                name: "Robert Johnson",
+                seatNo: "15D",
+                numPax: 1,
+                flightNo: flightVal,
+                airline: "Delta",
+                fqtv: "Yes",
+                serial: "003",
+                timeAdded: "13:45",
+                remarks: "",
+                pnr: flightVal.toUpperCase().startsWith('FZ') ? "GHI789" : "",
+                approved: true,
+                date: dateVal
+            }
+        ].sort((a, b) => timeToMinutes(a.timeAdded) - timeToMinutes(b.timeAdded));
+        
+        updateTableHeaders();
+        renderTable();
+        loadFlightInfo(); // Load flight info separately
+        
+        // Detect duplicates after loading
+        detectDuplicatesForCurrentFlight();
+    }
+}
+
+// Function to detect duplicates for current flight
+function detectDuplicatesForCurrentFlight() {
+    duplicates = detectDuplicates(passengers);
+    showDuplicateWarning(duplicates.length);
+}
+
+// Function to handle flight selection with cleanup
+async function handleFlightSelection() {
+    // Clear existing data
+    tableBody.innerHTML = "";
+    passengers = [];
+    emptyState.style.display = "none";
+    
+    // Reset flight info fields
+    firstPaxTimeInput.value = "";
+    stdTimeInput.value = "";
+    lastPaxTimeInput.value = "";
+    flightStatus = "Open";
+    flightDocId = null;
+    updateFlightButtonLabel();
+    
+    // Clear duplicate warnings
+    showDuplicateWarning(0);
+    
+    // Remove existing flight listener if any
+    if (flightListener) {
+        flightListener();
+        flightListener = null;
+    }
+    
+    // Load new flight data
+    await loadPassengersForFlight();
+    
+    // Set up real-time listener for this flight
+    const dateVal = filterDate.value;
+    const flightVal = filterFlight.value;
+    
+    if (dateVal && flightVal) {
+        // Real-time listener for flight info changes
+        flightListener = db.collection("flightInfo")
+            .where("date", "==", dateVal)
+            .where("flightNo", "==", flightVal)
+            .onSnapshot(snapshot => {
+                if (!snapshot.empty) {
+                    const data = snapshot.docs[0].data();
+                    flightDocId = snapshot.docs[0].id;
+                    flightStatus = data.status || "Open";
+                    
+                    // Update time fields
+                    stdTimeInput.value = data.std || "";
+                    lastPaxTimeInput.value = data.lastPaxLeft || "";
+                    
+                    // Only update first passenger time if it exists in Firebase
+                    // Otherwise, calculate from earliest passenger time
+                    if (data.firstPax) {
+                        firstPaxTimeInput.value = data.firstPax;
+                    } else {
+                        const earliestTime = findEarliestCheckinTime();
+                        if (earliestTime) {
+                            firstPaxTimeInput.value = earliestTime;
+                        }
+                    }
+                    
+                    updateFlightButtonLabel();
+                }
+            }, error => {
+                console.error("Flight info listener error:", error);
+            });
+    }
+}
+
+// Function to refresh all flights for selected date
+async function refreshAllFlights() {
+    if (!filterDate.value) {
+        showNotification("Please select a date first", "error");
+        return;
+    }
+    
+    const confirmed = confirm(
+        `Refresh all flights for ${filterDate.value}?\n\n` +
+        `This will clear the cache and reload all flight data.`
+    );
+    
+    if (confirmed) {
+        // Clear cache for this date
+        delete passengerCache[filterDate.value];
+        
+        // Reload flights for the date
+        await loadFlightsForDate();
+        
+        // Rescan for unknown flights
+        await scanForUnknownFlights();
+        
+        showNotification(`All flights for ${filterDate.value} have been refreshed.`);
+    }
+}
+
+// Event listeners
+filterDate.addEventListener("change", async () => {
+    await loadFlightsForDate();
+    await scanForUnknownFlights();
+});
+
+filterFlight.addEventListener("change", handleFlightSelection);
+
+refreshAllBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    await refreshAllFlights();
+});
+
+// Show/hide unknown flights section
+showUnknownBtn.addEventListener("click", () => {
+    if (unknownFlightsSection.style.display === "none" || unknownFlightsSection.style.display === "") {
+        unknownFlightsSection.style.display = "block";
+        showUnknownBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Unknown Flights';
+    } else {
+        unknownFlightsSection.style.display = "none";
+        showUnknownBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Show Unknown Flights';
+    }
+});
+
+// Duplicate management event listeners
+ignoreDuplicatesBtn.addEventListener("click", () => {
+    showDuplicateWarning(0);
+    showNotification("Duplicate warnings ignored. Duplicates are still in the system.");
+});
+
+manageDuplicatesBtn.addEventListener("click", () => {
+    if (duplicates.length === 0) {
+        showNotification("No duplicates to manage", "error");
+        return;
+    }
+    
+    populateDuplicateModal();
+    duplicateModal.classList.add("active");
+});
+
+// Modal event listeners for duplicate modal
+closeDuplicateModalBtn.addEventListener("click", hideDuplicateModal);
+cancelDuplicateBtn.addEventListener("click", hideDuplicateModal);
+
+deleteSelectedDuplicatesBtn.addEventListener("click", async () => {
+    await deleteSelectedDuplicates();
+});
+
+// Select all duplicates checkbox
+selectAllDuplicates.addEventListener("change", function() {
+    const checkboxes = document.querySelectorAll('.duplicate-checkbox');
+    if (this.checked) {
+        // Select all
+        checkboxes.forEach((cb, index) => {
+            cb.checked = true;
+            selectedDuplicates.add(index);
+        });
+    } else {
+        // Deselect all
+        checkboxes.forEach((cb, index) => {
+            cb.checked = false;
+            selectedDuplicates.delete(index);
+        });
+    }
+    updateSelectedCount();
+});
+
+// Delete all unknown flights
+deleteAllUnknownBtn.addEventListener("click", () => {
+    if (unknownFlights.length === 0) return;
+    showDeleteConfirmation("all");
+});
+
+// Modal event listeners for unknown flights
+closeModalBtn.addEventListener("click", hideDeleteConfirmation);
+cancelDeleteBtn.addEventListener("click", hideDeleteConfirmation);
+
+confirmDeleteBtn.addEventListener("click", async () => {
+    if (currentDeleteType === "single" && currentDeleteData) {
+        // Delete single unknown flight passenger
+        const success = await deleteUnknownFlight(currentDeleteData.id);
+        if (success) {
+            showNotification("Unknown flight passenger deleted successfully");
+            updateUnknownFlightsUI();
+            hideDeleteConfirmation();
+            
+            // Refresh flights list
+            await loadFlightsForDate();
+        } else {
+            showNotification("Error deleting passenger. Please try again.", "error");
+        }
+    } else if (currentDeleteType === "all") {
+        // Delete all unknown flights
+        const success = await deleteAllUnknownFlights();
+        if (success) {
+            showNotification(`Deleted ${unknownFlights.length} unknown flight passengers`);
+            updateUnknownFlightsUI();
+            hideDeleteConfirmation();
+            
+            // Refresh flights list
+            await loadFlightsForDate();
+        } else {
+            showNotification("Error deleting unknown flights. Please try again.", "error");
+        }
+    }
+});
+
+// Initialize
+checkAuthState();
+
+
+</script>
 </body>
 </html>
