@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login System | Dashboard</title>
+    <title>Secure Login System | Dashboard</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <!-- SHA-256 Library for password hashing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
     <!-- External files as you requested -->
     <script src="dcfire.js" defer></script>
@@ -74,26 +77,40 @@
             margin-bottom: 30px;
         }
 
-        .features {
-            margin-top: 40px;
+        .user-list {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
         }
 
-        .feature {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .feature-icon {
-            background: rgba(255, 255, 255, 0.2);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
+        .user-list h3 {
+            margin-bottom: 15px;
             font-size: 1.2rem;
+        }
+
+        .user-list ul {
+            list-style: none;
+            font-size: 0.9rem;
+        }
+
+        .user-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .user-list li:last-child {
+            border-bottom: none;
+        }
+
+        .user-username {
+            font-weight: 600;
+        }
+
+        .user-rc {
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .login-right {
@@ -159,6 +176,7 @@
             border: none;
             color: #666;
             cursor: pointer;
+            font-size: 1.2rem;
         }
 
         .btn-login {
@@ -179,9 +197,23 @@
             background: #0d47a1;
         }
 
+        .btn-login:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .error-message {
             background: #ffebee;
             color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
             padding: 12px;
             border-radius: 8px;
             margin-top: 20px;
@@ -244,6 +276,26 @@
             font-size: 1.8rem;
         }
 
+        .welcome-section {
+            background: linear-gradient(135deg, #e8f0fe, #f0f7ff);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            border-left: 5px solid #1a73e8;
+        }
+
+        .welcome-section h3 {
+            color: #1a73e8;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .welcome-section p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -278,48 +330,43 @@
             font-weight: 700;
         }
 
-        .recent-activity {
+        .user-actions {
             margin-top: 50px;
         }
 
-        .activity-list {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
         }
 
-        .activity-item {
-            padding: 20px 25px;
-            border-bottom: 1px solid #eee;
+        .action-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
+            gap: 10px;
         }
 
-        .activity-item:last-child {
-            border-bottom: none;
+        .action-btn:hover {
+            background: #0d47a1;
+            transform: translateY(-2px);
         }
 
-        .activity-icon {
-            background: #e8f0fe;
-            color: #1a73e8;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-        }
-
-        .activity-details h4 {
+        .action-btn.secondary {
+            background: #f1f3f4;
             color: #333;
-            margin-bottom: 5px;
         }
 
-        .activity-details p {
-            color: #666;
-            font-size: 0.9rem;
+        .action-btn.secondary:hover {
+            background: #e0e0e0;
         }
 
         /* Loading State */
@@ -328,6 +375,21 @@
             text-align: center;
             padding: 20px;
             color: #666;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a73e8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Responsive Design */
@@ -350,6 +412,15 @@
                 flex-direction: column;
                 gap: 5px;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -358,37 +429,24 @@
     <div class="container">
         <div class="login-container" id="loginContainer">
             <div class="login-left">
-                <h1>Welcome Back</h1>
-                <p>Sign in to access your dashboard, view your RC number, and manage your account information securely.</p>
+                <h1>Secure Login</h1>
+                <p>Sign in using your username and password. All passwords are securely hashed using SHA-256 encryption.</p>
                 
-                <div class="features">
-                    <div class="feature">
-                        <div class="feature-icon">✓</div>
-                        <div>
-                            <h3>Secure Login</h3>
-                            <p>Protected with SHA-256 hashing</p>
-                        </div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">👤</div>
-                        <div>
-                            <h3>User Dashboard</h3>
-                            <p>Personalized view for each user</p>
-                        </div>
-                    </div>
-                    <div class="feature">
-                        <div class="feature-icon">🔒</div>
-                        <div>
-                            <h3>Firebase Backend</h3>
-                            <p>Powered by Firebase Firestore</p>
-                        </div>
-                    </div>
+                <div class="user-list">
+                    <h3>Available Users:</h3>
+                    <ul id="availableUsers">
+                        <!-- Users will be populated by JavaScript -->
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 30px; font-size: 0.9rem; opacity: 0.8;">
+                    <p><strong>Note:</strong> Passwords are stored as SHA-256 hashes for security.</p>
                 </div>
             </div>
             <div class="login-right">
                 <form class="login-form" id="loginForm">
                     <h2>Sign In</h2>
-                    <p>Enter your credentials to access your account</p>
+                    <p>Enter your credentials to access your dashboard</p>
                     
                     <div class="form-group">
                         <label for="username">Username</label>
@@ -405,12 +463,17 @@
                     
                     <button type="submit" class="btn-login" id="loginButton">Sign In</button>
                     
+                    <div class="loading" id="loginLoading">
+                        <div class="loading-spinner"></div>
+                        <p>Verifying credentials...</p>
+                    </div>
+                    
                     <div class="error-message" id="errorMessage">
                         Invalid username or password. Please try again.
                     </div>
                     
-                    <div class="loading" id="loginLoading">
-                        <p>Verifying credentials...</p>
+                    <div class="success-message" id="successMessage">
+                        Login successful! Redirecting to dashboard...
                     </div>
                 </form>
             </div>
@@ -431,7 +494,13 @@
             </div>
             
             <div class="dashboard-content">
-                <h2>Dashboard Overview</h2>
+                <div class="welcome-section">
+                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
+                    <p>You have successfully logged into the secure dashboard.</p>
+                    <p>Your account details are displayed below. You can access your information and perform authorized actions based on your user level.</p>
+                </div>
+                
+                <h2>Your Account Information</h2>
                 
                 <div class="stats-container">
                     <div class="stat-card">
@@ -443,39 +512,27 @@
                         <div class="value" id="statLevel">User</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Login Status</h3>
-                        <div class="value" style="color: #4caf50;">Active</div>
+                        <h3>Account Type</h3>
+                        <div class="value" id="statType">Standard</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Total Users</h3>
-                        <div class="value">7</div>
+                        <h3>Login Time</h3>
+                        <div class="value" id="statTime">Now</div>
                     </div>
                 </div>
                 
-                <div class="recent-activity">
-                    <h2>Recent Activity</h2>
-                    <div class="activity-list">
-                        <div class="activity-item">
-                            <div class="activity-icon">✓</div>
-                            <div class="activity-details">
-                                <h4>Successful Login</h4>
-                                <p id="loginTime">Just now</p>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon">👤</div>
-                            <div class="activity-details">
-                                <h4>Profile Accessed</h4>
-                                <p>Dashboard loaded with user details</p>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon">🔒</div>
-                            <div class="activity-details">
-                                <h4>Secure Session</h4>
-                                <p>Your session is encrypted and secure</p>
-                            </div>
-                        </div>
+                <div class="user-actions">
+                    <h2>Quick Actions</h2>
+                    <div class="action-buttons">
+                        <button class="action-btn" id="viewProfileBtn">
+                            <span>👤</span> View Profile
+                        </button>
+                        <button class="action-btn secondary" id="refreshDataBtn">
+                            <span>🔄</span> Refresh Data
+                        </button>
+                        <button class="action-btn secondary" id="viewLogsBtn">
+                            <span>📊</span> View Activity Logs
+                        </button>
                     </div>
                 </div>
             </div>
@@ -485,6 +542,11 @@
     <script>
         // Main application script
         document.addEventListener('DOMContentLoaded', function() {
+            // Wait for external scripts to load
+            setTimeout(initializeApp, 100);
+        });
+
+        function initializeApp() {
             // DOM elements
             const loginContainer = document.getElementById('loginContainer');
             const dashboardContainer = document.getElementById('dashboardContainer');
@@ -493,17 +555,43 @@
             const passwordInput = document.getElementById('password');
             const togglePasswordButton = document.getElementById('togglePassword');
             const loginButton = document.getElementById('loginButton');
-            const errorMessage = document.getElementById('errorMessage');
             const loginLoading = document.getElementById('loginLoading');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
             const logoutButton = document.getElementById('logoutButton');
+            const availableUsersList = document.getElementById('availableUsers');
             
             // Dashboard elements
             const dashboardUserName = document.getElementById('dashboardUserName');
             const dashboardRCNo = document.getElementById('dashboardRCNo');
             const dashboardLevel = document.getElementById('dashboardLevel');
+            const welcomeName = document.getElementById('welcomeName');
             const statRCNo = document.getElementById('statRCNo');
             const statLevel = document.getElementById('statLevel');
-            const loginTime = document.getElementById('loginTime');
+            const statType = document.getElementById('statType');
+            const statTime = document.getElementById('statTime');
+            
+            // Populate available users list
+            function populateUserList() {
+                if (typeof users !== 'undefined' && Array.isArray(users)) {
+                    users.forEach(user => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span class="user-username">${user.username}</span>
+                            <span class="user-rc">RC: ${user.RCNo} (${user.Level})</span>
+                        `;
+                        availableUsersList.appendChild(li);
+                        
+                        // Add click event to auto-fill username
+                        li.addEventListener('click', function() {
+                            usernameInput.value = user.username;
+                            passwordInput.focus();
+                        });
+                    });
+                } else {
+                    availableUsersList.innerHTML = '<li>Loading users...</li>';
+                }
+            }
             
             // Check if user is already logged in (from localStorage)
             function checkExistingLogin() {
@@ -515,6 +603,7 @@
             }
             
             // Initialize the app
+            populateUserList();
             checkExistingLogin();
             
             // Toggle password visibility
@@ -530,15 +619,21 @@
                 loginUser();
             });
             
-            // Login function
+            // Login function using SHA-256 hashing
             function loginUser() {
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
+                
+                if (!username || !password) {
+                    showError("Please enter both username and password");
+                    return;
+                }
                 
                 // Show loading state
                 loginButton.style.display = 'none';
                 loginLoading.style.display = 'block';
                 errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
                 
                 // Simulate a short delay for UX purposes
                 setTimeout(() => {
@@ -546,62 +641,67 @@
                     const user = users.find(u => u.username === username);
                     
                     if (user) {
-                        // Simple SHA-256 hash function (client-side)
-                        function sha256(str) {
-                            // This is a simplified version for demonstration
-                            // In a real app, use a proper SHA-256 library
-                            // For now, we'll just compare with the pre-hashed values
-                            // because we can't hash client-side without a library
-                            return str;
-                        }
+                        // Hash the entered password using SHA-256
+                        const hashedPassword = sha256(password);
                         
-                        // In a real implementation, you would hash the password and compare
-                        // For this demo, we'll just check if password matches a simple pattern
-                        // Actual password validation would require a proper SHA-256 library
-                        const passwordValid = user.passwordHash === "demo" + password + "hash" || 
-                                             password === "demo123"; // Simple fallback for demo
-                        
-                        if (passwordValid) {
+                        // Compare with stored hash
+                        if (hashedPassword === user.passwordHash) {
                             // Successful login
+                            successMessage.textContent = "Login successful! Redirecting to dashboard...";
+                            successMessage.style.display = 'block';
+                            
                             // Save user data to localStorage
                             localStorage.setItem('loggedInUser', JSON.stringify(user));
                             
-                            // Also save to Firebase (optional)
+                            // Save login to Firebase
                             saveLoginToFirebase(user);
                             
-                            // Show dashboard
-                            showDashboard(user);
+                            // Show dashboard after a brief delay
+                            setTimeout(() => {
+                                showDashboard(user);
+                            }, 1000);
                         } else {
-                            showError();
+                            showError("Invalid password. Please try again.");
                         }
                     } else {
-                        showError();
+                        showError("Username not found. Please check and try again.");
                     }
                     
                     // Reset UI
                     loginButton.style.display = 'block';
                     loginLoading.style.display = 'none';
-                }, 1000);
+                }, 800);
             }
             
             // Save login to Firebase
             function saveLoginToFirebase(user) {
-                if (typeof db !== 'undefined') {
-                    // Create a login record in Firebase
-                    db.collection('logins').add({
-                        username: user.username,
-                        name: user.name,
-                        rcNo: user.RCNo,
-                        level: user.Level,
-                        timestamp: new Date().toISOString()
-                    }).catch(error => {
-                        console.error("Error saving login to Firebase: ", error);
-                    });
+                if (typeof db !== 'undefined' && db) {
+                    try {
+                        // Create a login record in Firebase
+                        db.collection('logins').add({
+                            username: user.username,
+                            name: user.name,
+                            rcNo: user.RCNo,
+                            level: user.Level,
+                            timestamp: new Date().toISOString(),
+                            ipAddress: "Recorded", // In a real app, you'd capture the actual IP
+                            userAgent: navigator.userAgent
+                        }).then(() => {
+                            console.log("Login saved to Firebase successfully");
+                        }).catch(error => {
+                            console.error("Error saving login to Firebase: ", error);
+                        });
+                    } catch (error) {
+                        console.error("Firebase error: ", error);
+                    }
+                } else {
+                    console.log("Firebase not initialized, skipping Firebase save");
                 }
             }
             
             // Show error message
-            function showError() {
+            function showError(message) {
+                errorMessage.textContent = message || "Invalid username or password. Please try again.";
                 errorMessage.style.display = 'block';
                 passwordInput.value = '';
                 passwordInput.focus();
@@ -613,20 +713,32 @@
                 dashboardUserName.textContent = user.name;
                 dashboardRCNo.textContent = user.RCNo;
                 dashboardLevel.textContent = user.Level;
+                welcomeName.textContent = user.name;
                 statRCNo.textContent = user.RCNo;
                 statLevel.textContent = user.Level;
+                statType.textContent = user.Level === "Supervisor" ? "Supervisor" : "Standard";
                 
                 // Update login time
                 const now = new Date();
-                loginTime.textContent = now.toLocaleString();
+                statTime.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
                 // Switch views
                 loginContainer.style.display = 'none';
                 dashboardContainer.style.display = 'flex';
+                
+                // Clear form
+                loginForm.reset();
+                
+                // Log successful login
+                console.log(`User ${user.username} (${user.name}) logged in successfully`);
+                console.log(`RC Number: ${user.RCNo}, Level: ${user.Level}`);
             }
             
             // Logout function
             logoutButton.addEventListener('click', function() {
+                // Get current user before clearing
+                const loggedInUser = localStorage.getItem('loggedInUser');
+                
                 // Clear localStorage
                 localStorage.removeItem('loggedInUser');
                 
@@ -634,19 +746,43 @@
                 dashboardContainer.style.display = 'none';
                 loginContainer.style.display = 'flex';
                 
-                // Clear form
-                loginForm.reset();
-                
                 // Focus on username field
                 usernameInput.focus();
+                
+                // Log logout
+                if (loggedInUser) {
+                    const user = JSON.parse(loggedInUser);
+                    console.log(`User ${user.username} logged out`);
+                }
             });
             
-            // Demo credentials helper (for testing)
-            console.log("Demo credentials available:");
-            console.log("Username: Hussain, Password: demo123");
-            console.log("Username: Mohamed, Password: demo123");
-            console.log("Username: Irufan, Password: demo123");
-        });
+            // Dashboard action buttons
+            document.getElementById('viewProfileBtn').addEventListener('click', function() {
+                const user = JSON.parse(localStorage.getItem('loggedInUser'));
+                alert(`User Profile:\n\nName: ${user.name}\nUsername: ${user.username}\nRC Number: ${user.RCNo}\nLevel: ${user.Level}`);
+            });
+            
+            document.getElementById('refreshDataBtn').addEventListener('click', function() {
+                const now = new Date();
+                statTime.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                alert("Dashboard data refreshed!");
+            });
+            
+            document.getElementById('viewLogsBtn').addEventListener('click', function() {
+                alert("Activity logs would be displayed here. This feature requires additional Firebase configuration.");
+            });
+            
+            // Auto-focus username field
+            usernameInput.focus();
+            
+            // For testing: Console log available users and their password hashes
+            console.log("Available users from user.js:");
+            if (typeof users !== 'undefined') {
+                users.forEach(user => {
+                    console.log(`Username: ${user.username}, Name: ${user.name}, RC: ${user.RCNo}, Level: ${user.Level}`);
+                });
+            }
+        }
     </script>
 </body>
 </html>
