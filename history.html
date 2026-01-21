@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History - Duty Management</title>
     <style>
-        /* Similar styling as dashboard */
         * {
             margin: 0;
             padding: 0;
@@ -174,6 +173,50 @@
             color: #888;
             font-style: italic;
         }
+        
+        .filter-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .filter-btn:hover:not(.active) {
+            background: #e0e0e0;
+        }
+        
+        .index-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        
+        .index-warning a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .index-warning a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +241,17 @@
     
     <div class="main-content">
         <h1 class="page-title">Request History</h1>
+        
+        <div id="indexWarning" class="index-warning" style="display: none;">
+            <strong>⚠️ Firebase Index Required:</strong> Some features may not work properly. 
+            <a href="#" onclick="createIndex()">Click here to create the required index</a>
+        </div>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterHistory('all')">All Requests</button>
+            <button class="filter-btn" onclick="filterHistory('sent')">Sent</button>
+            <button class="filter-btn" onclick="filterHistory('received')">Received</button>
+        </div>
         
         <div class="history-container">
             <table class="history-table" id="historyTable">
@@ -224,60 +278,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="dcfire.js"></script>
     <script src="user.js"></script>
-    <script>
-        // Check if user is logged in
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        
-        if(!currentUser) {
-            window.location.href = 'index.html';
-        }
-        
-        document.getElementById('userName').textContent = currentUser.name;
-        document.getElementById('userRole').textContent = currentUser.Level;
-        
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
-        });
-        
-        // Load history
-        loadHistory();
-        
-        function loadHistory() {
-            const historyBody = document.getElementById('historyBody');
-            
-            // Load sent requests
-            db.collection('dutyRequests')
-                .where('fromUser', '==', currentUser.username)
-                .orderBy('timestamp', 'desc')
-                .get()
-                .then(snapshot => {
-                    if(snapshot.empty) {
-                        historyBody.innerHTML = '<tr><td colspan="5" class="no-data">No history found</td></tr>';
-                        return;
-                    }
-                    
-                    historyBody.innerHTML = '';
-                    snapshot.forEach(doc => {
-                        const request = doc.data();
-                        const row = document.createElement('tr');
-                        
-                        row.innerHTML = `
-                            <td>${new Date(request.timestamp?.toDate()).toLocaleDateString()}</td>
-                            <td>Sent Request</td>
-                            <td>${request.toName}</td>
-                            <td>${request.fromTime} → ${request.toTime}</td>
-                            <td><span class="status-badge status-${request.status}">${request.status}</span></td>
-                        `;
-                        
-                        historyBody.appendChild(row);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading history:', error);
-                    historyBody.innerHTML = '<tr><td colspan="5" class="no-data">Error loading history</td></tr>';
-                });
-        }
-    </script>
+    <script src="history.js"></script>
 </body>
 </html>
