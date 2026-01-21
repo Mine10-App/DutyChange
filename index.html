@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Dashboard</title>
+    <title>Duty Management System</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -24,7 +24,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fa;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -32,19 +32,14 @@
             padding: 20px;
         }
 
-        .login-card {
+        /* Login Page */
+        .login-container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
             padding: 40px;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .logo {
@@ -53,24 +48,23 @@
         }
 
         .logo h1 {
-            color: #4a5568;
+            color: #2c3e50;
             font-size: 28px;
-            font-weight: 600;
             margin-bottom: 5px;
         }
 
         .logo p {
-            color: #718096;
+            color: #7f8c8d;
             font-size: 14px;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            color: #4a5568;
+            color: #2c3e50;
             font-size: 14px;
             font-weight: 500;
             margin-bottom: 8px;
@@ -78,87 +72,450 @@
 
         .form-control {
             width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
             font-size: 16px;
             transition: all 0.3s;
-            background: #f8fafc;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
-        .password-container {
-            position: relative;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
+        .btn {
+            padding: 12px 24px;
             border: none;
-            color: #718096;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 5px;
-        }
-
-        .btn-login {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 10px;
         }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .btn-primary {
+            background: #3498db;
+            color: white;
         }
 
-        .btn-login:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219653;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d68910;
+        }
+
+        .btn-block {
+            width: 100%;
         }
 
         .error-message {
-            background: #fed7d7;
-            color: #c53030;
+            background: #ffeaea;
+            color: #e74c3c;
             padding: 12px;
             border-radius: 8px;
             margin-top: 20px;
-            font-size: 14px;
             display: none;
-            border-left: 4px solid #c53030;
+            font-size: 14px;
         }
 
+        /* Dashboard */
+        .dashboard-container {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            min-height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-details {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Navigation */
+        .dashboard-nav {
+            background: #34495e;
+            padding: 12px 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn.active {
+            background: #3498db;
+        }
+
+        .notification-badge {
+            background: #e74c3c;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        /* Content Area */
+        .dashboard-content {
+            padding: 25px;
+            min-height: 500px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e6ed;
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        /* Forms */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group-inline {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e6ed;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+
+        td {
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Excel-like table */
+        .excel-table {
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .excel-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+        }
+
+        .excel-table th {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+        }
+
+        .excel-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 4px;
+        }
+
+        .excel-input:focus {
+            outline: 2px solid #3498db;
+            background: white;
+        }
+
+        /* Status */
+        .status-pending {
+            color: #f39c12;
+            font-weight: 500;
+        }
+
+        .status-approved {
+            color: #27ae60;
+            font-weight: 500;
+        }
+
+        .status-rejected {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.approve {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .action-btn.reject {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn.view {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            font-size: 13px;
+        }
+
+        .alert-info {
+            background: #e8f4fc;
+            border-color: #3498db;
+            color: #2c3e50;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #27ae60;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #f39c12;
+            color: #856404;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border-color: #e74c3c;
+            color: #721c24;
+        }
+
+        /* Balance Display */
+        .balance-display {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .balance-box {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e0e6ed;
+        }
+
+        .balance-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 5px 0;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        /* Excel Import Area */
+        .excel-import-area {
+            background: #f8f9fa;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .excel-import-area:hover {
+            background: #e8f4fc;
+        }
+
+        .excel-paste-box {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        /* Tab Controls */
+        .tab-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        /* Loading */
         .loading {
             text-align: center;
-            margin: 20px 0;
-            display: none;
+            padding: 30px;
+            color: #7f8c8d;
         }
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #3498db;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
             margin: 0 auto 10px;
         }
@@ -168,460 +525,1733 @@
             100% { transform: rotate(360deg); }
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            color: #718096;
-            font-size: 13px;
-        }
-
-        /* Dashboard Styles */
-        .dashboard-container {
-            display: none;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 800px;
-            min-height: 500px;
-            overflow: hidden;
-        }
-
-        .dashboard-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px 40px;
-            color: white;
-        }
-
-        .user-info h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .user-details {
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .user-details span {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        .logout-btn {
-            position: absolute;
-            top: 30px;
-            right: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .dashboard-content {
-            padding: 40px;
-        }
-
-        .welcome-card {
-            background: linear-gradient(135deg, #f6f9fc 0%, #f0f4f8 100%);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border-left: 5px solid #667eea;
-        }
-
-        .welcome-card h2 {
-            color: #4a5568;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        .welcome-card p {
-            color: #718096;
-            line-height: 1.6;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            color: #718096;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .value {
-            color: #667eea;
-            font-size: 32px;
-            font-weight: 700;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .login-card,
-            .dashboard-container {
-                max-width: 100%;
-                padding: 30px 20px;
+            .dashboard-nav {
+                flex-direction: column;
+                gap: 8px;
             }
             
-            .dashboard-header {
-                padding: 20px;
+            .form-row {
+                grid-template-columns: 1fr;
             }
             
-            .user-details {
+            .balance-display {
                 flex-direction: column;
                 gap: 10px;
             }
-            
-            .logout-btn {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-top: 15px;
-            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
 <body>
-    <!-- Login Card -->
-    <div class="login-card" id="loginContainer">
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
         <div class="logo">
-            <h1>Secure Access</h1>
-            <p>Enter your credentials to continue</p>
+            <h1>Duty Management</h1>
+            <p>Secure Login System</p>
         </div>
         
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" 
-                       id="username" 
-                       class="form-control" 
-                       placeholder="Enter username" 
-                       required
-                       autocomplete="username">
+                <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <div class="password-container">
-                    <input type="password" 
-                           id="password" 
-                           class="form-control" 
-                           placeholder="Enter password" 
-                           required
-                           autocomplete="current-password">
-                    <button type="button" class="toggle-password" id="togglePassword">👁️</button>
-                </div>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
             </div>
             
-            <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Authenticating...</p>
-            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Login</button>
             
             <div class="error-message" id="errorMessage">
                 Invalid username or password
             </div>
         </form>
-        
-        <div class="footer">
-            <p>Secure Login System v1.0</p>
-        </div>
     </div>
     
-    <!-- Dashboard -->
+    <!-- Dashboard Container -->
     <div class="dashboard-container" id="dashboardContainer">
+        <!-- Header -->
         <div class="dashboard-header">
-            <button class="logout-btn" id="logoutBtn">Logout</button>
             <div class="user-info">
-                <h1 id="userName">User Name</h1>
+                <h2 id="userName">User Name</h2>
                 <div class="user-details">
                     <span>RC: <span id="userRC">000</span></span>
                     <span>Level: <span id="userLevel">User</span></span>
-                    <span>Status: Active</span>
                 </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-danger" id="logoutBtn">Logout</button>
             </div>
         </div>
         
+        <!-- Navigation -->
+        <div class="dashboard-nav">
+            <button class="nav-btn active" data-section="home">Dashboard</button>
+            <button class="nav-btn" data-section="dutyChange">Duty Change</button>
+            <button class="nav-btn" data-section="leaveApplication">Apply Leave</button>
+            <button class="nav-btn" data-section="myRequests">My Requests</button>
+            <button class="nav-btn" data-section="pendingRequests" id="pendingRequestsBtn" style="display:none;">
+                Pending <span id="pendingCount" class="notification-badge">0</span>
+            </button>
+            <!-- Admin Only -->
+            <button class="nav-btn" data-section="adminDutyRoster" id="adminDutyRosterBtn" style="display:none;">
+                Duty Roster
+            </button>
+            <button class="nav-btn" data-section="adminLeaveBalance" id="adminLeaveBalanceBtn" style="display:none;">
+                Leave Balance
+            </button>
+            <button class="nav-btn" data-section="adminApprovals" id="adminApprovalsBtn" style="display:none;">
+                Approvals
+            </button>
+        </div>
+        
+        <!-- Content Area -->
         <div class="dashboard-content">
-            <div class="welcome-card">
-                <h2>Welcome, <span id="welcomeName">User</span>!</h2>
-                <p>You have successfully logged into the secure dashboard. Your session is protected and all data is encrypted.</p>
+            <!-- Dashboard -->
+            <div class="section active" id="homeSection">
+                <div class="card">
+                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
+                    
+                    <div class="balance-display">
+                        <div class="balance-box">
+                            <div class="balance-label">Sick Leave Balance</div>
+                            <div class="balance-value" id="slBalance">0</div>
+                            <div class="balance-label">Days</div>
+                        </div>
+                        <div class="balance-box">
+                            <div class="balance-label">FRL Balance</div>
+                            <div class="balance-value" id="frlBalance">0</div>
+                            <div class="balance-label">Days</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Today's Duty:</strong> <span id="todayDutyTime">Not Scheduled</span></p>
+                        <p><strong>Next Duty:</strong> <span id="nextDutyTime">No upcoming duty</span></p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-warning" onclick="showSection('dutyChange')">Request Duty Change</button>
+                        <button class="btn btn-success" onclick="showSection('leaveApplication')">Apply Leave</button>
+                        <button class="btn btn-primary" onclick="showSection('myRequests')">My Requests</button>
+                    </div>
+                </div>
             </div>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>RC Number</h3>
-                    <div class="value" id="statRC">000</div>
+            <!-- Duty Change Request -->
+            <div class="section" id="dutyChangeSection">
+                <div class="card">
+                    <h3>Duty Change Request</h3>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> Requests must be made at least 24 hours in advance. No back dates allowed.
+                    </div>
+                    
+                    <form id="dutyChangeForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="changeDate">Change Date *</label>
+                                <input type="date" id="changeDate" class="form-control" required min="">
+                            </div>
+                            <div class="form-group">
+                                <label for="changeDutyTime">Your Duty Time *</label>
+                                <select id="changeDutyTime" class="form-control" required>
+                                    <option value="">Select duty time</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="requestToStaff">Request To Staff *</label>
+                                <select id="requestToStaff" class="form-control" required>
+                                    <option value="">Select staff member</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="requestToRcNo">Staff RC No</label>
+                                <input type="text" id="requestToRcNo" class="form-control" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="requestToDutyTime">Staff's Duty Time *</label>
+                                <select id="requestToDutyTime" class="form-control" required>
+                                    <option value="">Select duty time</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="changeReason">Reason (Optional)</label>
+                                <textarea id="changeReason" class="form-control" rows="2" placeholder="Brief reason for duty change"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-success">Submit Request</button>
+                            <button type="button" class="btn btn-danger" onclick="showSection('home')">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="stat-card">
-                    <h3>User Level</h3>
-                    <div class="value" id="statLevel">User</div>
+            </div>
+            
+            <!-- Leave Application -->
+            <div class="section" id="leaveApplicationSection">
+                <div class="card">
+                    <h3>Leave Application</h3>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Application Rules:</strong></p>
+                        <p>• Sick Leave: Minimum 2 hours before duty time</p>
+                        <p>• FRL: Minimum 1 hour before duty time</p>
+                        <p>• No back dated applications allowed</p>
+                    </div>
+                    
+                    <form id="leaveApplicationForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="leaveType">Leave Type *</label>
+                                <select id="leaveType" class="form-control" required>
+                                    <option value="">Select leave type</option>
+                                    <option value="Sick Leave">Sick Leave</option>
+                                    <option value="FRL">FRL</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="leaveDate">Leave Date *</label>
+                                <input type="date" id="leaveDate" class="form-control" required min="">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="leaveDutyTime">Duty Time *</label>
+                                <select id="leaveDutyTime" class="form-control" required>
+                                    <option value="">Select duty time</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="leaveDuration">Duration *</label>
+                                <select id="leaveDuration" class="form-control" required>
+                                    <option value="1">1 Day</option>
+                                    <option value="0.5">Half Day</option>
+                                    <option value="2">2 Days</option>
+                                    <option value="3">3 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="leaveReason">Reason *</label>
+                                <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="alert" id="leaveRulesAlert">
+                                Select leave type, date and duty time to see rules
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-success" id="submitLeaveBtn">Submit Application</button>
+                            <button type="button" class="btn btn-danger" onclick="showSection('home')">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="stat-card">
-                    <h3>Login Time</h3>
-                    <div class="value" id="loginTime">Now</div>
+            </div>
+            
+            <!-- My Requests -->
+            <div class="section" id="myRequestsSection">
+                <div class="card">
+                    <h3>My Requests</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myRequestsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <h3>Session ID</h3>
-                    <div class="value" style="font-size: 14px; color: #718096;" id="sessionId">---</div>
+            </div>
+            
+            <!-- Pending Requests -->
+            <div class="section" id="pendingRequestsSection">
+                <div class="card">
+                    <h3>Pending Requests For You</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingRequestsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Duty Roster Management -->
+            <div class="section" id="adminDutyRosterSection">
+                <div class="card">
+                    <h3>Duty Roster Management</h3>
+                    
+                    <div class="tab-controls">
+                        <button class="tab-btn active" onclick="showRosterTab('excelImport')">Excel Import</button>
+                        <button class="tab-btn" onclick="showRosterTab('manualEntry')">Manual Entry</button>
+                        <button class="tab-btn" onclick="showRosterTab('viewRoster')">View Roster</button>
+                    </div>
+                    
+                    <!-- Excel Import Tab -->
+                    <div id="excelImportTab" class="roster-tab active">
+                        <div class="alert alert-info">
+                            <strong>Instructions:</strong> Copy your Excel data and paste below. Format: Date in first column, then staff names as columns, duty times as rows.
+                        </div>
+                        
+                        <div class="excel-import-area" onclick="document.getElementById('excelPasteBox').focus()">
+                            <p>📋 <strong>Click here and paste Excel data</strong></p>
+                            <p style="font-size: 12px; color: #666;">Format: Tab-separated values from Excel</p>
+                        </div>
+                        
+                        <textarea id="excelPasteBox" class="excel-paste-box" placeholder="Paste Excel data here (Ctrl+V)...
+Example:
+Date	Irufan	Hussain	Mohamed
+2024-01-01	08:00-16:00	16:00-00:00	00:00-08:00
+2024-01-02	16:00-00:00	08:00-16:00	Off"></textarea>
+                        
+                        <div class="form-row" style="margin-top: 15px;">
+                            <button class="btn btn-success" onclick="processExcelPaste()">Process Data</button>
+                            <button class="btn btn-primary" onclick="loadSampleData()">Load Sample</button>
+                            <button class="btn btn-danger" onclick="clearExcelPaste()">Clear</button>
+                        </div>
+                        
+                        <div id="excelPreview" style="margin-top: 20px; display: none;">
+                            <h4>Preview</h4>
+                            <div class="table-container">
+                                <table class="excel-table" id="excelPreviewTable">
+                                    <!-- Preview will be shown here -->
+                                </table>
+                            </div>
+                            <button class="btn btn-success" onclick="saveExcelData()" style="margin-top: 10px;">Save to Roster</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Manual Entry Tab -->
+                    <div id="manualEntryTab" class="roster-tab">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rosterDate">Date</label>
+                                <input type="date" id="rosterDate" class="form-control" value="">
+                            </div>
+                            <div class="form-group">
+                                <label for="rosterStaffSingle">Staff</label>
+                                <select id="rosterStaffSingle" class="form-control">
+                                    <option value="">Select staff</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rosterDutyTime">Duty Time</label>
+                                <input type="text" id="rosterDutyTime" class="form-control" placeholder="e.g., 08:00-16:00 or Off">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button class="btn btn-success" onclick="addRosterEntry()">Add Entry</button>
+                            <button class="btn btn-primary" onclick="clearRosterForm()">Clear</button>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>Today's Entries</h4>
+                            <div class="table-container">
+                                <table id="todayRosterTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Staff</th>
+                                            <th>Duty Time</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Filled by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- View Roster Tab -->
+                    <div id="viewRosterTab" class="roster-tab">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="viewRosterDate">View Date</label>
+                                <input type="date" id="viewRosterDate" class="form-control" value="">
+                            </div>
+                            <div class="form-group">
+                                <label for="viewRosterStaff">Staff Filter</label>
+                                <select id="viewRosterStaff" class="form-control">
+                                    <option value="">All Staff</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="loadRosterView()">Load Roster</button>
+                        
+                        <div id="rosterViewContainer" style="margin-top: 20px;">
+                            <!-- Roster will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Leave Balance Management -->
+            <div class="section" id="adminLeaveBalanceSection">
+                <div class="card">
+                    <h3>Leave Balance Management</h3>
+                    
+                    <div class="tab-controls">
+                        <button class="tab-btn active" onclick="showBalanceTab('bulkUpdate')">Bulk Update</button>
+                        <button class="tab-btn" onclick="showBalanceTab('individual')">Individual</button>
+                    </div>
+                    
+                    <!-- Bulk Update Tab -->
+                    <div id="bulkUpdateTab" class="balance-tab active">
+                        <div class="alert alert-info">
+                            <strong>Instructions:</strong> Enter SL and FRL balances in days (e.g., 12.5 for 12 days and half day)
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>RC No</th>
+                                        <th>SL Balance (Days)</th>
+                                        <th>FRL Balance (Days)</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bulkBalanceTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="form-row" style="margin-top: 15px;">
+                            <button class="btn btn-success" onclick="saveAllBalances()">Save All Changes</button>
+                            <button class="btn btn-primary" onclick="resetAllBalances()">Reset All to Default</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Tab -->
+                    <div id="individualTab" class="balance-tab">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="balanceStaff">Select Staff</label>
+                                <select id="balanceStaff" class="form-control">
+                                    <option value="">Select staff</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="individualBalanceForm" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="individualSL">Sick Leave (Days)</label>
+                                    <input type="number" id="individualSL" class="form-control" step="0.5" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="individualFRL">FRL (Days)</label>
+                                    <input type="number" id="individualFRL" class="form-control" step="0.5" min="0">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <button class="btn btn-success" onclick="saveIndividualBalance()">Save Balance</button>
+                                <button class="btn btn-primary" onclick="resetIndividualBalance()">Reset to Default</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Approve Requests -->
+            <div class="section" id="adminApprovalsSection">
+                <div class="card">
+                    <h3>Approve/Reject Requests</h3>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminApprovalsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Wait for external scripts to load
-        setTimeout(initializeApp, 100);
-        
-        function initializeApp() {
-            // DOM Elements
-            const loginContainer = document.getElementById('loginContainer');
-            const dashboardContainer = document.getElementById('dashboardContainer');
-            const loginForm = document.getElementById('loginForm');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const togglePasswordBtn = document.getElementById('togglePassword');
-            const loginBtn = document.getElementById('loginBtn');
-            const loading = document.getElementById('loading');
-            const errorMessage = document.getElementById('errorMessage');
-            const logoutBtn = document.getElementById('logoutBtn');
-            
-            // Dashboard elements
-            const userName = document.getElementById('userName');
-            const userRC = document.getElementById('userRC');
-            const userLevel = document.getElementById('userLevel');
-            const welcomeName = document.getElementById('welcomeName');
-            const statRC = document.getElementById('statRC');
-            const statLevel = document.getElementById('statLevel');
-            const loginTime = document.getElementById('loginTime');
-            const sessionId = document.getElementById('sessionId');
-            
-            // Check for existing session
-            function checkSession() {
-                const session = localStorage.getItem('userSession');
-                if (session) {
-                    try {
-                        const user = JSON.parse(session);
-                        if (user.expiry > Date.now()) {
-                            showDashboard(user);
-                            return;
-                        } else {
-                            localStorage.removeItem('userSession');
-                        }
-                    } catch (e) {
-                        localStorage.removeItem('userSession');
-                    }
-                }
-            }
-            
-            // Toggle password visibility
-            togglePasswordBtn.addEventListener('click', () => {
-                const type = passwordInput.type === 'password' ? 'text' : 'password';
-                passwordInput.type = type;
-                togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🔒';
-            });
-            
-            // Handle login
-            loginForm.addEventListener('submit', async (e) => {
+        // Global variables
+        let currentUser = null;
+        let allUsers = [];
+        let dutyRoster = {};
+        let leaveBalances = {};
+        let allRequests = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initApp, 100);
+        });
+
+        function initApp() {
+            // Setup login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value.trim();
-                
-                if (!username || !password) {
-                    showError('Please enter both username and password');
-                    return;
-                }
-                
-                // Show loading
-                loginBtn.disabled = true;
-                loading.style.display = 'block';
-                errorMessage.style.display = 'none';
-                
-                // Simulate processing
-                setTimeout(() => {
-                    authenticateUser(username, password);
-                }, 800);
+                handleLogin();
             });
             
-            // Authenticate user with SHA-256
-            function authenticateUser(username, password) {
-                if (!users || !Array.isArray(users)) {
-                    showError('User database not loaded');
-                    resetLogin();
-                    return;
-                }
-                
-                const user = users.find(u => u.username === username);
-                
-                if (!user) {
-                    showError('Invalid username or password');
-                    resetLogin();
-                    return;
-                }
-                
-                // Hash the entered password
-                const hashedPassword = sha256(password);
-                
-                if (hashedPassword === user.passwordHash) {
-                    // Create session
-                    const sessionData = {
-                        username: user.username,
-                        name: user.name,
-                        rcNo: user.RCNo,
-                        level: user.Level,
-                        expiry: Date.now() + (8 * 60 * 60 * 1000), // 8 hours
-                        loginTime: new Date().toISOString(),
-                        sessionId: generateSessionId()
-                    };
-                    
-                    // Save to localStorage
-                    localStorage.setItem('userSession', JSON.stringify(sessionData));
-                    
-                    // Save to Firebase if available
-                    saveToFirebase(user);
-                    
-                    // Show dashboard
-                    showDashboard(sessionData);
-                } else {
-                    showError('Invalid username or password');
-                    resetLogin();
-                }
-            }
+            // Set minimum dates
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('changeDate').min = today;
+            document.getElementById('leaveDate').min = today;
+            document.getElementById('rosterDate').value = today;
+            document.getElementById('viewRosterDate').value = today;
             
-            // Save login to Firebase
-            function saveToFirebase(user) {
-                if (typeof db !== 'undefined' && db) {
-                    try {
-                        db.collection('logins').add({
-                            username: user.username,
-                            name: user.name,
-                            rcNo: user.RCNo,
-                            level: user.Level,
-                            timestamp: new Date().toISOString(),
-                            action: 'login'
-                        });
-                    } catch (error) {
-                        console.log('Firebase save skipped');
-                    }
-                }
-            }
-            
-            // Generate random session ID
-            function generateSessionId() {
-                return Math.random().toString(36).substr(2, 9).toUpperCase();
-            }
-            
-            // Show error message
-            function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
-            
-            // Reset login form
-            function resetLogin() {
-                loginBtn.disabled = false;
-                loading.style.display = 'none';
-            }
-            
-            // Show dashboard
-            function showDashboard(user) {
-                // Update UI
-                userName.textContent = user.name;
-                userRC.textContent = user.rcNo;
-                userLevel.textContent = user.level;
-                welcomeName.textContent = user.name;
-                statRC.textContent = user.rcNo;
-                statLevel.textContent = user.level;
-                sessionId.textContent = user.sessionId;
-                
-                // Format login time
-                const time = new Date(user.loginTime);
-                loginTime.textContent = time.toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                // Switch views
-                loginContainer.style.display = 'none';
-                dashboardContainer.style.display = 'block';
-                
-                // Clear form
-                loginForm.reset();
-            }
-            
-            // Handle logout
-            logoutBtn.addEventListener('click', () => {
-                const session = localStorage.getItem('userSession');
-                if (session) {
-                    const user = JSON.parse(session);
-                    
-                    // Save logout to Firebase
-                    if (typeof db !== 'undefined' && db) {
-                        try {
-                            db.collection('logins').add({
-                                username: user.username,
-                                name: user.name,
-                                rcNo: user.rcNo,
-                                level: user.level,
-                                timestamp: new Date().toISOString(),
-                                action: 'logout'
-                            });
-                        } catch (error) {
-                            console.log('Firebase save skipped');
-                        }
-                    }
-                }
-                
-                // Clear session
-                localStorage.removeItem('userSession');
-                
-                // Switch back to login
-                dashboardContainer.style.display = 'none';
-                loginContainer.style.display = 'block';
-                
-                // Focus on username
-                usernameInput.focus();
-            });
-            
-            // Check session on load
+            // Check session
             checkSession();
+        }
+
+        function checkSession() {
+            const session = localStorage.getItem('dutySystemSession');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    if (user.expiry > Date.now()) {
+                        loginUser(user);
+                    } else {
+                        localStorage.removeItem('dutySystemSession');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('dutySystemSession');
+                }
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('errorMessage');
             
-            // Auto-focus username field
-            usernameInput.focus();
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+            
+            if (!users || !Array.isArray(users)) {
+                showError('User database not loaded');
+                return;
+            }
+            
+            const user = users.find(u => u.username === username);
+            
+            if (!user) {
+                showError('Invalid username or password');
+                return;
+            }
+            
+            // Hash and check password
+            const hashedPassword = sha256(password);
+            
+            if (hashedPassword === user.passwordHash) {
+                const sessionData = {
+                    username: user.username,
+                    name: user.name,
+                    rcNo: user.RCNo,
+                    level: user.Level,
+                    expiry: Date.now() + (8 * 60 * 60 * 1000)
+                };
+                
+                localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
+                loginUser(sessionData);
+            } else {
+                showError('Invalid username or password');
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+        }
+
+        function loginUser(userData) {
+            currentUser = userData;
+            allUsers = users || [];
+            
+            // Update UI
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('dashboardContainer').style.display = 'block';
+            
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('userRC').textContent = userData.rcNo;
+            document.getElementById('userLevel').textContent = userData.level;
+            document.getElementById('welcomeName').textContent = userData.name;
+            
+            // Show/hide admin sections
+            if (userData.level === 'Supervisor') {
+                document.getElementById('adminDutyRosterBtn').style.display = 'inline-block';
+                document.getElementById('adminLeaveBalanceBtn').style.display = 'inline-block';
+                document.getElementById('adminApprovalsBtn').style.display = 'inline-block';
+            }
+            
+            // Initialize data and UI
+            initializeData();
+            setupNavigation();
+            setupEventListeners();
+            updateDashboard();
+        }
+
+        function initializeData() {
+            // Load data from localStorage
+            loadDutyRoster();
+            loadLeaveBalances();
+            loadAllRequests();
+            
+            // Update user's balance display
+            updateUserBalance();
+        }
+
+        function loadDutyRoster() {
+            const savedRoster = localStorage.getItem('dutyRosterData');
+            if (savedRoster) {
+                dutyRoster = JSON.parse(savedRoster);
+            } else {
+                // Initialize empty roster
+                dutyRoster = {};
+                saveDutyRoster();
+            }
+        }
+
+        function saveDutyRoster() {
+            localStorage.setItem('dutyRosterData', JSON.stringify(dutyRoster));
+            
+            // Save to Firebase if available
+            if (typeof db !== 'undefined') {
+                try {
+                    db.collection('dutyRoster').doc('current').set(dutyRoster);
+                } catch (error) {
+                    console.log('Firebase save skipped');
+                }
+            }
+        }
+
+        function loadLeaveBalances() {
+            const savedBalances = localStorage.getItem('leaveBalancesData');
+            if (savedBalances) {
+                leaveBalances = JSON.parse(savedBalances);
+            } else {
+                // Initialize with default balances (in days)
+                leaveBalances = {};
+                allUsers.forEach(user => {
+                    leaveBalances[user.username] = {
+                        SL: 12,  // 12 days Sick Leave
+                        FRL: 6   // 6 days FRL
+                    };
+                });
+                saveLeaveBalances();
+            }
+        }
+
+        function saveLeaveBalances() {
+            localStorage.setItem('leaveBalancesData', JSON.stringify(leaveBalances));
+            
+            if (typeof db !== 'undefined') {
+                try {
+                    db.collection('leaveBalances').doc('current').set(leaveBalances);
+                } catch (error) {
+                    console.log('Firebase save skipped');
+                }
+            }
+        }
+
+        function loadAllRequests() {
+            const savedRequests = localStorage.getItem('dutyRequestsData');
+            if (savedRequests) {
+                allRequests = JSON.parse(savedRequests);
+            } else {
+                allRequests = [];
+            }
+            
+            updateRequestCounts();
+        }
+
+        function saveAllRequests() {
+            localStorage.setItem('dutyRequestsData', JSON.stringify(allRequests));
+            
+            if (typeof db !== 'undefined') {
+                try {
+                    db.collection('requests').doc('all').set({requests: allRequests});
+                } catch (error) {
+                    console.log('Firebase save skipped');
+                }
+            }
+        }
+
+        function updateUserBalance() {
+            if (!currentUser) return;
+            
+            const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+            document.getElementById('slBalance').textContent = balance.SL;
+            document.getElementById('frlBalance').textContent = balance.FRL;
+        }
+
+        function setupNavigation() {
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    navBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const sectionId = this.getAttribute('data-section');
+                    showSection(sectionId);
+                });
+            });
+            
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('dutySystemSession');
+                location.reload();
+            });
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const section = document.getElementById(sectionId + 'Section');
+            if (section) {
+                section.classList.add('active');
+                
+                // Load section data
+                switch(sectionId) {
+                    case 'dutyChange':
+                        loadDutyChangeForm();
+                        break;
+                    case 'leaveApplication':
+                        loadLeaveForm();
+                        break;
+                    case 'myRequests':
+                        loadMyRequests();
+                        break;
+                    case 'pendingRequests':
+                        loadPendingRequests();
+                        break;
+                    case 'adminDutyRoster':
+                        loadDutyRosterAdmin();
+                        break;
+                    case 'adminLeaveBalance':
+                        loadLeaveBalanceAdmin();
+                        break;
+                    case 'adminApprovals':
+                        loadAdminApprovals();
+                        break;
+                }
+            }
+        }
+
+        function setupEventListeners() {
+            // Duty Change Form
+            document.getElementById('dutyChangeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitDutyChange();
+            });
+            
+            // Leave Application Form
+            document.getElementById('leaveApplicationForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitLeaveApplication();
+            });
+            
+            // Date change handlers
+            document.getElementById('changeDate').addEventListener('change', function() {
+                loadUserDutyTimes('changeDutyTime', this.value);
+            });
+            
+            document.getElementById('requestToStaff').addEventListener('change', function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('requestToRcNo').value = user.RCNo;
+                    const date = document.getElementById('changeDate').value;
+                    if (date) {
+                        loadStaffDutyTimes('requestToDutyTime', date, user.username);
+                    }
+                }
+            });
+            
+            document.getElementById('leaveDate').addEventListener('change', function() {
+                loadUserDutyTimes('leaveDutyTime', this.value);
+                updateLeaveRules();
+            });
+            
+            document.getElementById('leaveType').addEventListener('change', updateLeaveRules);
+            document.getElementById('leaveDutyTime').addEventListener('change', updateLeaveRules);
+        }
+
+        function loadDutyChangeForm() {
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+            
+            // Populate staff dropdown (exclude current user)
+            const staffSelect = document.getElementById('requestToStaff');
+            staffSelect.innerHTML = '<option value="">Select staff member</option>';
+            
+            allUsers.forEach(user => {
+                if (user.username !== currentUser.username && user.Level === 'User') {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.name} (RC: ${user.RCNo})`;
+                    staffSelect.appendChild(option);
+                }
+            });
+            
+            // Load duty times
+            loadUserDutyTimes('changeDutyTime', tomorrow.toISOString().split('T')[0]);
+        }
+
+        function loadLeaveForm() {
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+            
+            // Load duty times
+            loadUserDutyTimes('leaveDutyTime', tomorrow.toISOString().split('T')[0]);
+            
+            updateLeaveRules();
+        }
+
+        function loadUserDutyTimes(selectId, date) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            if (!date || !currentUser) return;
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+            if (dutyTime && dutyTime !== 'Off') {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime;
+                select.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = 'Off';
+                option.textContent = 'No duty scheduled';
+                select.appendChild(option);
+            }
+        }
+
+        function loadStaffDutyTimes(selectId, date, username) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            if (!date || !username) return;
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][username];
+            if (dutyTime && dutyTime !== 'Off') {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime;
+                select.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = 'Off';
+                option.textContent = 'No duty scheduled';
+                select.appendChild(option);
+            }
+        }
+
+        function updateLeaveRules() {
+            const leaveType = document.getElementById('leaveType').value;
+            const leaveDate = document.getElementById('leaveDate').value;
+            const dutyTime = document.getElementById('leaveDutyTime').value;
+            const alertDiv = document.getElementById('leaveRulesAlert');
+            const submitBtn = document.getElementById('submitLeaveBtn');
+            
+            if (!leaveType || !leaveDate || !dutyTime || dutyTime === 'Off') {
+                alertDiv.className = 'alert alert-warning';
+                alertDiv.textContent = 'Please select leave type, date and duty time';
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            const dutyStart = dutyTime.split('-')[0];
+            const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
+            const now = new Date();
+            const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
+            
+            let canApply = false;
+            let message = '';
+            
+            if (leaveType === 'Sick Leave') {
+                canApply = hoursBeforeDuty >= 2;
+                message = canApply 
+                    ? '✓ You can apply for Sick Leave (2+ hours before duty)'
+                    : `✗ Sick Leave must be applied at least 2 hours before duty (${Math.ceil(2 - hoursBeforeDuty)} more hours needed)`;
+            } else if (leaveType === 'FRL') {
+                canApply = hoursBeforeDuty >= 1;
+                message = canApply
+                    ? '✓ You can apply for FRL (1+ hour before duty)'
+                    : `✗ FRL must be applied at least 1 hour before duty (${Math.ceil(1 - hoursBeforeDuty)} more hours needed)`;
+            }
+            
+            alertDiv.className = canApply ? 'alert alert-success' : 'alert alert-danger';
+            alertDiv.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
+            submitBtn.disabled = !canApply;
+        }
+
+        function submitDutyChange() {
+            const date = document.getElementById('changeDate').value;
+            const dutyTime = document.getElementById('changeDutyTime').value;
+            const toStaff = document.getElementById('requestToStaff').value;
+            const toRcNo = document.getElementById('requestToRcNo').value;
+            const toDutyTime = document.getElementById('requestToDutyTime').value;
+            const reason = document.getElementById('changeReason').value;
+            
+            if (!date || !dutyTime || !toStaff || !toDutyTime) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            const toUser = allUsers.find(u => u.username === toStaff);
+            if (!toUser) {
+                alert('Selected staff not found');
+                return;
+            }
+            
+            const request = {
+                id: 'req_' + Date.now(),
+                type: 'dutyChange',
+                fromUsername: currentUser.username,
+                fromName: currentUser.name,
+                fromRcNo: currentUser.rcNo,
+                date: date,
+                dutyTime: dutyTime,
+                toUsername: toStaff,
+                toName: toUser.name,
+                toRcNo: toRcNo,
+                toDutyTime: toDutyTime,
+                reason: reason,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            allRequests.push(request);
+            saveAllRequests();
+            updateRequestCounts();
+            
+            alert('Duty change request submitted!');
+            showSection('home');
+            document.getElementById('dutyChangeForm').reset();
+        }
+
+        function submitLeaveApplication() {
+            const leaveType = document.getElementById('leaveType').value;
+            const date = document.getElementById('leaveDate').value;
+            const dutyTime = document.getElementById('leaveDutyTime').value;
+            const duration = parseFloat(document.getElementById('leaveDuration').value);
+            const reason = document.getElementById('leaveReason').value;
+            
+            if (!leaveType || !date || !dutyTime || !reason) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            // Check balance
+            const userBalance = leaveBalances[currentUser.username];
+            if (!userBalance) {
+                alert('Error: User balance not found');
+                return;
+            }
+            
+            if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
+                alert(`Insufficient Sick Leave balance. Available: ${userBalance.SL} days, Requested: ${duration} days`);
+                return;
+            }
+            
+            if (leaveType === 'FRL' && userBalance.FRL < duration) {
+                alert(`Insufficient FRL balance. Available: ${userBalance.FRL} days, Requested: ${duration} days`);
+                return;
+            }
+            
+            const request = {
+                id: 'req_' + Date.now(),
+                type: 'leave',
+                leaveType: leaveType,
+                fromUsername: currentUser.username,
+                fromName: currentUser.name,
+                fromRcNo: currentUser.rcNo,
+                date: date,
+                dutyTime: dutyTime,
+                duration: duration,
+                reason: reason,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            allRequests.push(request);
+            saveAllRequests();
+            updateRequestCounts();
+            
+            alert('Leave application submitted!');
+            showSection('home');
+            document.getElementById('leaveApplicationForm').reset();
+        }
+
+        function updateRequestCounts() {
+            if (!currentUser) return;
+            
+            // Count pending requests for current user
+            const pendingForUser = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            ).length;
+            
+            const pendingBtn = document.getElementById('pendingRequestsBtn');
+            const countSpan = document.getElementById('pendingCount');
+            
+            if (pendingForUser > 0) {
+                pendingBtn.style.display = 'inline-block';
+                countSpan.textContent = pendingForUser;
+            } else {
+                pendingBtn.style.display = 'none';
+            }
+        }
+
+        function loadMyRequests() {
+            const tbody = document.getElementById('myRequestsTable');
+            tbody.innerHTML = '';
+            
+            const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
+            
+            if (myReqs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No requests found</td></tr>';
+                return;
+            }
+            
+            myReqs.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
+                } else {
+                    details = `${req.leaveType} - ${req.duration} day(s)`;
+                }
+                
+                let statusClass = 'status-' + req.status;
+                let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+                
+                tr.innerHTML = `
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>
+                        ${req.status === 'pending' ? 
+                            `<button class="action-btn view" onclick="cancelRequest('${req.id}')">Cancel</button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadPendingRequests() {
+            const tbody = document.getElementById('pendingRequestsTable');
+            tbody.innerHTML = '';
+            
+            const pendingReqs = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            );
+            
+            if (pendingReqs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No pending requests</td></tr>';
+                return;
+            }
+            
+            pendingReqs.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td>${req.fromName}</td>
+                    <td>${req.date}</td>
+                    <td>Swap ${req.dutyTime} with ${req.toDutyTime}<br>
+                        <small>${req.reason || 'No reason provided'}</small>
+                    </td>
+                    <td class="action-buttons">
+                        <button class="action-btn approve" onclick="respondToRequest('${req.id}', 'approved')">Accept</button>
+                        <button class="action-btn reject" onclick="respondToRequest('${req.id}', 'rejected')">Reject</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function cancelRequest(requestId) {
+            if (confirm('Are you sure you want to cancel this request?')) {
+                const request = allRequests.find(req => req.id === requestId);
+                if (request) {
+                    request.status = 'cancelled';
+                    saveAllRequests();
+                    loadMyRequests();
+                    updateRequestCounts();
+                }
+            }
+        }
+
+        function respondToRequest(requestId, response) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            if (response === 'approved') {
+                // Swap duty times in roster
+                const date = request.date;
+                if (dutyRoster[date]) {
+                    const temp = dutyRoster[date][request.fromUsername];
+                    dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
+                    dutyRoster[date][request.toUsername] = temp;
+                    saveDutyRoster();
+                }
+            }
+            
+            request.status = response;
+            request.respondedAt = new Date().toISOString();
+            saveAllRequests();
+            
+            alert(`Request ${response} successfully!`);
+            showSection('home');
+            updateRequestCounts();
+        }
+
+        // Admin Functions
+        function loadDutyRosterAdmin() {
+            // Initialize tabs
+            showRosterTab('excelImport');
+            
+            // Populate staff dropdowns
+            const staffSelect = document.getElementById('rosterStaffSingle');
+            staffSelect.innerHTML = '<option value="">Select staff</option>';
+            
+            const viewStaffSelect = document.getElementById('viewRosterStaff');
+            viewStaffSelect.innerHTML = '<option value="">All Staff</option>';
+            
+            allUsers.forEach(user => {
+                const option1 = document.createElement('option');
+                option1.value = user.username;
+                option1.textContent = `${user.name} (${user.RCNo})`;
+                staffSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = user.username;
+                option2.textContent = `${user.name} (${user.RCNo})`;
+                viewStaffSelect.appendChild(option2.cloneNode(true));
+            });
+            
+            // Load today's entries
+            loadTodayRoster();
+        }
+
+        function showRosterTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.roster-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('#adminDutyRosterSection .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Activate corresponding button
+            document.querySelectorAll('#adminDutyRosterSection .tab-btn').forEach(btn => {
+                if (btn.textContent.includes(tabName === 'excelImport' ? 'Excel' : 
+                                             tabName === 'manualEntry' ? 'Manual' : 'View')) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            if (tabName === 'viewRoster') {
+                loadRosterView();
+            }
+        }
+
+        function processExcelPaste() {
+            const pasteText = document.getElementById('excelPasteBox').value.trim();
+            if (!pasteText) {
+                alert('Please paste Excel data first');
+                return;
+            }
+            
+            const lines = pasteText.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                alert('Invalid data format. Need at least header row and one data row.');
+                return;
+            }
+            
+            // Parse header (first line)
+            const headers = lines[0].split('\t');
+            if (headers.length < 2) {
+                alert('Invalid format. First column should be Date, then staff names.');
+                return;
+            }
+            
+            // Create preview table
+            const previewTable = document.getElementById('excelPreviewTable');
+            previewTable.innerHTML = '';
+            
+            // Add header row
+            let headerRow = '<tr>';
+            headers.forEach(header => {
+                headerRow += `<th>${header}</th>`;
+            });
+            headerRow += '</tr>';
+            previewTable.innerHTML = headerRow;
+            
+            // Add data rows
+            for (let i = 1; i < lines.length; i++) {
+                const cells = lines[i].split('\t');
+                let row = '<tr>';
+                cells.forEach(cell => {
+                    row += `<td>${cell}</td>`;
+                });
+                row += '</tr>';
+                previewTable.innerHTML += row;
+            }
+            
+            // Show preview
+            document.getElementById('excelPreview').style.display = 'block';
+        }
+
+        function saveExcelData() {
+            const pasteText = document.getElementById('excelPasteBox').value.trim();
+            const lines = pasteText.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+                alert('No data to save');
+                return;
+            }
+            
+            const headers = lines[0].split('\t');
+            
+            for (let i = 1; i < lines.length; i++) {
+                const cells = lines[i].split('\t');
+                const date = cells[0];
+                
+                if (!dutyRoster[date]) {
+                    dutyRoster[date] = {};
+                }
+                
+                for (let j = 1; j < headers.length && j < cells.length; j++) {
+                    const staffUsername = findUsernameByName(headers[j]);
+                    if (staffUsername) {
+                        dutyRoster[date][staffUsername] = cells[j] || 'Off';
+                    }
+                }
+            }
+            
+            saveDutyRoster();
+            alert('Roster saved successfully!');
+            document.getElementById('excelPreview').style.display = 'none';
+            document.getElementById('excelPasteBox').value = '';
+        }
+
+        function findUsernameByName(namePart) {
+            // Try to find username by matching name or RC
+            const user = allUsers.find(u => 
+                u.name.includes(namePart) || 
+                u.RCNo === namePart ||
+                namePart.includes(u.name)
+            );
+            return user ? user.username : null;
+        }
+
+        function loadSampleData() {
+            const sampleData = `Date\tIrufan\tHussain\tMohamed\tfiyaza\tA-6313\tIrufan1\tIrufan2
+${new Date().toISOString().split('T')[0]}\t08:00-16:00\t16:00-00:00\t00:00-08:00\tOff\t08:00-16:00\t16:00-00:00\t00:00-08:00
+${new Date(Date.now() + 86400000).toISOString().split('T')[0]}\t16:00-00:00\t08:00-16:00\tOff\t00:00-08:00\t16:00-00:00\t08:00-16:00\tOff
+${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOff\t08:00-16:00\t16:00-00:00\tOff\t00:00-08:00\t08:00-16:00`;
+            
+            document.getElementById('excelPasteBox').value = sampleData;
+            processExcelPaste();
+        }
+
+        function clearExcelPaste() {
+            document.getElementById('excelPasteBox').value = '';
+            document.getElementById('excelPreview').style.display = 'none';
+        }
+
+        function loadTodayRoster() {
+            const tbody = document.querySelector('#todayRosterTable tbody');
+            tbody.innerHTML = '';
+            
+            const today = document.getElementById('rosterDate').value;
+            if (!dutyRoster[today]) return;
+            
+            for (const [username, dutyTime] of Object.entries(dutyRoster[today])) {
+                const user = allUsers.find(u => u.username === username);
+                if (user) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.name} (${user.RCNo})</td>
+                        <td>${dutyTime}</td>
+                        <td>
+                            <button class="action-btn view" onclick="editRosterEntry('${today}', '${username}')">Edit</button>
+                            <button class="action-btn reject" onclick="deleteRosterEntry('${today}', '${username}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+        }
+
+        function addRosterEntry() {
+            const date = document.getElementById('rosterDate').value;
+            const staff = document.getElementById('rosterStaffSingle').value;
+            const dutyTime = document.getElementById('rosterDutyTime').value.trim();
+            
+            if (!date || !staff || !dutyTime) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            if (!dutyRoster[date]) {
+                dutyRoster[date] = {};
+            }
+            
+            dutyRoster[date][staff] = dutyTime;
+            saveDutyRoster();
+            
+            alert('Entry added successfully!');
+            clearRosterForm();
+            loadTodayRoster();
+        }
+
+        function clearRosterForm() {
+            document.getElementById('rosterDutyTime').value = '';
+        }
+
+        function editRosterEntry(date, username) {
+            const dutyTime = prompt('Enter new duty time:', dutyRoster[date][username]);
+            if (dutyTime !== null) {
+                dutyRoster[date][username] = dutyTime;
+                saveDutyRoster();
+                loadTodayRoster();
+            }
+        }
+
+        function deleteRosterEntry(date, username) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                delete dutyRoster[date][username];
+                saveDutyRoster();
+                loadTodayRoster();
+            }
+        }
+
+        function loadRosterView() {
+            const container = document.getElementById('rosterViewContainer');
+            const date = document.getElementById('viewRosterDate').value;
+            const staffFilter = document.getElementById('viewRosterStaff').value;
+            
+            if (!date) {
+                container.innerHTML = '<div class="alert alert-warning">Please select a date</div>';
+                return;
+            }
+            
+            let html = '<h4>Roster for ' + date + '</h4>';
+            
+            if (!dutyRoster[date] || Object.keys(dutyRoster[date]).length === 0) {
+                html += '<div class="alert alert-warning">No roster entries for this date</div>';
+                container.innerHTML = html;
+                return;
+            }
+            
+            html += '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC No</th><th>Duty Time</th></tr></thead><tbody>';
+            
+            for (const [username, dutyTime] of Object.entries(dutyRoster[date])) {
+                const user = allUsers.find(u => u.username === username);
+                if (user && (!staffFilter || user.username === staffFilter)) {
+                    html += `<tr>
+                        <td>${user.name}</td>
+                        <td>${user.RCNo}</td>
+                        <td>${dutyTime}</td>
+                    </tr>`;
+                }
+            }
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function loadLeaveBalanceAdmin() {
+            showBalanceTab('bulkUpdate');
+            
+            // Populate staff dropdown for individual tab
+            const staffSelect = document.getElementById('balanceStaff');
+            staffSelect.innerHTML = '<option value="">Select staff</option>';
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                staffSelect.appendChild(option);
+            });
+            
+            staffSelect.addEventListener('change', function() {
+                const form = document.getElementById('individualBalanceForm');
+                if (this.value) {
+                    const balance = leaveBalances[this.value] || {SL: 0, FRL: 0};
+                    document.getElementById('individualSL').value = balance.SL;
+                    document.getElementById('individualFRL').value = balance.FRL;
+                    form.style.display = 'block';
+                } else {
+                    form.style.display = 'none';
+                }
+            });
+            
+            // Load bulk update table
+            loadBulkBalanceTable();
+        }
+
+        function showBalanceTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.balance-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('#adminLeaveBalanceSection .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Activate corresponding button
+            document.querySelectorAll('#adminLeaveBalanceSection .tab-btn').forEach(btn => {
+                if (btn.textContent.includes(tabName === 'bulkUpdate' ? 'Bulk' : 'Individual')) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function loadBulkBalanceTable() {
+            const tbody = document.getElementById('bulkBalanceTable');
+            tbody.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                const balance = leaveBalances[user.username] || {SL: 0, FRL: 0};
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.name}</td>
+                    <td>${user.RCNo}</td>
+                    <td>
+                        <input type="number" class="excel-input" 
+                               value="${balance.SL}" 
+                               step="0.5" 
+                               min="0"
+                               onchange="updateTempBalance('${user.username}', 'SL', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="excel-input" 
+                               value="${balance.FRL}" 
+                               step="0.5" 
+                               min="0"
+                               onchange="updateTempBalance('${user.username}', 'FRL', this.value)">
+                    </td>
+                    <td>
+                        <button class="action-btn view" onclick="resetUserBalance('${user.username}')">Reset</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateTempBalance(username, type, value) {
+            // This updates the display only, not saved until "Save All" is clicked
+            // We'll store in a temporary object or update directly with visual feedback
+            if (!leaveBalances[username]) {
+                leaveBalances[username] = {SL: 0, FRL: 0};
+            }
+            leaveBalances[username][type] = parseFloat(value) || 0;
+        }
+
+        function saveAllBalances() {
+            saveLeaveBalances();
+            alert('All balances saved successfully!');
+            loadBulkBalanceTable(); // Refresh to show saved state
+        }
+
+        function resetAllBalances() {
+            if (confirm('Reset ALL balances to default (12 days SL, 6 days FRL)?')) {
+                allUsers.forEach(user => {
+                    leaveBalances[user.username] = {SL: 12, FRL: 6};
+                });
+                saveLeaveBalances();
+                loadBulkBalanceTable();
+                updateUserBalance(); // Update current user's display
+            }
+        }
+
+        function resetUserBalance(username) {
+            if (confirm(`Reset balance for ${username} to default?`)) {
+                leaveBalances[username] = {SL: 12, FRL: 6};
+                saveLeaveBalances();
+                loadBulkBalanceTable();
+                if (username === currentUser.username) {
+                    updateUserBalance();
+                }
+            }
+        }
+
+        function saveIndividualBalance() {
+            const staff = document.getElementById('balanceStaff').value;
+            const sl = parseFloat(document.getElementById('individualSL').value) || 0;
+            const frl = parseFloat(document.getElementById('individualFRL').value) || 0;
+            
+            if (!staff) {
+                alert('Please select a staff member');
+                return;
+            }
+            
+            if (!leaveBalances[staff]) {
+                leaveBalances[staff] = {SL: 0, FRL: 0};
+            }
+            
+            leaveBalances[staff].SL = sl;
+            leaveBalances[staff].FRL = frl;
+            saveLeaveBalances();
+            
+            alert('Balance saved successfully!');
+            
+            // Update bulk table if on that view
+            loadBulkBalanceTable();
+            
+            // Update current user's display if it's them
+            if (staff === currentUser.username) {
+                updateUserBalance();
+            }
+        }
+
+        function resetIndividualBalance() {
+            const staff = document.getElementById('balanceStaff').value;
+            if (!staff) {
+                alert('Please select a staff member');
+                return;
+            }
+            
+            if (confirm(`Reset balance for this staff to default (12 days SL, 6 days FRL)?`)) {
+                leaveBalances[staff] = {SL: 12, FRL: 6};
+                document.getElementById('individualSL').value = 12;
+                document.getElementById('individualFRL').value = 6;
+                saveLeaveBalances();
+                
+                // Update bulk table
+                loadBulkBalanceTable();
+                
+                if (staff === currentUser.username) {
+                    updateUserBalance();
+                }
+            }
+        }
+
+        function loadAdminApprovals() {
+            const tbody = document.getElementById('adminApprovalsTable');
+            tbody.innerHTML = '';
+            
+            const pendingRequests = allRequests.filter(req => req.status === 'pending');
+            
+            if (pendingRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No pending requests</td></tr>';
+                return;
+            }
+            
+            pendingRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap: ${req.fromName} (${req.dutyTime}) ↔ ${req.toName} (${req.toDutyTime})`;
+                } else {
+                    details = `${req.leaveType}: ${req.duration} day(s)<br><small>${req.reason}</small>`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-pending">Pending</td>
+                    <td class="action-buttons">
+                        <button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
+                        <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function adminApprove(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            if (request.type === 'leave') {
+                // Check balance
+                const userBalance = leaveBalances[request.fromUsername];
+                if (!userBalance) {
+                    alert('Error: User balance not found');
+                    return;
+                }
+                
+                if (request.leaveType === 'Sick Leave' && userBalance.SL < request.duration) {
+                    alert(`Cannot approve: Insufficient Sick Leave balance. Available: ${userBalance.SL} days, Requested: ${request.duration} days`);
+                    return;
+                }
+                
+                if (request.leaveType === 'FRL' && userBalance.FRL < request.duration) {
+                    alert(`Cannot approve: Insufficient FRL balance. Available: ${userBalance.FRL} days, Requested: ${request.duration} days`);
+                    return;
+                }
+                
+                // Deduct from balance
+                if (request.leaveType === 'Sick Leave') {
+                    userBalance.SL -= request.duration;
+                } else if (request.leaveType === 'FRL') {
+                    userBalance.FRL -= request.duration;
+                }
+                saveLeaveBalances();
+            }
+            
+            request.status = 'approved';
+            request.approvedBy = currentUser.name;
+            request.approvedAt = new Date().toISOString();
+            saveAllRequests();
+            
+            alert('Request approved!');
+            loadAdminApprovals();
+            updateUserBalance(); // Update balance display if it's current user
+        }
+
+        function adminReject(requestId) {
+            if (confirm('Are you sure you want to reject this request?')) {
+                const request = allRequests.find(req => req.id === requestId);
+                if (request) {
+                    request.status = 'rejected';
+                    request.rejectedBy = currentUser.name;
+                    request.rejectedAt = new Date().toISOString();
+                    saveAllRequests();
+                    loadAdminApprovals();
+                }
+            }
+        }
+
+        function updateDashboard() {
+            // Update today's duty
+            const today = new Date().toISOString().split('T')[0];
+            if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
+                const duty = dutyRoster[today][currentUser.username];
+                document.getElementById('todayDutyTime').textContent = duty === 'Off' ? 'Off Duty' : duty;
+            } else {
+                document.getElementById('todayDutyTime').textContent = 'Not Scheduled';
+            }
+            
+            // Find next duty (next 7 days)
+            const tomorrow = new Date();
+            for (let i = 1; i <= 7; i++) {
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                    const duty = dutyRoster[dateStr][currentUser.username];
+                    if (duty !== 'Off') {
+                        document.getElementById('nextDutyTime').textContent = `${dateStr}: ${duty}`;
+                        return;
+                    }
+                }
+            }
+            document.getElementById('nextDutyTime').textContent = 'No upcoming duty';
         }
     </script>
 </body>
