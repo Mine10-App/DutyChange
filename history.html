@@ -278,6 +278,204 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="dcfire.js"></script>
     <script src="user.js"></script>
-    <script src="history.js"></script>
+    
+    <!-- Inline JavaScript -->
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if(!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Display user info
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userRole').textContent = currentUser.Level;
+            
+            // Setup logout button
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            });
+            
+            // Global variables
+            let allHistoryData = [];
+            let currentFilter = 'all';
+            
+            // Load history on page load
+            loadHistory();
+            
+            // Setup filter button event listeners
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.textContent.toLowerCase();
+                    if(filter.includes('all')) currentFilter = 'all';
+                    else if(filter.includes('sent')) currentFilter = 'sent';
+                    else if(filter.includes('received')) currentFilter = 'received';
+                    
+                    // Update active button
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Filter and display data
+                    displayFilteredHistory();
+                });
+            });
+            
+            // Global functions
+            window.filterHistory = function(filter) {
+                currentFilter = filter;
+                
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if((filter === 'all' && btn.textContent.includes('All')) ||
+                       (filter === 'sent' && btn.textContent.includes('Sent')) ||
+                       (filter === 'received' && btn.textContent.includes('Received'))) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                // Filter and display data
+                displayFilteredHistory();
+            };
+            
+            window.createIndex = function() {
+                const indexUrl = "https://console.firebase.google.com/v1/r/project/leelidc-1f753/firestore/indexes?create_composite=ClJwcm9qZWN0cy9sZWVsaWRjLTFmNzUzL2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9kdXR5UmVxdWVzdHMvaW5kZXhlcy9fEAEaDAoIZnJvbVVzZXIQARoNCgl0aW1lc3RhbXAQAhoMCghfX25hbWVfXxAC";
+                window.open(indexUrl, '_blank');
+            };
+            
+            async function loadHistory() {
+                const historyBody = document.getElementById('historyBody');
+                
+                try {
+                    // Load sent requests
+                    const sentQuery = await db.collection('dutyRequests')
+                        .where('fromUser', '==', currentUser.username)
+                        .get();
+                    
+                    // Load received requests
+                    const receivedQuery = await db.collection('dutyRequests')
+                        .where('toUser', '==', currentUser.username)
+                        .get();
+                    
+                    // Combine all data
+                    allHistoryData = [];
+                    
+                    sentQuery.forEach(doc => {
+                        const data = doc.data();
+                        allHistoryData.push({
+                            ...data,
+                            id: doc.id,
+                            type: 'sent',
+                            direction: 'to',
+                            timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
+                        });
+                    });
+                    
+                    receivedQuery.forEach(doc => {
+                        const data = doc.data();
+                        allHistoryData.push({
+                            ...data,
+                            id: doc.id,
+                            type: 'received',
+                            direction: 'from',
+                            timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
+                        });
+                    });
+                    
+                    // Sort by timestamp (newest first)
+                    allHistoryData.sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    // Display data
+                    displayFilteredHistory();
+                    
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                    
+                    // Show index warning for specific error
+                    if(error.code === 'failed-precondition') {
+                        document.getElementById('indexWarning').style.display = 'block';
+                        historyBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="no-data">
+                                    <p>Firebase index required for optimal performance.</p>
+                                    <p><button onclick="createIndex()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 5px; margin-top: 10px; cursor: pointer;">
+                                        Create Index Now
+                                    </button></p>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        historyBody.innerHTML = '<tr><td colspan="5" class="no-data">Error loading history</td></tr>';
+                    }
+                }
+            }
+            
+            function displayFilteredHistory() {
+                const historyBody = document.getElementById('historyBody');
+                
+                if(allHistoryData.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="5" class="no-data">No history found</td></tr>';
+                    return;
+                }
+                
+                // Filter data
+                let filteredData = allHistoryData;
+                if(currentFilter === 'sent') {
+                    filteredData = allHistoryData.filter(item => item.type === 'sent');
+                } else if(currentFilter === 'received') {
+                    filteredData = allHistoryData.filter(item => item.type === 'received');
+                }
+                
+                if(filteredData.length === 0) {
+                    historyBody.innerHTML = `<tr><td colspan="5" class="no-data">No ${currentFilter} requests found</td></tr>`;
+                    return;
+                }
+                
+                // Display data
+                historyBody.innerHTML = '';
+                filteredData.forEach(request => {
+                    const row = document.createElement('tr');
+                    
+                    // Format date
+                    const requestDate = request.date || (request.timestamp ? request.timestamp.toLocaleDateString() : 'N/A');
+                    
+                    // Determine type
+                    const requestType = request.type === 'sent' ? 'Sent' : 'Received';
+                    
+                    // Determine other party
+                    const otherParty = request.type === 'sent' ? request.toName : request.fromName;
+                    
+                    // Format duty time
+                    let dutyTime = '';
+                    if(request.type === 'sent') {
+                        dutyTime = `${request.fromTime || 'N/A'} → ${request.toTime || 'N/A'}`;
+                    } else {
+                        dutyTime = `${request.toTime || 'N/A'} → ${request.fromTime || 'N/A'}`;
+                    }
+                    
+                    // Status badge
+                    const statusClass = `status-${request.status || 'pending'}`;
+                    const statusText = request.status || 'pending';
+                    
+                    row.innerHTML = `
+                        <td>${requestDate}</td>
+                        <td>${requestType}</td>
+                        <td>${otherParty || 'Unknown'}</td>
+                        <td>${dutyTime}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    `;
+                    
+                    historyBody.appendChild(row);
+                });
+            }
+        });
+    </script>
 </body>
 </html>
