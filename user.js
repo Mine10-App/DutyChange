@@ -6,4 +6,6 @@ const users = [
   { username: "fiyaza", name: "Fiyaza Abdulla", passwordHash: "ca358cbdaddb39c71130153049e7bc96f387b1f0030deac24841c74f269831ed", Level: "User", RCNo: "003" },
   { username: "A-6313", name: "Aminath Almas", passwordHash: "ca8f5d7677b1bfb7ce14d15ca2f464f46c35e87fddc1409537e4aab52ba3991b", Level: "User", RCNo: "004" },
    { username: "Irufan1", name: "Abdulla Irufan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "User", RCNo: "979" },
+   { username: "Irufan2", name: "Abdulla Irufan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "User", RCNo: "979" },
+];
 ];
