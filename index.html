@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Login System | Dashboard</title>
+    <title>Login | Dashboard</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     
-    <!-- SHA-256 Library for password hashing -->
+    <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- External files as you requested -->
+    <!-- External files -->
     <script src="dcfire.js" defer></script>
     <script src="user.js" defer></script>
     
@@ -21,12 +20,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: #f5f7fa;
-            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -34,133 +32,65 @@
             padding: 20px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            min-height: 600px;
+        .login-card {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Login Page Styles */
-        .login-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            min-height: 600px;
-        }
-
-        .login-left {
-            flex: 1;
-            background: linear-gradient(135deg, #1a73e8, #0d47a1);
-            color: white;
-            padding: 60px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .login-left h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .login-left p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .user-list {
-            margin-top: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-        }
-
-        .user-list h3 {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        .user-list ul {
-            list-style: none;
-            font-size: 0.9rem;
-        }
-
-        .user-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .user-list li:last-child {
-            border-bottom: none;
-        }
-
-        .user-username {
-            font-weight: 600;
-        }
-
-        .user-rc {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .login-right {
-            flex: 1;
-            padding: 60px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .login-form {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 400px;
-            margin: 0 auto;
+            padding: 40px;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        .login-form h2 {
-            color: #1a73e8;
-            font-size: 2rem;
-            margin-bottom: 10px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .login-form p {
-            color: #666;
+        .logo {
+            text-align: center;
             margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #4a5568;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #718096;
+            font-size: 14px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .form-group label {
             display: block;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #444;
         }
 
-        .form-group input {
+        .form-control {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
             border-radius: 10px;
-            font-size: 1rem;
-            transition: border 0.3s;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f8fafc;
         }
 
-        .form-group input:focus {
-            border-color: #1a73e8;
+        .form-control:focus {
             outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .password-container {
@@ -174,217 +104,63 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #666;
+            color: #718096;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 18px;
+            padding: 5px;
         }
 
         .btn-login {
-            background: #1a73e8;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 16px;
-            width: 100%;
             border-radius: 10px;
-            font-size: 1.1rem;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
             margin-top: 10px;
         }
 
         .btn-login:hover {
-            background: #0d47a1;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
         .btn-login:disabled {
-            background: #ccc;
+            opacity: 0.7;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .error-message {
-            background: #ffebee;
-            color: #c62828;
+            background: #fed7d7;
+            color: #c53030;
             padding: 12px;
             border-radius: 8px;
             margin-top: 20px;
+            font-size: 14px;
             display: none;
+            border-left: 4px solid #c53030;
         }
 
-        .success-message {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        /* Dashboard Styles */
-        .dashboard-container {
-            display: none;
-            width: 100%;
-            height: 100%;
-            min-height: 600px;
-            flex-direction: column;
-        }
-
-        .dashboard-header {
-            background: linear-gradient(135deg, #1a73e8, #0d47a1);
-            color: white;
-            padding: 25px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-info h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-
-        .user-details {
-            display: flex;
-            gap: 20px;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .btn-logout {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            color: white;
-            padding: 10px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .dashboard-content {
-            padding: 40px;
-            flex: 1;
-        }
-
-        .dashboard-content h2 {
-            color: #1a73e8;
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-        }
-
-        .welcome-section {
-            background: linear-gradient(135deg, #e8f0fe, #f0f7ff);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 40px;
-            border-left: 5px solid #1a73e8;
-        }
-
-        .welcome-section h3 {
-            color: #1a73e8;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        .welcome-section p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid #1a73e8;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card h3 {
-            color: #666;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-card .value {
-            color: #1a73e8;
-            font-size: 2.2rem;
-            font-weight: 700;
-        }
-
-        .user-actions {
-            margin-top: 50px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .action-btn {
-            background: #1a73e8;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .action-btn:hover {
-            background: #0d47a1;
-            transform: translateY(-2px);
-        }
-
-        .action-btn.secondary {
-            background: #f1f3f4;
-            color: #333;
-        }
-
-        .action-btn.secondary:hover {
-            background: #e0e0e0;
-        }
-
-        /* Loading State */
         .loading {
-            display: none;
             text-align: center;
-            padding: 20px;
-            color: #666;
+            margin: 20px 0;
+            display: none;
         }
 
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1a73e8;
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 10px;
         }
 
         @keyframes spin {
@@ -392,396 +168,460 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive Design */
-        @media (max-width: 900px) {
-            .login-container {
-                flex-direction: column;
-            }
-            
-            .login-left, .login-right {
-                padding: 40px 30px;
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #718096;
+            font-size: 13px;
+        }
+
+        /* Dashboard Styles */
+        .dashboard-container {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            min-height: 500px;
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 40px;
+            color: white;
+        }
+
+        .user-info h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .user-details {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-details span {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .dashboard-content {
+            padding: 40px;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #f6f9fc 0%, #f0f4f8 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .welcome-card h2 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .welcome-card p {
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #718096;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            color: #667eea;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .login-card,
+            .dashboard-container {
+                max-width: 100%;
+                padding: 30px 20px;
             }
             
             .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
+                padding: 20px;
             }
             
             .user-details {
                 flex-direction: column;
-                gap: 5px;
+                gap: 10px;
             }
             
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .action-btn {
-                width: 100%;
-                justify-content: center;
+            .logout-btn {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-top: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Container -->
-    <div class="container">
-        <div class="login-container" id="loginContainer">
-            <div class="login-left">
-                <h1>Secure Login</h1>
-                <p>Sign in using your username and password. All passwords are securely hashed using SHA-256 encryption.</p>
-                
-                <div class="user-list">
-                    <h3>Available Users:</h3>
-                    <ul id="availableUsers">
-                        <!-- Users will be populated by JavaScript -->
-                    </ul>
-                </div>
-                
-                <div style="margin-top: 30px; font-size: 0.9rem; opacity: 0.8;">
-                    <p><strong>Note:</strong> Passwords are stored as SHA-256 hashes for security.</p>
+    <!-- Login Card -->
+    <div class="login-card" id="loginContainer">
+        <div class="logo">
+            <h1>Secure Access</h1>
+            <p>Enter your credentials to continue</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" 
+                       id="username" 
+                       class="form-control" 
+                       placeholder="Enter username" 
+                       required
+                       autocomplete="username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" 
+                           id="password" 
+                           class="form-control" 
+                           placeholder="Enter password" 
+                           required
+                           autocomplete="current-password">
+                    <button type="button" class="toggle-password" id="togglePassword">👁️</button>
                 </div>
             </div>
-            <div class="login-right">
-                <form class="login-form" id="loginForm">
-                    <h2>Sign In</h2>
-                    <p>Enter your credentials to access your dashboard</p>
-                    
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" placeholder="Enter your username" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="password-container">
-                            <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                            <button type="button" class="toggle-password" id="togglePassword">👁️</button>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-login" id="loginButton">Sign In</button>
-                    
-                    <div class="loading" id="loginLoading">
-                        <div class="loading-spinner"></div>
-                        <p>Verifying credentials...</p>
-                    </div>
-                    
-                    <div class="error-message" id="errorMessage">
-                        Invalid username or password. Please try again.
-                    </div>
-                    
-                    <div class="success-message" id="successMessage">
-                        Login successful! Redirecting to dashboard...
-                    </div>
-                </form>
+            
+            <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Authenticating...</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                Invalid username or password
+            </div>
+        </form>
+        
+        <div class="footer">
+            <p>Secure Login System v1.0</p>
+        </div>
+    </div>
+    
+    <!-- Dashboard -->
+    <div class="dashboard-container" id="dashboardContainer">
+        <div class="dashboard-header">
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <div class="user-info">
+                <h1 id="userName">User Name</h1>
+                <div class="user-details">
+                    <span>RC: <span id="userRC">000</span></span>
+                    <span>Level: <span id="userLevel">User</span></span>
+                    <span>Status: Active</span>
+                </div>
             </div>
         </div>
         
-        <!-- Dashboard Container -->
-        <div class="dashboard-container" id="dashboardContainer">
-            <div class="dashboard-header">
-                <div class="user-info">
-                    <h1 id="dashboardUserName">User Name</h1>
-                    <div class="user-details">
-                        <div>RC Number: <span id="dashboardRCNo">000</span></div>
-                        <div>Level: <span id="dashboardLevel">User</span></div>
-                        <div>Status: <span id="dashboardStatus" style="color: #4caf50;">● Active</span></div>
-                    </div>
-                </div>
-                <button class="btn-logout" id="logoutButton">Log Out</button>
+        <div class="dashboard-content">
+            <div class="welcome-card">
+                <h2>Welcome, <span id="welcomeName">User</span>!</h2>
+                <p>You have successfully logged into the secure dashboard. Your session is protected and all data is encrypted.</p>
             </div>
             
-            <div class="dashboard-content">
-                <div class="welcome-section">
-                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
-                    <p>You have successfully logged into the secure dashboard.</p>
-                    <p>Your account details are displayed below. You can access your information and perform authorized actions based on your user level.</p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>RC Number</h3>
+                    <div class="value" id="statRC">000</div>
                 </div>
-                
-                <h2>Your Account Information</h2>
-                
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <h3>RC Number</h3>
-                        <div class="value" id="statRCNo">000</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>User Level</h3>
-                        <div class="value" id="statLevel">User</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Account Type</h3>
-                        <div class="value" id="statType">Standard</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Login Time</h3>
-                        <div class="value" id="statTime">Now</div>
-                    </div>
+                <div class="stat-card">
+                    <h3>User Level</h3>
+                    <div class="value" id="statLevel">User</div>
                 </div>
-                
-                <div class="user-actions">
-                    <h2>Quick Actions</h2>
-                    <div class="action-buttons">
-                        <button class="action-btn" id="viewProfileBtn">
-                            <span>👤</span> View Profile
-                        </button>
-                        <button class="action-btn secondary" id="refreshDataBtn">
-                            <span>🔄</span> Refresh Data
-                        </button>
-                        <button class="action-btn secondary" id="viewLogsBtn">
-                            <span>📊</span> View Activity Logs
-                        </button>
-                    </div>
+                <div class="stat-card">
+                    <h3>Login Time</h3>
+                    <div class="value" id="loginTime">Now</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Session ID</h3>
+                    <div class="value" style="font-size: 14px; color: #718096;" id="sessionId">---</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Main application script
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait for external scripts to load
-            setTimeout(initializeApp, 100);
-        });
-
+        // Wait for external scripts to load
+        setTimeout(initializeApp, 100);
+        
         function initializeApp() {
-            // DOM elements
+            // DOM Elements
             const loginContainer = document.getElementById('loginContainer');
             const dashboardContainer = document.getElementById('dashboardContainer');
             const loginForm = document.getElementById('loginForm');
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
-            const togglePasswordButton = document.getElementById('togglePassword');
-            const loginButton = document.getElementById('loginButton');
-            const loginLoading = document.getElementById('loginLoading');
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            const loginBtn = document.getElementById('loginBtn');
+            const loading = document.getElementById('loading');
             const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            const logoutButton = document.getElementById('logoutButton');
-            const availableUsersList = document.getElementById('availableUsers');
+            const logoutBtn = document.getElementById('logoutBtn');
             
             // Dashboard elements
-            const dashboardUserName = document.getElementById('dashboardUserName');
-            const dashboardRCNo = document.getElementById('dashboardRCNo');
-            const dashboardLevel = document.getElementById('dashboardLevel');
+            const userName = document.getElementById('userName');
+            const userRC = document.getElementById('userRC');
+            const userLevel = document.getElementById('userLevel');
             const welcomeName = document.getElementById('welcomeName');
-            const statRCNo = document.getElementById('statRCNo');
+            const statRC = document.getElementById('statRC');
             const statLevel = document.getElementById('statLevel');
-            const statType = document.getElementById('statType');
-            const statTime = document.getElementById('statTime');
+            const loginTime = document.getElementById('loginTime');
+            const sessionId = document.getElementById('sessionId');
             
-            // Populate available users list
-            function populateUserList() {
-                if (typeof users !== 'undefined' && Array.isArray(users)) {
-                    users.forEach(user => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `
-                            <span class="user-username">${user.username}</span>
-                            <span class="user-rc">RC: ${user.RCNo} (${user.Level})</span>
-                        `;
-                        availableUsersList.appendChild(li);
-                        
-                        // Add click event to auto-fill username
-                        li.addEventListener('click', function() {
-                            usernameInput.value = user.username;
-                            passwordInput.focus();
-                        });
-                    });
-                } else {
-                    availableUsersList.innerHTML = '<li>Loading users...</li>';
+            // Check for existing session
+            function checkSession() {
+                const session = localStorage.getItem('userSession');
+                if (session) {
+                    try {
+                        const user = JSON.parse(session);
+                        if (user.expiry > Date.now()) {
+                            showDashboard(user);
+                            return;
+                        } else {
+                            localStorage.removeItem('userSession');
+                        }
+                    } catch (e) {
+                        localStorage.removeItem('userSession');
+                    }
                 }
             }
-            
-            // Check if user is already logged in (from localStorage)
-            function checkExistingLogin() {
-                const loggedInUser = localStorage.getItem('loggedInUser');
-                if (loggedInUser) {
-                    const user = JSON.parse(loggedInUser);
-                    showDashboard(user);
-                }
-            }
-            
-            // Initialize the app
-            populateUserList();
-            checkExistingLogin();
             
             // Toggle password visibility
-            togglePasswordButton.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                this.textContent = type === 'password' ? '👁️' : '🔒';
+            togglePasswordBtn.addEventListener('click', () => {
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+                togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🔒';
             });
             
-            // Handle login form submission
-            loginForm.addEventListener('submit', function(e) {
+            // Handle login
+            loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                loginUser();
-            });
-            
-            // Login function using SHA-256 hashing
-            function loginUser() {
+                
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
                 
                 if (!username || !password) {
-                    showError("Please enter both username and password");
+                    showError('Please enter both username and password');
                     return;
                 }
                 
-                // Show loading state
-                loginButton.style.display = 'none';
-                loginLoading.style.display = 'block';
+                // Show loading
+                loginBtn.disabled = true;
+                loading.style.display = 'block';
                 errorMessage.style.display = 'none';
-                successMessage.style.display = 'none';
                 
-                // Simulate a short delay for UX purposes
+                // Simulate processing
                 setTimeout(() => {
-                    // Find user in the users array (from user.js)
-                    const user = users.find(u => u.username === username);
-                    
-                    if (user) {
-                        // Hash the entered password using SHA-256
-                        const hashedPassword = sha256(password);
-                        
-                        // Compare with stored hash
-                        if (hashedPassword === user.passwordHash) {
-                            // Successful login
-                            successMessage.textContent = "Login successful! Redirecting to dashboard...";
-                            successMessage.style.display = 'block';
-                            
-                            // Save user data to localStorage
-                            localStorage.setItem('loggedInUser', JSON.stringify(user));
-                            
-                            // Save login to Firebase
-                            saveLoginToFirebase(user);
-                            
-                            // Show dashboard after a brief delay
-                            setTimeout(() => {
-                                showDashboard(user);
-                            }, 1000);
-                        } else {
-                            showError("Invalid password. Please try again.");
-                        }
-                    } else {
-                        showError("Username not found. Please check and try again.");
-                    }
-                    
-                    // Reset UI
-                    loginButton.style.display = 'block';
-                    loginLoading.style.display = 'none';
+                    authenticateUser(username, password);
                 }, 800);
+            });
+            
+            // Authenticate user with SHA-256
+            function authenticateUser(username, password) {
+                if (!users || !Array.isArray(users)) {
+                    showError('User database not loaded');
+                    resetLogin();
+                    return;
+                }
+                
+                const user = users.find(u => u.username === username);
+                
+                if (!user) {
+                    showError('Invalid username or password');
+                    resetLogin();
+                    return;
+                }
+                
+                // Hash the entered password
+                const hashedPassword = sha256(password);
+                
+                if (hashedPassword === user.passwordHash) {
+                    // Create session
+                    const sessionData = {
+                        username: user.username,
+                        name: user.name,
+                        rcNo: user.RCNo,
+                        level: user.Level,
+                        expiry: Date.now() + (8 * 60 * 60 * 1000), // 8 hours
+                        loginTime: new Date().toISOString(),
+                        sessionId: generateSessionId()
+                    };
+                    
+                    // Save to localStorage
+                    localStorage.setItem('userSession', JSON.stringify(sessionData));
+                    
+                    // Save to Firebase if available
+                    saveToFirebase(user);
+                    
+                    // Show dashboard
+                    showDashboard(sessionData);
+                } else {
+                    showError('Invalid username or password');
+                    resetLogin();
+                }
             }
             
             // Save login to Firebase
-            function saveLoginToFirebase(user) {
+            function saveToFirebase(user) {
                 if (typeof db !== 'undefined' && db) {
                     try {
-                        // Create a login record in Firebase
                         db.collection('logins').add({
                             username: user.username,
                             name: user.name,
                             rcNo: user.RCNo,
                             level: user.Level,
                             timestamp: new Date().toISOString(),
-                            ipAddress: "Recorded", // In a real app, you'd capture the actual IP
-                            userAgent: navigator.userAgent
-                        }).then(() => {
-                            console.log("Login saved to Firebase successfully");
-                        }).catch(error => {
-                            console.error("Error saving login to Firebase: ", error);
+                            action: 'login'
                         });
                     } catch (error) {
-                        console.error("Firebase error: ", error);
+                        console.log('Firebase save skipped');
                     }
-                } else {
-                    console.log("Firebase not initialized, skipping Firebase save");
                 }
+            }
+            
+            // Generate random session ID
+            function generateSessionId() {
+                return Math.random().toString(36).substr(2, 9).toUpperCase();
             }
             
             // Show error message
             function showError(message) {
-                errorMessage.textContent = message || "Invalid username or password. Please try again.";
+                errorMessage.textContent = message;
                 errorMessage.style.display = 'block';
                 passwordInput.value = '';
                 passwordInput.focus();
             }
             
-            // Show dashboard with user data
+            // Reset login form
+            function resetLogin() {
+                loginBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+            
+            // Show dashboard
             function showDashboard(user) {
-                // Update dashboard with user data
-                dashboardUserName.textContent = user.name;
-                dashboardRCNo.textContent = user.RCNo;
-                dashboardLevel.textContent = user.Level;
+                // Update UI
+                userName.textContent = user.name;
+                userRC.textContent = user.rcNo;
+                userLevel.textContent = user.level;
                 welcomeName.textContent = user.name;
-                statRCNo.textContent = user.RCNo;
-                statLevel.textContent = user.Level;
-                statType.textContent = user.Level === "Supervisor" ? "Supervisor" : "Standard";
+                statRC.textContent = user.rcNo;
+                statLevel.textContent = user.level;
+                sessionId.textContent = user.sessionId;
                 
-                // Update login time
-                const now = new Date();
-                statTime.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                // Format login time
+                const time = new Date(user.loginTime);
+                loginTime.textContent = time.toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
                 
                 // Switch views
                 loginContainer.style.display = 'none';
-                dashboardContainer.style.display = 'flex';
+                dashboardContainer.style.display = 'block';
                 
                 // Clear form
                 loginForm.reset();
-                
-                // Log successful login
-                console.log(`User ${user.username} (${user.name}) logged in successfully`);
-                console.log(`RC Number: ${user.RCNo}, Level: ${user.Level}`);
             }
             
-            // Logout function
-            logoutButton.addEventListener('click', function() {
-                // Get current user before clearing
-                const loggedInUser = localStorage.getItem('loggedInUser');
-                
-                // Clear localStorage
-                localStorage.removeItem('loggedInUser');
-                
-                // Switch back to login view
-                dashboardContainer.style.display = 'none';
-                loginContainer.style.display = 'flex';
-                
-                // Focus on username field
-                usernameInput.focus();
-                
-                // Log logout
-                if (loggedInUser) {
-                    const user = JSON.parse(loggedInUser);
-                    console.log(`User ${user.username} logged out`);
+            // Handle logout
+            logoutBtn.addEventListener('click', () => {
+                const session = localStorage.getItem('userSession');
+                if (session) {
+                    const user = JSON.parse(session);
+                    
+                    // Save logout to Firebase
+                    if (typeof db !== 'undefined' && db) {
+                        try {
+                            db.collection('logins').add({
+                                username: user.username,
+                                name: user.name,
+                                rcNo: user.rcNo,
+                                level: user.level,
+                                timestamp: new Date().toISOString(),
+                                action: 'logout'
+                            });
+                        } catch (error) {
+                            console.log('Firebase save skipped');
+                        }
+                    }
                 }
+                
+                // Clear session
+                localStorage.removeItem('userSession');
+                
+                // Switch back to login
+                dashboardContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
+                
+                // Focus on username
+                usernameInput.focus();
             });
             
-            // Dashboard action buttons
-            document.getElementById('viewProfileBtn').addEventListener('click', function() {
-                const user = JSON.parse(localStorage.getItem('loggedInUser'));
-                alert(`User Profile:\n\nName: ${user.name}\nUsername: ${user.username}\nRC Number: ${user.RCNo}\nLevel: ${user.Level}`);
-            });
-            
-            document.getElementById('refreshDataBtn').addEventListener('click', function() {
-                const now = new Date();
-                statTime.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                alert("Dashboard data refreshed!");
-            });
-            
-            document.getElementById('viewLogsBtn').addEventListener('click', function() {
-                alert("Activity logs would be displayed here. This feature requires additional Firebase configuration.");
-            });
+            // Check session on load
+            checkSession();
             
             // Auto-focus username field
             usernameInput.focus();
-            
-            // For testing: Console log available users and their password hashes
-            console.log("Available users from user.js:");
-            if (typeof users !== 'undefined') {
-                users.forEach(user => {
-                    console.log(`Username: ${user.username}, Name: ${user.name}, RC: ${user.RCNo}, Level: ${user.Level}`);
-                });
-            }
         }
     </script>
 </body>
