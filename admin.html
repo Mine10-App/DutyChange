@@ -360,6 +360,12 @@
             border-radius: 5px;
             font-size: 14px;
         }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -368,17 +374,17 @@
             <h2><i class="fas fa-user-shield"></i> Supervisor Panel</h2>
         </div>
         <div class="user-info">
-            <span id="userName"></span>
-            <span class="location-badge" id="userLocation"></span>
+            <span id="userName">Loading...</span>
+            <span class="location-badge" id="userLocation">Loading...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </nav>
     
     <div class="container">
         <div class="welcome-card">
-            <h2>Welcome, <span id="welcomeName"></span>!</h2>
+            <h2>Welcome, <span id="welcomeName">Loading...</span>!</h2>
             <p>Manage leave requests, duty changes, and update staff leave balances from this panel.</p>
-            <p style="margin-top: 10px; color: #666;">Location: <span id="welcomeLocation"></span></p>
+            <p style="margin-top: 10px; color: #666;">Location: <span id="welcomeLocation">Loading...</span></p>
         </div>
         
         <div class="tabs">
@@ -405,7 +411,7 @@
                 <button class="refresh-btn" onclick="loadLeaveRequests()">Refresh</button>
             </div>
             <div class="info-message">
-                <strong>Note:</strong> Only showing requests from your location: <strong id="currentLocationDisplay"></strong>
+                <strong>Note:</strong> Only showing requests from your location: <strong id="currentLocationDisplay">Loading...</strong>
             </div>
             <div class="card">
                 <h3>All Leave Requests - <span id="leaveFilterStatus">All</span></h3>
@@ -424,7 +430,9 @@
                         </tr>
                     </thead>
                     <tbody id="leaveRequestsBody">
-                        <!-- Leave requests will be loaded here -->
+                        <tr>
+                            <td colspan="9" class="loading">Loading leave requests...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -443,7 +451,7 @@
                 <button class="refresh-btn" onclick="loadDutyChanges()">Refresh</button>
             </div>
             <div class="info-message">
-                <strong>Note:</strong> Only showing duty changes from your location: <strong id="dutyLocationDisplay"></strong>
+                <strong>Note:</strong> Only showing duty changes from your location: <strong id="dutyLocationDisplay">Loading...</strong>
             </div>
             <div class="card">
                 <h3>All Duty Changes - <span id="dutyFilterStatus">All</span></h3>
@@ -462,7 +470,9 @@
                         </tr>
                     </thead>
                     <tbody id="dutyChangesBody">
-                        <!-- Duty changes will be loaded here -->
+                        <tr>
+                            <td colspan="9" class="loading">Loading duty changes...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -472,7 +482,7 @@
         <div id="manageUsers" class="tab-content">
             <button class="refresh-btn" onclick="loadUsers()">Refresh</button>
             <div class="info-message">
-                <strong>Note:</strong> Managing users from your location: <strong id="userLocationDisplay"></strong>
+                <strong>Note:</strong> Managing users from your location: <strong id="userLocationDisplay">Loading...</strong>
             </div>
             <div class="card">
                 <h3>Staff Leave Balances</h3>
@@ -491,7 +501,9 @@
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <!-- Users will be loaded here -->
+                        <tr>
+                            <td colspan="8" class="loading">Loading users...</td>
+                        </tr>
                     </tbody>
                 </table>
                 
@@ -537,16 +549,44 @@
         let allLeaveRequests = []; // Store all leave requests for filtering
         let allDutyChanges = []; // Store all duty changes for filtering
         let notificationInterval; // Store interval ID for notifications
+        let isInitialized = false; // Track if initialization is complete
+
+        // Safe DOM element getter with null check
+        function getElement(id) {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`Element with id '${id}' not found`);
+            }
+            return element;
+        }
+
+        // Safe textContent setter
+        function setTextContent(id, text) {
+            const element = getElement(id);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+
+        // Safe innerHTML setter
+        function setInnerHTML(id, html) {
+            const element = getElement(id);
+            if (element) {
+                element.innerHTML = html;
+            }
+        }
 
         // Initialize and check user authentication
         async function initializeUser() {
             try {
+                console.log('Initializing supervisor panel...');
+                
                 const storedUser = JSON.parse(localStorage.getItem('currentUser'));
                 
                 if (!storedUser) {
                     console.log('No user found in localStorage - redirecting to login');
                     window.location.href = 'index.html';
-                    return;
+                    return false;
                 }
                 
                 // Check if user is supervisor - check both 'Level' and 'level'
@@ -557,7 +597,7 @@
                 if (userLevel !== 'Supervisor') {
                     console.log('User is not supervisor, level:', userLevel, '- redirecting to login');
                     window.location.href = 'index.html';
-                    return;
+                    return false;
                 }
                 
                 // Use stored user data as is
@@ -586,25 +626,28 @@
                     usersList = [];
                 }
                 
-                // Update UI
-                document.getElementById('userName').textContent = currentUser.name || currentUser.username || 'User';
-                document.getElementById('welcomeName').textContent = currentUser.name || currentUser.username || 'User';
-                document.getElementById('userLocation').textContent = currentUser.location;
-                document.getElementById('welcomeLocation').textContent = currentUser.location;
-                document.getElementById('locationTitle').textContent = currentUser.location;
-                document.getElementById('currentLocationDisplay').textContent = currentUser.location;
-                document.getElementById('dutyLocationDisplay').textContent = currentUser.location;
-                document.getElementById('userLocationDisplay').textContent = currentUser.location;
+                // Update UI with safe methods
+                setTextContent('userName', currentUser.name || currentUser.username || 'User');
+                setTextContent('welcomeName', currentUser.name || currentUser.username || 'User');
+                setTextContent('userLocation', currentUser.location);
+                setTextContent('welcomeLocation', currentUser.location);
+                setTextContent('currentLocationDisplay', currentUser.location);
+                setTextContent('dutyLocationDisplay', currentUser.location);
+                setTextContent('userLocationDisplay', currentUser.location);
                 
                 console.log('Supervisor initialized successfully:', currentUser);
+                isInitialized = true;
                 
                 // Start notification updates
                 startNotificationUpdates();
+                
+                return true;
                 
             } catch (error) {
                 console.error('Error in initializeUser:', error);
                 alert('Session error: ' + error.message);
                 window.location.href = 'index.html';
+                return false;
             }
         }
 
@@ -620,10 +663,15 @@
             });
             
             // Show selected tab
-            document.getElementById(tabName).classList.add('active');
+            const tabElement = getElement(tabName);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
             
             // Add active class to clicked tab button
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             
             // Load data for the tab
             if (tabName === 'leaveRequests') {
@@ -636,9 +684,16 @@
         }
 
         async function loadLeaveRequests() {
+            if (!isInitialized) {
+                console.log('Not initialized yet, skipping loadLeaveRequests');
+                return;
+            }
+            
             try {
-                const tbody = document.getElementById('leaveRequestsBody');
-                tbody.innerHTML = '<tr><td colspan="9" class="no-data">Loading leave requests...</td></tr>';
+                const tbody = getElement('leaveRequestsBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading leave requests...</td></tr>';
                 
                 const leaveRef = db.collection('leaveRequests');
                 const querySnapshot = await leaveRef
@@ -661,22 +716,28 @@
                 
             } catch (error) {
                 console.error('Error loading leave requests:', error);
-                document.getElementById('leaveRequestsBody').innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align: center; padding: 40px; color: #e74c3c;">
-                            Error loading leave requests: ${error.message}
-                        </td>
-                    </tr>
-                `;
+                const tbody = getElement('leaveRequestsBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #e74c3c;">
+                                Error loading leave requests: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                }
             }
         }
 
         async function filterLeaveRequests() {
-            const filterValue = document.getElementById('leaveStatusFilter').value;
-            document.getElementById('leaveFilterStatus').textContent = 
-                filterValue === 'all' ? 'All' : filterValue;
+            if (!isInitialized) return;
             
-            const tbody = document.getElementById('leaveRequestsBody');
+            const filterValue = document.getElementById('leaveStatusFilter')?.value || 'all';
+            setTextContent('leaveFilterStatus', filterValue === 'all' ? 'All' : filterValue);
+            
+            const tbody = getElement('leaveRequestsBody');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             if (allLeaveRequests.length === 0) {
@@ -813,9 +874,13 @@
         }
 
         async function loadDutyChanges() {
+            if (!isInitialized) return;
+            
             try {
-                const tbody = document.getElementById('dutyChangesBody');
-                tbody.innerHTML = '<tr><td colspan="9" class="no-data">Loading duty changes...</td></tr>';
+                const tbody = getElement('dutyChangesBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">Loading duty changes...</td></tr>';
                 
                 const dutyRef = db.collection('dutyChanges');
                 const querySnapshot = await dutyRef
@@ -838,22 +903,29 @@
                 
             } catch (error) {
                 console.error('Error loading duty changes:', error);
-                document.getElementById('dutyChangesBody').innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align: center; padding: 40px; color: #e74c3c;">
-                            Error loading duty changes: ${error.message}
-                        </td>
-                    </tr>
-                `;
+                const tbody = getElement('dutyChangesBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #e74c3c;">
+                                Error loading duty changes: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                }
             }
         }
 
         function filterDutyChanges() {
-            const filterValue = document.getElementById('dutyStatusFilter').value;
-            document.getElementById('dutyFilterStatus').textContent = 
-                filterValue === 'all' ? 'All' : filterValue;
+            if (!isInitialized) return;
             
-            const tbody = document.getElementById('dutyChangesBody');
+            const filterSelect = getElement('dutyStatusFilter');
+            const filterValue = filterSelect ? filterSelect.value : 'all';
+            setTextContent('dutyFilterStatus', filterValue === 'all' ? 'All' : filterValue);
+            
+            const tbody = getElement('dutyChangesBody');
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             if (allDutyChanges.length === 0) {
@@ -985,10 +1057,14 @@
         }
 
         async function loadUsers() {
+            if (!isInitialized) return;
+            
             try {
-                const tbody = document.getElementById('usersTableBody');
-                const selectUser = document.getElementById('selectUser');
-                tbody.innerHTML = '<tr><td colspan="8" class="no-data">Loading users...</td></tr>';
+                const tbody = getElement('usersTableBody');
+                const selectUser = getElement('selectUser');
+                if (!tbody || !selectUser) return;
+                
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading users...</td></tr>';
                 selectUser.innerHTML = '<option value="">Select User</option>';
 
                 // Load users from local storage or user.js
@@ -1068,7 +1144,7 @@
                             </span>
                         </td>
                         <td>
-                            ${!isSupervisor ? `<button class="edit-btn" onclick="editUserLeave('${userId}', '${localUser.name ? localUser.name.replace(/'/g, "\\'") : localUser.username}')">Edit All</button>` : ''}
+                            ${!isSupervisor && userId ? `<button class="edit-btn" onclick="editUserLeave('${userId}', '${localUser.name ? localUser.name.replace(/'/g, "\\'") : localUser.username}')">Edit All</button>` : ''}
                         </td>
                     `;
                     
@@ -1107,13 +1183,16 @@
                 
             } catch (error) {
                 console.error('Error loading users:', error);
-                document.getElementById('usersTableBody').innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
-                            Error loading users: ${error.message}
-                        </td>
-                    </tr>
-                `;
+                const tbody = getElement('usersTableBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: #e74c3c;">
+                                Error loading users: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                }
             }
         }
 
@@ -1157,10 +1236,12 @@
                     
                     // Update the select dropdown if this user is selected
                     const select = document.getElementById('selectUser');
-                    for (let i = 0; i < select.options.length; i++) {
-                        if (select.options[i].value === userId) {
-                            select.options[i].setAttribute(`data-${leaveType.replace('Leave', '')}`, newValue);
-                            break;
+                    if (select) {
+                        for (let i = 0; i < select.options.length; i++) {
+                            if (select.options[i].value === userId) {
+                                select.options[i].setAttribute(`data-${leaveType.replace('Leave', '')}`, newValue);
+                                break;
+                            }
                         }
                     }
                     
@@ -1252,12 +1333,14 @@
         }
 
         async function updateSelectedUserBalance() {
-            const select = document.getElementById('selectUser');
+            const select = getElement('selectUser');
+            if (!select) return;
+            
             const selectedOption = select.options[select.selectedIndex];
             const userId = select.value;
-            const sickLeave = document.getElementById('sickLeave').value;
-            const annualLeave = document.getElementById('annualLeave').value;
-            const frlLeave = document.getElementById('frlLeave').value;
+            const sickLeave = getElement('sickLeave')?.value;
+            const annualLeave = getElement('annualLeave')?.value;
+            const frlLeave = getElement('frlLeave')?.value;
             
             if (!userId) {
                 alert('Please select a user');
@@ -1315,9 +1398,9 @@
                 }
                 
                 loadUsers();
-                document.getElementById('sickLeave').value = '';
-                document.getElementById('annualLeave').value = '';
-                document.getElementById('frlLeave').value = '';
+                if (getElement('sickLeave')) getElement('sickLeave').value = '';
+                if (getElement('annualLeave')) getElement('annualLeave').value = '';
+                if (getElement('frlLeave')) getElement('frlLeave').value = '';
                 select.selectedIndex = 0;
                 
             } catch (error) {
@@ -1486,6 +1569,8 @@
         }
 
         async function updateNotificationCount() {
+            if (!isInitialized) return;
+            
             try {
                 // Count pending leave requests
                 const leaveRef = db.collection('leaveRequests');
@@ -1507,21 +1592,25 @@
                 const pendingDutyCount = dutyQuery.size;
                 
                 // Update notification badges
-                const leaveNotification = document.getElementById('leaveNotification');
-                const dutyNotification = document.getElementById('dutyNotification');
+                const leaveNotification = getElement('leaveNotification');
+                const dutyNotification = getElement('dutyNotification');
                 
-                if (pendingLeaveCount > 0) {
-                    leaveNotification.textContent = pendingLeaveCount;
-                    leaveNotification.style.display = 'flex';
-                } else {
-                    leaveNotification.style.display = 'none';
+                if (leaveNotification) {
+                    if (pendingLeaveCount > 0) {
+                        leaveNotification.textContent = pendingLeaveCount;
+                        leaveNotification.style.display = 'flex';
+                    } else {
+                        leaveNotification.style.display = 'none';
+                    }
                 }
                 
-                if (pendingDutyCount > 0) {
-                    dutyNotification.textContent = pendingDutyCount;
-                    dutyNotification.style.display = 'flex';
-                } else {
-                    dutyNotification.style.display = 'none';
+                if (dutyNotification) {
+                    if (pendingDutyCount > 0) {
+                        dutyNotification.textContent = pendingDutyCount;
+                        dutyNotification.style.display = 'flex';
+                    } else {
+                        dutyNotification.style.display = 'none';
+                    }
                 }
                 
             } catch (error) {
@@ -1547,52 +1636,76 @@
             window.location.href = 'index.html';
         }
 
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                await initializeUser();
+        // Main initialization
+        async function initializeApp() {
+            console.log('Starting app initialization...');
+            
+            // Wait for DOM to be fully loaded
+            if (document.readyState === 'loading') {
+                await new Promise(resolve => {
+                    document.addEventListener('DOMContentLoaded', resolve);
+                });
+            }
+            
+            console.log('DOM loaded, initializing user...');
+            
+            // Initialize user
+            const initialized = await initializeUser();
+            
+            if (initialized) {
+                console.log('App initialized successfully');
+                
+                // Load initial data
                 loadLeaveRequests();
                 
                 // Setup user selection change handler
-                document.getElementById('selectUser').addEventListener('change', async function() {
-                    const userId = this.value;
-                    const selectedOption = this.options[this.selectedIndex];
-                    
-                    if (userId) {
-                        const isNewUser = selectedOption.getAttribute('data-is-new') === 'true';
+                const selectUser = getElement('selectUser');
+                if (selectUser) {
+                    selectUser.addEventListener('change', async function() {
+                        const userId = this.value;
+                        const selectedOption = this.options[this.selectedIndex];
                         
-                        if (isNewUser) {
-                            document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
-                            document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
-                            document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
-                        } else {
-                            try {
-                                const userRef = db.collection('users').doc(userId);
-                                const userDoc = await userRef.get();
-                                
-                                if (userDoc.exists) {
-                                    const userData = userDoc.data();
-                                    document.getElementById('sickLeave').value = userData.sickLeave || 0;
-                                    document.getElementById('annualLeave').value = userData.annualLeave || 0;
-                                    document.getElementById('frlLeave').value = userData.frlLeave || 0;
+                        if (userId) {
+                            const isNewUser = selectedOption.getAttribute('data-is-new') === 'true';
+                            
+                            if (isNewUser) {
+                                if (getElement('sickLeave')) getElement('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
+                                if (getElement('annualLeave')) getElement('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
+                                if (getElement('frlLeave')) getElement('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
+                            } else {
+                                try {
+                                    const userRef = db.collection('users').doc(userId);
+                                    const userDoc = await userRef.get();
+                                    
+                                    if (userDoc.exists) {
+                                        const userData = userDoc.data();
+                                        if (getElement('sickLeave')) getElement('sickLeave').value = userData.sickLeave || 0;
+                                        if (getElement('annualLeave')) getElement('annualLeave').value = userData.annualLeave || 0;
+                                        if (getElement('frlLeave')) getElement('frlLeave').value = userData.frlLeave || 0;
+                                    }
+                                } catch (error) {
+                                    console.error('Error fetching user data:', error);
+                                    if (getElement('sickLeave')) getElement('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
+                                    if (getElement('annualLeave')) getElement('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
+                                    if (getElement('frlLeave')) getElement('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
                                 }
-                            } catch (error) {
-                                console.error('Error fetching user data:', error);
-                                document.getElementById('sickLeave').value = selectedOption.getAttribute('data-sick') || 0;
-                                document.getElementById('annualLeave').value = selectedOption.getAttribute('data-annual') || 0;
-                                document.getElementById('frlLeave').value = selectedOption.getAttribute('data-frl') || 0;
                             }
+                        } else {
+                            if (getElement('sickLeave')) getElement('sickLeave').value = '';
+                            if (getElement('annualLeave')) getElement('annualLeave').value = '';
+                            if (getElement('frlLeave')) getElement('frlLeave').value = '';
                         }
-                    } else {
-                        document.getElementById('sickLeave').value = '';
-                        document.getElementById('annualLeave').value = '';
-                        document.getElementById('frlLeave').value = '';
-                    }
-                });
-            } catch (error) {
-                console.error('Error during page load:', error);
-                alert('Error loading page: ' + error.message);
+                    });
+                }
+            } else {
+                console.error('Failed to initialize app');
             }
+        }
+
+        // Start the application
+        initializeApp().catch(error => {
+            console.error('Fatal error during initialization:', error);
+            alert('Failed to initialize application. Please refresh the page.');
         });
 
         // Make functions available globally
