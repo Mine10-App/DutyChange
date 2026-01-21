@@ -230,27 +230,6 @@
             color: #721c24;
         }
         
-        .duty-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .duty-time {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .duty-date {
-            color: #666;
-            font-size: 14px;
-        }
-        
         .quick-action-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -264,6 +243,16 @@
         
         .quick-action-btn:hover {
             transform: translateY(-2px);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .quick-action-btn.secondary {
+            background: linear-gradient(135deg, #36D1DC 0%, #5B86E5 100%);
         }
     </style>
 </head>
@@ -285,6 +274,7 @@
     <div class="nav-menu">
         <a href="dashboard.html" class="nav-item active">Dashboard</a>
         <a href="duty-change.html" class="nav-item">Duty Change</a>
+        <a href="leave-application.html" class="nav-item">Leave Application</a>
         <a href="history.html" class="nav-item">History</a>
     </div>
     
@@ -293,23 +283,22 @@
         
         <div class="cards-container">
             <div class="card">
-                <div class="card-title">My Current Duty</div>
-                <div class="duty-card">
-                    <div>
-                        <div class="duty-time" id="currentDutyTime">08:00 - 16:00</div>
-                        <div class="duty-date" id="currentDutyDate">Today, December 15, 2024</div>
-                    </div>
-                    <div>
-                        <div class="request-status status-accepted">Active</div>
-                    </div>
+                <div class="card-title">Quick Actions</div>
+                <div class="action-buttons">
+                    <button class="quick-action-btn" onclick="window.location.href='duty-change.html'">
+                        Request Duty Change
+                    </button>
+                    <button class="quick-action-btn secondary" onclick="window.location.href='leave-application.html'">
+                        Apply for Leave
+                    </button>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-title">Quick Actions</div>
-                <button class="quick-action-btn" onclick="window.location.href='duty-change.html'">
-                    Request Duty Change
-                </button>
+                <div class="card-title">Recent Notifications</div>
+                <div id="notifications">
+                    <p>No new notifications</p>
+                </div>
             </div>
         </div>
         
