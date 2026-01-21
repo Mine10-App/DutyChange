@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duty Change Request</title>
+    <title>Duty Change - Duty Management</title>
     <style>
         * {
             margin: 0;
@@ -16,86 +16,223 @@
             background: #f5f7fa;
         }
         
-        .navbar {
+        .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px 30px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
-        .logo h2 {
+        .logo {
             font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
         
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .user-details {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .user-role {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
             color: white;
             padding: 8px 20px;
-            border-radius: 5px;
+            border-radius: 20px;
             cursor: pointer;
             transition: background 0.3s;
         }
         
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         
-        .container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .form-card {
+        .nav-menu {
             background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 15px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 30px;
         }
         
-        .form-card h2 {
+        .nav-item {
+            color: #555;
+            text-decoration: none;
+            padding: 10px 0;
+            position: relative;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .nav-item:hover {
+            color: #667eea;
+        }
+        
+        .main-content {
+            padding: 30px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .page-title {
             color: #333;
             margin-bottom: 30px;
+            font-size: 28px;
             text-align: center;
         }
         
-        .form-group {
-            margin-bottom: 25px;
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
         }
         
-        .form-group label {
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
             display: block;
             margin-bottom: 8px;
             color: #555;
             font-weight: 500;
         }
         
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        input, select {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s;
         }
         
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: #667eea;
+        input:focus, select:focus {
             outline: none;
+            border-color: #667eea;
+        }
+        
+        .info-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
         }
         
         .time-inputs {
@@ -104,278 +241,106 @@
             gap: 15px;
         }
         
-        .submit-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 20px;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
         
-        .submit-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .submit-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .message {
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: center;
-            display: none;
-        }
-        
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 5px;
-        }
-        
-        .info-box h4 {
-            color: #333;
-            margin-bottom: 10px;
+        @media (max-width: 768px) {
+            .form-row, .time-inputs {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
+    <div class="header">
         <div class="logo">
-            <h2><i class="fas fa-exchange-alt"></i> Duty Change Request</h2>
+            🔄 Duty Change Request
         </div>
         <div class="user-info">
-            <span id="userName"></span>
-            <button class="back-btn" onclick="goBack()">Back to Dashboard</button>
+            <div class="user-details">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-role" id="userRole"></div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
-    </nav>
+    </div>
     
-    <div class="container">
-        <div class="info-box">
-            <h4><i class="fas fa-info-circle"></i> Note:</h4>
-            <p>Your request will be sent to the selected staff member for acceptance. Once accepted, it will be forwarded to the supervisor for final approval.</p>
-        </div>
+    <div class="nav-menu">
+        <a href="dashboard.html" class="nav-item">Dashboard</a>
+        <a href="duty-change.html" class="nav-item active">Duty Change</a>
+        <a href="history.html" class="nav-item">History</a>
+    </div>
+    
+    <div class="main-content">
+        <h1 class="page-title">Request Duty Change</h1>
         
-        <div class="form-card">
-            <h2>Request Duty Change</h2>
-            
+        <div class="form-container">
             <form id="dutyChangeForm">
-                <div class="form-group">
-                    <label for="changeDate">Date *</label>
-                    <input type="date" id="changeDate" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="requestorName">Your Name</label>
-                    <input type="text" id="requestorName" value="" disabled>
-                </div>
-                
-                <div class="form-group time-inputs">
-                    <div>
-                        <label for="yourDutyTime">Your Duty Time *</label>
-                        <input type="time" id="yourDutyTime" required>
+                <div class="form-section">
+                    <div class="section-title">My Information</div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <div class="info-display" id="currentUserName">Loading...</div>
                     </div>
-                    <div>
-                        <label for="yourRcNo">Your RC No. *</label>
-                        <input type="text" id="yourRcNo" placeholder="Enter your RC number" required>
+                    <div class="form-group">
+                        <label>RC Number</label>
+                        <div class="info-display" id="currentUserRc">Loading...</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Current Duty Time</label>
+                            <input type="time" id="currentDutyTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="dutyDate" required>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="acceptedStaff">Select Staff to Change With *</label>
-                    <select id="acceptedStaff" required>
-                        <option value="">Select Staff Member</option>
-                        <!-- Options will be populated by JavaScript -->
-                    </select>
+                <div class="form-section">
+                    <div class="section-title">Request To</div>
+                    <div class="form-group">
+                        <label>Select Staff Member</label>
+                        <select id="staffSelect" required>
+                            <option value="">Select a staff member</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Staff RC Number</label>
+                        <div class="info-display" id="staffRcDisplay">-</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Requested Duty Time</label>
+                        <input type="time" id="requestedDutyTime" required>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="acceptedStaffRcNo">Staff's RC No. *</label>
-                    <input type="text" id="acceptedStaffRcNo" placeholder="Enter staff's RC number" required>
+                <button type="submit" class="btn btn-primary">Send Request</button>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div> Sending request...
                 </div>
                 
-                <div class="form-group">
-                    <label for="acceptedStaffDutyTime">Staff's Duty Time *</label>
-                    <input type="time" id="acceptedStaffDutyTime" required>
+                <div class="success-message" id="successMessage">
+                    ✅ Request sent successfully!
                 </div>
                 
-                <div class="form-group">
-                    <label for="changeReason">Reason for Change (Optional)</label>
-                    <textarea id="changeReason" rows="4" placeholder="Brief reason for duty change..."></textarea>
+                <div class="error-message" id="errorMessage">
+                    ❌ Error sending request. Please try again.
                 </div>
-                
-                <button type="submit" class="submit-btn" id="submitBtn">Submit Request</button>
             </form>
-            
-            <div id="message" class="message"></div>
         </div>
     </div>
 
-    <!-- Firebase SDK Version 8 -->
+    <!-- External Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <!-- Your Firebase configuration -->
-    <script src="./dcfire.js"></script>
-    
-    <script>
-        // Check if user is logged in
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            window.location.href = 'index.html';
-        }
-        
-        document.getElementById('userName').textContent = currentUser.name;
-        document.getElementById('requestorName').value = currentUser.name;
-        
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('changeDate').min = today;
-        
-        // Populate staff dropdown
-        async function populateStaffDropdown() {
-            try {
-                const usersRef = db.collection('users');
-                const querySnapshot = await usersRef.get();
-                
-                const select = document.getElementById('acceptedStaff');
-                querySnapshot.forEach((doc) => {
-                    const user = doc.data();
-                    if (user.username !== currentUser.username) {
-                        const option = document.createElement('option');
-                        option.value = user.username;
-                        option.textContent = `${user.name} (${user.username})`;
-                        select.appendChild(option);
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading staff:', error);
-            }
-        }
-        
-        // Form submission
-        document.getElementById('dutyChangeForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const messageDiv = document.getElementById('message');
-            
-            // Get form values
-            const changeDate = document.getElementById('changeDate').value;
-            const yourDutyTime = document.getElementById('yourDutyTime').value;
-            const yourRcNo = document.getElementById('yourRcNo').value.trim();
-            const acceptedStaff = document.getElementById('acceptedStaff').value;
-            const acceptedStaffRcNo = document.getElementById('acceptedStaffRcNo').value.trim();
-            const acceptedStaffDutyTime = document.getElementById('acceptedStaffDutyTime').value;
-            const changeReason = document.getElementById('changeReason').value;
-            
-            // Validate date
-            if (new Date(changeDate) < new Date().setHours(0, 0, 0, 0)) {
-                showMessage('error', 'Back-dated duty changes are not allowed!');
-                return;
-            }
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            
-            try {
-                // Get accepted staff name
-                const usersRef = db.collection('users');
-                const querySnapshot = await usersRef
-                    .where('username', '==', acceptedStaff)
-                    .get();
-                
-                let acceptedStaffName = '';
-                let acceptedStaffId = '';
-                
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach((doc) => {
-                        acceptedStaffName = doc.data().name;
-                        acceptedStaffId = doc.id;
-                    });
-                }
-                
-                // Save to Firestore
-                await db.collection('dutyChanges').add({
-                    requestorUsername: currentUser.username,
-                    requestorName: currentUser.name,
-                    requestorRcNo: yourRcNo,
-                    changeDate: changeDate,
-                    requestorDutyTime: yourDutyTime,
-                    acceptedStaffUsername: acceptedStaff,
-                    acceptedStaffName: acceptedStaffName,
-                    acceptedStaffId: acceptedStaffId,
-                    acceptedStaffRcNo: acceptedStaffRcNo,
-                    acceptedStaffDutyTime: acceptedStaffDutyTime,
-                    reason: changeReason,
-                    status: 'Pending',
-                    acceptedByStaff: false,
-                    acceptedBySupervisor: false,
-                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    staffAcceptedAt: null,
-                    supervisorApprovedAt: null
-                });
-                
-                showMessage('success', 'Duty change request submitted! Waiting for staff acceptance.');
-                document.getElementById('dutyChangeForm').reset();
-                document.getElementById('requestorName').value = currentUser.name;
-                document.getElementById('changeDate').min = today;
-                
-            } catch (error) {
-                console.error('Error submitting duty change:', error);
-                showMessage('error', 'Failed to submit request. Please try again.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Request';
-            }
-        });
-        
-        function showMessage(type, text) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
-            
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        function goBack() {
-            window.location.href = 'dashboard.html';
-        }
-        
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            populateStaffDropdown();
-        });
-        
-        // Make functions available globally
-        window.goBack = goBack;
-    </script>
+    <script src="dcfire.js"></script>
+    <script src="user.js"></script>
+    <script src="duty-change.js"></script>
 </body>
 </html>
