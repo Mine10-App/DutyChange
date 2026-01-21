@@ -223,23 +223,21 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db } from './dcfire.js';
-        import { 
-            collection, 
-            getDocs, 
-            query, 
-            where, 
-            orderBy 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
+    <!-- Firebase SDK Version 8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase configuration -->
+    <script src="./dcfire.js"></script>
+    
+    <script>
         // Check if user is logged in
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         if (!currentUser) {
             window.location.href = 'index.html';
         }
         
-        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('userName').textContent = currentUser.name || currentUser.username || 'User';
         
         function switchTab(tabName) {
             // Hide all tabs
@@ -268,13 +266,11 @@
         
         async function loadLeaveHistory() {
             try {
-                const leaveRef = collection(db, 'leaveRequests');
-                const q = query(
-                    leaveRef, 
-                    where('username', '==', currentUser.username),
-                    orderBy('submittedAt', 'desc')
-                );
-                const querySnapshot = await getDocs(q);
+                const leaveRef = db.collection('leaveRequests');
+                const querySnapshot = await leaveRef
+                    .where('username', '==', currentUser.username)
+                    .orderBy('submittedAt', 'desc')
+                    .get();
                 
                 const tbody = document.getElementById('leaveHistoryBody');
                 const emptyState = document.getElementById('leaveEmpty');
@@ -289,20 +285,30 @@
                         const data = docItem.data();
                         const row = document.createElement('tr');
                         
-                        // Format date
-                        const date = data.submittedAt ? 
-                            data.submittedAt.toDate().toLocaleDateString() : 'N/A';
+                        // Format leave date
+                        let leaveDate = data.leaveDate;
+                        if (data.leaveDate && data.leaveDate.toDate) {
+                            leaveDate = data.leaveDate.toDate().toLocaleDateString();
+                        }
+                        
+                        // Format submitted date
+                        let submittedDate = 'N/A';
+                        if (data.submittedAt && data.submittedAt.toDate) {
+                            submittedDate = data.submittedAt.toDate().toLocaleDateString();
+                        } else if (data.submittedAt) {
+                            submittedDate = data.submittedAt;
+                        }
                         
                         // Status class
                         const statusClass = `status-${data.status.toLowerCase()}`;
                         
                         row.innerHTML = `
-                            <td>${data.leaveDate}</td>
-                            <td>${data.leaveType}</td>
-                            <td>${data.dutyTime}</td>
+                            <td>${leaveDate || 'N/A'}</td>
+                            <td>${data.leaveType || 'N/A'}</td>
+                            <td>${data.dutyTime || 'N/A'}</td>
                             <td>${data.reason || '-'}</td>
-                            <td class="${statusClass}">${data.status}</td>
-                            <td>${date}</td>
+                            <td class="${statusClass}">${data.status || 'Pending'}</td>
+                            <td>${submittedDate}</td>
                         `;
                         
                         tbody.appendChild(row);
@@ -311,18 +317,23 @@
                 
             } catch (error) {
                 console.error('Error loading leave history:', error);
+                document.getElementById('leaveHistoryBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #e74c3c;">
+                            Error loading leave history: ${error.message}
+                        </td>
+                    </tr>
+                `;
             }
         }
         
         async function loadDutyHistory() {
             try {
-                const dutyRef = collection(db, 'dutyChanges');
-                const q = query(
-                    dutyRef, 
-                    where('requestorUsername', '==', currentUser.username),
-                    orderBy('submittedAt', 'desc')
-                );
-                const querySnapshot = await getDocs(q);
+                const dutyRef = db.collection('dutyChanges');
+                const querySnapshot = await dutyRef
+                    .where('requestorUsername', '==', currentUser.username)
+                    .orderBy('submittedAt', 'desc')
+                    .get();
                 
                 const tbody = document.getElementById('dutyHistoryBody');
                 const emptyState = document.getElementById('dutyEmpty');
@@ -337,20 +348,32 @@
                         const data = docItem.data();
                         const row = document.createElement('tr');
                         
-                        // Format date
-                        const date = data.submittedAt ? 
-                            data.submittedAt.toDate().toLocaleDateString() : 'N/A';
+                        // Format change date
+                        let changeDate = data.changeDate;
+                        if (data.changeDate && data.changeDate.toDate) {
+                            changeDate = data.changeDate.toDate().toLocaleDateString();
+                        } else if (data.changeDate) {
+                            changeDate = data.changeDate;
+                        }
+                        
+                        // Format submitted date
+                        let submittedDate = 'N/A';
+                        if (data.submittedAt && data.submittedAt.toDate) {
+                            submittedDate = data.submittedAt.toDate().toLocaleDateString();
+                        } else if (data.submittedAt) {
+                            submittedDate = data.submittedAt;
+                        }
                         
                         // Status class
                         const statusClass = `status-${data.status.toLowerCase()}`;
                         
                         row.innerHTML = `
-                            <td>${data.changeDate}</td>
-                            <td>${data.acceptedStaffName}</td>
-                            <td>${data.requestorDutyTime}</td>
-                            <td>${data.acceptedStaffDutyTime}</td>
-                            <td class="${statusClass}">${data.status}</td>
-                            <td>${date}</td>
+                            <td>${changeDate || 'N/A'}</td>
+                            <td>${data.acceptedStaffName || 'N/A'}</td>
+                            <td>${data.requestorDutyTime || 'N/A'}</td>
+                            <td>${data.acceptedStaffDutyTime || 'N/A'}</td>
+                            <td class="${statusClass}">${data.status || 'Pending'}</td>
+                            <td>${submittedDate}</td>
                         `;
                         
                         tbody.appendChild(row);
@@ -359,17 +382,28 @@
                 
             } catch (error) {
                 console.error('Error loading duty history:', error);
+                document.getElementById('dutyHistoryBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #e74c3c;">
+                            Error loading duty history: ${error.message}
+                        </td>
+                    </tr>
+                `;
             }
         }
         
         // Load data on page load
-        loadLeaveHistory();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeaveHistory();
+        });
         
         function goBack() {
             window.location.href = 'dashboard.html';
         }
         
+        // Make functions available globally
         window.switchTab = switchTab;
+        window.goBack = goBack;
     </script>
 </body>
 </html>
