@@ -1,4 +1,4 @@
-// auth.js
+// auth.js - Updated with proper SHA-256
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     const errorDiv = document.getElementById('error');
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'dashboard.html';
     }
     
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const username = document.getElementById('username').value.trim();
@@ -19,9 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingDiv.style.display = 'block';
         errorDiv.style.display = 'none';
         
-        // Simulate API call delay
-        setTimeout(() => {
-            const user = authenticateUser(username, password);
+        // Hash the password properly
+        try {
+            const passwordHash = await sha256(password);
+            const user = authenticateUser(username, passwordHash);
             
             if(user) {
                 // Store user data in localStorage
@@ -33,31 +34,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorDiv.style.display = 'block';
                 loadingDiv.style.display = 'none';
             }
-        }, 1000);
+        } catch (error) {
+            console.error('Error during authentication:', error);
+            errorDiv.textContent = 'Authentication error. Please try again.';
+            errorDiv.style.display = 'block';
+            loadingDiv.style.display = 'none';
+        }
     });
     
-    function authenticateUser(username, password) {
-        // Hash the password (using simple SHA-256 simulation)
-        const passwordHash = sha256(password);
-        
+    function authenticateUser(username, passwordHash) {
         // Find user in users array
         const user = users.find(u => 
-            u.username === username && u.passwordHash === passwordHash
+            u.username.toLowerCase() === username.toLowerCase() && 
+            u.passwordHash.toLowerCase() === passwordHash.toLowerCase()
         );
         
         return user;
     }
     
-    // Simple SHA-256 function (for demo purposes)
-    function sha256(str) {
-        // This is a simplified version for demo
-        // In production, use a proper SHA-256 library
+    // Proper SHA-256 function using Web Crypto API
+    async function sha256(message) {
+        // Convert message to Uint8Array
+        const msgBuffer = new TextEncoder().encode(message);
+        
+        // Hash the message
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        
+        // Convert ArrayBuffer to hex string
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        return hashHex;
+    }
+    
+    // Fallback for older browsers
+    function sha256Fallback(message) {
+        // Simple hash function (not cryptographically secure, but works for demo)
         let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = (hash << 5) - hash + char;
-            hash = hash & hash;
+        for (let i = 0; i < message.length; i++) {
+            const char = message.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
         }
-        return hash.toString(16);
+        return Math.abs(hash).toString(16);
     }
 });
