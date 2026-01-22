@@ -22,7 +22,7 @@ const users = [
   { username: "Nahuzaan", name: "Mohamed Nahuzaan", passwordHash: "60e81d32815fb33383270f68f50e3dcbedcf4e73271f390a77e9314142a8886a",  Level: "User", RCNo: "A-10043" },
  { username: "Magrib", name: "Magrib Ibrahim", passwordHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",  Level: "User", RCNo: "A-8038"},
   { username: "Inaz", name: "Mohamed Inaz", passwordHash: "2d9ca3096035d24abac234ad67a7200f1be924fa5908ef4ca2ebcbed8bf07bab", Level: "User", RCNo: "A-4206" },
-  { username: "RAMEEZ", name: "HUSSAIN RAMEEZ", passwordHash: "68f34c07c1775163fc6cc9fae18639668cea10e585a4a36c5cb89ce10a7e3d4d",  Level: "User", RCNo: "A-8610" },
+  { username: "RAMEEZ", name: "Hussain Rameez", passwordHash: "68f34c07c1775163fc6cc9fae18639668cea10e585a4a36c5cb89ce10a7e3d4d",  Level: "User", RCNo: "A-8610" },
    { username: "Hassan", name: "Hassan Haneef", passwordHash: "aee651be73c9084e024798b3b10ac19ccbf2a905e70571118dd757fc4c99e54a",  Level: "User", RCNo: "A-3463"},
   { username: "Ruhushath", name: "Ruhushath Ahmed", passwordHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",  Level: "User", RCNo: "A-8089" },
   { username: "Shiara", name: "Shiara Saudulla", passwordHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",  Level: "User", RCNo: "A-7503" },
