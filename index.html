@@ -361,6 +361,11 @@
             color: #e74c3c;
             font-weight: 500;
         }
+        
+        .status-off {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
 
         /* Action Buttons */
         .action-buttons {
@@ -570,6 +575,52 @@
             visibility: visible;
             opacity: 1;
         }
+        
+        /* Calendar View */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+        
+        .calendar-day {
+            border: 1px solid #e0e6ed;
+            padding: 8px;
+            min-height: 60px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+        
+        .calendar-day.off-day {
+            background: #f8d7da;
+        }
+        
+        .calendar-day.duty-day {
+            background: #d4edda;
+        }
+        
+        .calendar-day.today {
+            border: 2px solid #3498db;
+            background: #e8f4fc;
+        }
+        
+        .day-header {
+            font-weight: bold;
+            font-size: 12px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .duty-time {
+            font-size: 11px;
+            color: #155724;
+        }
+        
+        .off-time {
+            font-size: 11px;
+            color: #721c24;
+        }
     </style>
 </head>
 <body>
@@ -621,6 +672,7 @@
             <button class="nav-btn" data-section="dutyChange">Duty Change</button>
             <button class="nav-btn" data-section="leaveApplication">Apply Leave</button>
             <button class="nav-btn" data-section="myRequests">My Requests</button>
+            <button class="nav-btn" data-section="viewMyRoster">My Roster</button>
             <button class="nav-btn" data-section="pendingRequests" id="pendingRequestsBtn" style="display:none;">
                 Pending <span id="pendingCount" class="notification-badge">0</span>
             </button>
@@ -665,6 +717,7 @@
                         <button class="btn btn-warning" onclick="showSection('dutyChange')">Request Duty Change</button>
                         <button class="btn btn-success" onclick="showSection('leaveApplication')">Apply Leave</button>
                         <button class="btn btn-primary" onclick="showSection('myRequests')">My Requests</button>
+                        <button class="btn btn-primary" onclick="showSection('viewMyRoster')">View My Roster</button>
                     </div>
                 </div>
             </div>
@@ -815,6 +868,38 @@
                                 <!-- Filled by JavaScript -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Roster (User View) -->
+            <div class="section" id="viewMyRosterSection">
+                <div class="card">
+                    <h3>My Duty Roster</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="myRosterMonth">View Month</label>
+                            <input type="month" id="myRosterMonth" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="myRosterViewType">View Type</label>
+                            <select id="myRosterViewType" class="form-control">
+                                <option value="table">Table View</option>
+                                <option value="calendar">Calendar View</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="loadMyRoster()" style="margin-top: 25px;">Load Roster</button>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        This shows your scheduled duties. Changes must be requested via Duty Change.
+                    </div>
+                    
+                    <div id="myRosterContainer" style="margin-top: 20px;">
+                        <!-- Roster will be displayed here -->
                     </div>
                 </div>
             </div>
@@ -1058,6 +1143,7 @@ Date	Irufan	Hussain	Mohamed
         let dutyRoster = {};
         let leaveBalances = {};
         let allRequests = [];
+        let userDisplayNameMap = {};
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -1077,6 +1163,7 @@ Date	Irufan	Hussain	Mohamed
             document.getElementById('leaveDate').min = today;
             document.getElementById('rosterDate').value = today;
             document.getElementById('viewRosterDate').value = today;
+            document.getElementById('myRosterMonth').value = today.substring(0, 7);
             
             // Check session
             checkSession();
@@ -1149,6 +1236,9 @@ Date	Irufan	Hussain	Mohamed
             currentUser = userData;
             allUsers = users || [];
             
+            // Initialize user display name map
+            initializeUserDisplayMap();
+            
             // Update UI
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('dashboardContainer').style.display = 'block';
@@ -1170,6 +1260,32 @@ Date	Irufan	Hussain	Mohamed
             setupNavigation();
             setupEventListeners();
             updateDashboard();
+        }
+
+        function initializeUserDisplayMap() {
+            userDisplayNameMap = {};
+            allUsers.forEach(user => {
+                // Map common display names to usernames
+                userDisplayNameMap[user.name] = user.username;
+                userDisplayNameMap[user.RCNo] = user.username;
+                
+                // Map username itself
+                userDisplayNameMap[user.username] = user.username;
+                
+                // For names like "Irufan1", "Irufan2" - map based on name pattern
+                if (user.name.includes('Irufan')) {
+                    const match = user.name.match(/Irufan\s*(\d*)/i);
+                    if (match && match[1]) {
+                        userDisplayNameMap[`Irufan${match[1]}`] = user.username;
+                    }
+                }
+                
+                // Map common variations
+                const nameLower = user.name.toLowerCase();
+                const usernameLower = user.username.toLowerCase();
+                userDisplayNameMap[nameLower] = user.username;
+                userDisplayNameMap[usernameLower] = user.username;
+            });
         }
 
         function initializeData() {
@@ -1278,6 +1394,9 @@ Date	Irufan	Hussain	Mohamed
                 });
             });
             
+            // Show "View My Roster" for all users
+            document.querySelector('[data-section="viewMyRoster"]').style.display = 'inline-block';
+            
             // Logout button
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('dutySystemSession');
@@ -1306,6 +1425,9 @@ Date	Irufan	Hussain	Mohamed
                         break;
                     case 'myRequests':
                         loadMyRequests();
+                        break;
+                    case 'viewMyRoster':
+                        loadMyRoster();
                         break;
                     case 'pendingRequests':
                         loadPendingRequests();
@@ -1359,6 +1481,53 @@ Date	Irufan	Hussain	Mohamed
             
             document.getElementById('leaveType').addEventListener('change', updateLeaveRules);
             document.getElementById('leaveDutyTime').addEventListener('change', updateLeaveRules);
+            
+            // Roster view type change
+            document.getElementById('myRosterViewType').addEventListener('change', function() {
+                loadMyRoster();
+            });
+        }
+
+        // FIXED: Show "Off" when duty time is "Off"
+        function loadUserDutyTimes(selectId, date) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            if (!date || !currentUser) return;
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                select.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = 'No Duty';
+                option.textContent = 'No duty scheduled';
+                select.appendChild(option);
+            }
+        }
+
+        // FIXED: Show "Off" when staff duty time is "Off"
+        function loadStaffDutyTimes(selectId, date, username) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            if (!date || !username) return;
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][username];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                select.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = 'No Duty';
+                option.textContent = 'No duty scheduled';
+                select.appendChild(option);
+            }
         }
 
         function loadDutyChangeForm() {
@@ -1396,46 +1565,6 @@ Date	Irufan	Hussain	Mohamed
             updateLeaveRules();
         }
 
-        function loadUserDutyTimes(selectId, date) {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Select duty time</option>';
-            
-            if (!date || !currentUser) return;
-            
-            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
-            if (dutyTime && dutyTime !== 'Off') {
-                const option = document.createElement('option');
-                option.value = dutyTime;
-                option.textContent = dutyTime;
-                select.appendChild(option);
-            } else {
-                const option = document.createElement('option');
-                option.value = 'Off';
-                option.textContent = 'No duty scheduled';
-                select.appendChild(option);
-            }
-        }
-
-        function loadStaffDutyTimes(selectId, date, username) {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Select duty time</option>';
-            
-            if (!date || !username) return;
-            
-            const dutyTime = dutyRoster[date] && dutyRoster[date][username];
-            if (dutyTime && dutyTime !== 'Off') {
-                const option = document.createElement('option');
-                option.value = dutyTime;
-                option.textContent = dutyTime;
-                select.appendChild(option);
-            } else {
-                const option = document.createElement('option');
-                option.value = 'Off';
-                option.textContent = 'No duty scheduled';
-                select.appendChild(option);
-            }
-        }
-
         function updateLeaveRules() {
             const leaveType = document.getElementById('leaveType').value;
             const leaveDate = document.getElementById('leaveDate').value;
@@ -1443,9 +1572,16 @@ Date	Irufan	Hussain	Mohamed
             const alertDiv = document.getElementById('leaveRulesAlert');
             const submitBtn = document.getElementById('submitLeaveBtn');
             
-            if (!leaveType || !leaveDate || !dutyTime || dutyTime === 'Off') {
+            if (!leaveType || !leaveDate || !dutyTime || dutyTime === 'No Duty') {
                 alertDiv.className = 'alert alert-warning';
                 alertDiv.textContent = 'Please select leave type, date and duty time';
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            if (dutyTime === 'Off') {
+                alertDiv.className = 'alert alert-warning';
+                alertDiv.textContent = 'You are off duty on this date. No leave needed.';
                 submitBtn.disabled = true;
                 return;
             }
@@ -1485,6 +1621,11 @@ Date	Irufan	Hussain	Mohamed
             
             if (!date || !dutyTime || !toStaff || !toDutyTime) {
                 alert('Please fill all required fields');
+                return;
+            }
+            
+            if (dutyTime === 'No Duty' || toDutyTime === 'No Duty') {
+                alert('Cannot request duty change when no duty is scheduled');
                 return;
             }
             
@@ -1529,6 +1670,11 @@ Date	Irufan	Hussain	Mohamed
             
             if (!leaveType || !date || !dutyTime || !reason) {
                 alert('Please fill all required fields');
+                return;
+            }
+            
+            if (dutyTime === 'No Duty' || dutyTime === 'Off') {
+                alert('You are off duty on this date. No leave needed.');
                 return;
             }
             
@@ -1631,6 +1777,156 @@ Date	Irufan	Hussain	Mohamed
                 
                 tbody.appendChild(tr);
             });
+        }
+
+        // NEW FUNCTION: Load My Roster for regular users
+        function loadMyRoster() {
+            const container = document.getElementById('myRosterContainer');
+            const monthInput = document.getElementById('myRosterMonth').value;
+            const viewType = document.getElementById('myRosterViewType').value;
+            
+            if (!monthInput) {
+                container.innerHTML = '<div class="alert alert-warning">Please select a month</div>';
+                return;
+            }
+            
+            const [year, month] = monthInput.split('-');
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0);
+            
+            if (viewType === 'calendar') {
+                displayCalendarView(container, startDate, endDate, year, month);
+            } else {
+                displayTableView(container, startDate, endDate, year, month);
+            }
+        }
+
+        function displayTableView(container, startDate, endDate, year, month) {
+            let html = `<h4>Your Roster for ${month}/${year}</h4>`;
+            html += '<div class="table-container"><table><thead><tr><th>Date</th><th>Day</th><th>Duty Time</th><th>Status</th></tr></thead><tbody>';
+            
+            const today = new Date().toISOString().split('T')[0];
+            let dutyCount = 0;
+            let offCount = 0;
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                
+                let dutyTime = 'Not Scheduled';
+                let statusClass = '';
+                let statusText = '';
+                
+                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                    dutyTime = dutyRoster[dateStr][currentUser.username];
+                    if (dutyTime === 'Off') {
+                        statusClass = 'status-off';
+                        statusText = 'Off Duty';
+                        offCount++;
+                    } else {
+                        statusClass = dateStr < today ? 'status-approved' : 'status-pending';
+                        statusText = dateStr < today ? 'Completed' : 'Scheduled';
+                        dutyCount++;
+                    }
+                } else {
+                    statusClass = 'status-pending';
+                    statusText = 'Not Scheduled';
+                }
+                
+                const isToday = dateStr === today;
+                const rowClass = isToday ? 'style="background-color: #fff3cd;"' : '';
+                
+                html += `<tr ${rowClass}>
+                    <td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>
+                    <td>${dayName}</td>
+                    <td>${dutyTime}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                </tr>`;
+            }
+            
+            html += '</tbody></table></div>';
+            
+            // Add summary
+            html += `<div class="alert alert-info" style="margin-top: 15px;">
+                <strong>Summary:</strong> ${dutyCount} duty days, ${offCount} off days
+            </div>`;
+            
+            container.innerHTML = html;
+        }
+
+        function displayCalendarView(container, startDate, endDate, year, month) {
+            let html = `<h4>Your Roster for ${month}/${year} - Calendar View</h4>`;
+            html += '<div class="calendar-grid">';
+            
+            // Add day headers
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            days.forEach(day => {
+                html += `<div class="calendar-day" style="text-align: center; font-weight: bold;">${day}</div>`;
+            });
+            
+            // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+            const firstDay = startDate.getDay();
+            
+            // Add empty cells for days before the first day of month
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="calendar-day"></div>';
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Add calendar days
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayNum = d.getDate();
+                const isToday = dateStr === today;
+                
+                let dutyTime = 'Not Scheduled';
+                let dayClass = 'calendar-day';
+                let timeClass = '';
+                let timeText = '';
+                
+                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                    dutyTime = dutyRoster[dateStr][currentUser.username];
+                    if (dutyTime === 'Off') {
+                        dayClass += ' off-day';
+                        timeClass = 'off-time';
+                        timeText = 'Off';
+                    } else {
+                        dayClass += ' duty-day';
+                        timeClass = 'duty-time';
+                        timeText = dutyTime;
+                    }
+                }
+                
+                if (isToday) {
+                    dayClass += ' today';
+                }
+                
+                html += `<div class="${dayClass}">
+                    <div class="day-header">${dayNum}</div>
+                    <div class="${timeClass}">${timeText}</div>
+                </div>`;
+            }
+            
+            html += '</div>';
+            
+            // Add legend
+            html += `<div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; background-color: #d4edda; border: 1px solid #c3e6cb;"></div>
+                    <span style="font-size: 12px;">Duty Day</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb;"></div>
+                    <span style="font-size: 12px;">Off Day</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; background-color: #e8f4fc; border: 2px solid #3498db;"></div>
+                    <span style="font-size: 12px;">Today</span>
+                </div>
+            </div>`;
+            
+            container.innerHTML = html;
         }
 
         function loadPendingRequests() {
@@ -1815,44 +2111,89 @@ Date	Irufan	Hussain	Mohamed
             }
             
             const headers = lines[0].split('\t');
+            let successCount = 0;
+            let errorCount = 0;
             
             for (let i = 1; i < lines.length; i++) {
                 const cells = lines[i].split('\t');
                 const date = cells[0];
+                
+                // Validate date format
+                if (!isValidDate(date)) {
+                    console.log(`Skipping invalid date: ${date}`);
+                    errorCount++;
+                    continue;
+                }
                 
                 if (!dutyRoster[date]) {
                     dutyRoster[date] = {};
                 }
                 
                 for (let j = 1; j < headers.length && j < cells.length; j++) {
-                    const staffUsername = findUsernameByName(headers[j]);
-                    if (staffUsername) {
-                        dutyRoster[date][staffUsername] = cells[j] || 'Off';
+                    const displayName = headers[j];
+                    const dutyTime = cells[j] || 'Off';
+                    
+                    // Find username using display name map
+                    const username = findUsernameFromDisplayName(displayName);
+                    
+                    if (username) {
+                        dutyRoster[date][username] = dutyTime;
+                        successCount++;
+                    } else {
+                        console.log(`User not found for display name: ${displayName}`);
+                        errorCount++;
                     }
                 }
             }
             
             saveDutyRoster();
-            alert('Roster saved successfully!');
+            alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
             document.getElementById('excelPreview').style.display = 'none';
             document.getElementById('excelPasteBox').value = '';
         }
 
-        function findUsernameByName(namePart) {
-            // Try to find username by matching name or RC
-            const user = allUsers.find(u => 
-                u.name.includes(namePart) || 
-                u.RCNo === namePart ||
-                namePart.includes(u.name)
-            );
-            return user ? user.username : null;
+        function findUsernameFromDisplayName(displayName) {
+            // Try direct mapping first
+            if (userDisplayNameMap[displayName]) {
+                return userDisplayNameMap[displayName];
+            }
+            
+            // Try case-insensitive matching
+            const displayLower = displayName.toLowerCase();
+            for (const key in userDisplayNameMap) {
+                if (key.toLowerCase() === displayLower) {
+                    return userDisplayNameMap[key];
+                }
+            }
+            
+            // Try to find by partial match
+            for (const key in userDisplayNameMap) {
+                if (displayName.includes(key) || key.includes(displayName)) {
+                    return userDisplayNameMap[key];
+                }
+            }
+            
+            return null;
+        }
+
+        function isValidDate(dateString) {
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateString.match(regex)) return false;
+            const date = new Date(dateString);
+            return date instanceof Date && !isNaN(date);
         }
 
         function loadSampleData() {
-            const sampleData = `Date\tIrufan\tHussain\tMohamed\tfiyaza\tA-6313\tIrufan1\tIrufan2
-${new Date().toISOString().split('T')[0]}\t08:00-16:00\t16:00-00:00\t00:00-08:00\tOff\t08:00-16:00\t16:00-00:00\t00:00-08:00
-${new Date(Date.now() + 86400000).toISOString().split('T')[0]}\t16:00-00:00\t08:00-16:00\tOff\t00:00-08:00\t16:00-00:00\t08:00-16:00\tOff
-${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOff\t08:00-16:00\t16:00-00:00\tOff\t00:00-08:00\t08:00-16:00`;
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfter = new Date(today);
+            dayAfter.setDate(dayAfter.getDate() + 2);
+            
+            const sampleData = `Date\tIrufan1\tIrufan2\tHussain\tMohamed
+${today.toISOString().split('T')[0]}\t07:30-15:30\t15:30-23:30\t08:00-16:00\tOff
+${tomorrow.toISOString().split('T')[0]}\t15:30-23:30\t07:30-15:30\tOff\t00:00-08:00
+${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16:00`;
             
             document.getElementById('excelPasteBox').value = sampleData;
             processExcelPaste();
@@ -1914,7 +2255,8 @@ ${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOf
         }
 
         function editRosterEntry(date, username) {
-            const dutyTime = prompt('Enter new duty time:', dutyRoster[date][username]);
+            const currentTime = dutyRoster[date][username];
+            const dutyTime = prompt('Enter new duty time:', currentTime);
             if (dutyTime !== null) {
                 dutyRoster[date][username] = dutyTime;
                 saveDutyRoster();
@@ -2050,8 +2392,6 @@ ${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOf
         }
 
         function updateTempBalance(username, type, value) {
-            // This updates the display only, not saved until "Save All" is clicked
-            // We'll store in a temporary object or update directly with visual feedback
             if (!leaveBalances[username]) {
                 leaveBalances[username] = {SL: 0, FRL: 0};
             }
@@ -2061,7 +2401,7 @@ ${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOf
         function saveAllBalances() {
             saveLeaveBalances();
             alert('All balances saved successfully!');
-            loadBulkBalanceTable(); // Refresh to show saved state
+            loadBulkBalanceTable();
         }
 
         function resetAllBalances() {
@@ -2071,12 +2411,12 @@ ${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOf
                 });
                 saveLeaveBalances();
                 loadBulkBalanceTable();
-                updateUserBalance(); // Update current user's display
+                updateUserBalance();
             }
         }
 
         function resetUserBalance(username) {
-            if (confirm(`Reset balance for ${username} to default?`)) {
+            if (confirm(`Reset balance for this user to default?`)) {
                 leaveBalances[username] = {SL: 12, FRL: 6};
                 saveLeaveBalances();
                 loadBulkBalanceTable();
@@ -2212,7 +2552,7 @@ ${new Date(Date.now() + 172800000).toISOString().split('T')[0]}\t00:00-08:00\tOf
             
             alert('Request approved!');
             loadAdminApprovals();
-            updateUserBalance(); // Update balance display if it's current user
+            updateUserBalance();
         }
 
         function adminReject(requestId) {
