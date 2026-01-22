@@ -16,7 +16,7 @@
     <script src="user.js" defer></script>
     
     <style>
-        /* Mobile-First CSS */
+        /* Mobile-First CSS - Complete */
         * {
             margin: 0;
             padding: 0;
@@ -82,7 +82,7 @@
             padding: 14px;
             border: 2px solid #e0e6ed;
             border-radius: 8px;
-            font-size: 16px; /* Prevents iOS zoom */
+            font-size: 16px;
             transition: all 0.3s;
             -webkit-appearance: none;
         }
@@ -93,7 +93,7 @@
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
-        /* Buttons with larger touch targets */
+        /* Buttons */
         .btn {
             padding: 14px 20px;
             border: none;
@@ -114,17 +114,9 @@
             color: white;
         }
 
-        .btn-primary:hover, .btn-primary:active {
-            background: #2980b9;
-        }
-
         .btn-success {
             background: #27ae60;
             color: white;
-        }
-
-        .btn-success:hover, .btn-success:active {
-            background: #219653;
         }
 
         .btn-danger {
@@ -132,17 +124,9 @@
             color: white;
         }
 
-        .btn-danger:hover, .btn-danger:active {
-            background: #c0392b;
-        }
-
         .btn-warning {
             background: #f39c12;
             color: white;
-        }
-
-        .btn-warning:hover, .btn-warning:active {
-            background: #d68910;
         }
 
         .btn-block {
@@ -206,7 +190,7 @@
             margin-top: 5px;
         }
 
-        /* Mobile Navigation */
+        /* Desktop Navigation */
         .dashboard-nav {
             background: #34495e;
             padding: 10px;
@@ -244,17 +228,8 @@
             flex-shrink: 0;
         }
 
-        .nav-btn:hover, .nav-btn:active {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
         .nav-btn.active {
             background: #3498db;
-        }
-
-        /* Mobile Navigation Icons */
-        .nav-btn::before {
-            display: none;
         }
 
         .notification-badge {
@@ -322,115 +297,47 @@
             padding-bottom: 6px;
         }
 
-        /* Announcement Banner */
-        .announcement-banner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            position: relative;
-            overflow: hidden;
+        /* Mobile Bottom Navigation */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #34495e;
+            padding: 10px;
+            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
-        .announcement-banner.priority-high {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            animation: pulse-banner 2s infinite;
-        }
-
-        .announcement-banner.priority-medium {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .announcement-banner.priority-low {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-
-        @keyframes pulse-banner {
-            0% { box-shadow: 0 0 0 0 rgba(245, 87, 108, 0.4); }
-            70% { box-shadow: 0 0 0 8px rgba(245, 87, 108, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(245, 87, 108, 0); }
-        }
-
-        .announcement-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            word-break: break-word;
-        }
-
-        .announcement-icon {
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .announcement-content {
-            font-size: 13px;
-            opacity: 0.95;
-            margin-bottom: 8px;
-            word-break: break-word;
-        }
-
-        .announcement-meta {
-            font-size: 10px;
-            opacity: 0.8;
+        .mobile-nav-item {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            margin-top: 8px;
-        }
-
-        .announcement-target {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 9px;
-            align-self: flex-start;
-        }
-
-        .announcement-actions {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: flex;
-            gap: 4px;
-        }
-
-        .announcement-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 12px;
+            color: white;
+            text-decoration: none;
+            font-size: 11px;
+            padding: 8px 4px;
+            border-radius: 6px;
             transition: all 0.3s;
         }
 
-        .announcement-btn:hover, .announcement-btn:active {
-            background: rgba(255, 255, 255, 0.3);
+        .mobile-nav-item.active {
+            background: #3498db;
         }
 
-        /* Forms - Stack on mobile */
+        .mobile-nav-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        /* Forms */
         .form-row {
             display: flex;
             flex-direction: column;
             gap: 12px;
             margin-bottom: 12px;
-        }
-
-        .form-group-inline {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
         }
 
         textarea.form-control {
@@ -439,7 +346,7 @@
             font-family: inherit;
         }
 
-        /* Tables - Horizontal scroll on mobile */
+        /* Tables */
         .table-container {
             overflow-x: auto;
             margin-top: 12px;
@@ -466,71 +373,9 @@
             background: #f8f9fa;
             font-weight: 600;
             color: #2c3e50;
-            position: sticky;
-            left: 0;
         }
 
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        /* Excel-like table */
-        .excel-table {
-            font-size: 12px;
-        }
-
-        .excel-table td {
-            padding: 6px;
-            border: 1px solid #ddd;
-            white-space: nowrap;
-        }
-
-        .excel-table th {
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-        }
-
-        .excel-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-family: inherit;
-            font-size: 12px;
-            padding: 4px;
-        }
-
-        .excel-input:focus {
-            outline: 2px solid #3498db;
-            background: white;
-        }
-
-        /* Status */
-        .status-pending {
-            color: #f39c12;
-            font-weight: 500;
-        }
-
-        .status-approved {
-            color: #27ae60;
-            font-weight: 500;
-        }
-
-        .status-rejected {
-            color: #e74c3c;
-            font-weight: 500;
-        }
-        
-        .status-off {
-            color: #7f8c8d;
-            font-weight: 500;
-        }
-
-        .status-completed {
-            color: #3498db;
-            font-weight: 500;
-        }
-
-        /* Action Buttons - Stack on mobile */
+        /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 4px;
@@ -615,7 +460,7 @@
             color: #721c24;
         }
 
-        /* Balance Display - Stack on mobile */
+        /* Balance Display */
         .balance-display {
             display: flex;
             flex-direction: column;
@@ -652,11 +497,6 @@
             padding: 15px;
             text-align: center;
             margin-bottom: 15px;
-            cursor: pointer;
-        }
-
-        .excel-import-area:hover, .excel-import-area:active {
-            background: #e8f4fc;
         }
 
         .excel-paste-box {
@@ -669,7 +509,7 @@
             font-size: 12px;
         }
 
-        /* Tab Controls - Horizontal scroll */
+        /* Tab Controls */
         .tab-controls {
             display: flex;
             gap: 8px;
@@ -699,6 +539,20 @@
         }
 
         /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+
         .loading {
             text-align: center;
             padding: 30px;
@@ -720,7 +574,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Calendar View - Responsive grid */
+        /* Calendar View */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -738,14 +592,6 @@
             overflow: hidden;
         }
         
-        .calendar-day.off-day {
-            background: #f8d7da;
-        }
-        
-        .calendar-day.duty-day {
-            background: #d4edda;
-        }
-        
         .calendar-day.today {
             border: 2px solid #3498db;
             background: #e8f4fc;
@@ -757,44 +603,47 @@
             color: #2c3e50;
             margin-bottom: 3px;
         }
-        
-        .duty-time {
-            font-size: 10px;
-            color: #155724;
+
+        /* Priority Options */
+        .priority-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
         }
-        
-        .off-time {
-            font-size: 10px;
-            color: #721c24;
+
+        .priority-btn {
+            padding: 12px;
+            border: 2px solid #e0e6ed;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        
-        /* View All Roster Styles */
-        .roster-all-view {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+
+        .priority-btn.active {
+            border-color: #3498db;
+            background: #e8f4fc;
         }
-        
-        .roster-all-view table {
-            min-width: 800px;
+
+        .priority-btn.high {
+            border-left-color: #e74c3c;
         }
-        
-        .staff-name {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 11px;
+
+        .priority-btn.medium {
+            border-left-color: #f39c12;
         }
-        
-        .leave-indicator {
-            background-color: #ffeaa7;
-            border: 1px solid #fdcb6e;
-            border-radius: 3px;
-            padding: 1px 3px;
-            font-size: 9px;
-            margin-left: 3px;
-            color: #e17055;
-            font-weight: bold;
+
+        .priority-btn.low {
+            border-left-color: #27ae60;
         }
-        
+
         /* Different timing colors */
         .duty-time-morning {
             background-color: #d4edda !important;
@@ -836,172 +685,27 @@
             border: 2px solid #3498db !important;
             background-color: #e8f4fc !important;
         }
-        
-        /* Date Navigation - Stack on mobile */
-        .date-navigation {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
+
+        .off-day-cell {
+            background-color: #f8d7da !important;
+            color: #721c24;
         }
         
-        .date-nav-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: background 0.3s;
-            min-height: 44px;
-            width: 100%;
-        }
-        
-        .date-nav-btn:hover, .date-nav-btn:active {
-            background: #2980b9;
-        }
-        
-        .current-date-display {
+        .staff-name {
             font-weight: 600;
             color: #2c3e50;
-            font-size: 14px;
-            text-align: center;
-            padding: 8px;
-        }
-        
-        /* Legend - Wrap on mobile */
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #e0e6ed;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
             font-size: 11px;
-            flex: 1 0 45%;
         }
         
-        .legend-color {
-            width: 12px;
-            height: 12px;
+        .leave-indicator {
+            background-color: #ffeaa7;
+            border: 1px solid #fdcb6e;
             border-radius: 3px;
-            flex-shrink: 0;
-        }
-
-        /* Priority Options - Stack on mobile */
-        .priority-options {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .priority-btn {
-            padding: 12px;
-            border: 2px solid #e0e6ed;
-            border-radius: 6px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            min-height: 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .priority-btn:hover, .priority-btn:active {
-            transform: translateY(-2px);
-        }
-
-        .priority-btn.active {
-            border-color: #3498db;
-            background: #e8f4fc;
-        }
-
-        .priority-btn.high {
-            border-left-color: #e74c3c;
-        }
-
-        .priority-btn.medium {
-            border-left-color: #f39c12;
-        }
-
-        .priority-btn.low {
-            border-left-color: #27ae60;
-        }
-
-        /* Target Options - Stack on mobile */
-        .target-options {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .target-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-
-        /* Mobile Menu Toggle */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        /* Mobile Bottom Navigation */
-        .mobile-bottom-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #34495e;
-            padding: 10px;
-            z-index: 1000;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .mobile-nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: white;
-            text-decoration: none;
-            font-size: 11px;
-            padding: 8px 4px;
-            border-radius: 6px;
-            transition: all 0.3s;
-        }
-
-        .mobile-nav-item.active {
-            background: #3498db;
-        }
-
-        .mobile-nav-icon {
-            font-size: 18px;
-            margin-bottom: 3px;
+            padding: 1px 3px;
+            font-size: 9px;
+            margin-left: 3px;
+            color: #e17055;
+            font-weight: bold;
         }
 
         /* Mobile-specific adjustments */
@@ -1053,15 +757,7 @@
                 font-size: 10px;
             }
             
-            .announcement-actions {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-bottom: 8px;
-                justify-content: flex-start;
-            }
-            
-            /* Show navigation icons on mobile */
+            /* Navigation icons for mobile */
             .nav-btn span:not(.notification-badge) {
                 display: none;
             }
@@ -1072,7 +768,7 @@
                 margin-bottom: 2px;
             }
             
-            /* Add icons to nav buttons for mobile */
+            /* Add icons to nav buttons */
             .nav-btn[data-section="home"]::before { content: "🏠"; }
             .nav-btn[data-section="dutyChange"]::before { content: "🔄"; }
             .nav-btn[data-section="leaveApplication"]::before { content: "📝"; }
@@ -1106,10 +802,6 @@
             }
             
             .priority-options {
-                flex-direction: row;
-            }
-            
-            .target-options {
                 flex-direction: row;
             }
         }
@@ -1147,59 +839,6 @@
             .action-btn {
                 flex: 1 0 100%;
             }
-            
-            .legend-item {
-                flex: 1 0 100%;
-            }
-        }
-
-        /* Landscape mode */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .dashboard-content {
-                height: calc(100vh - 120px);
-            }
-            
-            .mobile-bottom-nav {
-                padding: 5px;
-            }
-            
-            .mobile-nav-item {
-                padding: 4px 2px;
-                font-size: 10px;
-            }
-            
-            .mobile-nav-icon {
-                font-size: 16px;
-                margin-bottom: 1px;
-            }
-        }
-
-        /* Prevent text selection on buttons */
-        .btn, .nav-btn, .action-btn, .tab-btn, .mobile-nav-item {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        /* Better touch feedback */
-        .btn:active, .nav-btn:active, .action-btn:active, .tab-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Loading overlay for mobile */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255,255,255,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            display: none;
         }
     </style>
 </head>
@@ -1351,9 +990,6 @@
                 </div>
             </div>
             
-            <!-- All other sections remain the same as in your original HTML -->
-            <!-- I'm including the Duty Change section as an example of mobile adaptation -->
-            
             <!-- Duty Change Request -->
             <div class="section" id="dutyChangeSection">
                 <div class="card">
@@ -1367,11 +1003,11 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="changeDate">Change Date *</label>
-                                <input type="date" id="changeDate" class="form-control" required min="" style="font-size: 16px;">
+                                <input type="date" id="changeDate" class="form-control" required min="">
                             </div>
                             <div class="form-group">
                                 <label for="changeDutyTime">Your Duty Time *</label>
-                                <select id="changeDutyTime" class="form-control" required style="font-size: 16px;">
+                                <select id="changeDutyTime" class="form-control" required>
                                     <option value="">Select duty time</option>
                                 </select>
                             </div>
@@ -1380,7 +1016,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="requestToStaff">Request To Staff *</label>
-                                <select id="requestToStaff" class="form-control" required style="font-size: 16px;">
+                                <select id="requestToStaff" class="form-control" required>
                                     <option value="">Select staff member</option>
                                 </select>
                             </div>
@@ -1393,7 +1029,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="requestToDutyTime">Staff's Duty Time *</label>
-                                <select id="requestToDutyTime" class="form-control" required style="font-size: 16px;">
+                                <select id="requestToDutyTime" class="form-control" required>
                                     <option value="">Select duty time</option>
                                 </select>
                             </div>
@@ -1414,9 +1050,581 @@
                 </div>
             </div>
             
-            <!-- All other sections would continue here... -->
-            <!-- Due to character limits, I can't include all sections, but they follow the same pattern -->
+            <!-- Leave Application -->
+            <div class="section" id="leaveApplicationSection">
+                <div class="card">
+                    <h3>Leave Application</h3>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Application Rules:</strong></p>
+                        <p>• Sick Leave: Minimum 2 hours before duty time</p>
+                        <p>• FRL: Minimum 1 hour before duty time</p>
+                        <p>• No back dated applications allowed</p>
+                    </div>
+                    
+                    <form id="leaveApplicationForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="leaveType">Leave Type *</label>
+                                <select id="leaveType" class="form-control" required>
+                                    <option value="">Select leave type</option>
+                                    <option value="Sick Leave">Sick Leave</option>
+                                    <option value="FRL">FRL</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="leaveDate">Leave Date *</label>
+                                <input type="date" id="leaveDate" class="form-control" required min="">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="leaveDutyTime">Duty Time *</label>
+                                <select id="leaveDutyTime" class="form-control" required>
+                                    <option value="">Select duty time</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="leaveDuration">Duration *</label>
+                                <select id="leaveDuration" class="form-control" required>
+                                    <option value="1">1 Day</option>
+                                    <option value="0.5">Half Day</option>
+                                    <option value="2">2 Days</option>
+                                    <option value="3">3 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="leaveReason">Reason *</label>
+                                <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="alert" id="leaveRulesAlert">
+                                Select leave type, date and duty time to see rules
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-success" id="submitLeaveBtn">Submit Application</button>
+                            <button type="button" class="btn btn-danger" onclick="showSection('home')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             
+            <!-- My Requests -->
+            <div class="section" id="myRequestsSection">
+                <div class="card">
+                    <h3>My Requests</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myRequestsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Roster -->
+            <div class="section" id="viewMyRosterSection">
+                <div class="card">
+                    <h3>My Duty Roster</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="myRosterMonth">View Month</label>
+                            <input type="month" id="myRosterMonth" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="myRosterViewType">View Type</label>
+                            <select id="myRosterViewType" class="form-control">
+                                <option value="table">Table View</option>
+                                <option value="calendar">Calendar View</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="loadMyRoster()">Load Roster</button>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        This shows your scheduled duties. Changes must be requested via Duty Change.
+                    </div>
+                    
+                    <div id="myRosterContainer">
+                        <!-- Roster will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Requests -->
+            <div class="section" id="pendingRequestsSection">
+                <div class="card">
+                    <h3>Pending Requests For You</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingRequestsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- View All Roster -->
+            <div class="section" id="viewAllRosterSection">
+                <div class="card">
+                    <h3>Complete Duty Roster - All Staff</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="allRosterStartDate">From Date</label>
+                            <input type="date" id="allRosterStartDate" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterEndDate">To Date</label>
+                            <input type="date" id="allRosterEndDate" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterViewType">View Type</label>
+                            <select id="allRosterViewType" class="form-control">
+                                <option value="table">Daily Table</option>
+                                <option value="staff">Staff View</option>
+                                <option value="calendar">Calendar View</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="loadAllRoster()">Load Roster</button>
+                        <button class="btn btn-secondary" onclick="printAllRoster()">Print</button>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        This shows the complete duty roster for all staff members.
+                    </div>
+                    
+                    <div id="allRosterContainer">
+                        <!-- Complete roster will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Announcement Management -->
+            <div class="section" id="adminAnnouncementsSection">
+                <div class="card">
+                    <h3>Create Announcement</h3>
+                    
+                    <form id="announcementForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="announcementTitle">Title *</label>
+                                <input type="text" id="announcementTitle" class="form-control" placeholder="Enter announcement title" required maxlength="100">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="announcementPriority">Priority *</label>
+                                <div class="priority-options">
+                                    <div class="priority-btn high" data-priority="high" onclick="selectPriority('high')">
+                                        High<br>
+                                        <small style="font-size: 10px; color: #e74c3c;">Urgent</small>
+                                    </div>
+                                    <div class="priority-btn medium active" data-priority="medium" onclick="selectPriority('medium')">
+                                        Medium<br>
+                                        <small style="font-size: 10px; color: #f39c12;">Important</small>
+                                    </div>
+                                    <div class="priority-btn low" data-priority="low" onclick="selectPriority('low')">
+                                        Low<br>
+                                        <small style="font-size: 10px; color: #27ae60;">Notice</small>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="announcementPriority" value="medium" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="announcementContent">Content *</label>
+                                <textarea id="announcementContent" class="form-control" rows="4" placeholder="Enter announcement details..." required maxlength="500"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Target Audience *</label>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="radio" name="target" value="all" checked onchange="updateTargetSelection()">
+                                        All Staff
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="radio" name="target" value="specific" onchange="updateTargetSelection()">
+                                        Specific Staff
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row" id="specificStaffSection" style="display: none;">
+                            <div class="form-group">
+                                <label for="announcementStaff">Select Staff</label>
+                                <select id="announcementStaff" class="form-control" multiple style="height: 120px;">
+                                    <!-- Staff options will be loaded -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="announcementExpiry">Expiry Date</label>
+                                <input type="date" id="announcementExpiry" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-success" id="createAnnouncementBtn">Create Announcement</button>
+                            <button type="button" class="btn btn-danger" onclick="clearAnnouncementForm()">Clear Form</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h3>Active Announcements</h3>
+                    <div id="activeAnnouncementsList">
+                        <!-- Active announcements will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Duty Roster Management -->
+            <div class="section" id="adminDutyRosterSection">
+                <div class="card">
+                    <h3>Duty Roster Management</h3>
+                    
+                    <div class="tab-controls">
+                        <button class="tab-btn active" onclick="showRosterTab('excelImport')">Excel Import</button>
+                        <button class="tab-btn" onclick="showRosterTab('manualEntry')">Manual Entry</button>
+                        <button class="tab-btn" onclick="showRosterTab('viewRoster')">View Roster</button>
+                    </div>
+                    
+                    <!-- Excel Import Tab -->
+                    <div id="excelImportTab" class="roster-tab active">
+                        <div class="alert alert-info">
+                            <strong>Instructions:</strong> Copy Excel data and paste below.
+                        </div>
+                        
+                        <div class="excel-import-area" onclick="document.getElementById('excelPasteBox').focus()">
+                            <p>📋 <strong>Click here and paste Excel data</strong></p>
+                        </div>
+                        
+                        <textarea id="excelPasteBox" class="excel-paste-box" placeholder="Paste Excel data here..."></textarea>
+                        
+                        <div class="form-row">
+                            <button class="btn btn-success" onclick="processExcelPaste()">Process Data</button>
+                            <button class="btn btn-primary" onclick="loadSampleData()">Load Sample</button>
+                            <button class="btn btn-danger" onclick="clearExcelPaste()">Clear</button>
+                        </div>
+                        
+                        <div id="excelPreview" style="margin-top: 20px; display: none;">
+                            <h4>Preview</h4>
+                            <div class="table-container">
+                                <table class="excel-table" id="excelPreviewTable">
+                                    <!-- Preview will be shown here -->
+                                </table>
+                            </div>
+                            <button class="btn btn-success" onclick="saveExcelData()" style="margin-top: 10px;">Save to Roster</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Manual Entry Tab -->
+                    <div id="manualEntryTab" class="roster-tab">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rosterDate">Date</label>
+                                <input type="date" id="rosterDate" class="form-control" value="">
+                            </div>
+                            <div class="form-group">
+                                <label for="rosterStaffSingle">Staff</label>
+                                <select id="rosterStaffSingle" class="form-control">
+                                    <option value="">Select staff</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rosterDutyTime">Duty Time</label>
+                                <input type="text" id="rosterDutyTime" class="form-control" placeholder="e.g., 08:00-16:00 or Off">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button class="btn btn-success" onclick="addRosterEntry()">Add Entry</button>
+                            <button class="btn btn-primary" onclick="clearRosterForm()">Clear</button>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>Today's Entries</h4>
+                            <div class="table-container">
+                                <table id="todayRosterTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Staff</th>
+                                            <th>Duty Time</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Filled by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- View Roster Tab -->
+                    <div id="viewRosterTab" class="roster-tab">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="viewRosterDate">View Date</label>
+                                <input type="date" id="viewRosterDate" class="form-control" value="">
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="loadRosterView()">Load Roster</button>
+                        
+                        <div id="rosterViewContainer">
+                            <!-- Roster will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Leave Balance Management -->
+            <div class="section" id="adminLeaveBalanceSection">
+                <div class="card">
+                    <h3>Leave Balance Management</h3>
+                    
+                    <div class="tab-controls">
+                        <button class="tab-btn active" onclick="showBalanceTab('bulkUpdate')">Bulk Update</button>
+                        <button class="tab-btn" onclick="showBalanceTab('individual')">Individual</button>
+                    </div>
+                    
+                    <!-- Bulk Update Tab -->
+                    <div id="bulkUpdateTab" class="balance-tab active">
+                        <div class="alert alert-info">
+                            <strong>Instructions:</strong> Enter SL and FRL balances in days
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>RC No</th>
+                                        <th>SL Balance</th>
+                                        <th>FRL Balance</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bulkBalanceTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button class="btn btn-success" onclick="saveAllBalances()">Save All Changes</button>
+                            <button class="btn btn-primary" onclick="resetAllBalances()">Reset All</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Individual Tab -->
+                    <div id="individualTab" class="balance-tab">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="balanceStaff">Select Staff</label>
+                                <select id="balanceStaff" class="form-control">
+                                    <option value="">Select staff</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="individualBalanceForm" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="individualSL">Sick Leave (Days)</label>
+                                    <input type="number" id="individualSL" class="form-control" step="0.5" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="individualFRL">FRL (Days)</label>
+                                    <input type="number" id="individualFRL" class="form-control" step="0.5" min="0">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <button class="btn btn-success" onclick="saveIndividualBalance()">Save Balance</button>
+                                <button class="btn btn-primary" onclick="resetIndividualBalance()">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Approve Requests -->
+            <div class="section" id="adminApprovalsSection">
+                <div class="card">
+                    <h3>Approve/Reject Requests</h3>
+                    
+                    <div class="tab-controls">
+                        <button class="tab-btn active" onclick="showApprovalsTab('pending')">Pending</button>
+                        <button class="tab-btn" onclick="showApprovalsTab('approved')">Approved</button>
+                        <button class="tab-btn" onclick="showApprovalsTab('rejected')">Rejected</button>
+                    </div>
+                    
+                    <div id="pendingApprovalsTab" class="approvals-tab active">
+                        <div class="table-container">
+                            <table class="request-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminApprovalsTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="approvedApprovalsTab" class="approvals-tab">
+                        <div class="table-container">
+                            <table class="request-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Applied By</th>
+                                        <th>Applied At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approvedRequestsTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="rejectedApprovalsTab" class="approvals-tab">
+                        <div class="table-container">
+                            <table class="request-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Rejected By</th>
+                                        <th>Rejected At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rejectedRequestsTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Request History -->
+            <div class="section" id="adminRequestHistorySection">
+                <div class="card">
+                    <h3>All Requests History</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="historyFilterStaff">Filter by Staff</label>
+                            <select id="historyFilterStaff" class="form-control">
+                                <option value="">All Staff</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="historyFilterType">Filter by Type</label>
+                            <select id="historyFilterType" class="form-control">
+                                <option value="">All Types</option>
+                                <option value="dutyChange">Duty Change</option>
+                                <option value="leave">Leave</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="historyFilterStatus">Filter by Status</label>
+                            <select id="historyFilterStatus" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="loadRequestHistory()">Filter</button>
+                        <button class="btn btn-secondary" onclick="clearHistoryFilters()">Clear Filters</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="request-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Timeline</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestHistoryTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1432,32 +1640,6 @@
 
         // Mobile detection
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        // Color mapping for different duty times
-        const dutyTimeColors = {
-            '07:00-15:00': 'duty-time-morning',
-            '07:30-15:30': 'duty-time-morning',
-            '08:00-16:00': 'duty-time-morning',
-            '08:30-16:30': 'duty-time-morning',
-            '09:00-17:00': 'duty-time-morning',
-            '10:00-18:00': 'duty-time-morning',
-            '15:00-23:00': 'duty-time-afternoon',
-            '15:30-23:30': 'duty-time-afternoon',
-            '16:00-00:00': 'duty-time-afternoon',
-            '16:30-00:30': 'duty-time-afternoon',
-            '14:00-22:00': 'duty-time-afternoon',
-            '23:00-07:00': 'duty-time-night',
-            '23:30-07:30': 'duty-time-night',
-            '00:00-08:00': 'duty-time-night',
-            '00:30-08:30': 'duty-time-night',
-            '18:00-02:00': 'duty-time-late-night',
-            '20:00-04:00': 'duty-time-late-night',
-            '22:00-06:00': 'duty-time-late-night',
-            '12:00-20:00': 'duty-time-mixed',
-            '13:00-21:00': 'duty-time-mixed',
-            '11:00-19:00': 'duty-time-mixed',
-            'default': 'duty-time-mixed'
-        };
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -1484,8 +1666,8 @@
             // Setup mobile navigation
             setupMobileNavigation();
             
-            // Setup mobile date pickers
-            setupMobileDatePickers();
+            // Setup mobile optimizations
+            setupMobileOptimizations();
             
             // Check session
             checkSession();
@@ -1540,22 +1722,30 @@
             });
         }
 
-        function setupMobileDatePickers() {
+        function setupMobileOptimizations() {
             if (isMobile) {
-                // For mobile, use native date picker with larger font
+                // Larger font for date inputs on mobile
                 const dateInputs = document.querySelectorAll('input[type="date"]');
                 dateInputs.forEach(input => {
                     input.style.fontSize = '16px';
-                    input.addEventListener('focus', function() {
-                        // Ensure date picker opens properly on mobile
-                        this.type = 'date';
-                    });
                 });
                 
-                // For select elements on mobile
+                // Larger font for select elements on mobile
                 const selectElements = document.querySelectorAll('select');
                 selectElements.forEach(select => {
                     select.style.fontSize = '16px';
+                });
+                
+                // Better touch feedback
+                const buttons = document.querySelectorAll('.btn, .action-btn, .nav-btn, .tab-btn');
+                buttons.forEach(button => {
+                    button.addEventListener('touchstart', function() {
+                        this.style.transform = 'scale(0.98)';
+                    });
+                    
+                    button.addEventListener('touchend', function() {
+                        this.style.transform = 'scale(1)';
+                    });
                 });
             }
         }
@@ -1630,7 +1820,7 @@
                     showError('Invalid username or password');
                     showLoading(false);
                 }
-            }, 500); // Simulate network delay for better UX
+            }, 500);
         }
 
         function showError(message) {
@@ -1638,7 +1828,6 @@
             errorMsg.textContent = message;
             errorMsg.style.display = 'block';
             
-            // Auto hide after 5 seconds on mobile
             setTimeout(() => {
                 errorMsg.style.display = 'none';
             }, 5000);
@@ -1667,9 +1856,6 @@
                 document.getElementById('adminApprovalsBtn').style.display = 'inline-block';
                 document.getElementById('adminRequestHistoryBtn').style.display = 'inline-block';
                 document.getElementById('adminAnnouncementsBtn').style.display = 'inline-block';
-                
-                // Also update mobile navigation if needed
-                // You might want to add admin items to mobile nav
             }
             
             // Always show "View All Roster" button to all users
@@ -1680,123 +1866,8 @@
             initializeData();
             setupEventListeners();
             updateDashboard();
-            
-            // Adjust for mobile
-            if (isMobile) {
-                document.body.style.overflow = 'hidden';
-                setupMobileTouchEvents();
-            }
         }
 
-        function setupMobileTouchEvents() {
-            // Better touch handling for mobile
-            const buttons = document.querySelectorAll('.btn, .action-btn, .nav-btn, .tab-btn');
-            buttons.forEach(button => {
-                button.addEventListener('touchstart', function() {
-                    this.style.transform = 'scale(0.98)';
-                });
-                
-                button.addEventListener('touchend', function() {
-                    this.style.transform = 'scale(1)';
-                });
-            });
-            
-            // Prevent zoom on input focus
-            document.addEventListener('touchstart', function(e) {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-                    document.body.style.zoom = "100%";
-                }
-            });
-        }
-
-        // All other functions remain the same as in your original code
-        // Just make sure to add mobile-specific optimizations where needed
-        
-        // For example, in showSection function:
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Show selected section
-            const section = document.getElementById(sectionId + 'Section');
-            if (section) {
-                section.classList.add('active');
-                
-                // On mobile, scroll to top when switching sections
-                if (isMobile) {
-                    document.querySelector('.dashboard-content').scrollTop = 0;
-                }
-                
-                // Load section data
-                switch(sectionId) {
-                    case 'home':
-                        loadHomeAnnouncements();
-                        break;
-                    case 'dutyChange':
-                        loadDutyChangeForm();
-                        break;
-                    // ... other cases
-                }
-            }
-        }
-
-        // For better mobile table display
-        function getDutyTimeClass(dutyTime) {
-            if (dutyTime === 'Off' || dutyTime === 'Not Scheduled') {
-                return 'off-day-cell';
-            }
-            
-            const normalizedTime = dutyTime.replace(/\s/g, '');
-            const timeKey = Object.keys(dutyTimeColors).find(key => 
-                key === normalizedTime || 
-                key.replace(/\s/g, '') === normalizedTime
-            );
-            
-            if (timeKey) {
-                return dutyTimeColors[timeKey];
-            }
-            
-            if (dutyTime.includes('-')) {
-                const [startTime] = dutyTime.split('-');
-                const startHour = parseInt(startTime.split(':')[0]);
-                
-                if (startHour >= 6 && startHour < 14) {
-                    return 'duty-time-morning';
-                } else if (startHour >= 14 && startHour < 22) {
-                    return 'duty-time-afternoon';
-                } else {
-                    return 'duty-time-night';
-                }
-            }
-            
-            return 'duty-time-mixed';
-        }
-
-        // Mobile-optimized utility functions
-        function formatTimeAgo(timestamp) {
-            const now = new Date();
-            const past = new Date(timestamp);
-            const diffMs = now - past;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            
-            // On mobile, use shorter date format
-            if (isMobile) {
-                return past.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }
-            
-            return past.toLocaleDateString();
-        }
-
-        // Initialize user display name map and other functions remain the same
         function initializeUserDisplayMap() {
             userDisplayNameMap = {};
             allUsers.forEach(user => {
@@ -1818,12 +1889,6 @@
             });
         }
 
-        // Export functions for onclick handlers
-        window.updateDashboard = updateDashboard;
-        window.showSection = showSection;
-        window.loadMyRoster = loadMyRoster;
-        window.loadAllRoster = loadAllRoster;
-        window.printAllRoster = printAllRoster;
         function initializeData() {
             // Load data from localStorage
             loadDutyRoster();
@@ -1864,12 +1929,12 @@
             if (savedBalances) {
                 leaveBalances = JSON.parse(savedBalances);
             } else {
-                // Initialize with default balances (in days)
+                // Initialize with default balances
                 leaveBalances = {};
                 allUsers.forEach(user => {
                     leaveBalances[user.username] = {
-                        SL: 12,  // 12 days Sick Leave
-                        FRL: 6   // 6 days FRL
+                        SL: 12,
+                        FRL: 6
                     };
                 });
                 saveLeaveBalances();
@@ -1941,25 +2006,6 @@
             document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
         }
 
-        function setupNavigation() {
-            const navBtns = document.querySelectorAll('.nav-btn');
-            navBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    navBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const sectionId = this.getAttribute('data-section');
-                    showSection(sectionId);
-                });
-            });
-            
-            // Logout button
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                localStorage.removeItem('dutySystemSession');
-                location.reload();
-            });
-        }
-
         function showSection(sectionId) {
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
@@ -1970,6 +2016,11 @@
             const section = document.getElementById(sectionId + 'Section');
             if (section) {
                 section.classList.add('active');
+                
+                // On mobile, scroll to top when switching sections
+                if (isMobile) {
+                    document.querySelector('.dashboard-content').scrollTop = 0;
+                }
                 
                 // Load section data
                 switch(sectionId) {
@@ -2022,7 +2073,6 @@
                 if (ann.status === 'expired' || ann.status === 'archived') return false;
                 if (ann.expiry && new Date(ann.expiry) < now) return false;
                 
-                // Check if announcement is for current user
                 if (ann.target === 'all') return true;
                 if (ann.target === 'specific' && ann.targetUsers && ann.targetUsers.includes(currentUser.username)) return true;
                 return false;
@@ -2030,7 +2080,6 @@
             
             if (activeAnnouncements.length === 0) return;
             
-            // Sort by priority (high to low) and date (newest first)
             activeAnnouncements.sort((a, b) => {
                 const priorityOrder = {high: 0, medium: 1, low: 2};
                 if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
@@ -2079,9 +2128,6 @@
             
             // Load active announcements
             loadActiveAnnouncements();
-            
-            // Load expired announcements
-            loadExpiredAnnouncements();
         }
 
         function setupAnnouncementForm() {
@@ -2140,7 +2186,7 @@
                 targetUsers = Array.from(staffSelect.selectedOptions).map(option => option.value);
                 
                 if (targetUsers.length === 0) {
-                    alert('Please select at least one staff member for specific announcement');
+                    alert('Please select at least one staff member');
                     return;
                 }
             }
@@ -2172,9 +2218,6 @@
             
             // Reload announcements
             loadActiveAnnouncements();
-            
-            // Show success message
-            showUserNotification('New announcement created successfully!');
         }
 
         function clearAnnouncementForm() {
@@ -2205,16 +2248,14 @@
             
             if (activeAnnouncements.length === 0) {
                 container.innerHTML = `
-                    <div class="no-announcements">
-                        <div class="icon">📢</div>
+                    <div style="text-align: center; padding: 20px; color: #7f8c8d;">
+                        <div style="font-size: 36px; margin-bottom: 10px; opacity: 0.5;">📢</div>
                         <p>No active announcements</p>
-                        <p style="font-size: 12px;">Create your first announcement above</p>
                     </div>
                 `;
                 return;
             }
             
-            // Sort by priority and date
             activeAnnouncements.sort((a, b) => {
                 const priorityOrder = {high: 0, medium: 1, low: 2};
                 if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
@@ -2240,9 +2281,7 @@
                 
                 announcementDiv.innerHTML = `
                     <div class="announcement-actions">
-                        <button class="announcement-btn" onclick="editAnnouncement('${ann.id}')" title="Edit">✏️</button>
-                        <button class="announcement-btn" onclick="archiveAnnouncement('${ann.id}')" title="Archive">📁</button>
-                        <button class="announcement-btn" onclick="deleteAnnouncement('${ann.id}')" title="Delete">🗑️</button>
+                        <button class="announcement-btn" onclick="deleteAnnouncement('${ann.id}')">🗑️</button>
                     </div>
                     <div class="announcement-title">
                         <span class="announcement-icon">📢</span>
@@ -2262,199 +2301,15 @@
             });
         }
 
-        function loadExpiredAnnouncements() {
-            const container = document.getElementById('expiredAnnouncementsList');
-            container.innerHTML = '';
-            
-            const now = new Date();
-            const expiredAnnouncements = announcements.filter(ann => {
-                if (ann.status === 'expired') return true;
-                if (ann.expiry && new Date(ann.expiry) < now) {
-                    ann.status = 'expired';
-                    return true;
-                }
-                return false;
-            });
-            
-            if (expiredAnnouncements.length === 0) {
-                container.innerHTML = `
-                    <div class="no-announcements">
-                        <div class="icon">📅</div>
-                        <p>No expired announcements</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Sort by expiry date (newest first)
-            expiredAnnouncements.sort((a, b) => new Date(b.expiry || b.createdAt) - new Date(a.expiry || a.createdAt));
-            
-            expiredAnnouncements.forEach(ann => {
-                const announcementDiv = document.createElement('div');
-                announcementDiv.className = 'announcement-banner';
-                announcementDiv.style.background = 'linear-gradient(135deg, #868f96 0%, #596164 100%)';
-                announcementDiv.style.opacity = '0.8';
-                
-                let targetText = '';
-                if (ann.target === 'all') {
-                    targetText = 'All Staff';
-                } else {
-                    const targetNames = ann.targetUsers.map(username => {
-                        const user = allUsers.find(u => u.username === username);
-                        return user ? user.name : username;
-                    }).join(', ');
-                    targetText = `For: ${targetNames}`;
-                }
-                
-                announcementDiv.innerHTML = `
-                    <div class="announcement-actions">
-                        <button class="announcement-btn" onclick="restoreAnnouncement('${ann.id}')" title="Restore">↻</button>
-                        <button class="announcement-btn" onclick="deleteAnnouncement('${ann.id}')" title="Delete">🗑️</button>
-                    </div>
-                    <div class="announcement-title">
-                        <span class="announcement-icon">📅</span>
-                        ${ann.title}
-                    </div>
-                    <div class="announcement-content">${ann.content}</div>
-                    <div class="announcement-meta">
-                        <div>
-                            By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
-                            <br>Expired: ${formatDate(ann.expiry || ann.createdAt)}
-                        </div>
-                        <div class="announcement-target">${targetText}</div>
-                    </div>
-                `;
-                
-                container.appendChild(announcementDiv);
-            });
-        }
-
-        function editAnnouncement(announcementId) {
-            const announcement = announcements.find(ann => ann.id === announcementId);
-            if (!announcement) return;
-            
-            // Fill form with announcement data
-            document.getElementById('announcementTitle').value = announcement.title;
-            document.getElementById('announcementContent').value = announcement.content;
-            selectPriority(announcement.priority);
-            
-            // Set target
-            if (announcement.target === 'all') {
-                document.querySelector('input[name="target"][value="all"]').checked = true;
-            } else {
-                document.querySelector('input[name="target"][value="specific"]').checked = true;
-                updateTargetSelection();
-                
-                // Select staff members
-                const staffSelect = document.getElementById('announcementStaff');
-                Array.from(staffSelect.options).forEach(option => {
-                    option.selected = announcement.targetUsers.includes(option.value);
-                });
-            }
-            
-            // Set expiry
-            document.getElementById('announcementExpiry').value = announcement.expiry || '';
-            
-            // Change button text
-            const submitBtn = document.getElementById('createAnnouncementBtn');
-            submitBtn.textContent = 'Update Announcement';
-            submitBtn.onclick = function() {
-                updateAnnouncement(announcementId);
-                return false;
-            };
-            
-            // Scroll to form
-            document.querySelector('.announcement-form-card').scrollIntoView({behavior: 'smooth'});
-        }
-
-        function updateAnnouncement(announcementId) {
-            const index = announcements.findIndex(ann => ann.id === announcementId);
-            if (index === -1) return;
-            
-            const title = document.getElementById('announcementTitle').value.trim();
-            const content = document.getElementById('announcementContent').value.trim();
-            const priority = document.getElementById('announcementPriority').value;
-            const target = document.querySelector('input[name="target"]:checked').value;
-            const expiry = document.getElementById('announcementExpiry').value;
-            let targetUsers = [];
-            
-            if (target === 'specific') {
-                const staffSelect = document.getElementById('announcementStaff');
-                targetUsers = Array.from(staffSelect.selectedOptions).map(option => option.value);
-                
-                if (targetUsers.length === 0) {
-                    alert('Please select at least one staff member for specific announcement');
-                    return;
-                }
-            }
-            
-            if (!title || !content) {
-                alert('Please fill in title and content');
-                return;
-            }
-            
-            // Update announcement
-            announcements[index] = {
-                ...announcements[index],
-                title: title,
-                content: content,
-                priority: priority,
-                target: target,
-                targetUsers: targetUsers,
-                expiry: expiry || null,
-                updatedAt: new Date().toISOString(),
-                updatedBy: currentUser.name
-            };
-            
-            saveAnnouncements();
-            
-            alert('Announcement updated successfully!');
-            clearAnnouncementForm();
-            
-            // Reset button
-            const submitBtn = document.getElementById('createAnnouncementBtn');
-            submitBtn.textContent = 'Create Announcement';
-            submitBtn.onclick = null;
-            
-            // Reload announcements
-            loadActiveAnnouncements();
-            loadExpiredAnnouncements();
-        }
-
-        function archiveAnnouncement(announcementId) {
-            if (confirm('Are you sure you want to archive this announcement?')) {
-                const index = announcements.findIndex(ann => ann.id === announcementId);
-                if (index !== -1) {
-                    announcements[index].status = 'archived';
-                    saveAnnouncements();
-                    loadActiveAnnouncements();
-                    alert('Announcement archived!');
-                }
-            }
-        }
-
         function deleteAnnouncement(announcementId) {
-            if (confirm('Are you sure you want to delete this announcement? This action cannot be undone.')) {
+            if (confirm('Are you sure you want to delete this announcement?')) {
                 const index = announcements.findIndex(ann => ann.id === announcementId);
                 if (index !== -1) {
                     announcements.splice(index, 1);
                     saveAnnouncements();
                     loadActiveAnnouncements();
-                    loadExpiredAnnouncements();
                     alert('Announcement deleted!');
                 }
-            }
-        }
-
-        function restoreAnnouncement(announcementId) {
-            const index = announcements.findIndex(ann => ann.id === announcementId);
-            if (index !== -1) {
-                announcements[index].status = 'active';
-                announcements[index].expiry = null; // Remove expiry when restoring
-                saveAnnouncements();
-                loadActiveAnnouncements();
-                loadExpiredAnnouncements();
-                alert('Announcement restored!');
             }
         }
 
@@ -2503,6 +2358,12 @@
             // Target audience radio buttons
             document.querySelectorAll('input[name="target"]').forEach(radio => {
                 radio.addEventListener('change', updateTargetSelection);
+            });
+            
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('dutySystemSession');
+                location.reload();
             });
         }
 
@@ -2741,11 +2602,10 @@
             saveAllRequests();
             updateRequestCounts();
             
-            alert('Leave application submitted! It will be processed after supervisor approval.');
+            alert('Leave application submitted!');
             showSection('home');
             document.getElementById('leaveApplicationForm').reset();
             
-            // Force dashboard update
             updateDashboard();
             updateUserBalance();
         }
@@ -2797,7 +2657,6 @@
                 return;
             }
             
-            // Sort by timestamp descending (newest first)
             myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             myReqs.forEach(req => {
@@ -2831,8 +2690,6 @@
                     <td>
                         ${req.status === 'pending' ? 
                             `<button class="action-btn view" onclick="cancelRequest('${req.id}')">Cancel</button>` : ''}
-                        ${req.status === 'approved' ? 
-                            `<span class="status-approved">✓ Applied</span>` : ''}
                     </td>
                 `;
                 
@@ -2920,7 +2777,6 @@
                 
                 html += '</tbody></table></div>';
                 
-                // Add summary
                 html += `<div class="alert alert-info" style="margin-top: 15px;">
                     <strong>Summary:</strong> ${dutyCount} duty days, ${offCount} off days
                 </div>`;
@@ -2937,20 +2793,11 @@
                 return 'off-day-cell';
             }
             
-            // Normalize the duty time format
-            const normalizedTime = dutyTime.replace(/\s/g, ''); // Remove spaces
-            const timeKey = Object.keys(dutyTimeColors).find(key => 
-                key === normalizedTime || 
-                key.replace(/\s/g, '') === normalizedTime
-            );
+            const normalizedTime = dutyTime.replace(/\s/g, '');
             
-            if (timeKey) {
-                return dutyTimeColors[timeKey];
-            }
-            
-            // Try to match by time range
+            // Color mapping based on time
             if (dutyTime.includes('-')) {
-                const [startTime, endTime] = dutyTime.split('-');
+                const [startTime] = dutyTime.split('-');
                 const startHour = parseInt(startTime.split(':')[0]);
                 
                 if (startHour >= 6 && startHour < 14) {
@@ -3006,7 +2853,7 @@
                         if (approvedLeave) {
                             dutyTime = 'Leave';
                             cellClass = 'off-day-cell';
-                            leaveIndicator = `<span class="leave-indicator" title="${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
+                            leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
                         } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
                             dutyTime = dutyRoster[dateStr][user.username];
                             if (dutyTime === 'Off') {
@@ -3031,31 +2878,23 @@
             
             html += '</tbody></table></div>';
             
-            // Add enhanced legend
-            html += `<div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #d4edda;"></div>
-                    <span>Morning Shifts (06:00-14:00)</span>
+            // Add legend
+            html += `<div class="legend" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e0e6ed;">
+                <div class="legend-item" style="display: flex; align-items: center; gap: 5px; font-size: 11px;">
+                    <div class="legend-color" style="width: 12px; height: 12px; border-radius: 3px; background-color: #d4edda;"></div>
+                    <span>Morning Shifts</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #cce5ff;"></div>
-                    <span>Afternoon Shifts (14:00-22:00)</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 5px; font-size: 11px;">
+                    <div class="legend-color" style="width: 12px; height: 12px; border-radius: 3px; background-color: #cce5ff;"></div>
+                    <span>Afternoon Shifts</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #d1ecf1;"></div>
-                    <span>Night Shifts (22:00-06:00)</span>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 5px; font-size: 11px;">
+                    <div class="legend-color" style="width: 12px; height: 12px; border-radius: 3px; background-color: #d1ecf1;"></div>
+                    <span>Night Shifts</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #f8d7da;"></div>
+                <div class="legend-item" style="display: flex; align-items: center; gap: 5px; font-size: 11px;">
+                    <div class="legend-color" style="width: 12px; height: 12px; border-radius: 3px; background-color: #f8d7da;"></div>
                     <span>Off Day / Leave</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #fff3cd;"></div>
-                    <span>Today</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #ffeaa7;"></div>
-                    <span>Leave (SL/FRL)</span>
                 </div>
             </div>`;
             
@@ -3072,7 +2911,7 @@
                 html += `<div class="calendar-day" style="text-align: center; font-weight: bold;">${day}</div>`;
             });
             
-            // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+            // Get first day of month
             const firstDay = startDate.getDay();
             
             // Add empty cells for days before the first day of month
@@ -3089,7 +2928,6 @@
                 const isToday = dateStr === today;
                 
                 let dayClass = 'calendar-day';
-                let timeClass = '';
                 let timeText = '';
                 
                 if (isMyRoster) {
@@ -3103,17 +2941,14 @@
                     
                     if (approvedLeave) {
                         dayClass += ' off-day';
-                        timeClass = 'off-time';
                         timeText = `${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}`;
                     } else if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
                         const dutyTime = dutyRoster[dateStr][currentUser.username];
                         if (dutyTime === 'Off') {
                             dayClass += ' off-day';
-                            timeClass = 'off-time';
                             timeText = 'Off';
                         } else {
                             dayClass += ' duty-day';
-                            timeClass = 'duty-time';
                             timeText = dutyTime;
                         }
                     }
@@ -3125,35 +2960,11 @@
                 
                 html += `<div class="${dayClass}">
                     <div class="day-header">${dayNum}</div>
-                    <div class="${timeClass}">${timeText}</div>
+                    <div>${timeText}</div>
                 </div>`;
             }
             
             html += '</div>';
-            
-            // Add legend
-            html += `<div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 15px; height: 15px; background-color: #d4edda; border: 1px solid #c3e6cb;"></div>
-                    <span style="font-size: 12px;">Morning Shift</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 15px; height: 15px; background-color: #cce5ff; border: 1px solid #b8daff;"></div>
-                    <span style="font-size: 12px;">Afternoon Shift</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 15px; height: 15px; background-color: #d1ecf1; border: 1px solid #bee5eb;"></div>
-                    <span style="font-size: 12px;">Night Shift</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 15px; height: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb;"></div>
-                    <span style="font-size: 12px;">Off Day</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 15px; height: 15px; background-color: #e8f4fc; border: 2px solid #3498db;"></div>
-                    <span style="font-size: 12px;">Today</span>
-                </div>
-            </div>`;
             
             container.innerHTML = html;
         }
@@ -3234,54 +3045,25 @@
             saveAllRequests();
             
             alert(`Request ${response} successfully!`);
-            
-            // Show notification on user dashboard
-            showUserNotification(`Your duty change request for ${request.date} was ${response} by ${request.toName}`);
-            
             showSection('home');
             updateRequestCounts();
         }
 
-        function showUserNotification(message) {
-            const notificationContainer = document.getElementById('homeNotifications');
-            if (notificationContainer) {
-                notificationContainer.style.display = 'block';
-                notificationContainer.innerHTML = `<div class="alert alert-info">
-                    <strong>Update:</strong> ${message}
-                </div>`;
-                
-                // Auto hide after 10 seconds
-                setTimeout(() => {
-                    notificationContainer.style.display = 'none';
-                }, 10000);
-            }
-        }
-
         // Admin Functions
         function loadDutyRosterAdmin() {
-            // Initialize tabs
             showRosterTab('excelImport');
             
             // Populate staff dropdowns
             const staffSelect = document.getElementById('rosterStaffSingle');
             staffSelect.innerHTML = '<option value="">Select staff</option>';
             
-            const viewStaffSelect = document.getElementById('viewRosterStaff');
-            viewStaffSelect.innerHTML = '<option value="">All Staff</option>';
-            
             allUsers.forEach(user => {
-                const option1 = document.createElement('option');
-                option1.value = user.username;
-                option1.textContent = `${user.name} (${user.RCNo})`;
-                staffSelect.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = user.username;
-                option2.textContent = `${user.name} (${user.RCNo})`;
-                viewStaffSelect.appendChild(option2.cloneNode(true));
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                staffSelect.appendChild(option);
             });
             
-            // Load today's entries
             loadTodayRoster();
         }
 
@@ -3321,14 +3103,14 @@
             
             const lines = pasteText.split('\n').filter(line => line.trim());
             if (lines.length < 2) {
-                alert('Invalid data format. Need at least header row and one data row.');
+                alert('Invalid data format');
                 return;
             }
             
-            // Parse header (first line)
+            // Parse header
             const headers = lines[0].split('\t');
             if (headers.length < 2) {
-                alert('Invalid format. First column should be Date, then staff names.');
+                alert('Invalid format');
                 return;
             }
             
@@ -3378,7 +3160,6 @@
                 
                 // Validate date format
                 if (!isValidDate(date)) {
-                    console.log(`Skipping invalid date: ${date}`);
                     errorCount++;
                     continue;
                 }
@@ -3398,36 +3179,35 @@
                         dutyRoster[date][username] = dutyTime;
                         successCount++;
                     } else {
-                        console.log(`User not found for display name: ${displayName}`);
                         errorCount++;
                     }
                 }
             }
             
             saveDutyRoster();
-            alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
+            alert(`Roster saved! ${successCount} entries updated.`);
             document.getElementById('excelPreview').style.display = 'none';
             document.getElementById('excelPasteBox').value = '';
         }
 
         function findUsernameFromDisplayName(displayName) {
-            // Try direct mapping first
             if (userDisplayNameMap[displayName]) {
                 return userDisplayNameMap[displayName];
             }
             
-            // Try case-insensitive matching
             const displayLower = displayName.toLowerCase();
             for (const key in userDisplayNameMap) {
-                if (key.toLowerCase() === displayLower) {
+                if (key.toLowerCase()
+                                if (key.toLowerCase() === displayLower) {
                     return userDisplayNameMap[key];
                 }
             }
             
-            // Try to find by partial match
-            for (const key in userDisplayNameMap) {
-                if (displayName.includes(key) || key.includes(displayName)) {
-                    return userDisplayNameMap[key];
+            // Try to extract name parts
+            const nameParts = displayName.split(/[\s\-\(\)]/);
+            for (const part of nameParts) {
+                if (part && userDisplayNameMap[part]) {
+                    return userDisplayNameMap[part];
                 }
             }
             
@@ -3436,22 +3216,18 @@
 
         function isValidDate(dateString) {
             const regex = /^\d{4}-\d{2}-\d{2}$/;
-            if (!dateString.match(regex)) return false;
+            if (!regex.test(dateString)) return false;
+            
             const date = new Date(dateString);
             return date instanceof Date && !isNaN(date);
         }
 
         function loadSampleData() {
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const dayAfter = new Date(today);
-            dayAfter.setDate(dayAfter.getDate() + 2);
-            
-            const sampleData = `Date\tIrufan1\tIrufan2\tHussain\tMohamed
-${today.toISOString().split('T')[0]}\t07:30-15:30\t15:30-23:30\t08:00-16:00\tOff
-${tomorrow.toISOString().split('T')[0]}\t15:30-23:30\t07:30-15:30\tOff\t00:00-08:00
-${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16:00`;
+            const sampleData = `Date\tJohn Doe\tJane Smith\tMike Johnson\tSarah Williams
+2024-01-01\t08:00-16:00\t16:00-00:00\t00:00-08:00\tOff
+2024-01-02\t16:00-00:00\t08:00-16:00\tOff\t00:00-08:00
+2024-01-03\tOff\t16:00-00:00\t08:00-16:00\t00:00-08:00
+2024-01-04\t00:00-08:00\tOff\t16:00-00:00\t08:00-16:00`;
             
             document.getElementById('excelPasteBox').value = sampleData;
             processExcelPaste();
@@ -3462,34 +3238,10 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             document.getElementById('excelPreview').style.display = 'none';
         }
 
-        function loadTodayRoster() {
-            const tbody = document.querySelector('#todayRosterTable tbody');
-            tbody.innerHTML = '';
-            
-            const today = document.getElementById('rosterDate').value;
-            if (!dutyRoster[today]) return;
-            
-            for (const [username, dutyTime] of Object.entries(dutyRoster[today])) {
-                const user = allUsers.find(u => u.username === username);
-                if (user) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${user.name} (${user.RCNo})</td>
-                        <td>${dutyTime}</td>
-                        <td>
-                            <button class="action-btn view" onclick="editRosterEntry('${today}', '${username}')">Edit</button>
-                            <button class="action-btn reject" onclick="deleteRosterEntry('${today}', '${username}')">Delete</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            }
-        }
-
         function addRosterEntry() {
             const date = document.getElementById('rosterDate').value;
             const staff = document.getElementById('rosterStaffSingle').value;
-            const dutyTime = document.getElementById('rosterDutyTime').value.trim();
+            const dutyTime = document.getElementById('rosterDutyTime').value;
             
             if (!date || !staff || !dutyTime) {
                 alert('Please fill all fields');
@@ -3502,64 +3254,80 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             
             dutyRoster[date][staff] = dutyTime;
             saveDutyRoster();
-            
-            alert('Entry added successfully!');
-            clearRosterForm();
             loadTodayRoster();
+            
+            document.getElementById('rosterDutyTime').value = '';
         }
 
         function clearRosterForm() {
             document.getElementById('rosterDutyTime').value = '';
         }
 
-        function editRosterEntry(date, username) {
-            const currentTime = dutyRoster[date][username];
-            const dutyTime = prompt('Enter new duty time:', currentTime);
-            if (dutyTime !== null) {
-                dutyRoster[date][username] = dutyTime;
-                saveDutyRoster();
-                loadTodayRoster();
+        function loadTodayRoster() {
+            const date = document.getElementById('rosterDate').value;
+            const tbody = document.getElementById('todayRosterTable').querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            if (!dutyRoster[date]) {
+                return;
             }
+            
+            Object.keys(dutyRoster[date]).forEach(username => {
+                const user = allUsers.find(u => u.username === username);
+                if (user) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${dutyRoster[date][username]}</td>
+                        <td>
+                            <button class="action-btn delete" onclick="removeRosterEntry('${date}', '${username}')">Remove</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
         }
 
-        function deleteRosterEntry(date, username) {
-            if (confirm('Are you sure you want to delete this entry?')) {
-                delete dutyRoster[date][username];
-                saveDutyRoster();
-                loadTodayRoster();
+        function removeRosterEntry(date, username) {
+            if (confirm('Are you sure you want to remove this roster entry?')) {
+                if (dutyRoster[date] && dutyRoster[date][username]) {
+                    delete dutyRoster[date][username];
+                    if (Object.keys(dutyRoster[date]).length === 0) {
+                        delete dutyRoster[date];
+                    }
+                    saveDutyRoster();
+                    loadTodayRoster();
+                }
             }
         }
 
         function loadRosterView() {
-            const container = document.getElementById('rosterViewContainer');
             const date = document.getElementById('viewRosterDate').value;
-            const staffFilter = document.getElementById('viewRosterStaff').value;
+            const container = document.getElementById('rosterViewContainer');
             
             if (!date) {
                 container.innerHTML = '<div class="alert alert-warning">Please select a date</div>';
                 return;
             }
             
-            let html = '<h4>Roster for ' + date + '</h4>';
-            
-            if (!dutyRoster[date] || Object.keys(dutyRoster[date]).length === 0) {
-                html += '<div class="alert alert-warning">No roster entries for this date</div>';
-                container.innerHTML = html;
+            if (!dutyRoster[date]) {
+                container.innerHTML = '<div class="alert alert-info">No roster entries for this date</div>';
                 return;
             }
             
+            let html = `<h4>Roster for ${date}</h4>`;
             html += '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC No</th><th>Duty Time</th></tr></thead><tbody>';
             
-            for (const [username, dutyTime] of Object.entries(dutyRoster[date])) {
+            Object.keys(dutyRoster[date]).forEach(username => {
                 const user = allUsers.find(u => u.username === username);
-                if (user && (!staffFilter || user.username === staffFilter)) {
+                if (user) {
                     html += `<tr>
                         <td>${user.name}</td>
                         <td>${user.RCNo}</td>
-                        <td>${dutyTime}</td>
+                        <td>${dutyRoster[date][username]}</td>
                     </tr>`;
                 }
-            }
+            });
             
             html += '</tbody></table></div>';
             container.innerHTML = html;
@@ -3567,31 +3335,8 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
 
         function loadLeaveBalanceAdmin() {
             showBalanceTab('bulkUpdate');
-            
-            // Populate staff dropdown for individual tab
-            const staffSelect = document.getElementById('balanceStaff');
-            staffSelect.innerHTML = '<option value="">Select staff</option>';
-            allUsers.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.username;
-                option.textContent = `${user.name} (${user.RCNo})`;
-                staffSelect.appendChild(option);
-            });
-            
-            staffSelect.addEventListener('change', function() {
-                const form = document.getElementById('individualBalanceForm');
-                if (this.value) {
-                    const balance = leaveBalances[this.value] || {SL: 0, FRL: 0};
-                    document.getElementById('individualSL').value = balance.SL;
-                    document.getElementById('individualFRL').value = balance.FRL;
-                    form.style.display = 'block';
-                } else {
-                    form.style.display = 'none';
-                }
-            });
-            
-            // Load bulk update table
             loadBulkBalanceTable();
+            populateBalanceStaff();
         }
 
         function showBalanceTab(tabName) {
@@ -3621,119 +3366,151 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             tbody.innerHTML = '';
             
             allUsers.forEach(user => {
-                const balance = leaveBalances[user.username] || {SL: 0, FRL: 0};
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${user.name}</td>
-                    <td>${user.RCNo}</td>
-                    <td>
-                        <input type="number" class="excel-input" 
-                               value="${balance.SL}" 
-                               step="0.5" 
-                               min="0"
-                               onchange="updateTempBalance('${user.username}', 'SL', this.value)">
-                    </td>
-                    <td>
-                        <input type="number" class="excel-input" 
-                               value="${balance.FRL}" 
-                               step="0.5" 
-                               min="0"
-                               onchange="updateTempBalance('${user.username}', 'FRL', this.value)">
-                    </td>
-                    <td>
-                        <button class="action-btn view" onclick="resetUserBalance('${user.username}')">Reset</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                if (user.Level === 'User') {
+                    const balance = leaveBalances[user.username] || {SL: 0, FRL: 0};
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.RCNo}</td>
+                        <td>
+                            <input type="number" class="balance-input sl-balance" 
+                                   value="${balance.SL}" step="0.5" min="0" 
+                                   data-username="${user.username}" data-type="SL">
+                        </td>
+                        <td>
+                            <input type="number" class="balance-input frl-balance" 
+                                   value="${balance.FRL}" step="0.5" min="0" 
+                                   data-username="${user.username}" data-type="FRL">
+                        </td>
+                        <td>
+                            <button class="action-btn save" onclick="saveUserBalance('${user.username}')">Save</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
             });
         }
 
-        function updateTempBalance(username, type, value) {
+        function populateBalanceStaff() {
+            const select = document.getElementById('balanceStaff');
+            select.innerHTML = '<option value="">Select staff</option>';
+            
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.name} (${user.RCNo})`;
+                    select.appendChild(option);
+                }
+            });
+            
+            select.addEventListener('change', function() {
+                const username = this.value;
+                const form = document.getElementById('individualBalanceForm');
+                
+                if (username) {
+                    const balance = leaveBalances[username] || {SL: 0, FRL: 0};
+                    document.getElementById('individualSL').value = balance.SL;
+                    document.getElementById('individualFRL').value = balance.FRL;
+                    form.style.display = 'block';
+                } else {
+                    form.style.display = 'none';
+                }
+            });
+        }
+
+        function saveUserBalance(username) {
+            const slInput = document.querySelector(`.sl-balance[data-username="${username}"]`);
+            const frlInput = document.querySelector(`.frl-balance[data-username="${username}"]`);
+            
+            if (!slInput || !frlInput) return;
+            
+            const slValue = parseFloat(slInput.value) || 0;
+            const frlValue = parseFloat(frlInput.value) || 0;
+            
             if (!leaveBalances[username]) {
                 leaveBalances[username] = {SL: 0, FRL: 0};
             }
-            leaveBalances[username][type] = parseFloat(value) || 0;
-        }
-
-        function saveAllBalances() {
+            
+            leaveBalances[username].SL = slValue;
+            leaveBalances[username].FRL = frlValue;
+            
             saveLeaveBalances();
-            alert('All balances saved successfully!');
-            loadBulkBalanceTable();
-            updateUserBalance();
-        }
-
-        function resetAllBalances() {
-            if (confirm('Reset ALL balances to default (12 days SL, 6 days FRL)?')) {
-                allUsers.forEach(user => {
-                    leaveBalances[user.username] = {SL: 12, FRL: 6};
-                });
-                saveLeaveBalances();
-                loadBulkBalanceTable();
-                updateUserBalance();
-            }
-        }
-
-        function resetUserBalance(username) {
-            if (confirm(`Reset balance for this user to default?`)) {
-                leaveBalances[username] = {SL: 12, FRL: 6};
-                saveLeaveBalances();
-                loadBulkBalanceTable();
-                if (username === currentUser.username) {
-                    updateUserBalance();
-                }
-            }
+            alert('Balance updated!');
         }
 
         function saveIndividualBalance() {
-            const staff = document.getElementById('balanceStaff').value;
-            const sl = parseFloat(document.getElementById('individualSL').value) || 0;
-            const frl = parseFloat(document.getElementById('individualFRL').value) || 0;
+            const username = document.getElementById('balanceStaff').value;
+            const slValue = parseFloat(document.getElementById('individualSL').value) || 0;
+            const frlValue = parseFloat(document.getElementById('individualFRL').value) || 0;
             
-            if (!staff) {
+            if (!username) {
                 alert('Please select a staff member');
                 return;
             }
             
-            if (!leaveBalances[staff]) {
-                leaveBalances[staff] = {SL: 0, FRL: 0};
+            if (!leaveBalances[username]) {
+                leaveBalances[username] = {SL: 0, FRL: 0};
             }
             
-            leaveBalances[staff].SL = sl;
-            leaveBalances[staff].FRL = frl;
+            leaveBalances[username].SL = slValue;
+            leaveBalances[username].FRL = frlValue;
+            
             saveLeaveBalances();
+            alert('Balance updated!');
+        }
+
+        function saveAllBalances() {
+            let updatedCount = 0;
             
-            alert('Balance saved successfully!');
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const slInput = document.querySelector(`.sl-balance[data-username="${user.username}"]`);
+                    const frlInput = document.querySelector(`.frl-balance[data-username="${user.username}"]`);
+                    
+                    if (slInput && frlInput) {
+                        const slValue = parseFloat(slInput.value) || 0;
+                        const frlValue = parseFloat(frlInput.value) || 0;
+                        
+                        if (!leaveBalances[user.username]) {
+                            leaveBalances[user.username] = {SL: 0, FRL: 0};
+                        }
+                        
+                        if (leaveBalances[user.username].SL !== slValue || 
+                            leaveBalances[user.username].FRL !== frlValue) {
+                            leaveBalances[user.username].SL = slValue;
+                            leaveBalances[user.username].FRL = frlValue;
+                            updatedCount++;
+                        }
+                    }
+                }
+            });
             
-            // Update bulk table if on that view
-            loadBulkBalanceTable();
-            
-            // Update current user's display if it's them
-            if (staff === currentUser.username) {
-                updateUserBalance();
+            if (updatedCount > 0) {
+                saveLeaveBalances();
+                alert(`Updated ${updatedCount} staff balances!`);
+            } else {
+                alert('No changes detected');
+            }
+        }
+
+        function resetAllBalances() {
+            if (confirm('Reset all balances to default values (SL: 12, FRL: 6)?')) {
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        leaveBalances[user.username] = {SL: 12, FRL: 6};
+                    }
+                });
+                saveLeaveBalances();
+                loadBulkBalanceTable();
+                alert('All balances reset to default!');
             }
         }
 
         function resetIndividualBalance() {
-            const staff = document.getElementById('balanceStaff').value;
-            if (!staff) {
-                alert('Please select a staff member');
-                return;
-            }
-            
-            if (confirm(`Reset balance for this staff to default (12 days SL, 6 days FRL)?`)) {
-                leaveBalances[staff] = {SL: 12, FRL: 6};
-                document.getElementById('individualSL').value = 12;
-                document.getElementById('individualFRL').value = 6;
-                saveLeaveBalances();
-                
-                // Update bulk table
-                loadBulkBalanceTable();
-                
-                if (staff === currentUser.username) {
-                    updateUserBalance();
-                }
-            }
+            document.getElementById('individualSL').value = '12';
+            document.getElementById('individualFRL').value = '6';
         }
 
         function loadAdminApprovals() {
@@ -3756,14 +3533,15 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             
             // Activate corresponding button
             document.querySelectorAll('#adminApprovalsSection .tab-btn').forEach(btn => {
-                if (btn.textContent.includes(tabName)) {
+                if (btn.textContent.includes(tabName === 'pending' ? 'Pending' : 
+                                             tabName === 'approved' ? 'Approved' : 'Rejected')) {
                     btn.classList.add('active');
                 }
             });
             
-            // Load data for the tab
+            // Load appropriate data
             if (tabName === 'pending') {
-                loadPendingApprovals();
+                loadPendingAdminApprovals();
             } else if (tabName === 'approved') {
                 loadApprovedRequests();
             } else if (tabName === 'rejected') {
@@ -3771,38 +3549,30 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             }
         }
 
-        function loadPendingApprovals() {
+        function loadPendingAdminApprovals() {
             const tbody = document.getElementById('adminApprovalsTable');
             tbody.innerHTML = '';
             
-            const pendingRequests = allRequests.filter(req => req.status === 'pending');
+            const pendingReqs = allRequests.filter(req => 
+                req.status === 'pending' && 
+                (req.type === 'leave' || req.type === 'dutyChange')
+            );
             
-            if (pendingRequests.length === 0) {
+            if (pendingReqs.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No pending requests</td></tr>';
                 return;
             }
             
-            // Sort by timestamp ascending (oldest first)
-            pendingRequests.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-            
-            pendingRequests.forEach(req => {
+            pendingReqs.forEach(req => {
                 const tr = document.createElement('tr');
                 
                 let details = '';
                 if (req.type === 'dutyChange') {
-                    details = `
-                        <div class="request-details">
-                            <strong>Swap Request:</strong><br>
-                            ${req.fromName} (${req.dutyTime}) ↔ ${req.toName} (${req.toDutyTime})
-                        </div>
-                    `;
+                    details = `Swap with ${req.toName} (${req.dutyTime} ↔ ${req.toDutyTime})`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
                 } else {
-                    details = `
-                        <div class="request-details">
-                            <strong>${req.leaveType}:</strong> ${req.duration} day(s)<br>
-                            <em>${req.reason}</em>
-                        </div>
-                    `;
+                    details = `${req.leaveType} - ${req.duration} day(s) on ${req.dutyTime}`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
                 }
                 
                 tr.innerHTML = `
@@ -3811,11 +3581,13 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     <td>${req.date}</td>
                     <td>${details}</td>
                     <td class="status-pending">Pending</td>
-                    <td class="action-buttons">
-                        <button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
-                        <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>
-                        ${req.type === 'dutyChange' ? 
-                            `<button class="action-btn apply" onclick="adminApplyDutyChange('${req.id}')">Apply & Approve</button>` : ''}
+                    <td>
+                        <div class="action-buttons">
+                            ${req.type === 'leave' ? 
+                                `<button class="action-btn approve" onclick="adminApproveRequest('${req.id}')">Approve</button>
+                                 <button class="action-btn reject" onclick="adminRejectRequest('${req.id}')">Reject</button>` :
+                                `<button class="action-btn view" onclick="viewDutyChangeDetails('${req.id}')">View</button>`}
+                        </div>
                     </td>
                 `;
                 
@@ -3823,133 +3595,51 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             });
         }
 
-        function loadApprovedRequests() {
-            const tbody = document.getElementById('approvedRequestsTable');
-            tbody.innerHTML = '';
-            
-            const approvedRequests = allRequests.filter(req => req.status === 'approved');
-            
-            if (approvedRequests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No approved requests</td></tr>';
-                return;
-            }
-            
-            // Sort by approval date descending (newest first)
-            approvedRequests.sort((a, b) => {
-                const aDate = a.approvedAt ? new Date(a.approvedAt) : new Date(0);
-                const bDate = b.approvedAt ? new Date(b.approvedAt) : new Date(0);
-                return bDate - aDate;
-            });
-            
-            approvedRequests.forEach(req => {
-                const tr = document.createElement('tr');
-                
-                let details = '';
-                if (req.type === 'dutyChange') {
-                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
-                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
-                } else {
-                    details = `${req.leaveType}: ${req.duration} day(s)`;
-                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
-                }
-                
-                const appliedBy = req.appliedBy || req.approvedBy || 'System';
-                const appliedAt = req.appliedAt || req.approvedAt || req.timestamp;
-                
-                tr.innerHTML = `
-                    <td>${req.fromName} (${req.fromRcNo})</td>
-                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
-                    <td>${req.date}</td>
-                    <td>${details}</td>
-                    <td class="status-approved">Approved</td>
-                    <td>${appliedBy}</td>
-                    <td class="timestamp">${formatDateTime(appliedAt)}</td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        function loadRejectedRequests() {
-            const tbody = document.getElementById('rejectedRequestsTable');
-            tbody.innerHTML = '';
-            
-            const rejectedRequests = allRequests.filter(req => req.status === 'rejected');
-            
-            if (rejectedRequests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No rejected requests</td></tr>';
-                return;
-            }
-            
-            rejectedRequests.forEach(req => {
-                const tr = document.createElement('tr');
-                
-                let details = '';
-                if (req.type === 'dutyChange') {
-                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
-                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
-                } else {
-                    details = `${req.leaveType}: ${req.duration} day(s)`;
-                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
-                }
-                
-                const rejectedBy = req.rejectedBy || 'System';
-                const rejectedAt = req.rejectedAt || req.timestamp;
-                
-                tr.innerHTML = `
-                    <td>${req.fromName} (${req.fromRcNo})</td>
-                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
-                    <td>${req.date}</td>
-                    <td>${details}</td>
-                    <td class="status-rejected">Rejected</td>
-                    <td>${rejectedBy}</td>
-                    <td class="timestamp">${formatDateTime(rejectedAt)}</td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        function adminApprove(requestId) {
+        function viewDutyChangeDetails(requestId) {
             const request = allRequests.find(req => req.id === requestId);
             if (!request) return;
             
+            const response = confirm(
+                `Duty Change Request:\n\n` +
+                `From: ${request.fromName} (RC: ${request.fromRcNo})\n` +
+                `To: ${request.toName} (RC: ${request.toRcNo})\n` +
+                `Date: ${request.date}\n` +
+                `Swap: ${request.dutyTime} ↔ ${request.toDutyTime}\n` +
+                `Reason: ${request.reason || 'None'}\n\n` +
+                `Does ${request.toName} agree to this swap?`
+            );
+            
+            if (response) {
+                adminApproveRequest(requestId);
+            } else {
+                adminRejectRequest(requestId);
+            }
+        }
+
+        function adminApproveRequest(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            if (request.type === 'dutyChange') {
+                // Check if target user has already approved
+                if (request.status === 'pending') {
+                    // For duty change, we need target user's approval first
+                    alert('Duty change requests must be approved by the other staff member first.');
+                    return;
+                }
+            }
+            
             if (request.type === 'leave') {
-                // Check balance
+                // Deduct leave balance
                 const userBalance = leaveBalances[request.fromUsername];
-                if (!userBalance) {
-                    alert('Error: User balance not found');
-                    return;
+                if (userBalance) {
+                    if (request.leaveType === 'Sick Leave') {
+                        userBalance.SL -= request.duration;
+                    } else if (request.leaveType === 'FRL') {
+                        userBalance.FRL -= request.duration;
+                    }
+                    saveLeaveBalances();
                 }
-                
-                // Check if leave was already approved (prevent double deduction)
-                if (request.status === 'approved') {
-                    alert('This leave request is already approved!');
-                    return;
-                }
-                
-                if (request.leaveType === 'Sick Leave' && userBalance.SL < request.duration) {
-                    alert(`Cannot approve: Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${request.duration} days`);
-                    return;
-                }
-                
-                if (request.leaveType === 'FRL' && userBalance.FRL < request.duration) {
-                    alert(`Cannot approve: Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${request.duration} days`);
-                    return;
-                }
-                
-                // Deduct from balance
-                if (request.leaveType === 'Sick Leave') {
-                    userBalance.SL -= request.duration;
-                    userBalance.SL = Math.max(0, userBalance.SL);
-                } else if (request.leaveType === 'FRL') {
-                    userBalance.FRL -= request.duration;
-                    userBalance.FRL = Math.max(0, userBalance.FRL);
-                }
-                saveLeaveBalances();
-                
-                // Show updated balance
-                alert(`Request approved! Leave balance deducted. Remaining balance: ${request.leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`);
             }
             
             request.status = 'approved';
@@ -3962,158 +3652,185 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             });
             saveAllRequests();
             
-            // Refresh the approvals view
-            showApprovalsTab('approved');
-            updateRequestCounts();
-            
-            // Update dashboard balance display if it's the current user's request
-            if (request.fromUsername === currentUser.username) {
-                updateUserBalance();
-            }
+            alert('Request approved!');
+            loadPendingAdminApprovals();
         }
 
-        function adminApplyDutyChange(requestId) {
+        function adminRejectRequest(requestId) {
             const request = allRequests.find(req => req.id === requestId);
             if (!request) return;
             
-            // Apply the duty change immediately
-            const date = request.date;
-            if (dutyRoster[date]) {
-                const temp = dutyRoster[date][request.fromUsername];
-                dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
-                dutyRoster[date][request.toUsername] = temp;
-                saveDutyRoster();
-            }
+            const reason = prompt('Enter rejection reason:');
+            if (reason === null) return;
             
-            // Mark as approved
-            request.status = 'approved';
-            request.approvedBy = currentUser.name;
-            request.appliedBy = currentUser.name;
-            request.approvedAt = new Date().toISOString();
-            request.appliedAt = new Date().toISOString();
+            request.status = 'rejected';
+            request.rejectedBy = currentUser.name;
+            request.rejectedReason = reason;
+            request.rejectedAt = new Date().toISOString();
             request.history.push({
-                action: 'applied_and_approved',
+                action: 'rejected',
                 by: currentUser.name,
+                reason: reason,
                 timestamp: new Date().toISOString()
             });
             saveAllRequests();
             
-            alert('Duty change applied and approved! Roster updated.');
-            showApprovalsTab('approved');
-            updateRequestCounts();
+            alert('Request rejected!');
+            loadPendingAdminApprovals();
         }
 
-        function adminReject(requestId) {
-            if (confirm('Are you sure you want to reject this request?')) {
-                const request = allRequests.find(req => req.id === requestId);
-                if (request) {
-                    request.status = 'rejected';
-                    request.rejectedBy = currentUser.name;
-                    request.rejectedAt = new Date().toISOString();
-                    request.history.push({
-                        action: 'rejected',
-                        by: currentUser.name,
-                        timestamp: new Date().toISOString()
-                    });
-                    saveAllRequests();
-                    
-                    alert('Request rejected!');
-                    showApprovalsTab('rejected');
-                    
-                    // Update counts
-                    updateRequestCounts();
-                }
+        function loadApprovedRequests() {
+            const tbody = document.getElementById('approvedRequestsTable');
+            tbody.innerHTML = '';
+            
+            const approvedReqs = allRequests.filter(req => 
+                req.status === 'approved' && 
+                (req.type === 'leave' || req.type === 'dutyChange')
+            );
+            
+            if (approvedReqs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No approved requests</td></tr>';
+                return;
             }
+            
+            approvedReqs.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.dutyTime} ↔ ${req.toDutyTime})`;
+                } else {
+                    details = `${req.leaveType} - ${req.duration} day(s) on ${req.dutyTime}`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-approved">Approved</td>
+                    <td>${req.approvedBy || 'System'}</td>
+                    <td>${req.approvedAt ? formatDateTime(req.approvedAt) : 'N/A'}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadRejectedRequests() {
+            const tbody = document.getElementById('rejectedRequestsTable');
+            tbody.innerHTML = '';
+            
+            const rejectedReqs = allRequests.filter(req => 
+                req.status === 'rejected' && 
+                (req.type === 'leave' || req.type === 'dutyChange')
+            );
+            
+            if (rejectedReqs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No rejected requests</td></tr>';
+                return;
+            }
+            
+            rejectedReqs.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.dutyTime} ↔ ${req.toDutyTime})`;
+                } else {
+                    details = `${req.leaveType} - ${req.duration} day(s) on ${req.dutyTime}`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-rejected">Rejected</td>
+                    <td>${req.rejectedBy || 'System'}</td>
+                    <td>${req.rejectedAt ? formatDateTime(req.rejectedAt) : 'N/A'}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
         }
 
         function loadAdminRequestHistory() {
-            // Populate staff filter dropdown
+            populateHistoryFilters();
+            loadRequestHistory();
+        }
+
+        function populateHistoryFilters() {
             const staffSelect = document.getElementById('historyFilterStaff');
             staffSelect.innerHTML = '<option value="">All Staff</option>';
-            allUsers.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.username;
-                option.textContent = `${user.name} (${user.RCNo})`;
-                staffSelect.appendChild(option);
-            });
             
-            // Load all requests
-            loadRequestHistory();
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.name} (${user.RCNo})`;
+                    staffSelect.appendChild(option);
+                }
+            });
         }
 
         function loadRequestHistory() {
             const tbody = document.getElementById('requestHistoryTable');
             tbody.innerHTML = '';
             
-            // Get filter values
             const staffFilter = document.getElementById('historyFilterStaff').value;
             const typeFilter = document.getElementById('historyFilterType').value;
             const statusFilter = document.getElementById('historyFilterStatus').value;
-            const startDate = document.getElementById('historyStartDate').value;
-            const endDate = document.getElementById('historyEndDate').value;
             
-            // Filter requests
-            let filteredRequests = allRequests;
+            let filteredReqs = allRequests;
             
             if (staffFilter) {
-                filteredRequests = filteredRequests.filter(req => req.fromUsername === staffFilter);
+                filteredReqs = filteredReqs.filter(req => 
+                    req.fromUsername === staffFilter || 
+                    (req.type === 'dutyChange' && req.toUsername === staffFilter)
+                );
             }
             
             if (typeFilter) {
-                filteredRequests = filteredRequests.filter(req => req.type === typeFilter);
+                if (typeFilter === 'dutyChange') {
+                    filteredReqs = filteredReqs.filter(req => req.type === 'dutyChange');
+                } else if (typeFilter === 'leave') {
+                    filteredReqs = filteredReqs.filter(req => req.type === 'leave');
+                }
             }
             
             if (statusFilter) {
-                filteredRequests = filteredRequests.filter(req => req.status === statusFilter);
+                filteredReqs = filteredReqs.filter(req => req.status === statusFilter);
             }
             
-            if (startDate) {
-                filteredRequests = filteredRequests.filter(req => req.date >= startDate);
-            }
-            
-            if (endDate) {
-                filteredRequests = filteredRequests.filter(req => req.date <= endDate);
-            }
-            
-            if (filteredRequests.length === 0) {
+            if (filteredReqs.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No requests found</td></tr>';
                 return;
             }
             
-            // Sort by timestamp descending (newest first)
-            filteredRequests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            filteredReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            filteredRequests.forEach(req => {
+            filteredReqs.forEach(req => {
                 const tr = document.createElement('tr');
                 
                 let details = '';
                 if (req.type === 'dutyChange') {
-                    details = `
-                        <div class="request-details">
-                            <strong>Swap with:</strong> ${req.toName}<br>
-                            <strong>From:</strong> ${req.dutyTime} → <strong>To:</strong> ${req.toDutyTime}<br>
-                            ${req.reason ? `<em>${req.reason}</em>` : ''}
-                        </div>
-                    `;
+                    details = `Swap with ${req.toName}<br>${req.dutyTime} ↔ ${req.toDutyTime}`;
+                    if (req.reason) details += `<br><small>${req.reason}</small>`;
                 } else {
-                    details = `
-                        <div class="request-details">
-                            <strong>${req.leaveType}:</strong> ${req.duration} day(s)<br>
-                            <em>${req.reason}</em>
-                        </div>
-                    `;
+                    details = `${req.leaveType} - ${req.duration} day(s)<br>${req.dutyTime}`;
+                    if (req.reason) details += `<br><small>${req.reason}</small>`;
                 }
                 
                 let statusClass = 'status-' + req.status;
                 let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
                 
-                // Create timeline HTML
+                // Build timeline
                 let timeline = '';
                 if (req.history && req.history.length > 0) {
-                    req.history.forEach((event, index) => {
-                        timeline += `<div class="status-update">${event.action} by ${event.by}<br>
-                                     <small>${formatTimeAgo(event.timestamp)}</small></div>`;
-                    });
+                    timeline = req.history.map(action => 
+                        `${action.action} by ${action.by}<br>${formatTimeAgo(action.timestamp)}`
+                    ).join('<br>');
                 }
                 
                 tr.innerHTML = `
@@ -4123,12 +3840,10 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     <td>${details}</td>
                     <td class="${statusClass}">${statusText}</td>
                     <td>${timeline}</td>
-                    <td class="action-buttons">
+                    <td>
                         ${req.status === 'pending' ? 
-                            `<button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
-                             <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>` : ''}
-                        ${req.type === 'dutyChange' && req.status === 'pending' ? 
-                            `<button class="action-btn apply" onclick="adminApplyDutyChange('${req.id}')">Apply</button>` : ''}
+                            `<button class="action-btn view" onclick="adminReviewRequest('${req.id}')">Review</button>` : 
+                            `<button class="action-btn view" onclick="viewRequestDetails('${req.id}')">View</button>`}
                     </td>
                 `;
                 
@@ -4136,229 +3851,234 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             });
         }
 
+        function adminReviewRequest(requestId) {
+            showSection('adminApprovals');
+        }
+
+        function viewRequestDetails(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            let details = '';
+            
+            if (request.type === 'dutyChange') {
+                details = `
+                    <strong>Duty Change Request</strong><br><br>
+                    From: ${request.fromName} (RC: ${request.fromRcNo})<br>
+                    To: ${request.toName} (RC: ${request.toRcNo})<br>
+                    Date: ${request.date}<br>
+                    Duty Times: ${request.dutyTime} ↔ ${request.toDutyTime}<br>
+                    Reason: ${request.reason || 'None provided'}<br>
+                    Status: ${request.status}<br>
+                    Created: ${formatDateTime(request.timestamp)}<br>
+                `;
+                
+                if (request.approvedBy) {
+                    details += `Approved by: ${request.approvedBy} at ${formatDateTime(request.approvedAt)}<br>`;
+                }
+                if (request.rejectedBy) {
+                    details += `Rejected by: ${request.rejectedBy} at ${formatDateTime(request.rejectedAt)}<br>`;
+                    details += `Rejection Reason: ${request.rejectedReason}<br>`;
+                }
+            } else {
+                details = `
+                    <strong>Leave Application</strong><br><br>
+                    Staff: ${request.fromName} (RC: ${request.fromRcNo})<br>
+                    Leave Type: ${request.leaveType}<br>
+                    Date: ${request.date}<br>
+                    Duty Time: ${request.dutyTime}<br>
+                    Duration: ${request.duration} day(s)<br>
+                    Reason: ${request.reason}<br>
+                    Status: ${request.status}<br>
+                    Created: ${formatDateTime(request.timestamp)}<br>
+                `;
+                
+                if (request.approvedBy) {
+                    details += `Approved by: ${request.approvedBy} at ${formatDateTime(request.approvedAt)}<br>`;
+                }
+                if (request.rejectedBy) {
+                    details += `Rejected by: ${request.rejectedBy} at ${formatDateTime(request.rejectedAt)}<br>`;
+                    details += `Rejection Reason: ${request.rejectedReason}<br>`;
+                }
+            }
+            
+            // Add history
+            if (request.history && request.history.length > 0) {
+                details += '<br><strong>History:</strong><br>';
+                request.history.forEach(action => {
+                    details += `• ${action.action} by ${action.by} at ${formatTimeAgo(action.timestamp)}<br>`;
+                });
+            }
+            
+            alert(details);
+        }
+
         function clearHistoryFilters() {
             document.getElementById('historyFilterStaff').value = '';
             document.getElementById('historyFilterType').value = '';
             document.getElementById('historyFilterStatus').value = '';
-            document.getElementById('historyStartDate').value = '';
-            document.getElementById('historyEndDate').value = '';
             loadRequestHistory();
         }
 
-        // View All Roster Functions (Now accessible to all users)
+        function updateDashboard() {
+            if (!currentUser) return;
+            
+            updateUserBalance();
+            
+            // Find today's duty
+            const today = new Date().toISOString().split('T')[0];
+            const todayDuty = dutyRoster[today] && dutyRoster[today][currentUser.username];
+            
+            if (todayDuty && todayDuty !== 'Off') {
+                // Check if there's approved leave for today
+                const approvedLeave = allRequests.find(req => 
+                    req.fromUsername === currentUser.username &&
+                    req.type === 'leave' &&
+                    req.status === 'approved' &&
+                    req.date === today
+                );
+                
+                if (approvedLeave) {
+                    document.getElementById('todayDutyTime').textContent = 
+                        `On ${approvedLeave.leaveType} (${approvedLeave.duration} day(s))`;
+                    document.getElementById('todayDutyTime').style.color = '#e74c3c';
+                } else {
+                    document.getElementById('todayDutyTime').textContent = todayDuty;
+                    document.getElementById('todayDutyTime').style.color = '#27ae60';
+                }
+            } else if (todayDuty === 'Off') {
+                document.getElementById('todayDutyTime').textContent = 'Off Duty';
+                document.getElementById('todayDutyTime').style.color = '#f39c12';
+            } else {
+                document.getElementById('todayDutyTime').textContent = 'Not Scheduled';
+                document.getElementById('todayDutyTime').style.color = '#7f8c8d';
+            }
+            
+            // Find next duty
+            let nextDuty = null;
+            let nextDate = null;
+            
+            // Look for next 7 days
+            for (let i = 1; i <= 7; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                const duty = dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username];
+                if (duty && duty !== 'Off') {
+                    // Check if there's approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === currentUser.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === dateStr
+                    );
+                    
+                    if (!approvedLeave) {
+                        nextDuty = duty;
+                        nextDate = dateStr;
+                        break;
+                    }
+                }
+            }
+            
+            if (nextDuty) {
+                document.getElementById('nextDutyTime').textContent = `${nextDate}: ${nextDuty}`;
+            } else {
+                document.getElementById('nextDutyTime').textContent = 'No upcoming duty in next 7 days';
+            }
+            
+            // Show notifications
+            const notificationsDiv = document.getElementById('homeNotifications');
+            notificationsDiv.innerHTML = '';
+            notificationsDiv.style.display = 'none';
+            
+            // Check for pending requests that need attention
+            const pendingForUser = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            );
+            
+            if (pendingForUser.length > 0) {
+                notificationsDiv.style.display = 'block';
+                notificationsDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>⚠️ You have ${pendingForUser.length} pending duty change request(s)</strong><br>
+                        <a href="#" onclick="showSection('pendingRequests')">Click here to review</a>
+                    </div>
+                `;
+            }
+            
+            // Load announcements
+            loadHomeAnnouncements();
+        }
+
         function loadAllRoster() {
-            const container = document.getElementById('allRosterContainer');
             const startDate = document.getElementById('allRosterStartDate').value;
             const endDate = document.getElementById('allRosterEndDate').value;
             const viewType = document.getElementById('allRosterViewType').value;
             
             if (!startDate || !endDate) {
-                container.innerHTML = '<div class="alert alert-warning">Please select start and end dates</div>';
+                alert('Please select start and end dates');
                 return;
             }
             
+            if (new Date(endDate) < new Date(startDate)) {
+                alert('End date must be after start date');
+                return;
+            }
+            
+            const container = document.getElementById('allRosterContainer');
             const start = new Date(startDate);
             const end = new Date(endDate);
             
-            if (start > end) {
-                container.innerHTML = '<div class="alert alert-warning">Start date must be before end date</div>';
-                return;
-            }
-            
             if (viewType === 'calendar') {
-                displayAllRosterCalendar(container, start, end);
-            } else if (viewType === 'staff') {
-                displayAllRosterByStaff(container, start, end);
-            } else {
-                displayAllRosterDaily(container, start, end);
-            }
-        }
-
-        function displayAllRosterDaily(container, startDate, endDate) {
-            let html = `<h4>Complete Duty Roster (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
-            
-            // Create date navigation
-            const prevStart = new Date(startDate);
-            prevStart.setDate(prevStart.getDate() - 7);
-            const prevEnd = new Date(endDate);
-            prevEnd.setDate(prevEnd.getDate() - 7);
-            const nextStart = new Date(startDate);
-            nextStart.setDate(nextStart.getDate() + 7);
-            const nextEnd = new Date(endDate);
-            nextEnd.setDate(nextEnd.getDate() + 7);
-            
-            html += `<div class="date-navigation">
-                <button class="date-nav-btn" onclick="navigateAllRoster('${prevStart.toISOString().split('T')[0]}', '${prevEnd.toISOString().split('T')[0]}')">← Previous Week</button>
-                <span class="current-date-display">${formatDateRange(startDate, endDate)}</span>
-                <button class="date-nav-btn" onclick="navigateAllRoster('${nextStart.toISOString().split('T')[0]}', '${nextEnd.toISOString().split('T')[0]}')">Next Week →</button>
-            </div>`;
-            
-            // Create table
-            html += '<div class="roster-all-view"><table><thead><tr><th>Date</th><th>Day</th>';
-            
-            // Add staff headers
-            allUsers.forEach(user => {
-                if (user.Level === 'User') {
-                    html += `<th class="staff-name">${user.name}<br><small>${user.RCNo}</small></th>`;
+                // Generate monthly calendar view for each month in range
+                let html = '<h4>Complete Roster - Calendar View</h4>';
+                
+                const current = new Date(start);
+                while (current <= end) {
+                    const year = current.getFullYear();
+                    const month = current.getMonth() + 1;
+                    const firstDay = new Date(year, month - 1, 1);
+                    const lastDay = new Date(year, month, 0);
+                    
+                    html += displayCalendarView(null, firstDay, lastDay, year, month, false);
+                    
+                    // Move to next month
+                    current.setMonth(current.getMonth() + 1);
                 }
-            });
-            
-            html += '</tr></thead><tbody>';
-            
-            const today = new Date().toISOString().split('T')[0];
-            
-            // Add rows for each date
-            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                const dateStr = d.toISOString().split('T')[0];
-                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-                const isToday = dateStr === today;
                 
-                html += `<tr ${isToday ? 'style="background-color: #fff3cd;"' : ''}>`;
-                html += `<td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>`;
-                html += `<td>${dayName}</td>`;
+                container.innerHTML = html;
+            } else if (viewType === 'staff') {
+                // Display by staff
+                let html = '<h4>Complete Roster - Staff View</h4>';
                 
-                // Add duty times for each staff
                 allUsers.forEach(user => {
                     if (user.Level === 'User') {
-                        let dutyTime = 'Not Scheduled';
-                        let cellClass = '';
-                        let leaveIndicator = '';
+                        html += `<div class="staff-roster-view">
+                            <h5>${user.name} (${user.RCNo})</h5>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Day</th>
+                                            <th>Duty Time</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
                         
-                        // Check for approved leave
-                        const approvedLeave = allRequests.find(req => 
-                            req.fromUsername === user.username &&
-                            req.type === 'leave' &&
-                            req.status === 'approved' &&
-                            req.date === dateStr
-                        );
-                        
-                        if (approvedLeave) {
-                            dutyTime = 'Leave';
-                            cellClass = 'off-day-cell';
-                            leaveIndicator = `<span class="leave-indicator" title="${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
-                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                            dutyTime = dutyRoster[dateStr][user.username];
-                            if (dutyTime === 'Off') {
-                                cellClass = 'off-day-cell';
-                            } else {
-                                cellClass = getDutyTimeClass(dutyTime);
-                            }
-                        } else {
-                            cellClass = 'off-day-cell';
-                        }
-                        
-                        if (isToday) {
-                            cellClass += ' today-cell';
-                        }
-                        
-                        html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
-                    }
-                });
-                
-                html += '</tr>';
-            }
-            
-            html += '</tbody></table></div>';
-            
-            // Add summary statistics
-            html += generateRosterSummary(startDate, endDate);
-            
-            container.innerHTML = html;
-        }
-
-        function displayAllRosterByStaff(container, startDate, endDate) {
-            let html = `<h4>Staff Duty Summary (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
-            
-            html += '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC No</th><th>Duty Days</th><th>Off Days</th><th>Leave Days</th><th>Details</th></tr></thead><tbody>';
-            
-            allUsers.forEach(user => {
-                if (user.Level === 'User') {
-                    let dutyDays = 0;
-                    let offDays = 0;
-                    let leaveDays = 0;
-                    let details = [];
-                    
-                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                        const dateStr = d.toISOString().split('T')[0];
-                        
-                        // Check for approved leave
-                        const approvedLeave = allRequests.find(req => 
-                            req.fromUsername === user.username &&
-                            req.type === 'leave' &&
-                            req.status === 'approved' &&
-                            req.date === dateStr
-                        );
-                        
-                        if (approvedLeave) {
-                            leaveDays += approvedLeave.duration;
-                            details.push(`${dateStr}: ${approvedLeave.leaveType} (${approvedLeave.duration} day)`);
-                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                            if (dutyRoster[dateStr][user.username] === 'Off') {
-                                offDays++;
-                            } else {
-                                dutyDays++;
-                                details.push(`${dateStr}: ${dutyRoster[dateStr][user.username]}`);
-                            }
-                        }
-                    }
-                    
-                    html += `<tr>
-                        <td class="staff-name">${user.name}</td>
-                        <td>${user.RCNo}</td>
-                        <td>${dutyDays}</td>
-                        <td>${offDays}</td>
-                        <td>${leaveDays}</td>
-                        <td><small>${details.slice(0, 3).join('<br>')}${details.length > 3 ? '<br>...' : ''}</small></td>
-                    </tr>`;
-                }
-            });
-            
-            html += '</tbody></table></div>';
-            
-            container.innerHTML = html;
-        }
-
-        function displayAllRosterCalendar(container, startDate, endDate) {
-            let html = `<h4>Calendar View (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
-            
-            // Group by week
-            const weeks = [];
-            let currentWeek = [];
-            let currentDate = new Date(startDate);
-            
-            while (currentDate <= endDate) {
-                currentWeek.push(new Date(currentDate));
-                if (currentWeek.length === 7 || currentDate.getTime() === endDate.getTime()) {
-                    weeks.push([...currentWeek]);
-                    currentWeek = [];
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-            
-            // Display each week
-            weeks.forEach((week, weekIndex) => {
-                html += `<h5>Week ${weekIndex + 1}</h5>`;
-                html += '<div class="calendar-grid">';
-                
-                // Day headers
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                days.forEach(day => {
-                    html += `<div class="calendar-day" style="text-align: center; font-weight: bold; background: #f0f0f0;">${day}</div>`;
-                });
-                
-                // Calendar cells
-                week.forEach(day => {
-                    const dateStr = day.toISOString().split('T')[0];
-                    const dayNum = day.getDate();
-                    const isToday = dateStr === new Date().toISOString().split('T')[0];
-                    
-                    let dayClass = 'calendar-day';
-                    let dayContent = `<div class="day-header">${dayNum}</div>`;
-                    
-                    // Add staff duties for this day
-                    allUsers.forEach(user => {
-                        if (user.Level === 'User') {
-                            let dutyInfo = '';
+                        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                            const dateStr = d.toISOString().split('T')[0];
+                            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                            const isToday = dateStr === new Date().toISOString().split('T')[0];
+                            
+                            let dutyTime = 'Not Scheduled';
+                            let status = '';
+                            let rowClass = '';
                             
                             // Check for approved leave
                             const approvedLeave = allRequests.find(req => 
@@ -4369,60 +4089,117 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                             );
                             
                             if (approvedLeave) {
-                                dutyInfo = `${user.name.substring(0, 3)}: ${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}<br>`;
+                                dutyTime = `${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)`;
+                                status = 'On Leave';
+                                rowClass = 'status-approved';
                             } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                                const dutyTime = dutyRoster[dateStr][user.username];
-                                if (dutyTime !== 'Off') {
-                                    dutyInfo = `${user.name.substring(0, 3)}: ${dutyTime.substring(0, 5)}<br>`;
+                                dutyTime = dutyRoster[dateStr][user.username];
+                                if (dutyTime === 'Off') {
+                                    status = 'Off Duty';
+                                    rowClass = 'status-off';
+                                } else {
+                                    status = dateStr < new Date().toISOString().split('T')[0] ? 'Completed' : 'Scheduled';
+                                    rowClass = dateStr < new Date().toISOString().split('T')[0] ? 'status-completed' : 'status-pending';
                                 }
                             }
                             
-                            dayContent += `<div style="font-size: 10px;">${dutyInfo}</div>`;
+                            html += `<tr ${isToday ? 'style="background-color: #fff3cd;"' : ''}>
+                                <td>${dateStr}${isToday ? ' (Today)' : ''}</td>
+                                <td>${dayName}</td>
+                                <td>${dutyTime}</td>
+                                <td class="${rowClass}">${status}</td>
+                            </tr>`;
                         }
-                    });
-                    
-                    if (isToday) {
-                        dayClass += ' today';
+                        
+                        html += `</tbody></table></div></div>`;
                     }
-                    
-                    html += `<div class="${dayClass}" style="min-height: 100px; overflow-y: auto;">${dayContent}</div>`;
                 });
                 
-                html += '</div>';
-            });
+                container.innerHTML = html;
+            } else {
+                // Default table view
+                const year = start.getFullYear();
+                const month = start.getMonth() + 1;
+                container.innerHTML = displayTableView(null, start, end, year, month, false);
+            }
+        }
+
+        function printAllRoster() {
+            const startDate = document.getElementById('allRosterStartDate').value;
+            const endDate = document.getElementById('allRosterEndDate').value;
             
-            container.innerHTML = html;
-        }
-
-        function navigateAllRoster(startDate, endDate) {
-            document.getElementById('allRosterStartDate').value = startDate;
-            document.getElementById('allRosterEndDate').value = endDate;
-            loadAllRoster();
-        }
-
-        function formatDateRange(startDate, endDate) {
+            if (!startDate || !endDate) {
+                alert('Please select start and end dates first');
+                return;
+            }
+            
+            // Create print window
+            const printWindow = window.open('', '_blank');
             const start = new Date(startDate);
             const end = new Date(endDate);
-            return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-        }
-
-        function generateRosterSummary(startDate, endDate) {
-            let html = '<div class="alert alert-info" style="margin-top: 15px;">';
-            html += '<strong>Summary Statistics:</strong><br>';
             
-            const stats = {
-                totalStaff: allUsers.filter(u => u.Level === 'User').length,
-                totalDays: Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1,
-                totalDutySlots: 0,
-                totalOffSlots: 0,
-                totalLeaveSlots: 0
-            };
+            let printContent = `
+                <html>
+                <head>
+                    <title>Duty Roster Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #2c3e50; text-align: center; }
+                        h2 { color: #34495e; }
+                        .print-info { margin-bottom: 20px; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f8f9fa; font-weight: bold; }
+                        .off-day { background-color: #f8d7da; }
+                        .leave-day { background-color: #fff3cd; }
+                        .today { background-color: #e8f4fc; font-weight: bold; }
+                        .legend { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+                        .legend-item { display: flex; align-items: center; gap: 5px; }
+                        .legend-color { width: 15px; height: 15px; }
+                        @media print {
+                            body { margin: 0; padding: 10px; }
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Duty Roster Report</h1>
+                    <div class="print-info">
+                        <p><strong>Period:</strong> ${startDate} to ${endDate}</p>
+                        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+                    </div>
+            `;
             
-            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            // Create table by date
+            printContent += '<h2>Roster by Date</h2>';
+            
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                 const dateStr = d.toISOString().split('T')[0];
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+                
+                printContent += `
+                    <h3 ${isToday ? 'style="color: #e74c3c;"' : ''}>
+                        ${dateStr} - ${dayName} ${isToday ? '(TODAY)' : ''}
+                    </h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff Name</th>
+                                <th>RC No</th>
+                                <th>Duty Time</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
                 
                 allUsers.forEach(user => {
                     if (user.Level === 'User') {
+                        let dutyTime = 'Not Scheduled';
+                        let remarks = '';
+                        let rowClass = '';
+                        
                         // Check for approved leave
                         const approvedLeave = allRequests.find(req => 
                             req.fromUsername === user.username &&
@@ -4432,159 +4209,107 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                         );
                         
                         if (approvedLeave) {
-                            stats.totalLeaveSlots++;
+                            dutyTime = approvedLeave.leaveType;
+                            remarks = `On Leave (${approvedLeave.duration} day(s))`;
+                            rowClass = 'leave-day';
                         } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                            if (dutyRoster[dateStr][user.username] === 'Off') {
-                                stats.totalOffSlots++;
-                            } else {
-                                stats.totalDutySlots++;
+                            dutyTime = dutyRoster[dateStr][user.username];
+                            if (dutyTime === 'Off') {
+                                remarks = 'Off Duty';
+                                rowClass = 'off-day';
                             }
                         }
+                        
+                        if (isToday) {
+                            rowClass += ' today';
+                        }
+                        
+                        printContent += `
+                            <tr class="${rowClass.trim()}">
+                                <td>${user.name}</td>
+                                <td>${user.RCNo}</td>
+                                <td>${dutyTime}</td>
+                                <td>${remarks}</td>
+                            </tr>
+                        `;
                     }
                 });
-            }
-            
-            html += `• ${stats.totalStaff} staff members<br>`;
-            html += `• ${stats.totalDays} days in period<br>`;
-            html += `• ${stats.totalDutySlots} duty assignments<br>`;
-            html += `• ${stats.totalOffSlots} off days<br>`;
-            html += `• ${stats.totalLeaveSlots} leave days (${stats.totalLeaveSlots > 0 ? 'SL/FRL' : 'None'})`;
-            html += '</div>';
-            
-            return html;
-        }
-
-        function printAllRoster() {
-            const container = document.getElementById('allRosterContainer').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Duty Roster Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                        .leave-indicator { background-color: #ffeaa7; padding: 2px 5px; border-radius: 3px; font-size: 10px; }
-                        .duty-time-morning { background-color: #d4edda; color: #155724; }
-                        .duty-time-afternoon { background-color: #cce5ff; color: #004085; }
-                        .duty-time-night { background-color: #d1ecf1; color: #0c5460; }
-                        .off-day-cell { background-color: #f8d7da; color: #721c24; }
-                        .today-cell { border: 2px solid #3498db !important; background-color: #e8f4fc !important; }
-                        h3 { color: #2c3e50; }
-                    </style>
-                </head>
-                <body>
-                    <h3>Duty Roster Report</h3>
-                    <p>Generated on: ${new Date().toLocaleString()}</p>
-                    <p>Generated by: ${currentUser.name}</p>
-                    ${container}
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        function updateDashboard() {
-            // Update today's duty
-            const today = new Date().toISOString().split('T')[0];
-            if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
-                const duty = dutyRoster[today][currentUser.username];
-                document.getElementById('todayDutyTime').textContent = duty === 'Off' ? 'Off Duty' : duty;
-            } else {
-                document.getElementById('todayDutyTime').textContent = 'Not Scheduled';
-            }
-            
-            // Find next duty (next 7 days)
-            const tomorrow = new Date();
-            for (let i = 1; i <= 7; i++) {
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const dateStr = tomorrow.toISOString().split('T')[0];
-                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-                    const duty = dutyRoster[dateStr][currentUser.username];
-                    if (duty !== 'Off') {
-                        document.getElementById('nextDutyTime').textContent = `${dateStr}: ${duty}`;
-                        break;
-                    }
-                }
-            }
-            
-            // Update balance display
-            updateUserBalance();
-            
-            // Load announcements
-            loadHomeAnnouncements();
-            
-            // Check for recent updates to user's requests
-            checkForUserUpdates();
-        }
-
-        function checkForUserUpdates() {
-            const userReqs = allRequests.filter(req => 
-                req.fromUsername === currentUser.username && 
-                req.status !== 'pending' &&
-                req.history && req.history.length > 0
-            );
-            
-            // Find requests updated in the last 24 hours
-            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-            const recentUpdates = userReqs.filter(req => {
-                const lastUpdate = new Date(req.history[req.history.length - 1].timestamp);
-                return lastUpdate > twentyFourHoursAgo;
-            });
-            
-            if (recentUpdates.length > 0) {
-                showUserUpdates(recentUpdates);
-            }
-        }
-
-        function showUserUpdates(updates) {
-            const notificationContainer = document.getElementById('homeNotifications');
-            let html = '<strong>Recent Updates:</strong><br>';
-            
-            updates.forEach(req => {
-                const lastEvent = req.history[req.history.length - 1];
-                const timeAgo = formatTimeAgo(lastEvent.timestamp);
                 
-                if (req.type === 'dutyChange') {
-                    html += `• Duty change ${req.status} ${timeAgo}<br>`;
-                } else {
-                    html += `• Leave ${req.status} ${timeAgo}<br>`;
-                }
+                printContent += '</tbody></table><br>';
+            }
+            
+            // Add legend
+            printContent += `
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #f8d7da;"></div>
+                        <span>Off Duty</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #fff3cd;"></div>
+                        <span>On Leave</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #e8f4fc;"></div>
+                        <span>Today</span>
+                    </div>
+                </div>
+                <br>
+                <button onclick="window.print()" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">Print Report</button>
+            `;
+            
+            printContent += '</body></html>';
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return 'N/A';
+            
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             });
-            
-            notificationContainer.innerHTML = `<div class="alert alert-info">${html}</div>`;
-            notificationContainer.style.display = 'block';
-        }
-
-        // Utility functions
-        function formatTimeAgo(timestamp) {
-            const now = new Date();
-            const past = new Date(timestamp);
-            const diffMs = now - past;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-            if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-            
-            return past.toLocaleDateString();
-        }
-
-        function formatDateTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
 
         function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
             const date = new Date(dateString);
-            return date.toLocaleDateString();
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
         }
+
+        function formatTimeAgo(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            
+            return formatDate(dateString);
+        }
+
+        // Initialize the app
+        window.onload = function() {
+            initApp();
+        };
     </script>
 </body>
 </html>
