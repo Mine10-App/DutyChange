@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Duty Management System</title>
+    
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -11,366 +12,495 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- External files -->
-    <script src="dcfire.js" defer></script>
-    <script src="user.js" defer></script>
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="theme-color" content="#3498db">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-            --light-color: #f5f7fa;
-            --dark-color: #34495e;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2c3e50;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+            --gray: #7f8c8d;
+            --light-gray: #e0e6ed;
+            --white: #ffffff;
+            --sidebar-width: 250px;
+            --bottom-nav-height: 60px;
         }
 
         body {
-            background: var(--light-color);
+            background: var(--light);
+            color: var(--dark);
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* App Container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
-            min-height: -webkit-fill-available;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            max-width: 100vw;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            background: var(--secondary);
+            color: var(--white);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+        }
+
+        .user-icon {
+            background: var(--primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Side Navigation */
+        .side-nav {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 85%;
+            max-width: 300px;
+            height: 100vh;
+            background: var(--white);
+            z-index: 1100;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .side-nav.active {
+            left: 0;
+        }
+
+        .nav-header {
+            background: var(--secondary);
+            color: var(--white);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-user-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .nav-user-info p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .nav-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .nav-items {
+            padding: 15px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: var(--dark);
+            text-decoration: none;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: var(--light);
+            border-left-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .nav-badge {
+            background: var(--danger);
+            color: var(--white);
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--light-gray);
+            margin: 10px 20px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: var(--bottom-nav-height);
+            border-top: 1px solid var(--light-gray);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary);
+        }
+
+        .bottom-nav-item i {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 15px;
+            padding-bottom: calc(var(--bottom-nav-height) + 20px);
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         /* Login Page */
         .login-container {
-            background: white;
-            min-height: 100vh;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
             justify-content: center;
-            padding: 20px;
         }
 
-        .logo {
+        .login-logo {
             text-align: center;
             margin-bottom: 40px;
         }
 
-        .logo h1 {
-            color: var(--secondary-color);
-            font-size: 24px;
-            margin-bottom: 5px;
+        .login-logo h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 10px;
         }
 
-        .logo p {
-            color: #7f8c8d;
-            font-size: 14px;
+        .login-logo p {
+            color: var(--gray);
         }
 
         .form-group {
             margin-bottom: 20px;
         }
 
-        .form-group label {
+        .form-label {
             display: block;
-            color: var(--secondary-color);
-            font-size: 14px;
-            font-weight: 500;
             margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
         }
 
         .form-control {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e6ed;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
             font-size: 16px;
-            transition: all 0.3s;
-            -webkit-appearance: none;
-            appearance: none;
+            transition: border 0.3s;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            border-color: var(--primary);
         }
 
-        /* Buttons */
         .btn {
-            padding: 16px 24px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
         }
 
         .btn-primary {
-            background: var(--primary-color);
-            color: white;
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
         }
 
         .btn-success {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--danger-color);
-            color: white;
+            background: var(--success);
+            color: var(--white);
         }
 
         .btn-warning {
-            background: var(--warning-color);
-            color: white;
+            background: var(--warning);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
         }
 
         .btn-block {
             width: 100%;
+            display: block;
         }
 
-        .btn-small {
+        .btn-sm {
             padding: 8px 16px;
-            font-size: 14px;
-            min-height: 36px;
-        }
-
-        .btn-icon {
-            padding: 12px;
-            min-width: 44px;
-            min-height: 44px;
-            border-radius: 50%;
-        }
-
-        .error-message {
-            background: #ffeaea;
-            color: var(--danger-color);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-            font-size: 14px;
-        }
-
-        /* Dashboard */
-        .dashboard-container {
-            display: none;
-            min-height: 100vh;
-            background: white;
-        }
-
-        /* Mobile Header */
-        .mobile-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            color: white;
-            padding: 15px;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .mobile-header .user-info h2 {
-            font-size: 16px;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-        }
-
-        .mobile-header .user-details {
-            font-size: 12px;
-            opacity: 0.9;
-            display: flex;
-            gap: 10px;
-        }
-
-        .menu-toggle {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 8px;
-            margin: -8px;
-        }
-
-        /* Mobile Navigation */
-        .mobile-nav {
-            position: fixed;
-            top: 70px;
-            left: -280px;
-            width: 280px;
-            height: calc(100vh - 70px);
-            background: white;
-            z-index: 999;
-            transition: left 0.3s ease;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            padding-bottom: 80px;
-        }
-
-        .mobile-nav.active {
-            left: 0;
-        }
-
-        .nav-section {
-            padding: 20px;
-            border-bottom: 1px solid #e0e6ed;
-        }
-
-        .nav-section h3 {
-            color: var(--secondary-color);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            opacity: 0.7;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 15px;
-            color: var(--secondary-color);
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            transition: all 0.3s;
-        }
-
-        .nav-item:active {
-            background: rgba(52, 152, 219, 0.1);
-        }
-
-        .nav-item.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .nav-icon {
-            width: 20px;
-            text-align: center;
-        }
-
-        .notification-badge {
-            background: var(--danger-color);
-            color: white;
-            border-radius: 10px;
-            padding: 2px 8px;
-            font-size: 12px;
-            margin-left: auto;
-        }
-
-        .notification-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: var(--danger-color);
-            border-radius: 50%;
-            margin-left: auto;
-        }
-
-        /* Overlay for mobile nav */
-        .nav-overlay {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 998;
-            display: none;
-        }
-
-        .nav-overlay.active {
-            display: block;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 90px 15px 80px;
-            min-height: 100vh;
-        }
-
-        .section {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section.active {
-            display: block;
+            font-size: 13px;
         }
 
         /* Cards */
         .card {
-            background: white;
-            border-radius: 15px;
+            background: var(--white);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e0e6ed;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--light-gray);
         }
 
-        .card h3 {
-            color: var(--secondary-color);
-            margin-bottom: 20px;
-            font-size: 18px;
-            border-bottom: 2px solid var(--primary-color);
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
             padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* Dashboard */
+        .balance-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .balance-card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid var(--light-gray);
+        }
+
+        .balance-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+        }
+
+        .today-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--white);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background: var(--white);
+            border: 1px solid var(--light-gray);
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .action-btn i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        /* Announcements */
+        .announcement-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement-card.high {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .announcement-card.medium {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .announcement-card.low {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+
+        .announcement-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .announcement-content {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 10px;
+        }
+
+        .announcement-meta {
+            font-size: 11px;
+            opacity: 0.8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
         }
 
         /* Forms */
         .form-row {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 15px;
             margin-bottom: 15px;
         }
 
-        .form-group-inline {
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        .form-row-2 {
+            grid-template-columns: repeat(2, 1fr);
         }
 
         textarea.form-control {
-            min-height: 100px;
+            min-height: 80px;
             resize: vertical;
             font-family: inherit;
         }
 
         select.form-control {
+            padding: 12px 15px;
+            appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 15px center;
@@ -379,84 +509,76 @@
         }
 
         /* Tables */
-        .table-container {
+        .table-responsive {
             overflow-x: auto;
-            margin-top: 15px;
-            border: 1px solid #e0e6ed;
-            border-radius: 10px;
             -webkit-overflow-scrolling: touch;
+            margin-top: 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
             min-width: 600px;
+            background: var(--white);
         }
 
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e0e6ed;
-            font-size: 14px;
+            border-bottom: 1px solid var(--light-gray);
         }
 
         th {
             background: #f8f9fa;
             font-weight: 600;
-            color: var(--secondary-color);
-            white-space: nowrap;
+            color: var(--dark);
+            font-size: 13px;
+            position: sticky;
+            left: 0;
         }
 
         tr:last-child td {
             border-bottom: none;
         }
 
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        /* Mobile Table */
-        .mobile-table {
+        .action-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 5px;
+            flex-wrap: wrap;
         }
 
-        .mobile-table-item {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid #e0e6ed;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .mobile-table-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .mobile-table-label {
-            font-weight: 600;
-            color: var(--secondary-color);
+        .action-btn-sm {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
             font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .mobile-table-value {
-            font-size: 14px;
-            text-align: right;
+        .action-btn-sm.approve {
+            background: #d4edda;
+            color: #155724;
         }
 
-        /* Status */
+        .action-btn-sm.reject {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn-sm.view {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Status Badges */
         .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-size: 12px;
-            font-weight: 500;
-            display: inline-block;
+            font-weight: 600;
         }
 
         .status-pending {
@@ -475,204 +597,182 @@
         }
 
         .status-off {
-            background: #e2e3e5;
-            color: #383d41;
+            background: #e9ecef;
+            color: #495057;
         }
 
-        .status-completed {
-            background: #cce5ff;
-            color: #004085;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .action-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-            min-width: 60px;
-        }
-
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        .action-btn.approve {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .action-btn.reject {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-btn.view {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .action-btn.apply {
-            background: #cce5ff;
-            color: #004085;
-        }
-
-        /* Alerts */
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            font-size: 14px;
-        }
-
-        .alert-info {
-            background: #e8f4fc;
-            border-color: var(--primary-color);
-            color: var(--secondary-color);
-        }
-
-        .alert-success {
-            background: #d4edda;
-            border-color: var(--success-color);
-            color: #155724;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            border-color: var(--warning-color);
-            color: #856404;
-        }
-
-        .alert-danger {
-            background: #f8d7da;
-            border-color: var(--danger-color);
-            color: #721c24;
-        }
-
-        /* Balance Display */
-        .balance-display {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .balance-box {
-            flex: 1;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid #e0e6ed;
-        }
-
-        .balance-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--secondary-color);
-            margin: 5px 0;
-        }
-
-        .balance-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-        }
-
-        /* Excel Import Area */
-        .excel-import-area {
-            background: #f8f9fa;
-            border: 2px dashed var(--primary-color);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-            cursor: pointer;
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .excel-import-area:active {
-            background: #e8f4fc;
-        }
-
-        .excel-paste-box {
-            width: 100%;
-            min-height: 120px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-            resize: vertical;
-        }
-
-        /* Tab Controls */
-        .tab-controls {
+        /* Tabs */
+        .tabs {
             display: flex;
             gap: 5px;
             margin-bottom: 15px;
-            border-bottom: 2px solid #e0e6ed;
-            padding-bottom: 10px;
             overflow-x: auto;
+            padding-bottom: 5px;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-
-        .tab-controls::-webkit-scrollbar {
-            display: none;
         }
 
         .tab-btn {
             padding: 10px 15px;
             border: none;
             background: #f0f0f0;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
+            font-size: 13px;
             white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .tab-btn:active {
-            transform: scale(0.98);
+            transition: all 0.3s;
         }
 
         .tab-btn.active {
-            background: var(--primary-color);
-            color: white;
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .calendar-day {
+            border: 1px solid var(--light-gray);
+            padding: 8px;
+            min-height: 60px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            font-size: 12px;
+        }
+
+        .calendar-day.off {
+            background: #f8d7da;
+        }
+
+        .calendar-day.duty {
+            background: #d4edda;
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--primary);
+            background: #e8f4fc;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #e8f4fc;
+            border-color: var(--primary);
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: var(--success);
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: var(--warning);
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border-color: var(--danger);
         }
 
         /* Loading */
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
+            padding: 30px;
+            color: var(--gray);
         }
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary-color);
+            border-top: 3px solid var(--primary);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 10px;
         }
 
         @keyframes spin {
@@ -680,1103 +780,2045 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Calendar View */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-            margin-top: 15px;
-        }
-        
-        .calendar-day {
-            border: 1px solid #e0e6ed;
-            padding: 6px;
-            min-height: 50px;
-            border-radius: 6px;
-            background: #f8f9fa;
-            font-size: 12px;
-        }
-        
-        .calendar-day.off-day {
-            background: #f8d7da;
-        }
-        
-        .calendar-day.duty-day {
-            background: #d4edda;
-        }
-        
-        .calendar-day.today {
-            border: 2px solid var(--primary-color);
-            background: #e8f4fc;
-        }
-        
-        .day-header {
-            font-weight: bold;
-            font-size: 11px;
-            color: var(--secondary-color);
-            margin-bottom: 3px;
+        /* Empty State */
+        .empty-state {
             text-align: center;
-        }
-        
-        .duty-time {
-            font-size: 10px;
-            color: #155724;
-            text-align: center;
-        }
-        
-        .off-time {
-            font-size: 10px;
-            color: #721c24;
-            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
         }
 
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Swipe Actions */
+        .swipe-actions {
+            position: absolute;
             right: 0;
-            background: white;
+            top: 0;
+            bottom: 0;
             display: flex;
-            justify-content: space-around;
-            padding: 10px 5px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
-            border-top: 1px solid #e0e6ed;
         }
 
-        .bottom-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px;
-            border: none;
-            background: none;
-            color: #7f8c8d;
-            font-size: 10px;
-            cursor: pointer;
-            flex: 1;
-            min-width: 60px;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .bottom-nav-item:active {
-            background: rgba(52, 152, 219, 0.1);
-        }
-
-        .bottom-nav-item.active {
-            color: var(--primary-color);
-        }
-
-        .bottom-nav-icon {
-            font-size: 20px;
-        }
-
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 50%;
+        .swipe-action {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-            cursor: pointer;
-            z-index: 99;
-            transition: all 0.3s;
+            padding: 0 20px;
+            color: var(--white);
+            font-weight: 600;
         }
 
-        .fab:active {
-            transform: scale(0.9);
-            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
+        .swipe-action.approve {
+            background: var(--success);
         }
 
-        /* Modal */
-        .modal {
+        .swipe-action.reject {
+            background: var(--danger);
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 768px) {
+            .side-nav {
+                width: var(--sidebar-width);
+                left: -var(--sidebar-width);
+            }
+            
+            .main-content {
+                padding-left: calc(var(--sidebar-width) + 20px);
+            }
+            
+            .side-nav.active + .main-content {
+                padding-left: calc(var(--sidebar-width) + 20px);
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .balance-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal {
+                margin: 10px;
+            }
+        }
+
+        /* Overlay */
+        .overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            color: var(--secondary-color);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #7f8c8d;
-            cursor: pointer;
-            padding: 5px;
-            margin: -5px;
-        }
-
-        /* Swipeable Tabs */
-        .swipe-container {
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .swipe-content {
-            display: flex;
-            transition: transform 0.3s ease;
-            width: 100%;
-        }
-
-        .swipe-page {
-            min-width: 100%;
-            padding: 0;
-        }
-
-        /* Search Bar */
-        .search-bar {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px 45px 15px 15px;
-            border: 2px solid #e0e6ed;
-            border-radius: 10px;
-            font-size: 16px;
-            background: white;
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #7f8c8d;
-            font-size: 20px;
-        }
-
-        /* Pull to Refresh */
-        .pull-to-refresh {
-            position: fixed;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--primary-color);
-            color: white;
-            transition: transform 0.3s;
-            z-index: 999;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #7f8c8d;
-        }
-
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            opacity: 0.3;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .quick-action-btn {
-            padding: 15px;
-            background: white;
-            border: 2px solid #e0e6ed;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            text-align: center;
-            text-decoration: none;
-            color: var(--secondary-color);
-            transition: all 0.3s;
-        }
-
-        .quick-action-btn:active {
-            background: #f8f9fa;
-            border-color: var(--primary-color);
-            transform: scale(0.98);
-        }
-
-        .quick-action-icon {
-            font-size: 24px;
-            color: var(--primary-color);
-        }
-
-        .quick-action-text {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        /* Offline Indicator */
-        .offline-indicator {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            background: var(--warning-color);
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-size: 14px;
-            z-index: 1001;
+            z-index: 1050;
             display: none;
         }
 
-        /* Responsive Breakpoints */
-        @media (min-width: 768px) {
-            .login-container {
-                max-width: 400px;
-                margin: 0 auto;
-                padding: 40px;
-                min-height: auto;
-                border-radius: 20px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            }
-            
-            .mobile-header, .mobile-nav, .bottom-nav, .fab {
-                display: none;
-            }
-            
-            .dashboard-container {
-                max-width: 1200px;
-                margin: 20px auto;
-                border-radius: 20px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                min-height: calc(100vh - 40px);
-            }
-            
-            .content-area {
-                padding: 20px;
-            }
-            
-            .form-row {
-                flex-direction: row;
-                flex-wrap: wrap;
-            }
-            
-            .form-row > * {
-                flex: 1;
-                min-width: 200px;
-            }
-            
-            .table-container {
-                min-width: auto;
-            }
-            
-            table {
-                min-width: auto;
-            }
-        }
-
-        /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --light-color: #1a1a1a;
-                --dark-color: #2c3e50;
-                --secondary-color: #ecf0f1;
-            }
-            
-            body {
-                background: var(--light-color);
-                color: #ecf0f1;
-            }
-            
-            .card, .form-control, table, .mobile-table-item {
-                background: #2c3e50;
-                color: #ecf0f1;
-                border-color: #34495e;
-            }
-            
-            .form-control {
-                background: #2c3e50;
-                color: #ecf0f1;
-            }
-            
-            th {
-                background: #34495e;
-            }
-            
-            .balance-box {
-                background: #34495e;
-                border-color: #4a6572;
-            }
-            
-            .alert {
-                background: #34495e;
-            }
-            
-            .excel-import-area {
-                background: #34495e;
-                border-color: var(--primary-color);
-            }
-        }
-
-        /* Print Styles */
-        @media print {
-            .mobile-header, .mobile-nav, .bottom-nav, .fab, .btn {
-                display: none !important;
-            }
-            
-            .content-area {
-                padding: 0;
-            }
-            
-            .card {
-                box-shadow: none;
-                border: none;
-            }
+        .overlay.active {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <div class="top-nav" id="topNav" style="display: none;">
+            <button class="menu-btn" id="menuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="app-title" id="appTitle">Dashboard</div>
+            <div class="user-icon" id="userInitials">U</div>
+        </div>
+
+        <!-- Side Navigation -->
+        <div class="side-nav" id="sideNav">
+            <div class="nav-header">
+                <div class="user-icon" id="navUserInitials">U</div>
+                <div class="nav-user-info">
+                    <h3 id="navUserName">User Name</h3>
+                    <p id="navUserDetails">RC: 000 • Level: User</p>
+                </div>
+                <button class="nav-close" id="navClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="nav-items" id="navItems">
+                <!-- Navigation items will be populated by JavaScript -->
+            </div>
+            
+            <div class="nav-divider"></div>
+            
+            <a href="#" class="nav-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Content will be loaded dynamically -->
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav" id="bottomNav" style="display: none;">
+            <!-- Bottom nav items will be populated by JavaScript -->
+        </div>
+
+        <!-- Overlay -->
+        <div class="overlay" id="overlay"></div>
+    </div>
+
     <!-- Login Container -->
     <div class="login-container" id="loginContainer">
-        <div class="logo">
-            <h1>Duty Management</h1>
-            <p>Secure Mobile Login</p>
+        <div class="login-logo">
+            <h1><i class="fas fa-calendar-alt"></i> Duty System</h1>
+            <p>Mobile Duty Management</p>
         </div>
         
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Username</label>
+                <label class="form-label" for="username">Username</label>
                 <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
             </div>
             
             <div class="form-group">
-                <label for="password">Password</label>
+                <label class="form-label" for="password">Password</label>
                 <input type="password" id="password" class="form-control" placeholder="Enter password" required>
             </div>
             
-            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-                <span>Login</span>
-                <span>→</span>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Login
             </button>
             
-            <div class="error-message" id="errorMessage">
+            <div class="alert alert-danger" id="errorMessage" style="display: none; margin-top: 15px;">
                 Invalid username or password
             </div>
         </form>
         
-        <div class="alert alert-info" style="margin-top: 30px; font-size: 13px;">
-            <strong>Mobile App:</strong> Add to home screen for full app experience
+        <div style="text-align: center; margin-top: 30px; color: var(--gray); font-size: 12px;">
+            <p>© 2024 Duty Management System</p>
         </div>
     </div>
-    
-    <!-- Dashboard Container -->
-    <div class="dashboard-container" id="dashboardContainer">
-        <!-- Mobile Header -->
-        <div class="mobile-header">
-            <button class="menu-toggle" id="menuToggle">☰</button>
-            <div class="user-info">
-                <h2 id="userName">User Name</h2>
-                <div class="user-details">
-                    <span>RC: <span id="userRC">000</span></span>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="requestModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Request Details</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- Modal buttons will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let allUsers = [];
+        let dutyRoster = {};
+        let leaveBalances = {};
+        let allRequests = [];
+        let announcements = [];
+        let currentPage = 'dashboard';
+        let userDisplayNameMap = {};
+        
+        // Sample user data (in production, this would come from a database)
+        const sampleUsers = [
+            { username: 'supervisor', passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name: 'Supervisor Admin', RCNo: '001', Level: 'Supervisor' },
+            { username: 'irufan1', passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name: 'Irufan (Morning)', RCNo: '002', Level: 'User' },
+            { username: 'irufan2', passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name: 'Irufan (Evening)', RCNo: '003', Level: 'User' },
+            { username: 'hussain', passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name: 'Hussain', RCNo: '004', Level: 'User' },
+            { username: 'mohamed', passwordHash: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', name: 'Mohamed', RCNo: '005', Level: 'User' }
+        ];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set users (in production, this would come from an external file)
+            window.users = sampleUsers;
+            
+            // Setup login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+            
+            // Setup navigation
+            document.getElementById('menuBtn').addEventListener('click', openNav);
+            document.getElementById('navClose').addEventListener('click', closeNav);
+            document.getElementById('overlay').addEventListener('click', closeNav);
+            
+            // Check for existing session
+            checkSession();
+        });
+
+        function checkSession() {
+            const session = localStorage.getItem('dutySystemSession');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    if (user.expiry > Date.now()) {
+                        loginUser(user);
+                    } else {
+                        localStorage.removeItem('dutySystemSession');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('dutySystemSession');
+                }
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('errorMessage');
+            
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+            
+            // Default password for all users: "password"
+            const hashedPassword = sha256(password);
+            const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
+            
+            if (user) {
+                const sessionData = {
+                    username: user.username,
+                    name: user.name,
+                    rcNo: user.RCNo,
+                    level: user.Level,
+                    expiry: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
+                };
+                
+                localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
+                loginUser(sessionData);
+            } else {
+                showError('Invalid username or password');
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        function loginUser(userData) {
+            currentUser = userData;
+            allUsers = users;
+            
+            // Initialize user display name map
+            initializeUserDisplayMap();
+            
+            // Update UI
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('topNav').style.display = 'flex';
+            document.getElementById('bottomNav').style.display = 'flex';
+            
+            // Update user info
+            document.getElementById('userInitials').textContent = getInitials(userData.name);
+            document.getElementById('navUserInitials').textContent = getInitials(userData.name);
+            document.getElementById('navUserName').textContent = userData.name;
+            document.getElementById('navUserDetails').textContent = `RC: ${userData.rcNo} • Level: ${userData.level}`;
+            
+            // Initialize data
+            initializeData();
+            
+            // Setup navigation
+            setupNavigation();
+            
+            // Load dashboard
+            loadPage('dashboard');
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        function initializeUserDisplayMap() {
+            userDisplayNameMap = {};
+            allUsers.forEach(user => {
+                userDisplayNameMap[user.name] = user.username;
+                userDisplayNameMap[user.RCNo] = user.username;
+                userDisplayNameMap[user.username] = user.username;
+                
+                if (user.name.includes('Irufan')) {
+                    const match = user.name.match(/Irufan\s*(\d*)/i);
+                    if (match && match[1]) {
+                        userDisplayNameMap[`Irufan${match[1]}`] = user.username;
+                    }
+                }
+            });
+        }
+
+        function initializeData() {
+            // Load from localStorage
+            loadDutyRoster();
+            loadLeaveBalances();
+            loadAllRequests();
+            loadAnnouncements();
+            
+            // Initialize default data if empty
+            initializeDefaultData();
+        }
+
+        function loadDutyRoster() {
+            const savedRoster = localStorage.getItem('dutyRosterData');
+            dutyRoster = savedRoster ? JSON.parse(savedRoster) : {};
+        }
+
+        function saveDutyRoster() {
+            localStorage.setItem('dutyRosterData', JSON.stringify(dutyRoster));
+        }
+
+        function loadLeaveBalances() {
+            const savedBalances = localStorage.getItem('leaveBalancesData');
+            if (savedBalances) {
+                leaveBalances = JSON.parse(savedBalances);
+            } else {
+                // Initialize with default balances
+                leaveBalances = {};
+                allUsers.forEach(user => {
+                    leaveBalances[user.username] = { SL: 12, FRL: 6 };
+                });
+                saveLeaveBalances();
+            }
+        }
+
+        function saveLeaveBalances() {
+            localStorage.setItem('leaveBalancesData', JSON.stringify(leaveBalances));
+        }
+
+        function loadAllRequests() {
+            const savedRequests = localStorage.getItem('dutyRequestsData');
+            allRequests = savedRequests ? JSON.parse(savedRequests) : [];
+        }
+
+        function saveAllRequests() {
+            localStorage.setItem('dutyRequestsData', JSON.stringify(allRequests));
+        }
+
+        function loadAnnouncements() {
+            const savedAnnouncements = localStorage.getItem('dutyAnnouncementsData');
+            announcements = savedAnnouncements ? JSON.parse(savedAnnouncements) : [];
+        }
+
+        function saveAnnouncements() {
+            localStorage.setItem('dutyAnnouncementsData', JSON.stringify(announcements));
+        }
+
+        function initializeDefaultData() {
+            // Create sample duty roster for the next 7 days if empty
+            const today = new Date();
+            let hasData = false;
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                if (!dutyRoster[dateStr]) {
+                    dutyRoster[dateStr] = {};
+                    hasData = true;
+                    
+                    // Assign sample duties
+                    const dutyTimes = ['08:00-16:00', '16:00-00:00', '00:00-08:00', 'Off'];
+                    allUsers.forEach((user, index) => {
+                        if (user.Level === 'User') {
+                            dutyRoster[dateStr][user.username] = dutyTimes[index % dutyTimes.length];
+                        }
+                    });
+                }
+            }
+            
+            if (hasData) {
+                saveDutyRoster();
+            }
+            
+            // Create sample announcements if empty
+            if (announcements.length === 0) {
+                announcements = [
+                    {
+                        id: 'ann_1',
+                        title: 'System Launch',
+                        content: 'Welcome to the new Duty Management System!',
+                        priority: 'medium',
+                        target: 'all',
+                        createdBy: 'System Admin',
+                        createdAt: new Date().toISOString(),
+                        status: 'active'
+                    },
+                    {
+                        id: 'ann_2',
+                        title: 'Weekend Schedule',
+                        content: 'Special weekend duty schedule will be announced on Friday.',
+                        priority: 'low',
+                        target: 'all',
+                        createdBy: 'Supervisor',
+                        createdAt: new Date().toISOString(),
+                        status: 'active'
+                    }
+                ];
+                saveAnnouncements();
+            }
+        }
+
+        function setupNavigation() {
+            // Build navigation items
+            const navItems = [
+                { id: 'dashboard', icon: 'fas fa-home', text: 'Dashboard', show: true },
+                { id: 'dutyChange', icon: 'fas fa-exchange-alt', text: 'Duty Change', show: true },
+                { id: 'leave', icon: 'fas fa-umbrella-beach', text: 'Apply Leave', show: true },
+                { id: 'myRequests', icon: 'fas fa-list', text: 'My Requests', show: true },
+                { id: 'myRoster', icon: 'fas fa-calendar', text: 'My Roster', show: true },
+                { id: 'pending', icon: 'fas fa-clock', text: 'Pending', badge: 'pendingCount', show: () => allRequests.filter(r => r.status === 'pending' && r.toUsername === currentUser.username).length > 0 },
+                { id: 'allRoster', icon: 'fas fa-calendar-alt', text: 'All Roster', show: currentUser.level === 'Supervisor' },
+                { id: 'leaveBalance', icon: 'fas fa-balance-scale', text: 'Leave Balance', show: currentUser.level === 'Supervisor' },
+                { id: 'approvals', icon: 'fas fa-check-circle', text: 'Approvals', show: currentUser.level === 'Supervisor' },
+                { id: 'announcements', icon: 'fas fa-bullhorn', text: 'Announcements', show: currentUser.level === 'Supervisor' }
+            ];
+
+            const navContainer = document.getElementById('navItems');
+            navContainer.innerHTML = '';
+            
+            navItems.forEach(item => {
+                const shouldShow = typeof item.show === 'function' ? item.show() : item.show;
+                if (shouldShow) {
+                    const div = document.createElement('div');
+                    div.className = 'nav-item';
+                    div.dataset.page = item.id;
+                    div.innerHTML = `
+                        <i class="${item.icon}"></i>
+                        <span>${item.text}</span>
+                        ${item.badge ? `<span class="nav-badge" id="${item.badge}">0</span>` : ''}
+                    `;
+                    div.addEventListener('click', () => {
+                        loadPage(item.id);
+                        closeNav();
+                    });
+                    navContainer.appendChild(div);
+                }
+            });
+
+            // Build bottom navigation
+            const bottomNavItems = [
+                { id: 'dashboard', icon: 'fas fa-home', text: 'Home' },
+                { id: 'dutyChange', icon: 'fas fa-exchange-alt', text: 'Swap' },
+                { id: 'leave', icon: 'fas fa-umbrella-beach', text: 'Leave' },
+                { id: 'myRequests', icon: 'fas fa-list', text: 'Requests' },
+                { id: 'more', icon: 'fas fa-ellipsis-h', text: 'More' }
+            ];
+
+            const bottomNav = document.getElementById('bottomNav');
+            bottomNav.innerHTML = '';
+            
+            bottomNavItems.forEach(item => {
+                const a = document.createElement('a');
+                a.className = 'bottom-nav-item';
+                a.dataset.page = item.id;
+                a.href = '#';
+                a.innerHTML = `
+                    <i class="${item.icon}"></i>
+                    <span>${item.text}</span>
+                `;
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (item.id === 'more') {
+                        openNav();
+                    } else {
+                        loadPage(item.id);
+                    }
+                });
+                bottomNav.appendChild(a);
+            });
+
+            // Update counts
+            updateNotificationCounts();
+        }
+
+        function updateNotificationCounts() {
+            const pendingCount = allRequests.filter(r => r.status === 'pending' && r.toUsername === currentUser.username).length;
+            if (pendingCount > 0) {
+                const badge = document.getElementById('pendingCount');
+                if (badge) badge.textContent = pendingCount;
+            }
+        }
+
+        function openNav() {
+            document.getElementById('sideNav').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeNav() {
+            document.getElementById('sideNav').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function loadPage(page) {
+            currentPage = page;
+            updateActiveNav();
+            
+            // Update title
+            const titles = {
+                dashboard: 'Dashboard',
+                dutyChange: 'Duty Change',
+                leave: 'Apply Leave',
+                myRequests: 'My Requests',
+                myRoster: 'My Roster',
+                pending: 'Pending Requests',
+                allRoster: 'All Roster',
+                leaveBalance: 'Leave Balance',
+                approvals: 'Approvals',
+                announcements: 'Announcements'
+            };
+            
+            document.getElementById('appTitle').textContent = titles[page] || 'Duty System';
+            
+            // Load page content
+            const content = document.getElementById('mainContent');
+            
+            switch(page) {
+                case 'dashboard':
+                    loadDashboard(content);
+                    break;
+                case 'dutyChange':
+                    loadDutyChange(content);
+                    break;
+                case 'leave':
+                    loadLeaveApplication(content);
+                    break;
+                case 'myRequests':
+                    loadMyRequests(content);
+                    break;
+                case 'myRoster':
+                    loadMyRoster(content);
+                    break;
+                case 'pending':
+                    loadPendingRequests(content);
+                    break;
+                case 'allRoster':
+                    loadAllRoster(content);
+                    break;
+                case 'leaveBalance':
+                    loadLeaveBalance(content);
+                    break;
+                case 'approvals':
+                    loadApprovals(content);
+                    break;
+                case 'announcements':
+                    loadAnnouncements(content);
+                    break;
+            }
+        }
+
+        function updateActiveNav() {
+            // Update side nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === currentPage) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Update bottom nav
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === currentPage) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Page Loading Functions
+        function loadDashboard(container) {
+            const balance = leaveBalances[currentUser.username] || { SL: 0, FRL: 0 };
+            const today = new Date().toISOString().split('T')[0];
+            const todayDuty = dutyRoster[today] ? dutyRoster[today][currentUser.username] : 'Not Scheduled';
+            
+            container.innerHTML = `
+                <div class="balance-cards">
+                    <div class="balance-card">
+                        <div class="balance-label">Sick Leave</div>
+                        <div class="balance-value">${balance.SL.toFixed(1)}</div>
+                        <div class="balance-label">Days</div>
+                    </div>
+                    <div class="balance-card">
+                        <div class="balance-label">FRL</div>
+                        <div class="balance-value">${balance.FRL.toFixed(1)}</div>
+                        <div class="balance-label">Days</div>
+                    </div>
                 </div>
-            </div>
-            <button class="btn btn-icon btn-danger" id="logoutBtn">🚪</button>
-        </div>
-        
-        <!-- Mobile Navigation -->
-        <div class="mobile-nav" id="mobileNav">
-            <div class="nav-section">
-                <h3>Main Menu</h3>
-                <a href="#" class="nav-item active" data-section="home">
-                    <span class="nav-icon">🏠</span>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="nav-item" data-section="dutyChange">
-                    <span class="nav-icon">🔄</span>
-                    <span>Duty Change</span>
-                </a>
-                <a href="#" class="nav-item" data-section="leaveApplication">
-                    <span class="nav-icon">📝</span>
-                    <span>Apply Leave</span>
-                </a>
-                <a href="#" class="nav-item" data-section="myRequests">
-                    <span class="nav-icon">📋</span>
-                    <span>My Requests</span>
-                </a>
-                <a href="#" class="nav-item" data-section="viewMyRoster">
-                    <span class="nav-icon">📅</span>
-                    <span>My Roster</span>
-                </a>
-                <a href="#" class="nav-item" data-section="pendingRequests" id="pendingRequestsNav" style="display:none;">
-                    <span class="nav-icon">⏰</span>
-                    <span>Pending</span>
-                    <span id="pendingCount" class="notification-badge">0</span>
-                </a>
-            </div>
-            
-            <div class="nav-section" id="adminNavSection" style="display:none;">
-                <h3>Admin Tools</h3>
-                <a href="#" class="nav-item" data-section="adminDutyRoster">
-                    <span class="nav-icon">👨‍💼</span>
-                    <span>Duty Roster</span>
-                </a>
-                <a href="#" class="nav-item" data-section="adminLeaveBalance">
-                    <span class="nav-icon">💰</span>
-                    <span>Leave Balance</span>
-                </a>
-                <a href="#" class="nav-item" data-section="adminApprovals">
-                    <span class="nav-icon">✅</span>
-                    <span>Approvals</span>
-                </a>
-                <a href="#" class="nav-item" data-section="adminRequestHistory">
-                    <span class="nav-icon">📊</span>
-                    <span>Request History</span>
-                    <span id="historyNotification" class="notification-dot" style="display:none;"></span>
-                </a>
-                <a href="#" class="nav-item" data-section="viewAllRoster">
-                    <span class="nav-icon">👥</span>
-                    <span>All Roster</span>
-                </a>
-            </div>
-            
-            <div class="nav-section">
-                <h3>Settings</h3>
-                <a href="#" class="nav-item" onclick="refreshApp()">
-                    <span class="nav-icon">🔄</span>
-                    <span>Refresh Data</span>
-                </a>
-                <a href="#" class="nav-item" onclick="toggleDarkMode()">
-                    <span class="nav-icon">🌙</span>
-                    <span>Dark Mode</span>
-                </a>
-                <a href="#" class="nav-item" onclick="exportData()">
-                    <span class="nav-icon">📤</span>
-                    <span>Export Data</span>
-                </a>
-            </div>
-        </div>
-        
-        <!-- Navigation Overlay -->
-        <div class="nav-overlay" id="navOverlay"></div>
-        
-        <!-- Offline Indicator -->
-        <div class="offline-indicator" id="offlineIndicator">
-            ⚠️ You are offline. Some features may be limited.
-        </div>
-        
-        <!-- Content Area -->
-        <div class="content-area" id="contentArea">
-            <!-- Dashboard -->
-            <div class="section active" id="homeSection">
+                
+                <div class="today-info">
+                    <h3 style="margin-bottom: 10px;">Today's Duty</h3>
+                    <p style="font-size: 18px; font-weight: 600; margin-bottom: 5px;">
+                        ${todayDuty === 'Off' ? 'Off Duty' : todayDuty}
+                    </p>
+                    <p style="font-size: 14px; opacity: 0.9;">${formatDate(today)}</p>
+                </div>
+                
                 <div class="card">
-                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
-                    
-                    <div class="balance-display">
-                        <div class="balance-box">
-                            <div class="balance-label">Sick Leave</div>
-                            <div class="balance-value" id="slBalance">0</div>
-                            <div class="balance-label">Days</div>
-                        </div>
-                        <div class="balance-box">
-                            <div class="balance-label">FRL</div>
-                            <div class="balance-value" id="frlBalance">0</div>
-                            <div class="balance-label">Days</div>
-                        </div>
+                    <div class="card-header">
+                        <div class="card-title">Quick Actions</div>
                     </div>
-                    
-                    <div class="alert alert-info">
-                        <p><strong>Today's Duty:</strong> <span id="todayDutyTime">Not Scheduled</span></p>
-                        <p><strong>Next Duty:</strong> <span id="nextDutyTime">No upcoming duty</span></p>
-                        <div id="homeNotifications" style="margin-top: 10px; display: none;"></div>
-                    </div>
-                    
                     <div class="quick-actions">
-                        <button class="quick-action-btn" onclick="showSection('dutyChange')">
-                            <span class="quick-action-icon">🔄</span>
-                            <span class="quick-action-text">Duty Change</span>
-                        </button>
-                        <button class="quick-action-btn" onclick="showSection('leaveApplication')">
-                            <span class="quick-action-icon">📝</span>
-                            <span class="quick-action-text">Apply Leave</span>
-                        </button>
-                        <button class="quick-action-btn" onclick="showSection('myRequests')">
-                            <span class="quick-action-icon">📋</span>
-                            <span class="quick-action-text">My Requests</span>
-                        </button>
-                        <button class="quick-action-btn" onclick="showSection('viewMyRoster')">
-                            <span class="quick-action-icon">📅</span>
-                            <span class="quick-action-text">My Roster</span>
-                        </button>
+                        <a href="#" class="action-btn" onclick="loadPage('dutyChange')">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Duty Change</span>
+                        </a>
+                        <a href="#" class="action-btn" onclick="loadPage('leave')">
+                            <i class="fas fa-umbrella-beach"></i>
+                            <span>Apply Leave</span>
+                        </a>
+                        <a href="#" class="action-btn" onclick="loadPage('myRequests')">
+                            <i class="fas fa-list"></i>
+                            <span>My Requests</span>
+                        </a>
+                        <a href="#" class="action-btn" onclick="loadPage('myRoster')">
+                            <i class="fas fa-calendar"></i>
+                            <span>My Roster</span>
+                        </a>
                     </div>
                 </div>
                 
                 <div class="card">
-                    <h3>Recent Activity</h3>
-                    <div id="recentActivity">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            Loading activity...
-                        </div>
+                    <div class="card-header">
+                        <div class="card-title">Announcements</div>
+                        ${currentUser.level === 'Supervisor' ? 
+                            `<button class="btn btn-sm btn-primary" onclick="loadPage('announcements')">
+                                <i class="fas fa-plus"></i> New
+                            </button>` : ''}
+                    </div>
+                    <div id="announcementsList">
+                        ${loadAnnouncementsForDashboard()}
                     </div>
                 </div>
-            </div>
+            `;
+        }
+
+        function loadAnnouncementsForDashboard() {
+            const now = new Date();
+            const activeAnnouncements = announcements.filter(ann => {
+                if (ann.status !== 'active') return false;
+                if (ann.expiry && new Date(ann.expiry) < now) return false;
+                if (ann.target === 'all') return true;
+                if (ann.target === 'specific' && ann.targetUsers && ann.targetUsers.includes(currentUser.username)) return true;
+                return false;
+            });
             
-            <!-- Other sections remain similar but with mobile-optimized layouts -->
-            <!-- Due to character limit, I'll show the structure for one section -->
+            if (activeAnnouncements.length === 0) {
+                return '<div class="empty-state">No announcements</div>';
+            }
             
-            <!-- Duty Change Request (Mobile Optimized) -->
-            <div class="section" id="dutyChangeSection">
+            return activeAnnouncements.slice(0, 3).map(ann => `
+                <div class="announcement-card ${ann.priority}">
+                    <div class="announcement-title">
+                        <i class="fas fa-bullhorn"></i>
+                        ${ann.title}
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                    <div class="announcement-meta">
+                        <div>By: ${ann.createdBy}</div>
+                        <div>${formatTimeAgo(ann.createdAt)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadDutyChange(container) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const minDate = tomorrow.toISOString().split('T')[0];
+            
+            const staffOptions = allUsers
+                .filter(user => user.username !== currentUser.username && user.Level === 'User')
+                .map(user => `<option value="${user.username}">${user.name} (${user.RCNo})</option>`)
+                .join('');
+            
+            container.innerHTML = `
                 <div class="card">
-                    <h3>Duty Change Request</h3>
-                    
+                    <div class="card-header">
+                        <div class="card-title">Duty Change Request</div>
+                    </div>
                     <div class="alert alert-warning">
-                        <strong>Note:</strong> Requests must be made at least 24 hours in advance.
+                        <i class="fas fa-exclamation-circle"></i>
+                        Requests must be made at least 24 hours in advance.
                     </div>
                     
                     <form id="dutyChangeForm">
                         <div class="form-group">
-                            <label for="changeDate">Change Date *</label>
-                            <input type="date" id="changeDate" class="form-control" required min="">
+                            <label class="form-label" for="changeDate">Change Date *</label>
+                            <input type="date" id="changeDate" class="form-control" required min="${minDate}">
                         </div>
                         
                         <div class="form-group">
-                            <label for="changeDutyTime">Your Duty Time *</label>
+                            <label class="form-label" for="changeDutyTime">Your Duty Time *</label>
                             <select id="changeDutyTime" class="form-control" required>
                                 <option value="">Select duty time</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="requestToStaff">Request To Staff *</label>
+                            <label class="form-label" for="requestToStaff">Request To Staff *</label>
                             <select id="requestToStaff" class="form-control" required>
                                 <option value="">Select staff member</option>
+                                ${staffOptions}
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="requestToDutyTime">Staff's Duty Time *</label>
+                            <label class="form-label" for="requestToDutyTime">Staff's Duty Time *</label>
                             <select id="requestToDutyTime" class="form-control" required>
                                 <option value="">Select duty time</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="changeReason">Reason (Optional)</label>
-                            <textarea id="changeReason" class="form-control" rows="3" placeholder="Brief reason for duty change"></textarea>
+                            <label class="form-label" for="changeReason">Reason (Optional)</label>
+                            <textarea id="changeReason" class="form-control" rows="2" placeholder="Brief reason for duty change"></textarea>
                         </div>
                         
-                        <div class="action-buttons">
-                            <button type="submit" class="btn btn-success">Submit Request</button>
-                            <button type="button" class="btn btn-danger" onclick="showSection('home')">Cancel</button>
+                        <div class="form-row" style="gap: 10px;">
+                            <button type="submit" class="btn btn-success btn-block">
+                                <i class="fas fa-paper-plane"></i> Submit Request
+                            </button>
+                            <button type="button" class="btn btn-danger btn-block" onclick="loadPage('dashboard')">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
-            </div>
+            `;
             
-            <!-- Leave Application -->
-            <div class="section" id="leaveApplicationSection">
-                <!-- Similar mobile-optimized structure -->
-            </div>
+            // Setup form
+            const form = document.getElementById('dutyChangeForm');
+            const dateInput = document.getElementById('changeDate');
+            const dutyTimeSelect = document.getElementById('changeDutyTime');
+            const staffSelect = document.getElementById('requestToStaff');
+            const toDutyTimeSelect = document.getElementById('requestToDutyTime');
             
-            <!-- My Requests (Mobile Table View) -->
-            <div class="section" id="myRequestsSection">
-                <div class="card">
-                    <h3>My Requests</h3>
-                    
-                    <div class="search-bar">
-                        <input type="text" class="search-input" placeholder="Search requests..." id="searchRequests">
-                        <span class="search-icon">🔍</span>
-                    </div>
-                    
-                    <div id="myRequestsMobile" class="mobile-table">
-                        <!-- Mobile table items will be added here -->
-                    </div>
-                </div>
-            </div>
+            // Set default date to tomorrow
+            dateInput.value = minDate;
+            loadUserDutyTimes(dateInput.value, dutyTimeSelect);
             
-            <!-- More sections... -->
-        </div>
-        
-        <!-- Bottom Navigation -->
-        <div class="bottom-nav">
-            <button class="bottom-nav-item active" data-section="home">
-                <span class="bottom-nav-icon">🏠</span>
-                <span>Home</span>
-            </button>
-            <button class="bottom-nav-item" data-section="dutyChange">
-                <span class="bottom-nav-icon">🔄</span>
-                <span>Change</span>
-            </button>
-            <button class="bottom-nav-item" data-section="leaveApplication">
-                <span class="bottom-nav-icon">📝</span>
-                <span>Leave</span>
-            </button>
-            <button class="bottom-nav-item" data-section="myRequests">
-                <span class="bottom-nav-icon">📋</span>
-                <span>Requests</span>
-            </button>
-            <button class="bottom-nav-item" data-section="viewMyRoster">
-                <span class="bottom-nav-icon">📅</span>
-                <span>Roster</span>
-            </button>
-        </div>
-        
-        <!-- Floating Action Button -->
-        <button class="fab" id="fabButton" onclick="showQuickActionMenu()">+</button>
-        
-        <!-- Quick Action Menu Modal -->
-        <div class="modal" id="quickActionModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">Quick Actions</h3>
-                    <button class="modal-close" onclick="hideQuickActionMenu()">×</button>
-                </div>
-                <div class="quick-actions">
-                    <button class="quick-action-btn" onclick="showSection('dutyChange'); hideQuickActionMenu();">
-                        <span class="quick-action-icon">🔄</span>
-                        <span class="quick-action-text">Duty Change</span>
-                    </button>
-                    <button class="quick-action-btn" onclick="showSection('leaveApplication'); hideQuickActionMenu();">
-                        <span class="quick-action-icon">📝</span>
-                        <span class="quick-action-text">Apply Leave</span>
-                    </button>
-                    <button class="quick-action-btn" onclick="refreshApp(); hideQuickActionMenu();">
-                        <span class="quick-action-icon">🔄</span>
-                        <span class="quick-action-text">Refresh</span>
-                    </button>
-                    <button class="quick-action-btn" onclick="updateDashboard(); hideQuickActionMenu();">
-                        <span class="quick-action-icon">📊</span>
-                        <span class="quick-action-text">Update Dashboard</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+            // Event listeners
+            dateInput.addEventListener('change', () => {
+                loadUserDutyTimes(dateInput.value, dutyTimeSelect);
+                if (staffSelect.value) {
+                    loadStaffDutyTimes(dateInput.value, staffSelect.value, toDutyTimeSelect);
+                }
+            });
+            
+            staffSelect.addEventListener('change', () => {
+                if (dateInput.value) {
+                    loadStaffDutyTimes(dateInput.value, staffSelect.value, toDutyTimeSelect);
+                }
+            });
+            
+            form.addEventListener('submit', submitDutyChange);
+        }
 
-    <script>
-        // Mobile-specific enhancements
-        
-        // Touch events for swipe navigation
+        function loadUserDutyTimes(date, selectElement) {
+            selectElement.innerHTML = '<option value="">Select duty time</option>';
+            
+            if (!date || !currentUser) return;
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                selectElement.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = 'No Duty';
+                option.textContent = 'No duty scheduled';
+                selectElement.appendChild(option);
+            }
+        }
+
+        function loadStaffDutyTimes(date, username, selectElement) {
+            selectElement.innerHTML = '<option value="">Select duty time</option>';
+            
+            if (!date || !username) return;
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][username];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                selectElement.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = 'No Duty';
+                option.textContent = 'No duty scheduled';
+                selectElement.appendChild(option);
+            }
+        }
+
+        function submitDutyChange(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('changeDate').value;
+            const dutyTime = document.getElementById('changeDutyTime').value;
+            const toStaff = document.getElementById('requestToStaff').value;
+            const toDutyTime = document.getElementById('requestToDutyTime').value;
+            const reason = document.getElementById('changeReason').value;
+            
+            if (!date || !dutyTime || !toStaff || !toDutyTime) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            if (dutyTime === 'No Duty' || toDutyTime === 'No Duty') {
+                alert('Cannot request duty change when no duty is scheduled');
+                return;
+            }
+            
+            const toUser = allUsers.find(u => u.username === toStaff);
+            if (!toUser) {
+                alert('Selected staff not found');
+                return;
+            }
+            
+            const request = {
+                id: 'req_' + Date.now(),
+                type: 'dutyChange',
+                fromUsername: currentUser.username,
+                fromName: currentUser.name,
+                fromRcNo: currentUser.rcNo,
+                date: date,
+                dutyTime: dutyTime,
+                toUsername: toStaff,
+                toName: toUser.name,
+                toRcNo: toUser.RCNo,
+                toDutyTime: toDutyTime,
+                reason: reason,
+                status: 'pending',
+                timestamp: new Date().toISOString(),
+                history: [{
+                    action: 'created',
+                    by: currentUser.name,
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            
+            allRequests.push(request);
+            saveAllRequests();
+            updateNotificationCounts();
+            
+            alert('Duty change request submitted!');
+            loadPage('myRequests');
+        }
+
+        function loadLeaveApplication(container) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const minDate = tomorrow.toISOString().split('T')[0];
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Leave Application</div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Sick Leave: 2+ hours before duty<br>
+                        FRL: 1+ hour before duty
+                    </div>
+                    
+                    <form id="leaveApplicationForm">
+                        <div class="form-row form-row-2">
+                            <div class="form-group">
+                                <label class="form-label" for="leaveType">Leave Type *</label>
+                                <select id="leaveType" class="form-control" required>
+                                    <option value="">Select type</option>
+                                    <option value="Sick Leave">Sick Leave</option>
+                                    <option value="FRL">FRL</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="leaveDate">Leave Date *</label>
+                                <input type="date" id="leaveDate" class="form-control" required min="${minDate}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row form-row-2">
+                            <div class="form-group">
+                                <label class="form-label" for="leaveDutyTime">Duty Time *</label>
+                                <select id="leaveDutyTime" class="form-control" required>
+                                    <option value="">Select time</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="leaveDuration">Duration *</label>
+                                <select id="leaveDuration" class="form-control" required>
+                                    <option value="0.5">Half Day</option>
+                                    <option value="1">1 Day</option>
+                                    <option value="2">2 Days</option>
+                                    <option value="3">3 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="leaveReason">Reason *</label>
+                            <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required></textarea>
+                        </div>
+                        
+                        <div class="alert" id="leaveRulesAlert">
+                            Select leave type, date and duty time to see rules
+                        </div>
+                        
+                        <div class="form-row" style="gap: 10px;">
+                            <button type="submit" class="btn btn-success btn-block" id="submitLeaveBtn">
+                                <i class="fas fa-paper-plane"></i> Submit Application
+                            </button>
+                            <button type="button" class="btn btn-danger btn-block" onclick="loadPage('dashboard')">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            // Setup form
+            const form = document.getElementById('leaveApplicationForm');
+            const dateInput = document.getElementById('leaveDate');
+            const dutyTimeSelect = document.getElementById('leaveDutyTime');
+            const typeSelect = document.getElementById('leaveType');
+            const rulesAlert = document.getElementById('leaveRulesAlert');
+            const submitBtn = document.getElementById('submitLeaveBtn');
+            
+            // Set default date
+            dateInput.value = minDate;
+            loadUserDutyTimes(dateInput.value, dutyTimeSelect);
+            
+            // Event listeners
+            dateInput.addEventListener('change', () => {
+                loadUserDutyTimes(dateInput.value, dutyTimeSelect);
+                updateLeaveRules();
+            });
+            
+            dutyTimeSelect.addEventListener('change', updateLeaveRules);
+            typeSelect.addEventListener('change', updateLeaveRules);
+            
+            function updateLeaveRules() {
+                const leaveType = typeSelect.value;
+                const leaveDate = dateInput.value;
+                const dutyTime = dutyTimeSelect.value;
+                
+                if (!leaveType || !leaveDate || !dutyTime || dutyTime === 'No Duty') {
+                    rulesAlert.className = 'alert alert-warning';
+                    rulesAlert.textContent = 'Please select leave type, date and duty time';
+                    submitBtn.disabled = true;
+                    return;
+                }
+                
+                if (dutyTime === 'Off') {
+                    rulesAlert.className = 'alert alert-warning';
+                    rulesAlert.textContent = 'You are off duty on this date. No leave needed.';
+                    submitBtn.disabled = true;
+                    return;
+                }
+                
+                const dutyStart = dutyTime.split('-')[0];
+                const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
+                const now = new Date();
+                const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
+                
+                let canApply = false;
+                let message = '';
+                
+                if (leaveType === 'Sick Leave') {
+                    canApply = hoursBeforeDuty >= 2;
+                    message = canApply 
+                        ? '✓ You can apply for Sick Leave (2+ hours before duty)'
+                        : `✗ Sick Leave requires 2+ hours before duty`;
+                } else if (leaveType === 'FRL') {
+                    canApply = hoursBeforeDuty >= 1;
+                    message = canApply
+                        ? '✓ You can apply for FRL (1+ hour before duty)'
+                        : `✗ FRL requires 1+ hour before duty`;
+                }
+                
+                rulesAlert.className = canApply ? 'alert alert-success' : 'alert alert-danger';
+                rulesAlert.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
+                submitBtn.disabled = !canApply;
+            }
+            
+            form.addEventListener('submit', submitLeaveApplication);
+        }
+
+        function submitLeaveApplication(e) {
+            e.preventDefault();
+            
+            const leaveType = document.getElementById('leaveType').value;
+            const date = document.getElementById('leaveDate').value;
+            const dutyTime = document.getElementById('leaveDutyTime').value;
+            const duration = parseFloat(document.getElementById('leaveDuration').value);
+            const reason = document.getElementById('leaveReason').value;
+            
+            if (!leaveType || !date || !dutyTime || !reason) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            if (dutyTime === 'No Duty' || dutyTime === 'Off') {
+                alert('You are off duty on this date. No leave needed.');
+                return;
+            }
+            
+            // Check balance
+            const userBalance = leaveBalances[currentUser.username];
+            if (!userBalance) {
+                alert('Error: User balance not found');
+                return;
+            }
+            
+            if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
+                alert(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`);
+                return;
+            }
+            
+            if (leaveType === 'FRL' && userBalance.FRL < duration) {
+                alert(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`);
+                return;
+            }
+            
+            const request = {
+                id: 'req_' + Date.now(),
+                type: 'leave',
+                leaveType: leaveType,
+                fromUsername: currentUser.username,
+                fromName: currentUser.name,
+                fromRcNo: currentUser.rcNo,
+                date: date,
+                dutyTime: dutyTime,
+                duration: duration,
+                reason: reason,
+                status: 'pending',
+                timestamp: new Date().toISOString(),
+                history: [{
+                    action: 'created',
+                    by: currentUser.name,
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            
+            allRequests.push(request);
+            saveAllRequests();
+            
+            alert('Leave application submitted!');
+            loadPage('myRequests');
+        }
+
+        function loadMyRequests(container) {
+            const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
+            
+            if (myReqs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No Requests</h3>
+                        <p>You haven't made any requests yet.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">My Requests</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            myReqs.forEach(req => {
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName}`;
+                } else {
+                    details = `${req.leaveType} - ${req.duration} day(s)`;
+                }
+                
+                let statusClass = 'status-' + req.status;
+                let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+                
+                html += `
+                    <tr>
+                        <td>${req.type === 'dutyChange' ? 'Swap' : 'Leave'}</td>
+                        <td>${req.date}</td>
+                        <td>${details}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn-sm view" onclick="viewRequestDetails('${req.id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${req.status === 'pending' ? `
+                                    <button class="action-btn-sm reject" onclick="cancelRequest('${req.id}')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function viewRequestDetails(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            let details = '';
+            let actions = '';
+            
+            if (request.type === 'dutyChange') {
+                details = `
+                    <p><strong>Date:</strong> ${request.date}</p>
+                    <p><strong>Your Duty:</strong> ${request.dutyTime}</p>
+                    <p><strong>Swap With:</strong> ${request.toName} (${request.toDutyTime})</p>
+                    ${request.reason ? `<p><strong>Reason:</strong> ${request.reason}</p>` : ''}
+                `;
+            } else {
+                details = `
+                    <p><strong>Type:</strong> ${request.leaveType}</p>
+                    <p><strong>Date:</strong> ${request.date}</p>
+                    <p><strong>Duration:</strong> ${request.duration} day(s)</p>
+                    <p><strong>Reason:</strong> ${request.reason}</p>
+                `;
+            }
+            
+            // Add timeline
+            if (request.history && request.history.length > 0) {
+                details += `<p><strong>Timeline:</strong></p>`;
+                request.history.forEach(event => {
+                    details += `<p style="font-size: 12px; color: #666;">• ${event.action} by ${event.by} - ${formatTimeAgo(event.timestamp)}</p>`;
+                });
+            }
+            
+            if (request.status === 'pending' && request.type === 'dutyChange' && request.toUsername === currentUser.username) {
+                actions = `
+                    <button class="btn btn-success" onclick="respondToRequest('${request.id}', 'approved')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="btn btn-danger" onclick="respondToRequest('${request.id}', 'rejected')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                `;
+            }
+            
+            document.getElementById('modalTitle').textContent = 'Request Details';
+            document.getElementById('modalBody').innerHTML = details;
+            document.getElementById('modalFooter').innerHTML = actions || '<button class="btn btn-primary" onclick="closeModal()">Close</button>';
+            document.getElementById('requestModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('requestModal').classList.remove('active');
+        }
+
+        function cancelRequest(requestId) {
+            if (confirm('Are you sure you want to cancel this request?')) {
+                const request = allRequests.find(req => req.id === requestId);
+                if (request) {
+                    request.status = 'cancelled';
+                    request.history.push({
+                        action: 'cancelled',
+                        by: currentUser.name,
+                        timestamp: new Date().toISOString()
+                    });
+                    saveAllRequests();
+                    loadPage('myRequests');
+                }
+            }
+        }
+
+        function respondToRequest(requestId, response) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            if (response === 'approved') {
+                // Swap duty times
+                const date = request.date;
+                if (dutyRoster[date]) {
+                    const temp = dutyRoster[date][request.fromUsername];
+                    dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
+                    dutyRoster[date][request.toUsername] = temp;
+                    saveDutyRoster();
+                }
+            }
+            
+            request.status = response;
+            request.history.push({
+                action: response,
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
+            saveAllRequests();
+            
+            alert(`Request ${response} successfully!`);
+            closeModal();
+            loadPage('pending');
+            updateNotificationCounts();
+        }
+
+        function loadMyRoster(container) {
+            const today = new Date();
+            const month = today.toISOString().substring(0, 7);
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">My Roster</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="rosterMonth">Select Month</label>
+                        <input type="month" id="rosterMonth" class="form-control" value="${month}">
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" onclick="loadRosterView()">
+                        <i class="fas fa-sync-alt"></i> Load Roster
+                    </button>
+                    
+                    <div id="rosterView" style="margin-top: 20px;">
+                        <!-- Roster will be loaded here -->
+                    </div>
+                </div>
+            `;
+            
+            // Load initial roster view
+            loadRosterView();
+        }
+
+        function loadRosterView() {
+            const month = document.getElementById('rosterMonth').value;
+            const [year, monthNum] = month.split('-');
+            const startDate = new Date(year, monthNum - 1, 1);
+            const endDate = new Date(year, monthNum, 0);
+            
+            const container = document.getElementById('rosterView');
+            let html = '<div class="calendar-grid">';
+            
+            // Day headers
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            days.forEach(day => {
+                html += `<div class="calendar-day" style="text-align: center; font-weight: bold;">${day}</div>`;
+            });
+            
+            // Empty cells for days before start of month
+            const firstDay = startDate.getDay();
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="calendar-day"></div>';
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Calendar days
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayNum = d.getDate();
+                const isToday = dateStr === today;
+                
+                let dutyTime = dutyRoster[dateStr] ? dutyRoster[dateStr][currentUser.username] : null;
+                let dayClass = 'calendar-day';
+                
+                if (dutyTime) {
+                    if (dutyTime === 'Off') {
+                        dayClass += ' off';
+                    } else {
+                        dayClass += ' duty';
+                    }
+                }
+                
+                if (isToday) {
+                    dayClass += ' today';
+                }
+                
+                html += `
+                    <div class="${dayClass}">
+                        <div style="font-weight: bold;">${dayNum}</div>
+                        ${dutyTime ? `<div style="font-size: 10px; margin-top: 3px;">${dutyTime === 'Off' ? 'OFF' : dutyTime}</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            
+            // Legend
+            html += `
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+                        <div style="width: 15px; height: 15px; background: #d4edda; border: 1px solid #c3e6cb;"></div>
+                        <span>Duty</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+                        <div style="width: 15px; height: 15px; background: #f8d7da; border: 1px solid #f5c6cb;"></div>
+                        <span>Off</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+                        <div style="width: 15px; height: 15px; background: #e8f4fc; border: 2px solid #3498db;"></div>
+                        <span>Today</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function loadPendingRequests(container) {
+            const pendingReqs = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            );
+            
+            if (pendingReqs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clock"></i>
+                        <h3>No Pending Requests</h3>
+                        <p>You don't have any pending requests.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Pending Requests</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            pendingReqs.forEach(req => {
+                html += `
+                    <tr>
+                        <td>${req.fromName}</td>
+                        <td>${req.date}</td>
+                        <td>Swap ${req.dutyTime} with ${req.toDutyTime}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn-sm approve" onclick="respondToRequest('${req.id}', 'approved')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="action-btn-sm reject" onclick="respondToRequest('${req.id}', 'rejected')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Admin Functions
+        function loadAllRoster(container) {
+            if (currentUser.level !== 'Supervisor') {
+                container.innerHTML = '<div class="alert alert-danger">Access Denied</div>';
+                return;
+            }
+            
+            const today = new Date();
+            const weekLater = new Date(today);
+            weekLater.setDate(today.getDate() + 7);
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">All Roster</div>
+                    </div>
+                    
+                    <div class="form-row form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="allRosterStart">From</label>
+                            <input type="date" id="allRosterStart" class="form-control" value="${today.toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="allRosterEnd">To</label>
+                            <input type="date" id="allRosterEnd" class="form-control" value="${weekLater.toISOString().split('T')[0]}">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" onclick="loadAllRosterView()">
+                        <i class="fas fa-search"></i> View Roster
+                    </button>
+                    
+                    <div id="allRosterView" style="margin-top: 20px;">
+                        <!-- All roster will be loaded here -->
+                    </div>
+                </div>
+            `;
+            
+            // Load initial view
+            loadAllRosterView();
+        }
+
+        function loadAllRosterView() {
+            const start = document.getElementById('allRosterStart').value;
+            const end = document.getElementById('allRosterEnd').value;
+            const container = document.getElementById('allRosterView');
+            
+            if (!start || !end) {
+                container.innerHTML = '<div class="alert alert-warning">Please select date range</div>';
+                return;
+            }
+            
+            const staffUsers = allUsers.filter(u => u.Level === 'User');
+            let html = `
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                ${staffUsers.map(user => `<th>${user.name}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            const currentDate = new Date(start);
+            const endDate = new Date(end);
+            
+            while (currentDate <= endDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+                
+                html += `<tr ${isToday ? 'style="background-color: #fff3cd;"' : ''}>`;
+                html += `<td>${dateStr}${isToday ? ' (Today)' : ''}</td>`;
+                
+                staffUsers.forEach(user => {
+                    const duty = dutyRoster[dateStr] ? dutyRoster[dateStr][user.username] : '-';
+                    html += `<td>${duty}</td>`;
+                });
+                
+                html += '</tr>';
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function loadLeaveBalance(container) {
+            if (currentUser.level !== 'Supervisor') {
+                container.innerHTML = '<div class="alert alert-danger">Access Denied</div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Leave Balance Management</div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th>RC No</th>
+                                    <th>Sick Leave</th>
+                                    <th>FRL</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="balanceTable">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-success" onclick="saveAllBalances()">
+                            <i class="fas fa-save"></i> Save All
+                        </button>
+                        <button class="btn btn-warning" onclick="resetAllBalances()" style="margin-left: 10px;">
+                            <i class="fas fa-redo"></i> Reset All
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Populate balance table
+            const tbody = document.getElementById('balanceTable');
+            tbody.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const balance = leaveBalances[user.username] || { SL: 0, FRL: 0 };
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.RCNo}</td>
+                        <td>
+                            <input type="number" class="form-control" 
+                                   value="${balance.SL}" 
+                                   step="0.5" min="0"
+                                   onchange="updateTempBalance('${user.username}', 'SL', this.value)"
+                                   style="width: 80px; display: inline-block;">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" 
+                                   value="${balance.FRL}" 
+                                   step="0.5" min="0"
+                                   onchange="updateTempBalance('${user.username}', 'FRL', this.value)"
+                                   style="width: 80px; display: inline-block;">
+                        </td>
+                        <td>
+                            <button class="action-btn-sm view" onclick="resetUserBalance('${user.username}')">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        function updateTempBalance(username, type, value) {
+            if (!leaveBalances[username]) {
+                leaveBalances[username] = { SL: 0, FRL: 0 };
+            }
+            leaveBalances[username][type] = parseFloat(value) || 0;
+        }
+
+        function saveAllBalances() {
+            saveLeaveBalances();
+            alert('All balances saved successfully!');
+        }
+
+        function resetAllBalances() {
+            if (confirm('Reset ALL balances to default (12 days SL, 6 days FRL)?')) {
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        leaveBalances[user.username] = { SL: 12, FRL: 6 };
+                    }
+                });
+                saveLeaveBalances();
+                loadLeaveBalance(document.getElementById('mainContent'));
+            }
+        }
+
+        function resetUserBalance(username) {
+            if (confirm('Reset this user\'s balance to default?')) {
+                leaveBalances[username] = { SL: 12, FRL: 6 };
+                saveLeaveBalances();
+                loadLeaveBalance(document.getElementById('mainContent'));
+            }
+        }
+
+        function loadApprovals(container) {
+            if (currentUser.level !== 'Supervisor') {
+                container.innerHTML = '<div class="alert alert-danger">Access Denied</div>';
+                return;
+            }
+            
+            const pendingRequests = allRequests.filter(req => req.status === 'pending');
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Pending Approvals (${pendingRequests.length})</div>
+                    </div>
+                    
+                    ${pendingRequests.length === 0 ? `
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>No Pending Approvals</h3>
+                            <p>All requests have been processed.</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div id="approvalsList">
+                        <!-- Approvals will be loaded here -->
+                    </div>
+                </div>
+            `;
+            
+            if (pendingRequests.length > 0) {
+                const approvalsList = document.getElementById('approvalsList');
+                pendingRequests.forEach(req => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.style.marginBottom = '10px';
+                    
+                    let details = '';
+                    if (req.type === 'dutyChange') {
+                        details = `
+                            <p><strong>Duty Change Request</strong></p>
+                            <p>${req.fromName} wants to swap ${req.dutyTime} with ${req.toName}'s ${req.toDutyTime} on ${req.date}</p>
+                        `;
+                    } else {
+                        details = `
+                            <p><strong>Leave Application</strong></p>
+                            <p>${req.fromName} - ${req.leaveType} for ${req.duration} day(s) on ${req.date}</p>
+                            <p><em>${req.reason}</em></p>
+                        `;
+                    }
+                    
+                    div.innerHTML = `
+                        ${details}
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-success btn-sm" onclick="adminApprove('${req.id}')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="adminReject('${req.id}')">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                            ${req.type === 'dutyChange' ? `
+                                <button class="btn btn-primary btn-sm" onclick="adminApplyDutyChange('${req.id}')">
+                                    <i class="fas fa-exchange-alt"></i> Apply & Approve
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    approvalsList.appendChild(div);
+                });
+            }
+        }
+
+        function adminApprove(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            if (request.type === 'leave') {
+                const userBalance = leaveBalances[request.fromUsername];
+                if (!userBalance) {
+                    alert('Error: User balance not found');
+                    return;
+                }
+                
+                if (request.leaveType === 'Sick Leave' && userBalance.SL < request.duration) {
+                    alert(`Insufficient Sick Leave balance`);
+                    return;
+                }
+                
+                if (request.leaveType === 'FRL' && userBalance.FRL < request.duration) {
+                    alert(`Insufficient FRL balance`);
+                    return;
+                }
+                
+                if (request.leaveType === 'Sick Leave') {
+                    userBalance.SL -= request.duration;
+                } else {
+                    userBalance.FRL -= request.duration;
+                }
+                saveLeaveBalances();
+            }
+            
+            request.status = 'approved';
+            request.approvedBy = currentUser.name;
+            request.approvedAt = new Date().toISOString();
+            request.history.push({
+                action: 'approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
+            saveAllRequests();
+            
+            alert('Request approved!');
+            loadPage('approvals');
+        }
+
+        function adminApplyDutyChange(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            // Apply the duty change
+            const date = request.date;
+            if (dutyRoster[date]) {
+                const temp = dutyRoster[date][request.fromUsername];
+                dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
+                dutyRoster[date][request.toUsername] = temp;
+                saveDutyRoster();
+            }
+            
+            // Mark as approved
+            request.status = 'approved';
+            request.approvedBy = currentUser.name;
+            request.approvedAt = new Date().toISOString();
+            request.history.push({
+                action: 'applied_and_approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
+            saveAllRequests();
+            
+            alert('Duty change applied and approved!');
+            loadPage('approvals');
+        }
+
+        function adminReject(requestId) {
+            if (confirm('Reject this request?')) {
+                const request = allRequests.find(req => req.id === requestId);
+                if (request) {
+                    request.status = 'rejected';
+                    request.rejectedBy = currentUser.name;
+                    request.rejectedAt = new Date().toISOString();
+                    request.history.push({
+                        action: 'rejected',
+                        by: currentUser.name,
+                        timestamp: new Date().toISOString()
+                    });
+                    saveAllRequests();
+                    
+                    alert('Request rejected!');
+                    loadPage('approvals');
+                }
+            }
+        }
+
+        function loadAnnouncements(container) {
+            if (currentUser.level !== 'Supervisor') {
+                container.innerHTML = '<div class="alert alert-danger">Access Denied</div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Create Announcement</div>
+                    </div>
+                    
+                    <form id="announcementForm">
+                        <div class="form-group">
+                            <label class="form-label" for="annTitle">Title *</label>
+                            <input type="text" id="annTitle" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="annContent">Content *</label>
+                            <textarea id="annContent" class="form-control" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="annPriority">Priority</label>
+                            <select id="annPriority" class="form-control">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Target</label>
+                            <div>
+                                <label style="margin-right: 15px;">
+                                    <input type="radio" name="target" value="all" checked> All Staff
+                                </label>
+                                <label>
+                                    <input type="radio" name="target" value="specific"> Specific Staff
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="specificStaffGroup" style="display: none;">
+                            <label class="form-label" for="annStaff">Select Staff</label>
+                            <select id="annStaff" class="form-control" multiple style="height: 100px;">
+                                ${allUsers.filter(u => u.Level === 'User').map(u => 
+                                    `<option value="${u.username}">${u.name}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-paper-plane"></i> Create Announcement
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Active Announcements</div>
+                    </div>
+                    <div id="activeAnnouncements">
+                        <!-- Active announcements will be loaded here -->
+                    </div>
+                </div>
+            `;
+            
+            // Setup form
+            const form = document.getElementById('announcementForm');
+            const targetRadios = document.querySelectorAll('input[name="target"]');
+            const specificGroup = document.getElementById('specificStaffGroup');
+            
+            targetRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    specificGroup.style.display = this.value === 'specific' ? 'block' : 'none';
+                });
+            });
+            
+            form.addEventListener('submit', createAnnouncement);
+            
+            // Load active announcements
+            loadActiveAnnouncements();
+        }
+
+        function loadActiveAnnouncements() {
+            const container = document.getElementById('activeAnnouncements');
+            const active = announcements.filter(ann => ann.status === 'active');
+            
+            if (active.length === 0) {
+                container.innerHTML = '<div class="empty-state">No active announcements</div>';
+                return;
+            }
+            
+            container.innerHTML = active.map(ann => `
+                <div class="announcement-card ${ann.priority}" style="margin-bottom: 10px;">
+                    <div class="announcement-title">
+                        <i class="fas fa-bullhorn"></i>
+                        ${ann.title}
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                    <div class="announcement-meta">
+                        <div>By: ${ann.createdBy}</div>
+                        <div>
+                            <button class="action-btn-sm reject" onclick="deleteAnnouncement('${ann.id}')" style="background: transparent; border: none; color: white;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createAnnouncement(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('annTitle').value.trim();
+            const content = document.getElementById('annContent').value.trim();
+            const priority = document.getElementById('annPriority').value;
+            const target = document.querySelector('input[name="target"]:checked').value;
+            
+            if (!title || !content) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            let targetUsers = [];
+            if (target === 'specific') {
+                const staffSelect = document.getElementById('annStaff');
+                targetUsers = Array.from(staffSelect.selectedOptions).map(opt => opt.value);
+                if (targetUsers.length === 0) {
+                    alert('Please select at least one staff member');
+                    return;
+                }
+            }
+            
+            const announcement = {
+                id: 'ann_' + Date.now(),
+                title: title,
+                content: content,
+                priority: priority,
+                target: target,
+                targetUsers: targetUsers,
+                createdBy: currentUser.name,
+                createdAt: new Date().toISOString(),
+                status: 'active'
+            };
+            
+            announcements.push(announcement);
+            saveAnnouncements();
+            
+            alert('Announcement created successfully!');
+            document.getElementById('announcementForm').reset();
+            loadActiveAnnouncements();
+        }
+
+        function deleteAnnouncement(announcementId) {
+            if (confirm('Delete this announcement?')) {
+                const index = announcements.findIndex(ann => ann.id === announcementId);
+                if (index !== -1) {
+                    announcements.splice(index, 1);
+                    saveAnnouncements();
+                    loadActiveAnnouncements();
+                    alert('Announcement deleted!');
+                }
+            }
+        }
+
+        // Utility Functions
+        function logout() {
+            localStorage.removeItem('dutySystemSession');
+            location.reload();
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return formatDate(timestamp);
+        }
+
+        // Touch swipe support for mobile
         let touchStartX = 0;
         let touchEndX = 0;
-        
+
         document.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
         });
-        
+
         document.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         });
-        
+
         function handleSwipe() {
             const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
+            const swipeDistance = touchEndX - touchStartX;
             
-            if (Math.abs(diff) > swipeThreshold) {
-                const currentSection = document.querySelector('.section.active').id;
-                const sections = ['home', 'dutyChange', 'leaveApplication', 'myRequests', 'viewMyRoster'];
-                const currentIndex = sections.indexOf(currentSection.replace('Section', ''));
-                
-                if (diff > 0 && currentIndex < sections.length - 1) {
-                    // Swipe left
-                    showSection(sections[currentIndex + 1]);
-                } else if (diff < 0 && currentIndex > 0) {
-                    // Swipe right
-                    showSection(sections[currentIndex - 1]);
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                if (swipeDistance > 0 && touchStartX < 50) {
+                    // Swipe right from left edge - open nav
+                    openNav();
+                } else if (swipeDistance < 0 && document.getElementById('sideNav').classList.contains('active')) {
+                    // Swipe left with nav open - close nav
+                    closeNav();
                 }
             }
         }
-        
-        // Mobile menu toggle
-        document.getElementById('menuToggle').addEventListener('click', toggleMobileMenu);
-        document.getElementById('navOverlay').addEventListener('click', toggleMobileMenu);
-        
-        function toggleMobileMenu() {
-            document.getElementById('mobileNav').classList.toggle('active');
-            document.getElementById('navOverlay').classList.toggle('active');
-            document.body.style.overflow = document.getElementById('mobileNav').classList.contains('active') ? 'hidden' : '';
-        }
-        
-        // Update navigation for mobile
-        function setupMobileNavigation() {
-            // Mobile nav items
-            document.querySelectorAll('.mobile-nav .nav-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const section = this.getAttribute('data-section');
-                    showSection(section);
-                    toggleMobileMenu();
-                });
-            });
-            
-            // Bottom nav items
-            document.querySelectorAll('.bottom-nav-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    const section = this.getAttribute('data-section');
-                    showSection(section);
-                });
-            });
-        }
-        
-        // Pull to refresh
-        let pullStartY = 0;
-        let pulling = false;
-        
-        document.getElementById('contentArea').addEventListener('touchstart', e => {
-            if (window.scrollY === 0) {
-                pullStartY = e.touches[0].clientY;
-                pulling = true;
-            }
-        });
-        
-        document.getElementById('contentArea').addEventListener('touchmove', e => {
-            if (!pulling) return;
-            
-            const pullDistance = e.touches[0].clientY - pullStartY;
-            if (pullDistance > 0) {
-                e.preventDefault();
-                // Show pull to refresh indicator
-                if (pullDistance > 60) {
-                    // Trigger refresh
-                    refreshApp();
-                    pulling = false;
-                }
-            }
-        });
-        
-        document.getElementById('contentArea').addEventListener('touchend', () => {
-            pulling = false;
-        });
-        
-        // Quick action menu
-        function showQuickActionMenu() {
-            document.getElementById('quickActionModal').classList.add('active');
-        }
-        
-        function hideQuickActionMenu() {
-            document.getElementById('quickActionModal').classList.remove('active');
-        }
-        
-        // Mobile-optimized table rendering
-        function renderMobileTable(data, containerId, type) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <h4>No data found</h4>
-                        <p>No ${type} records available</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'mobile-table-item';
-                
-                let content = '';
-                if (type === 'requests') {
-                    content = `
-                        <div class="mobile-table-row">
-                            <span class="mobile-table-label">Type:</span>
-                            <span class="mobile-table-value">${item.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</span>
-                        </div>
-                        <div class="mobile-table-row">
-                            <span class="mobile-table-label">Date:</span>
-                            <span class="mobile-table-value">${item.date}</span>
-                        </div>
-                        <div class="mobile-table-row">
-                            <span class="mobile-table-label">Status:</span>
-                            <span class="status-badge status-${item.status}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
-                        </div>
-                        ${item.details ? `
-                        <div class="mobile-table-row">
-                            <span class="mobile-table-label">Details:</span>
-                            <span class="mobile-table-value" style="text-align: left;">${item.details}</span>
-                        </div>` : ''}
-                    `;
-                }
-                
-                div.innerHTML = content;
-                container.appendChild(div);
-            });
-        }
-        
-        // Initialize mobile features
-        function initMobileFeatures() {
-            setupMobileNavigation();
-            
-            // Check network status
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
-            updateOnlineStatus();
-            
-            // Initialize service worker for PWA
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js').then(() => {
-                    console.log('Service Worker registered');
-                });
-            }
-            
-            // Add to home screen prompt
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                showInstallPrompt();
-            });
-        }
-        
-        function updateOnlineStatus() {
-            const indicator = document.getElementById('offlineIndicator');
-            if (!navigator.onLine) {
-                indicator.style.display = 'block';
-            } else {
-                indicator.style.display = 'none';
-            }
-        }
-        
-        function showInstallPrompt() {
-            // Show custom install prompt
-            const installPrompt = document.createElement('div');
-            installPrompt.className = 'alert alert-info';
-            installPrompt.innerHTML = `
-                <strong>Install App:</strong> Add to home screen for better experience
-                <button onclick="installApp()" class="btn btn-small btn-success" style="margin-left: 10px;">Install</button>
-                <button onclick="this.parentElement.remove()" class="btn btn-small" style="margin-left: 5px;">Later</button>
-            `;
-            document.getElementById('homeSection').prepend(installPrompt);
-        }
-        
-        async function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('App installed');
-                }
-                deferredPrompt = null;
-            }
-        }
-        
-        // Enhanced showSection for mobile
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Update bottom nav
-            document.querySelectorAll('.bottom-nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-section') === sectionId) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Show selected section
-            const section = document.getElementById(sectionId + 'Section');
-            if (section) {
-                section.classList.add('active');
-                
-                // Scroll to top
-                window.scrollTo(0, 0);
-                
-                // Load section data with mobile optimizations
-                switch(sectionId) {
-                    case 'home':
-                        loadMobileDashboard();
-                        break;
-                    case 'myRequests':
-                        loadMobileMyRequests();
-                        break;
-                    // Add other sections...
-                }
-            }
-        }
-        
-        function loadMobileDashboard() {
-            updateDashboard();
-            loadRecentActivity();
-        }
-        
-        function loadRecentActivity() {
-            const container = document.getElementById('recentActivity');
-            if (!currentUser) return;
-            
-            const userReqs = allRequests
-                .filter(req => req.fromUsername === currentUser.username)
-                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                .slice(0, 5);
-            
-            if (userReqs.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>No recent activity</p></div>';
-                return;
-            }
-            
-            let html = '<div class="mobile-table">';
-            userReqs.forEach(req => {
-                html += `
-                    <div class="mobile-table-item">
-                        <div class="mobile-table-row">
-                            <span class="mobile-table-label">${req.type === 'dutyChange' ? '🔄 Duty Change' : '📝 Leave'}</span>
-                            <span class="mobile-table-value">${req.date}</span>
-                        </div>
-                        <div class="mobile-table-row">
-                            <span class="mobile-table-label">Status:</span>
-                            <span class="status-badge status-${req.status}">${req.status}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-        }
-        
-        function loadMobileMyRequests() {
-            if (!currentUser) return;
-            
-            const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
-            const mobileData = myReqs.map(req => ({
-                ...req,
-                details: req.type === 'dutyChange' ? 
-                    `Swap with ${req.toName}` : 
-                    `${req.leaveType} - ${req.duration} day(s)`
-            }));
-            
-            renderMobileTable(mobileData, 'myRequestsMobile', 'requests');
-            
-            // Setup search
-            document.getElementById('searchRequests').addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const filtered = mobileData.filter(req => 
-                    req.date.includes(searchTerm) ||
-                    req.status.toLowerCase().includes(searchTerm) ||
-                    req.details.toLowerCase().includes(searchTerm)
-                );
-                renderMobileTable(filtered, 'myRequestsMobile', 'requests');
-            });
-        }
-        
-        // Initialize when DOM loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initApp();
-            initMobileFeatures();
-        });
-        
-        // Mobile-specific utility functions
-        function refreshApp() {
-            location.reload();
-        }
-        
-        function toggleDarkMode() {
-            // Toggle dark mode class
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-        }
-        
-        function exportData() {
-            // Export data as JSON
-            const data = {
-                dutyRoster,
-                leaveBalances,
-                allRequests
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `duty-data-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-        
-        // Update existing functions for mobile
-        function loginUser(userData) {
-            currentUser = userData;
-            // ... existing code ...
-            
-            // Initialize mobile features
-            initMobileFeatures();
-            
-            // Show/hide admin nav section
-            if (userData.level === 'Supervisor') {
-                document.getElementById('adminNavSection').style.display = 'block';
-            }
-            
-            // ... rest of existing code ...
-        }
-        
-        // Add vibration feedback for actions (optional)
-        function vibrate(duration = 50) {
-            if ('vibrate' in navigator) {
-                navigator.vibrate(duration);
-            }
-        }
-        
-        // Add this to action buttons
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn') || 
-                e.target.classList.contains('action-btn') ||
-                e.target.classList.contains('nav-item')) {
-                vibrate(30);
-            }
-        });
     </script>
 </body>
 </html>
