@@ -815,42 +815,68 @@
             font-weight: 500;
         }
         
-        /* Different timing colors */
-        .duty-time-morning {
-            background-color: #d4edda !important; /* Green for morning shifts */
-            color: #155724;
-            font-weight: 500;
-        }
+        /* Enhanced duty time colors */
+        /* Early Morning (00:00 - 06:00 start) */
+        .duty-0000-0800 { background-color: #001f3f !important; color: white; }
+        .duty-0030-0830 { background-color: #001f3f !important; color: white; }
+        .duty-0100-0900 { background-color: #001f3f !important; color: white; }
+        .duty-0200-1000 { background-color: #001f3f !important; color: white; }
+        .duty-0300-1100 { background-color: #001f3f !important; color: white; }
+        .duty-0400-1200 { background-color: #001f3f !important; color: white; }
+        .duty-0500-1300 { background-color: #001f3f !important; color: white; }
         
-        .duty-time-afternoon {
-            background-color: #cce5ff !important; /* Blue for afternoon shifts */
-            color: #004085;
-            font-weight: 500;
-        }
+        /* Morning Shifts (06:00 - 10:00 start) */
+        .duty-0600-1400 { background-color: #d4edda !important; color: #155724; }
+        .duty-0630-1430 { background-color: #d4edda !important; color: #155724; }
+        .duty-0700-1500 { background-color: #d4edda !important; color: #155724; }
+        .duty-0730-1530 { background-color: #d4edda !important; color: #155724; }
+        .duty-0800-1600 { background-color: #d4edda !important; color: #155724; }
+        .duty-0830-1630 { background-color: #d4edda !important; color: #155724; }
         
-        .duty-time-evening {
-            background-color: #e8f4fc !important; /* Light blue for evening shifts */
-            color: #0c5460;
-            font-weight: 500;
-        }
+        /* Late Morning (10:00 - 12:00 start) */
+        .duty-1000-1800 { background-color: #c7e5d4 !important; color: #0d4620; }
+        .duty-1030-1830 { background-color: #c7e5d4 !important; color: #0d4620; }
+        .duty-1100-1900 { background-color: #c7e5d4 !important; color: #0d4620; }
+        .duty-1130-1930 { background-color: #c7e5d4 !important; color: #0d4620; }
         
-        .duty-time-night {
-            background-color: #d1ecf1 !important; /* Teal for night shifts */
-            color: #0c5460;
-            font-weight: 500;
-        }
+        /* Early Afternoon (12:00 - 14:00 start) */
+        .duty-1200-2000 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-1230-2030 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-1300-2100 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-1330-2130 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-1400-2200 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-1430-2230 { background-color: #d1ecf1 !important; color: #0c5460; }
         
-        .duty-time-late-night {
-            background-color: #f8d7da !important; /* Light red for late night */
-            color: #721c24;
-            font-weight: 500;
-        }
+        /* Afternoon (14:00 - 16:00 start) */
+        .duty-1500-2300 { background-color: #cce5ff !important; color: #004085; }
+        .duty-1530-2330 { background-color: #cce5ff !important; color: #004085; }
+        .duty-1600-0000 { background-color: #cce5ff !important; color: #004085; }
+        .duty-1630-0030 { background-color: #cce5ff !important; color: #004085; }
         
-        .duty-time-mixed {
-            background-color: #fff3cd !important; /* Yellow for mixed shifts */
-            color: #856404;
-            font-weight: 500;
-        }
+        /* Evening (16:00 - 18:00 start) */
+        .duty-1700-0100 { background-color: #a0d2ff !important; color: #003366; }
+        .duty-1730-0130 { background-color: #a0d2ff !important; color: #003366; }
+        .duty-1800-0200 { background-color: #a0d2ff !important; color: #003366; }
+        .duty-1830-0230 { background-color: #a0d2ff !important; color: #003366; }
+        
+        /* Late Evening (18:00 - 20:00 start) */
+        .duty-1900-0300 { background-color: #8bc5ff !important; color: #002244; }
+        .duty-1930-0330 { background-color: #8bc5ff !important; color: #002244; }
+        .duty-2000-0400 { background-color: #8bc5ff !important; color: #002244; }
+        .duty-2030-0430 { background-color: #8bc5ff !important; color: #002244; }
+        
+        /* Night (20:00 - 00:00 start) */
+        .duty-2100-0500 { background-color: #76b8ff !important; color: #001122; }
+        .duty-2130-0530 { background-color: #76b8ff !important; color: #001122; }
+        .duty-2200-0600 { background-color: #76b8ff !important; color: #001122; }
+        .duty-2230-0630 { background-color: #76b8ff !important; color: #001122; }
+        .duty-2300-0700 { background-color: #76b8ff !important; color: #001122; }
+        .duty-2330-0730 { background-color: #76b8ff !important; color: #001122; }
+        
+        /* Mixed/Other shifts */
+        .duty-mixed { background-color: #fff3cd !important; color: #856404; }
+        .duty-special { background-color: #e2d9f3 !important; color: #563d7c; }
+        .duty-other { background-color: #f8f9fa !important; color: #495057; border: 1px dashed #dee2e6; }
         
         .today-cell {
             border: 2px solid #3498db !important;
@@ -889,7 +915,7 @@
         /* Legend */
         .legend {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
             margin-top: 15px;
             padding: 10px;
@@ -902,13 +928,14 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 12px;
+            font-size: 11px;
         }
         
         .legend-color {
             width: 15px;
             height: 15px;
             border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
         /* Announcement Admin Styles */
@@ -980,31 +1007,6 @@
             margin-bottom: 10px;
             opacity: 0.5;
         }
-        
-        /* Duty Time Color Classes */
-        .duty-0700-1500 { background-color: #d4edda !important; color: #155724; }
-        .duty-0730-1530 { background-color: #d4edda !important; color: #155724; }
-        .duty-0800-1600 { background-color: #d4edda !important; color: #155724; }
-        .duty-0830-1630 { background-color: #d4edda !important; color: #155724; }
-        
-        .duty-1500-2300 { background-color: #cce5ff !important; color: #004085; }
-        .duty-1530-2330 { background-color: #cce5ff !important; color: #004085; }
-        .duty-1600-0000 { background-color: #cce5ff !important; color: #004085; }
-        .duty-1630-0030 { background-color: #cce5ff !important; color: #004085; }
-        
-        .duty-2300-0700 { background-color: #d1ecf1 !important; color: #0c5460; }
-        .duty-2330-0730 { background-color: #d1ecf1 !important; color: #0c5460; }
-        .duty-0000-0800 { background-color: #d1ecf1 !important; color: #0c5460; }
-        .duty-0030-0830 { background-color: #d1ecf1 !important; color: #0c5460; }
-        
-        .duty-0900-1700 { background-color: #e8f4fc !important; color: #0c5460; }
-        .duty-1000-1800 { background-color: #e8f4fc !important; color: #0c5460; }
-        
-        .duty-1400-2200 { background-color: #fff3cd !important; color: #856404; }
-        .duty-1800-0200 { background-color: #f8d7da !important; color: #721c24; }
-        .duty-2000-0400 { background-color: #f8d7da !important; color: #721c24; }
-        
-        .duty-mixed { background-color: #e2d9f3 !important; color: #563d7c; }
     </style>
 </head>
 <body>
@@ -1799,41 +1801,68 @@ Date	Irufan	Hussain	Mohamed
         let announcements = [];
         let userDisplayNameMap = {};
 
-        // Color mapping for different duty times
-        const dutyTimeColors = {
-            // Morning shifts (green)
-            '07:00-15:00': 'duty-time-morning',
-            '07:30-15:30': 'duty-time-morning',
-            '08:00-16:00': 'duty-time-morning',
-            '08:30-16:30': 'duty-time-morning',
-            '09:00-17:00': 'duty-time-morning',
-            '10:00-18:00': 'duty-time-morning',
+        // Enhanced color mapping for different duty times
+        const dutyTimeColorMap = {
+            // Early Morning (00:00 - 06:00 start) - Dark Blue
+            '0000-0800': 'duty-0000-0800',
+            '0030-0830': 'duty-0030-0830',
+            '0100-0900': 'duty-0100-0900',
+            '0200-1000': 'duty-0200-1000',
+            '0300-1100': 'duty-0300-1100',
+            '0400-1200': 'duty-0400-1200',
+            '0500-1300': 'duty-0500-1300',
             
-            // Afternoon/Evening shifts (blue)
-            '15:00-23:00': 'duty-time-afternoon',
-            '15:30-23:30': 'duty-time-afternoon',
-            '16:00-00:00': 'duty-time-afternoon',
-            '16:30-00:30': 'duty-time-afternoon',
-            '14:00-22:00': 'duty-time-afternoon',
+            // Morning Shifts (06:00 - 10:00 start) - Green shades
+            '0600-1400': 'duty-0600-1400',
+            '0630-1430': 'duty-0630-1430',
+            '0700-1500': 'duty-0700-1500',
+            '0730-1530': 'duty-0730-1530',
+            '0800-1600': 'duty-0800-1600',
+            '0830-1630': 'duty-0830-1630',
             
-            // Night shifts (teal)
-            '23:00-07:00': 'duty-time-night',
-            '23:30-07:30': 'duty-time-night',
-            '00:00-08:00': 'duty-time-night',
-            '00:30-08:30': 'duty-time-night',
+            // Late Morning (10:00 - 12:00 start) - Light Green
+            '1000-1800': 'duty-1000-1800',
+            '1030-1830': 'duty-1030-1830',
+            '1100-1900': 'duty-1100-1900',
+            '1130-1930': 'duty-1130-1930',
             
-            // Late night shifts (light red)
-            '18:00-02:00': 'duty-time-late-night',
-            '20:00-04:00': 'duty-time-late-night',
-            '22:00-06:00': 'duty-time-late-night',
+            // Early Afternoon (12:00 - 14:00 start) - Light Blue
+            '1200-2000': 'duty-1200-2000',
+            '1230-2030': 'duty-1230-2030',
+            '1300-2100': 'duty-1300-2100',
+            '1330-2130': 'duty-1330-2130',
+            '1400-2200': 'duty-1400-2200',
+            '1430-2230': 'duty-1430-2230',
             
-            // Mixed/Other shifts (yellow)
-            '12:00-20:00': 'duty-time-mixed',
-            '13:00-21:00': 'duty-time-mixed',
-            '11:00-19:00': 'duty-time-mixed',
+            // Afternoon (14:00 - 16:00 start) - Blue
+            '1500-2300': 'duty-1500-2300',
+            '1530-2330': 'duty-1530-2330',
+            '1600-0000': 'duty-1600-0000',
+            '1630-0030': 'duty-1630-0030',
             
-            // Default for other times
-            'default': 'duty-time-mixed'
+            // Evening (16:00 - 18:00 start) - Medium Blue
+            '1700-0100': 'duty-1700-0100',
+            '1730-0130': 'duty-1730-0130',
+            '1800-0200': 'duty-1800-0200',
+            '1830-0230': 'duty-1830-0230',
+            
+            // Late Evening (18:00 - 20:00 start) - Darker Blue
+            '1900-0300': 'duty-1900-0300',
+            '1930-0330': 'duty-1930-0330',
+            '2000-0400': 'duty-2000-0400',
+            '2030-0430': 'duty-2030-0430',
+            
+            // Night (20:00 - 00:00 start) - Darkest Blue
+            '2100-0500': 'duty-2100-0500',
+            '2130-0530': 'duty-2130-0530',
+            '2200-0600': 'duty-2200-0600',
+            '2230-0630': 'duty-2230-0630',
+            '2300-0700': 'duty-2300-0700',
+            '2330-0730': 'duty-2330-0730',
+            
+            // Special/Other shifts
+            'mixed': 'duty-mixed',
+            'special': 'duty-special'
         };
 
         // Initialize app
@@ -3105,32 +3134,59 @@ Date	Irufan	Hussain	Mohamed
                 return 'off-day-cell';
             }
             
-            // Normalize the duty time format
-            const normalizedTime = dutyTime.replace(/\s/g, ''); // Remove spaces
-            const timeKey = Object.keys(dutyTimeColors).find(key => 
-                key === normalizedTime || 
-                key.replace(/\s/g, '') === normalizedTime
-            );
+            // Normalize the duty time format (remove spaces and standardize)
+            const normalizedTime = dutyTime.replace(/\s/g, '').toUpperCase();
             
-            if (timeKey) {
-                return dutyTimeColors[timeKey];
+            // Try exact match first
+            if (dutyTimeColorMap[normalizedTime]) {
+                return dutyTimeColorMap[normalizedTime];
             }
             
-            // Try to match by time range
-            if (dutyTime.includes('-')) {
-                const [startTime, endTime] = dutyTime.split('-');
-                const startHour = parseInt(startTime.split(':')[0]);
+            // Try to parse and match by time pattern
+            if (normalizedTime.includes('-')) {
+                const [startStr, endStr] = normalizedTime.split('-');
                 
-                if (startHour >= 6 && startHour < 14) {
-                    return 'duty-time-morning';
-                } else if (startHour >= 14 && startHour < 22) {
-                    return 'duty-time-afternoon';
+                // Try to match with known patterns
+                for (const key in dutyTimeColorMap) {
+                    if (key.includes(startStr.substring(0, 4))) {
+                        return dutyTimeColorMap[key];
+                    }
+                }
+                
+                // Calculate start hour for categorization
+                const startHour = parseInt(startStr.substring(0, 2));
+                const startMinute = parseInt(startStr.substring(2, 4)) || 0;
+                const totalStartMinutes = startHour * 60 + startMinute;
+                
+                // Categorize by start time
+                if (totalStartMinutes >= 0 && totalStartMinutes < 360) {
+                    // 00:00 - 06:00 - Early Morning
+                    return 'duty-0000-0800';
+                } else if (totalStartMinutes >= 360 && totalStartMinutes < 600) {
+                    // 06:00 - 10:00 - Morning
+                    return 'duty-0700-1500';
+                } else if (totalStartMinutes >= 600 && totalStartMinutes < 720) {
+                    // 10:00 - 12:00 - Late Morning
+                    return 'duty-1000-1800';
+                } else if (totalStartMinutes >= 720 && totalStartMinutes < 840) {
+                    // 12:00 - 14:00 - Early Afternoon
+                    return 'duty-1200-2000';
+                } else if (totalStartMinutes >= 840 && totalStartMinutes < 960) {
+                    // 14:00 - 16:00 - Afternoon
+                    return 'duty-1500-2300';
+                } else if (totalStartMinutes >= 960 && totalStartMinutes < 1080) {
+                    // 16:00 - 18:00 - Evening
+                    return 'duty-1700-0100';
+                } else if (totalStartMinutes >= 1080 && totalStartMinutes < 1200) {
+                    // 18:00 - 20:00 - Late Evening
+                    return 'duty-1900-0300';
                 } else {
-                    return 'duty-time-night';
+                    // 20:00 - 00:00 - Night
+                    return 'duty-2300-0700';
                 }
             }
             
-            return 'duty-time-mixed';
+            return 'duty-other';
         }
 
         function displayAllRosterTable(startDate, endDate, year, month) {
@@ -3202,16 +3258,36 @@ Date	Irufan	Hussain	Mohamed
             // Add enhanced legend
             html += `<div class="legend">
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #d4edda;"></div>
-                    <span>Morning Shifts (06:00-14:00)</span>
+                    <div class="legend-color" style="background-color: #001f3f;"></div>
+                    <span>Early Morning (00:00-06:00)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background-color: #cce5ff;"></div>
-                    <span>Afternoon Shifts (14:00-22:00)</span>
+                    <div class="legend-color" style="background-color: #d4edda;"></div>
+                    <span>Morning (06:00-10:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #c7e5d4;"></div>
+                    <span>Late Morning (10:00-12:00)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #d1ecf1;"></div>
-                    <span>Night Shifts (22:00-06:00)</span>
+                    <span>Early Afternoon (12:00-14:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #cce5ff;"></div>
+                    <span>Afternoon (14:00-16:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #a0d2ff;"></div>
+                    <span>Evening (16:00-18:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #8bc5ff;"></div>
+                    <span>Late Evening (18:00-20:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #76b8ff;"></div>
+                    <span>Night (20:00-00:00)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #f8d7da;"></div>
@@ -3220,10 +3296,6 @@ Date	Irufan	Hussain	Mohamed
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #fff3cd;"></div>
                     <span>Today</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: #ffeaa7;"></div>
-                    <span>Leave (SL/FRL)</span>
                 </div>
             </div>`;
             
@@ -3721,10 +3793,11 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             for (const [username, dutyTime] of Object.entries(dutyRoster[date])) {
                 const user = allUsers.find(u => u.username === username);
                 if (user && (!staffFilter || user.username === staffFilter)) {
+                    const dutyClass = getDutyTimeClass(dutyTime);
                     html += `<tr>
                         <td>${user.name}</td>
                         <td>${user.RCNo}</td>
-                        <td>${dutyTime}</td>
+                        <td class="${dutyClass}">${dutyTime}</td>
                     </tr>`;
                 }
             }
@@ -4635,9 +4708,14 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                         th { background-color: #f2f2f2; }
                         .leave-indicator { background-color: #ffeaa7; padding: 2px 5px; border-radius: 3px; font-size: 10px; }
-                        .duty-time-morning { background-color: #d4edda; color: #155724; }
-                        .duty-time-afternoon { background-color: #cce5ff; color: #004085; }
-                        .duty-time-night { background-color: #d1ecf1; color: #0c5460; }
+                        .duty-0000-0800 { background-color: #001f3f; color: white; }
+                        .duty-0700-1500 { background-color: #d4edda; color: #155724; }
+                        .duty-1000-1800 { background-color: #c7e5d4; color: #0d4620; }
+                        .duty-1200-2000 { background-color: #d1ecf1; color: #0c5460; }
+                        .duty-1500-2300 { background-color: #cce5ff; color: #004085; }
+                        .duty-1700-0100 { background-color: #a0d2ff; color: #003366; }
+                        .duty-1900-0300 { background-color: #8bc5ff; color: #002244; }
+                        .duty-2300-0700 { background-color: #76b8ff; color: #001122; }
                         .off-day-cell { background-color: #f8d7da; color: #721c24; }
                         .today-cell { border: 2px solid #3498db !important; background-color: #e8f4fc !important; }
                         h3 { color: #2c3e50; }
