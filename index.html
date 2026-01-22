@@ -222,6 +222,22 @@
             margin-left: 5px;
         }
 
+        .notification-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            margin-left: 5px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
         /* Content Area */
         .dashboard-content {
             padding: 25px;
@@ -367,10 +383,16 @@
             font-weight: 500;
         }
 
+        .status-completed {
+            color: #3498db;
+            font-weight: 500;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
@@ -395,6 +417,11 @@
         .action-btn.view {
             background: #d1ecf1;
             color: #0c5460;
+        }
+
+        .action-btn.apply {
+            background: #cce5ff;
+            color: #004085;
         }
 
         /* Alerts */
@@ -545,6 +572,10 @@
                 flex-direction: column;
                 gap: 10px;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
         }
 
         /* Tooltip */
@@ -621,6 +652,35 @@
             font-size: 11px;
             color: #721c24;
         }
+        
+        /* Request History */
+        .request-history-table {
+            font-size: 12px;
+        }
+        
+        .request-history-table td {
+            padding: 8px;
+            vertical-align: top;
+        }
+        
+        .request-details {
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 4px;
+            margin: 2px 0;
+            font-size: 11px;
+        }
+        
+        .status-update {
+            font-style: italic;
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .timestamp {
+            font-size: 11px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -686,6 +746,9 @@
             <button class="nav-btn" data-section="adminApprovals" id="adminApprovalsBtn" style="display:none;">
                 Approvals
             </button>
+            <button class="nav-btn" data-section="adminRequestHistory" id="adminRequestHistoryBtn" style="display:none;">
+                Request History <span id="historyNotification" class="notification-dot" style="display:none;"></span>
+            </button>
         </div>
         
         <!-- Content Area -->
@@ -711,6 +774,9 @@
                     <div class="alert alert-info">
                         <p><strong>Today's Duty:</strong> <span id="todayDutyTime">Not Scheduled</span></p>
                         <p><strong>Next Duty:</strong> <span id="nextDutyTime">No upcoming duty</span></p>
+                        <div id="homeNotifications" style="margin-top: 10px; display: none;">
+                            <!-- Notifications will appear here -->
+                        </div>
                     </div>
                     
                     <div class="form-row">
@@ -861,6 +927,7 @@
                                     <th>Date</th>
                                     <th>Details</th>
                                     <th>Status</th>
+                                    <th>Updated</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1114,8 +1181,125 @@ Date	Irufan	Hussain	Mohamed
                 <div class="card">
                     <h3>Approve/Reject Requests</h3>
                     
-                    <div class="table-container">
-                        <table>
+                    <div class="tab-controls">
+                        <button class="tab-btn active" onclick="showApprovalsTab('pending')">Pending</button>
+                        <button class="tab-btn" onclick="showApprovalsTab('approved')">Approved</button>
+                        <button class="tab-btn" onclick="showApprovalsTab('rejected')">Rejected</button>
+                    </div>
+                    
+                    <div id="pendingApprovalsTab" class="approvals-tab active">
+                        <div class="table-container">
+                            <table class="request-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminApprovalsTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="approvedApprovalsTab" class="approvals-tab">
+                        <div class="table-container">
+                            <table class="request-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Applied By</th>
+                                        <th>Applied At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approvedRequestsTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div id="rejectedApprovalsTab" class="approvals-tab">
+                        <div class="table-container">
+                            <table class="request-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Rejected By</th>
+                                        <th>Rejected At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rejectedRequestsTable">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin: Request History -->
+            <div class="section" id="adminRequestHistorySection">
+                <div class="card">
+                    <h3>All Requests History</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="historyFilterStaff">Filter by Staff</label>
+                            <select id="historyFilterStaff" class="form-control">
+                                <option value="">All Staff</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="historyFilterType">Filter by Type</label>
+                            <select id="historyFilterType" class="form-control">
+                                <option value="">All Types</option>
+                                <option value="dutyChange">Duty Change</option>
+                                <option value="leave">Leave</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="historyFilterStatus">Filter by Status</label>
+                            <select id="historyFilterStatus" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="historyStartDate">From Date</label>
+                            <input type="date" id="historyStartDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="historyEndDate">To Date</label>
+                            <input type="date" id="historyEndDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="loadRequestHistory()" style="margin-top: 25px;">Filter</button>
+                            <button class="btn btn-secondary" onclick="clearHistoryFilters()" style="margin-top: 25px;">Clear Filters</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container" style="margin-top: 20px;">
+                        <table class="request-history-table">
                             <thead>
                                 <tr>
                                     <th>Staff</th>
@@ -1123,10 +1307,11 @@ Date	Irufan	Hussain	Mohamed
                                     <th>Date</th>
                                     <th>Details</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Timeline</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminApprovalsTable">
+                            <tbody id="requestHistoryTable">
                                 <!-- Filled by JavaScript -->
                             </tbody>
                         </table>
@@ -1253,6 +1438,7 @@ Date	Irufan	Hussain	Mohamed
                 document.getElementById('adminDutyRosterBtn').style.display = 'inline-block';
                 document.getElementById('adminLeaveBalanceBtn').style.display = 'inline-block';
                 document.getElementById('adminApprovalsBtn').style.display = 'inline-block';
+                document.getElementById('adminRequestHistoryBtn').style.display = 'inline-block';
             }
             
             // Initialize data and UI
@@ -1441,6 +1627,9 @@ Date	Irufan	Hussain	Mohamed
                     case 'adminApprovals':
                         loadAdminApprovals();
                         break;
+                    case 'adminRequestHistory':
+                        loadAdminRequestHistory();
+                        break;
                 }
             }
         }
@@ -1488,7 +1677,6 @@ Date	Irufan	Hussain	Mohamed
             });
         }
 
-        // FIXED: Show "Off" when duty time is "Off"
         function loadUserDutyTimes(selectId, date) {
             const select = document.getElementById(selectId);
             select.innerHTML = '<option value="">Select duty time</option>';
@@ -1509,7 +1697,6 @@ Date	Irufan	Hussain	Mohamed
             }
         }
 
-        // FIXED: Show "Off" when staff duty time is "Off"
         function loadStaffDutyTimes(selectId, date, username) {
             const select = document.getElementById(selectId);
             select.innerHTML = '<option value="">Select duty time</option>';
@@ -1649,7 +1836,12 @@ Date	Irufan	Hussain	Mohamed
                 toDutyTime: toDutyTime,
                 reason: reason,
                 status: 'pending',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                history: [{
+                    action: 'created',
+                    by: currentUser.name,
+                    timestamp: new Date().toISOString()
+                }]
             };
             
             allRequests.push(request);
@@ -1707,7 +1899,12 @@ Date	Irufan	Hussain	Mohamed
                 duration: duration,
                 reason: reason,
                 status: 'pending',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                history: [{
+                    action: 'created',
+                    by: currentUser.name,
+                    timestamp: new Date().toISOString()
+                }]
             };
             
             allRequests.push(request);
@@ -1738,6 +1935,21 @@ Date	Irufan	Hussain	Mohamed
             } else {
                 pendingBtn.style.display = 'none';
             }
+            
+            // Update notification dot for supervisor
+            if (currentUser.level === 'Supervisor') {
+                const pendingRequests = allRequests.filter(req => 
+                    req.status === 'pending' && 
+                    (req.type === 'leave' || req.type === 'dutyChange')
+                ).length;
+                
+                const notificationDot = document.getElementById('historyNotification');
+                if (pendingRequests > 0) {
+                    notificationDot.style.display = 'inline-block';
+                } else {
+                    notificationDot.style.display = 'none';
+                }
+            }
         }
 
         function loadMyRequests() {
@@ -1747,9 +1959,12 @@ Date	Irufan	Hussain	Mohamed
             const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
             
             if (myReqs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No requests found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No requests found</td></tr>';
                 return;
             }
+            
+            // Sort by timestamp descending (newest first)
+            myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             myReqs.forEach(req => {
                 const tr = document.createElement('tr');
@@ -1757,21 +1972,33 @@ Date	Irufan	Hussain	Mohamed
                 let details = '';
                 if (req.type === 'dutyChange') {
                     details = `Swap with ${req.toName} (${req.toDutyTime})`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
                 } else {
                     details = `${req.leaveType} - ${req.duration} day(s)`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
                 }
                 
                 let statusClass = 'status-' + req.status;
                 let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+                
+                // Get last update time
+                let lastUpdate = 'Just now';
+                if (req.history && req.history.length > 0) {
+                    const lastAction = req.history[req.history.length - 1];
+                    lastUpdate = formatTimeAgo(lastAction.timestamp);
+                }
                 
                 tr.innerHTML = `
                     <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
                     <td>${req.date}</td>
                     <td>${details}</td>
                     <td class="${statusClass}">${statusText}</td>
+                    <td class="timestamp">${lastUpdate}</td>
                     <td>
                         ${req.status === 'pending' ? 
                             `<button class="action-btn view" onclick="cancelRequest('${req.id}')">Cancel</button>` : ''}
+                        ${req.status === 'approved' ? 
+                            `<span class="status-approved">✓ Applied</span>` : ''}
                     </td>
                 `;
                 
@@ -1779,7 +2006,6 @@ Date	Irufan	Hussain	Mohamed
             });
         }
 
-        // NEW FUNCTION: Load My Roster for regular users
         function loadMyRoster() {
             const container = document.getElementById('myRosterContainer');
             const monthInput = document.getElementById('myRosterMonth').value;
@@ -1824,7 +2050,7 @@ Date	Irufan	Hussain	Mohamed
                         statusText = 'Off Duty';
                         offCount++;
                     } else {
-                        statusClass = dateStr < today ? 'status-approved' : 'status-pending';
+                        statusClass = dateStr < today ? 'status-completed' : 'status-pending';
                         statusText = dateStr < today ? 'Completed' : 'Scheduled';
                         dutyCount++;
                     }
@@ -1968,6 +2194,11 @@ Date	Irufan	Hussain	Mohamed
                 const request = allRequests.find(req => req.id === requestId);
                 if (request) {
                     request.status = 'cancelled';
+                    request.history.push({
+                        action: 'cancelled',
+                        by: currentUser.name,
+                        timestamp: new Date().toISOString()
+                    });
                     saveAllRequests();
                     loadMyRequests();
                     updateRequestCounts();
@@ -1992,11 +2223,35 @@ Date	Irufan	Hussain	Mohamed
             
             request.status = response;
             request.respondedAt = new Date().toISOString();
+            request.history.push({
+                action: response,
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
             saveAllRequests();
             
             alert(`Request ${response} successfully!`);
+            
+            // Show notification on user dashboard
+            showUserNotification(`Your duty change request for ${request.date} was ${response} by ${request.toName}`);
+            
             showSection('home');
             updateRequestCounts();
+        }
+
+        function showUserNotification(message) {
+            const notificationContainer = document.getElementById('homeNotifications');
+            if (notificationContainer) {
+                notificationContainer.style.display = 'block';
+                notificationContainer.innerHTML = `<div class="alert alert-info">
+                    <strong>Update:</strong> ${message}
+                </div>`;
+                
+                // Auto hide after 10 seconds
+                setTimeout(() => {
+                    notificationContainer.style.display = 'none';
+                }, 10000);
+            }
         }
 
         // Admin Functions
@@ -2478,6 +2733,41 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
         }
 
         function loadAdminApprovals() {
+            showApprovalsTab('pending');
+        }
+
+        function showApprovalsTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.approvals-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('#adminApprovalsSection .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'ApprovalsTab').classList.add('active');
+            
+            // Activate corresponding button
+            document.querySelectorAll('#adminApprovalsSection .tab-btn').forEach(btn => {
+                if (btn.textContent.includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Load data for the tab
+            if (tabName === 'pending') {
+                loadPendingApprovals();
+            } else if (tabName === 'approved') {
+                loadApprovedRequests();
+            } else if (tabName === 'rejected') {
+                loadRejectedRequests();
+            }
+        }
+
+        function loadPendingApprovals() {
             const tbody = document.getElementById('adminApprovalsTable');
             tbody.innerHTML = '';
             
@@ -2488,14 +2778,27 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                 return;
             }
             
+            // Sort by timestamp ascending (oldest first)
+            pendingRequests.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
             pendingRequests.forEach(req => {
                 const tr = document.createElement('tr');
                 
                 let details = '';
                 if (req.type === 'dutyChange') {
-                    details = `Swap: ${req.fromName} (${req.dutyTime}) ↔ ${req.toName} (${req.toDutyTime})`;
+                    details = `
+                        <div class="request-details">
+                            <strong>Swap Request:</strong><br>
+                            ${req.fromName} (${req.dutyTime}) ↔ ${req.toName} (${req.toDutyTime})
+                        </div>
+                    `;
                 } else {
-                    details = `${req.leaveType}: ${req.duration} day(s)<br><small>${req.reason}</small>`;
+                    details = `
+                        <div class="request-details">
+                            <strong>${req.leaveType}:</strong> ${req.duration} day(s)<br>
+                            <em>${req.reason}</em>
+                        </div>
+                    `;
                 }
                 
                 tr.innerHTML = `
@@ -2507,7 +2810,96 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     <td class="action-buttons">
                         <button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
                         <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>
+                        ${req.type === 'dutyChange' ? 
+                            `<button class="action-btn apply" onclick="adminApplyDutyChange('${req.id}')">Apply & Approve</button>` : ''}
                     </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadApprovedRequests() {
+            const tbody = document.getElementById('approvedRequestsTable');
+            tbody.innerHTML = '';
+            
+            const approvedRequests = allRequests.filter(req => req.status === 'approved');
+            
+            if (approvedRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No approved requests</td></tr>';
+                return;
+            }
+            
+            // Sort by approval date descending (newest first)
+            approvedRequests.sort((a, b) => {
+                const aDate = a.approvedAt ? new Date(a.approvedAt) : new Date(0);
+                const bDate = b.approvedAt ? new Date(b.approvedAt) : new Date(0);
+                return bDate - aDate;
+            });
+            
+            approvedRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                } else {
+                    details = `${req.leaveType}: ${req.duration} day(s)`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                }
+                
+                const appliedBy = req.appliedBy || req.approvedBy || 'System';
+                const appliedAt = req.appliedAt || req.approvedAt || req.timestamp;
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-approved">Approved</td>
+                    <td>${appliedBy}</td>
+                    <td class="timestamp">${formatDateTime(appliedAt)}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadRejectedRequests() {
+            const tbody = document.getElementById('rejectedRequestsTable');
+            tbody.innerHTML = '';
+            
+            const rejectedRequests = allRequests.filter(req => req.status === 'rejected');
+            
+            if (rejectedRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No rejected requests</td></tr>';
+                return;
+            }
+            
+            rejectedRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                } else {
+                    details = `${req.leaveType}: ${req.duration} day(s)`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                }
+                
+                const rejectedBy = req.rejectedBy || 'System';
+                const rejectedAt = req.rejectedAt || req.timestamp;
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-rejected">Rejected</td>
+                    <td>${rejectedBy}</td>
+                    <td class="timestamp">${formatDateTime(rejectedAt)}</td>
                 `;
                 
                 tbody.appendChild(tr);
@@ -2548,11 +2940,52 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             request.status = 'approved';
             request.approvedBy = currentUser.name;
             request.approvedAt = new Date().toISOString();
+            request.history.push({
+                action: 'approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
             saveAllRequests();
             
             alert('Request approved!');
-            loadAdminApprovals();
-            updateUserBalance();
+            showApprovalsTab('approved');
+            updateRequestCounts();
+            
+            // Update user's balance display if it's their request
+            if (request.fromUsername === currentUser.username) {
+                updateUserBalance();
+            }
+        }
+
+        function adminApplyDutyChange(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            // Apply the duty change immediately
+            const date = request.date;
+            if (dutyRoster[date]) {
+                const temp = dutyRoster[date][request.fromUsername];
+                dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
+                dutyRoster[date][request.toUsername] = temp;
+                saveDutyRoster();
+            }
+            
+            // Mark as approved
+            request.status = 'approved';
+            request.approvedBy = currentUser.name;
+            request.appliedBy = currentUser.name;
+            request.approvedAt = new Date().toISOString();
+            request.appliedAt = new Date().toISOString();
+            request.history.push({
+                action: 'applied_and_approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
+            saveAllRequests();
+            
+            alert('Duty change applied and approved! Roster updated.');
+            showApprovalsTab('approved');
+            updateRequestCounts();
         }
 
         function adminReject(requestId) {
@@ -2562,10 +2995,134 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     request.status = 'rejected';
                     request.rejectedBy = currentUser.name;
                     request.rejectedAt = new Date().toISOString();
+                    request.history.push({
+                        action: 'rejected',
+                        by: currentUser.name,
+                        timestamp: new Date().toISOString()
+                    });
                     saveAllRequests();
-                    loadAdminApprovals();
+                    showApprovalsTab('rejected');
                 }
             }
+        }
+
+        function loadAdminRequestHistory() {
+            // Populate staff filter dropdown
+            const staffSelect = document.getElementById('historyFilterStaff');
+            staffSelect.innerHTML = '<option value="">All Staff</option>';
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                staffSelect.appendChild(option);
+            });
+            
+            // Load all requests
+            loadRequestHistory();
+        }
+
+        function loadRequestHistory() {
+            const tbody = document.getElementById('requestHistoryTable');
+            tbody.innerHTML = '';
+            
+            // Get filter values
+            const staffFilter = document.getElementById('historyFilterStaff').value;
+            const typeFilter = document.getElementById('historyFilterType').value;
+            const statusFilter = document.getElementById('historyFilterStatus').value;
+            const startDate = document.getElementById('historyStartDate').value;
+            const endDate = document.getElementById('historyEndDate').value;
+            
+            // Filter requests
+            let filteredRequests = allRequests;
+            
+            if (staffFilter) {
+                filteredRequests = filteredRequests.filter(req => req.fromUsername === staffFilter);
+            }
+            
+            if (typeFilter) {
+                filteredRequests = filteredRequests.filter(req => req.type === typeFilter);
+            }
+            
+            if (statusFilter) {
+                filteredRequests = filteredRequests.filter(req => req.status === statusFilter);
+            }
+            
+            if (startDate) {
+                filteredRequests = filteredRequests.filter(req => req.date >= startDate);
+            }
+            
+            if (endDate) {
+                filteredRequests = filteredRequests.filter(req => req.date <= endDate);
+            }
+            
+            if (filteredRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No requests found</td></tr>';
+                return;
+            }
+            
+            // Sort by timestamp descending (newest first)
+            filteredRequests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            filteredRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `
+                        <div class="request-details">
+                            <strong>Swap with:</strong> ${req.toName}<br>
+                            <strong>From:</strong> ${req.dutyTime} → <strong>To:</strong> ${req.toDutyTime}<br>
+                            ${req.reason ? `<em>${req.reason}</em>` : ''}
+                        </div>
+                    `;
+                } else {
+                    details = `
+                        <div class="request-details">
+                            <strong>${req.leaveType}:</strong> ${req.duration} day(s)<br>
+                            <em>${req.reason}</em>
+                        </div>
+                    `;
+                }
+                
+                let statusClass = 'status-' + req.status;
+                let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+                
+                // Create timeline HTML
+                let timeline = '';
+                if (req.history && req.history.length > 0) {
+                    req.history.forEach((event, index) => {
+                        timeline += `<div class="status-update">${event.action} by ${event.by}<br>
+                                     <small>${formatTimeAgo(event.timestamp)}</small></div>`;
+                    });
+                }
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>${timeline}</td>
+                    <td class="action-buttons">
+                        ${req.status === 'pending' ? 
+                            `<button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
+                             <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>` : ''}
+                        ${req.type === 'dutyChange' && req.status === 'pending' ? 
+                            `<button class="action-btn apply" onclick="adminApplyDutyChange('${req.id}')">Apply</button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearHistoryFilters() {
+            document.getElementById('historyFilterStaff').value = '';
+            document.getElementById('historyFilterType').value = '';
+            document.getElementById('historyFilterStatus').value = '';
+            document.getElementById('historyStartDate').value = '';
+            document.getElementById('historyEndDate').value = '';
+            loadRequestHistory();
         }
 
         function updateDashboard() {
@@ -2592,6 +3149,69 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                 }
             }
             document.getElementById('nextDutyTime').textContent = 'No upcoming duty';
+            
+            // Check for recent updates to user's requests
+            checkForUserUpdates();
+        }
+
+        function checkForUserUpdates() {
+            const userReqs = allRequests.filter(req => 
+                req.fromUsername === currentUser.username && 
+                req.status !== 'pending' &&
+                req.history && req.history.length > 0
+            );
+            
+            // Find requests updated in the last 24 hours
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const recentUpdates = userReqs.filter(req => {
+                const lastUpdate = new Date(req.history[req.history.length - 1].timestamp);
+                return lastUpdate > twentyFourHoursAgo;
+            });
+            
+            if (recentUpdates.length > 0) {
+                showUserUpdates(recentUpdates);
+            }
+        }
+
+        function showUserUpdates(updates) {
+            const notificationContainer = document.getElementById('homeNotifications');
+            let html = '<strong>Recent Updates:</strong><br>';
+            
+            updates.forEach(req => {
+                const lastEvent = req.history[req.history.length - 1];
+                const timeAgo = formatTimeAgo(lastEvent.timestamp);
+                
+                if (req.type === 'dutyChange') {
+                    html += `• Duty change ${req.status} ${timeAgo}<br>`;
+                } else {
+                    html += `• Leave ${req.status} ${timeAgo}<br>`;
+                }
+            });
+            
+            notificationContainer.innerHTML = `<div class="alert alert-info">${html}</div>`;
+            notificationContainer.style.display = 'block';
+        }
+
+        // Utility functions
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            
+            return past.toLocaleDateString();
+        }
+
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
     </script>
 </body>
