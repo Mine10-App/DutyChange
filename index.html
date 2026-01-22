@@ -815,9 +815,41 @@
             font-weight: 500;
         }
         
-        .duty-day-cell {
-            background-color: #d4edda;
+        /* Different timing colors */
+        .duty-time-morning {
+            background-color: #d4edda !important; /* Green for morning shifts */
             color: #155724;
+            font-weight: 500;
+        }
+        
+        .duty-time-afternoon {
+            background-color: #cce5ff !important; /* Blue for afternoon shifts */
+            color: #004085;
+            font-weight: 500;
+        }
+        
+        .duty-time-evening {
+            background-color: #e8f4fc !important; /* Light blue for evening shifts */
+            color: #0c5460;
+            font-weight: 500;
+        }
+        
+        .duty-time-night {
+            background-color: #d1ecf1 !important; /* Teal for night shifts */
+            color: #0c5460;
+            font-weight: 500;
+        }
+        
+        .duty-time-late-night {
+            background-color: #f8d7da !important; /* Light red for late night */
+            color: #721c24;
+            font-weight: 500;
+        }
+        
+        .duty-time-mixed {
+            background-color: #fff3cd !important; /* Yellow for mixed shifts */
+            color: #856404;
+            font-weight: 500;
         }
         
         .today-cell {
@@ -948,6 +980,31 @@
             margin-bottom: 10px;
             opacity: 0.5;
         }
+        
+        /* Duty Time Color Classes */
+        .duty-0700-1500 { background-color: #d4edda !important; color: #155724; }
+        .duty-0730-1530 { background-color: #d4edda !important; color: #155724; }
+        .duty-0800-1600 { background-color: #d4edda !important; color: #155724; }
+        .duty-0830-1630 { background-color: #d4edda !important; color: #155724; }
+        
+        .duty-1500-2300 { background-color: #cce5ff !important; color: #004085; }
+        .duty-1530-2330 { background-color: #cce5ff !important; color: #004085; }
+        .duty-1600-0000 { background-color: #cce5ff !important; color: #004085; }
+        .duty-1630-0030 { background-color: #cce5ff !important; color: #004085; }
+        
+        .duty-2300-0700 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-2330-0730 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-0000-0800 { background-color: #d1ecf1 !important; color: #0c5460; }
+        .duty-0030-0830 { background-color: #d1ecf1 !important; color: #0c5460; }
+        
+        .duty-0900-1700 { background-color: #e8f4fc !important; color: #0c5460; }
+        .duty-1000-1800 { background-color: #e8f4fc !important; color: #0c5460; }
+        
+        .duty-1400-2200 { background-color: #fff3cd !important; color: #856404; }
+        .duty-1800-0200 { background-color: #f8d7da !important; color: #721c24; }
+        .duty-2000-0400 { background-color: #f8d7da !important; color: #721c24; }
+        
+        .duty-mixed { background-color: #e2d9f3 !important; color: #563d7c; }
     </style>
 </head>
 <body>
@@ -1000,6 +1057,7 @@
             <button class="nav-btn" data-section="leaveApplication">Apply Leave</button>
             <button class="nav-btn" data-section="myRequests">My Requests</button>
             <button class="nav-btn" data-section="viewMyRoster">My Roster</button>
+            <button class="nav-btn" data-section="viewAllRoster" id="viewAllRosterBtn">View All Roster</button>
             <button class="nav-btn" data-section="pendingRequests" id="pendingRequestsBtn" style="display:none;">
                 Pending <span id="pendingCount" class="notification-badge">0</span>
             </button>
@@ -1018,10 +1076,6 @@
             </button>
             <button class="nav-btn" data-section="adminAnnouncements" id="adminAnnouncementsBtn" style="display:none;">
                 Announcements
-            </button>
-            <!-- View All Roster (Admin Only) -->
-            <button class="nav-btn" data-section="viewAllRoster" id="viewAllRosterBtn" style="display:none;">
-                View All Roster
             </button>
         </div>
         
@@ -1063,6 +1117,7 @@
                         <button class="btn btn-success" onclick="showSection('leaveApplication')">Apply Leave</button>
                         <button class="btn btn-primary" onclick="showSection('myRequests')">My Requests</button>
                         <button class="btn btn-primary" onclick="showSection('viewMyRoster')">View My Roster</button>
+                        <button class="btn btn-primary" onclick="showSection('viewAllRoster')">View All Roster</button>
                     </div>
                 </div>
             </div>
@@ -1268,6 +1323,45 @@
                                 <!-- Filled by JavaScript -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- View All Roster (Accessible to All Users) -->
+            <div class="section" id="viewAllRosterSection">
+                <div class="card">
+                    <h3>Complete Duty Roster - All Staff</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="allRosterStartDate">From Date</label>
+                            <input type="date" id="allRosterStartDate" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterEndDate">To Date</label>
+                            <input type="date" id="allRosterEndDate" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterViewType">View Type</label>
+                            <select id="allRosterViewType" class="form-control">
+                                <option value="table">Daily Table</option>
+                                <option value="staff">Staff View</option>
+                                <option value="calendar">Calendar View</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="loadAllRoster()" style="margin-top: 25px;">Load Roster</button>
+                        <button class="btn btn-secondary" onclick="printAllRoster()" style="margin-top: 25px;">Print</button>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        This shows the complete duty roster for all staff members. Different shift timings are color-coded for easy identification.
+                    </div>
+                    
+                    <div id="allRosterContainer" style="margin-top: 20px;">
+                        <!-- Complete roster will be displayed here -->
                     </div>
                 </div>
             </div>
@@ -1692,45 +1786,6 @@ Date	Irufan	Hussain	Mohamed
                     </div>
                 </div>
             </div>
-            
-            <!-- View All Roster -->
-            <div class="section" id="viewAllRosterSection">
-                <div class="card">
-                    <h3>Complete Duty Roster - All Staff</h3>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="allRosterStartDate">From Date</label>
-                            <input type="date" id="allRosterStartDate" class="form-control" value="">
-                        </div>
-                        <div class="form-group">
-                            <label for="allRosterEndDate">To Date</label>
-                            <input type="date" id="allRosterEndDate" class="form-control" value="">
-                        </div>
-                        <div class="form-group">
-                            <label for="allRosterViewType">View Type</label>
-                            <select id="allRosterViewType" class="form-control">
-                                <option value="table">Daily Table</option>
-                                <option value="staff">Staff View</option>
-                                <option value="calendar">Calendar View</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <button class="btn btn-primary" onclick="loadAllRoster()" style="margin-top: 25px;">Load Roster</button>
-                        <button class="btn btn-secondary" onclick="printAllRoster()" style="margin-top: 25px;">Print</button>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        This shows the complete duty roster for all staff members. Approved leaves are shown as "Leave".
-                    </div>
-                    
-                    <div id="allRosterContainer" style="margin-top: 20px;">
-                        <!-- Complete roster will be displayed here -->
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1743,6 +1798,43 @@ Date	Irufan	Hussain	Mohamed
         let allRequests = [];
         let announcements = [];
         let userDisplayNameMap = {};
+
+        // Color mapping for different duty times
+        const dutyTimeColors = {
+            // Morning shifts (green)
+            '07:00-15:00': 'duty-time-morning',
+            '07:30-15:30': 'duty-time-morning',
+            '08:00-16:00': 'duty-time-morning',
+            '08:30-16:30': 'duty-time-morning',
+            '09:00-17:00': 'duty-time-morning',
+            '10:00-18:00': 'duty-time-morning',
+            
+            // Afternoon/Evening shifts (blue)
+            '15:00-23:00': 'duty-time-afternoon',
+            '15:30-23:30': 'duty-time-afternoon',
+            '16:00-00:00': 'duty-time-afternoon',
+            '16:30-00:30': 'duty-time-afternoon',
+            '14:00-22:00': 'duty-time-afternoon',
+            
+            // Night shifts (teal)
+            '23:00-07:00': 'duty-time-night',
+            '23:30-07:30': 'duty-time-night',
+            '00:00-08:00': 'duty-time-night',
+            '00:30-08:30': 'duty-time-night',
+            
+            // Late night shifts (light red)
+            '18:00-02:00': 'duty-time-late-night',
+            '20:00-04:00': 'duty-time-late-night',
+            '22:00-06:00': 'duty-time-late-night',
+            
+            // Mixed/Other shifts (yellow)
+            '12:00-20:00': 'duty-time-mixed',
+            '13:00-21:00': 'duty-time-mixed',
+            '11:00-19:00': 'duty-time-mixed',
+            
+            // Default for other times
+            'default': 'duty-time-mixed'
+        };
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -1862,8 +1954,10 @@ Date	Irufan	Hussain	Mohamed
                 document.getElementById('adminApprovalsBtn').style.display = 'inline-block';
                 document.getElementById('adminRequestHistoryBtn').style.display = 'inline-block';
                 document.getElementById('adminAnnouncementsBtn').style.display = 'inline-block';
-                document.getElementById('viewAllRosterBtn').style.display = 'inline-block';
             }
+            
+            // Always show "View All Roster" button to all users
+            document.getElementById('viewAllRosterBtn').style.display = 'inline-block';
             
             // Initialize data and UI
             initializeData();
@@ -2027,9 +2121,6 @@ Date	Irufan	Hussain	Mohamed
                 });
             });
             
-            // Show "View My Roster" for all users
-            document.querySelector('[data-section="viewMyRoster"]').style.display = 'inline-block';
-            
             // Logout button
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('dutySystemSession');
@@ -2065,6 +2156,9 @@ Date	Irufan	Hussain	Mohamed
                     case 'viewMyRoster':
                         loadMyRoster();
                         break;
+                    case 'viewAllRoster':
+                        loadAllRoster();
+                        break;
                     case 'pendingRequests':
                         loadPendingRequests();
                         break;
@@ -2082,9 +2176,6 @@ Date	Irufan	Hussain	Mohamed
                         break;
                     case 'adminRequestHistory':
                         loadAdminRequestHistory();
-                        break;
-                    case 'viewAllRoster':
-                        loadAllRoster();
                         break;
                 }
             }
@@ -3009,6 +3100,39 @@ Date	Irufan	Hussain	Mohamed
             container.innerHTML = html;
         }
 
+        function getDutyTimeClass(dutyTime) {
+            if (dutyTime === 'Off' || dutyTime === 'Not Scheduled') {
+                return 'off-day-cell';
+            }
+            
+            // Normalize the duty time format
+            const normalizedTime = dutyTime.replace(/\s/g, ''); // Remove spaces
+            const timeKey = Object.keys(dutyTimeColors).find(key => 
+                key === normalizedTime || 
+                key.replace(/\s/g, '') === normalizedTime
+            );
+            
+            if (timeKey) {
+                return dutyTimeColors[timeKey];
+            }
+            
+            // Try to match by time range
+            if (dutyTime.includes('-')) {
+                const [startTime, endTime] = dutyTime.split('-');
+                const startHour = parseInt(startTime.split(':')[0]);
+                
+                if (startHour >= 6 && startHour < 14) {
+                    return 'duty-time-morning';
+                } else if (startHour >= 14 && startHour < 22) {
+                    return 'duty-time-afternoon';
+                } else {
+                    return 'duty-time-night';
+                }
+            }
+            
+            return 'duty-time-mixed';
+        }
+
         function displayAllRosterTable(startDate, endDate, year, month) {
             const today = new Date().toISOString().split('T')[0];
             let html = `<div class="roster-all-view"><table><thead><tr><th>Date</th><th>Day</th>`;
@@ -3056,8 +3180,10 @@ Date	Irufan	Hussain	Mohamed
                             if (dutyTime === 'Off') {
                                 cellClass = 'off-day-cell';
                             } else {
-                                cellClass = 'duty-day-cell';
+                                cellClass = getDutyTimeClass(dutyTime);
                             }
+                        } else {
+                            cellClass = 'off-day-cell';
                         }
                         
                         if (isToday) {
@@ -3073,15 +3199,23 @@ Date	Irufan	Hussain	Mohamed
             
             html += '</tbody></table></div>';
             
-            // Add legend
+            // Add enhanced legend
             html += `<div class="legend">
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #d4edda;"></div>
-                    <span>Duty Day</span>
+                    <span>Morning Shifts (06:00-14:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #cce5ff;"></div>
+                    <span>Afternoon Shifts (14:00-22:00)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #d1ecf1;"></div>
+                    <span>Night Shifts (22:00-06:00)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #f8d7da;"></div>
-                    <span>Off Day</span>
+                    <span>Off Day / Leave</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #fff3cd;"></div>
@@ -3169,7 +3303,15 @@ Date	Irufan	Hussain	Mohamed
             html += `<div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <div style="width: 15px; height: 15px; background-color: #d4edda; border: 1px solid #c3e6cb;"></div>
-                    <span style="font-size: 12px;">Duty Day</span>
+                    <span style="font-size: 12px;">Morning Shift</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; background-color: #cce5ff; border: 1px solid #b8daff;"></div>
+                    <span style="font-size: 12px;">Afternoon Shift</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; background-color: #d1ecf1; border: 1px solid #bee5eb;"></div>
+                    <span style="font-size: 12px;">Night Shift</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <div style="width: 15px; height: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb;"></div>
@@ -3179,12 +3321,6 @@ Date	Irufan	Hussain	Mohamed
                     <div style="width: 15px; height: 15px; background-color: #e8f4fc; border: 2px solid #3498db;"></div>
                     <span style="font-size: 12px;">Today</span>
                 </div>
-                ${isMyRoster ? '' : `
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 15px; height: 15px; background-color: #ffeaa7; border: 1px solid #fdcb6e;"></div>
-                    <span style="font-size: 12px;">Leave</span>
-                </div>
-                `}
             </div>`;
             
             container.innerHTML = html;
@@ -4177,7 +4313,7 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             loadRequestHistory();
         }
 
-        // View All Roster Functions
+        // View All Roster Functions (Now accessible to all users)
         function loadAllRoster() {
             const container = document.getElementById('allRosterContainer');
             const startDate = document.getElementById('allRosterStartDate').value;
@@ -4273,8 +4409,10 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                             if (dutyTime === 'Off') {
                                 cellClass = 'off-day-cell';
                             } else {
-                                cellClass = 'duty-day-cell';
+                                cellClass = getDutyTimeClass(dutyTime);
                             }
+                        } else {
+                            cellClass = 'off-day-cell';
                         }
                         
                         if (isToday) {
@@ -4497,8 +4635,11 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                         th { background-color: #f2f2f2; }
                         .leave-indicator { background-color: #ffeaa7; padding: 2px 5px; border-radius: 3px; font-size: 10px; }
-                        .off-day-cell { background-color: #f8d7da; }
-                        .duty-day-cell { background-color: #d4edda; }
+                        .duty-time-morning { background-color: #d4edda; color: #155724; }
+                        .duty-time-afternoon { background-color: #cce5ff; color: #004085; }
+                        .duty-time-night { background-color: #d1ecf1; color: #0c5460; }
+                        .off-day-cell { background-color: #f8d7da; color: #721c24; }
+                        .today-cell { border: 2px solid #3498db !important; background-color: #e8f4fc !important; }
                         h3 { color: #2c3e50; }
                     </style>
                 </head>
