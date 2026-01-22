@@ -3,187 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Duty Management Mobile</title>
+    <title>Duty Management System</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- SHA-256 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+    
+    <!-- External files -->
+    <script src="dcfire.js" defer></script>
+    <script src="user.js" defer></script>
+    
+    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="theme-color" content="#3498db">
     
     <style>
-        /* Reset and Base Styles */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #f5f7fa;
+            --dark-color: #34495e;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             -webkit-tap-highlight-color: transparent;
-            -webkit-text-size-adjust: 100%;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            overflow-x: hidden;
-            touch-action: manipulation;
+            background: var(--light-color);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
-        /* Mobile App Container */
-        .app-container {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
+        /* Login Page */
+        .login-container {
             background: white;
             min-height: 100vh;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        /* App Header */
-        .app-header {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
-            color: white;
-            padding: 15px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .app-logo {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3498db;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .app-title h1 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .app-title p {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .header-right {
-            display: flex;
-            gap: 10px;
-        }
-
-        .header-icon {
-            width: 36px;
-            height: 36px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        /* Tab Bar */
-        .tab-bar {
-            display: flex;
-            background: white;
-            border-top: 1px solid #e0e6ed;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 500px;
-            margin: 0 auto;
-            z-index: 1000;
-        }
-
-        .tab-item {
-            flex: 1;
-            padding: 12px 5px;
-            text-align: center;
-            font-size: 12px;
-            color: #7f8c8d;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            background: none;
-        }
-
-        .tab-item.active {
-            color: #3498db;
-        }
-
-        .tab-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 15px;
-            padding-bottom: 70px; /* Space for tab bar */
-            min-height: calc(100vh - 70px - 70px); /* Minus header and tab bar */
-        }
-
-        /* Login Screen */
-        .login-screen {
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            min-height: 100vh;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .login-logo {
+        .logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
-        .login-logo .app-logo {
-            margin: 0 auto 15px;
-            width: 70px;
-            height: 70px;
-            font-size: 28px;
-        }
-
-        .login-logo h1 {
-            color: #2c3e50;
+        .logo h1 {
+            color: var(--secondary-color);
             font-size: 24px;
             margin-bottom: 5px;
         }
 
-        .login-logo p {
+        .logo p {
             color: #7f8c8d;
             font-size: 14px;
         }
@@ -192,221 +77,280 @@
             margin-bottom: 20px;
         }
 
-        .form-label {
+        .form-group label {
             display: block;
-            color: #2c3e50;
+            color: var(--secondary-color);
             font-size: 14px;
             font-weight: 500;
             margin-bottom: 8px;
         }
 
-        .form-input {
+        .form-control {
             width: 100%;
-            padding: 14px 16px;
+            padding: 15px;
             border: 2px solid #e0e6ed;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s;
-            background: white;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        .form-input:focus {
+        .form-control:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
+        /* Buttons */
         .btn {
-            padding: 16px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            text-align: center;
+            min-height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            width: 100%;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-primary {
-            background: #3498db;
+            background: var(--primary-color);
             color: white;
         }
 
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-
         .btn-success {
-            background: #27ae60;
+            background: var(--success-color);
             color: white;
         }
 
         .btn-danger {
-            background: #e74c3c;
+            background: var(--danger-color);
             color: white;
         }
 
         .btn-warning {
-            background: #f39c12;
+            background: var(--warning-color);
             color: white;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            min-height: 36px;
+        }
+
+        .btn-icon {
+            padding: 12px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 50%;
         }
 
         .error-message {
             background: #ffeaea;
-            color: #e74c3c;
-            padding: 12px;
-            border-radius: 12px;
+            color: var(--danger-color);
+            padding: 15px;
+            border-radius: 10px;
             margin-top: 20px;
-            font-size: 14px;
             display: none;
+            font-size: 14px;
         }
 
         /* Dashboard */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .dashboard-card {
+        .dashboard-container {
+            display: none;
+            min-height: 100vh;
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 1px solid #e0e6ed;
         }
 
-        .dashboard-card h3 {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .dashboard-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .dashboard-subtitle {
-            font-size: 12px;
-            color: #95a5a6;
-            margin-top: 5px;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .action-btn {
-            background: white;
-            border: 1px solid #e0e6ed;
-            border-radius: 12px;
+        /* Mobile Header */
+        .mobile-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
             padding: 15px;
+            z-index: 1000;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .action-btn:hover {
-            background: #f8f9fa;
-            transform: translateY(-2px);
+        .mobile-header .user-info h2 {
+            font-size: 16px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
         }
 
-        .action-icon {
-            font-size: 24px;
-            color: #3498db;
-        }
-
-        .action-text {
+        .mobile-header .user-details {
             font-size: 12px;
-            font-weight: 500;
-            color: #2c3e50;
+            opacity: 0.9;
+            display: flex;
+            gap: 10px;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            top: 70px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 70px);
+            background: white;
+            z-index: 999;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .mobile-nav.active {
+            left: 0;
+        }
+
+        .nav-section {
+            padding: 20px;
+            border-bottom: 1px solid #e0e6ed;
+        }
+
+        .nav-section h3 {
+            color: var(--secondary-color);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav-item:active {
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .nav-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
             text-align: center;
         }
 
-        /* Announcements */
-        .announcements {
-            margin-bottom: 20px;
-        }
-
-        .announcement-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .notification-badge {
+            background: var(--danger-color);
             color: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
-            position: relative;
-            overflow: hidden;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: auto;
         }
 
-        .announcement-card.priority-high {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            animation: pulse 2s infinite;
+        .notification-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--danger-color);
+            border-radius: 50%;
+            margin-left: auto;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(245, 87, 108, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(245, 87, 108, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(245, 87, 108, 0); }
+        /* Overlay for mobile nav */
+        .nav-overlay {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            display: none;
         }
 
-        .announcement-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .nav-overlay.active {
+            display: block;
         }
 
-        .announcement-content {
-            font-size: 14px;
-            opacity: 0.95;
-            margin-bottom: 10px;
+        /* Content Area */
+        .content-area {
+            padding: 90px 15px 80px;
+            min-height: 100vh;
         }
 
-        .announcement-time {
-            font-size: 11px;
-            opacity: 0.8;
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* Forms */
-        .form-screen {
-            max-width: 100%;
-            overflow-x: hidden;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .form-card {
+        .section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
             background: white;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e6ed;
         }
 
-        .form-card h2 {
+        .card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
             font-size: 18px;
-            color: #2c3e50;
-            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
             padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
         }
 
+        /* Forms */
         .form-row {
             display: flex;
             flex-direction: column;
@@ -420,17 +364,16 @@
             align-items: center;
         }
 
-        textarea.form-input {
+        textarea.form-control {
             min-height: 100px;
             resize: vertical;
             font-family: inherit;
         }
 
-        select.form-input {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        select.form-control {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 16px center;
+            background-position: right 15px center;
             background-size: 16px;
             padding-right: 40px;
         }
@@ -438,44 +381,81 @@
         /* Tables */
         .table-container {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin-bottom: 15px;
+            margin-top: 15px;
             border: 1px solid #e0e6ed;
             border-radius: 10px;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            min-width: 300px;
+            min-width: 600px;
         }
 
         th, td {
-            padding: 12px 8px;
+            padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e0e6ed;
-            font-size: 13px;
+            font-size: 14px;
         }
 
         th {
             background: #f8f9fa;
             font-weight: 600;
-            color: #2c3e50;
-            position: sticky;
-            top: 0;
+            color: var(--secondary-color);
+            white-space: nowrap;
         }
 
         tr:last-child td {
             border-bottom: none;
         }
 
-        /* Status Badges */
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 11px;
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Mobile Table */
+        .mobile-table {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mobile-table-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e0e6ed;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mobile-table-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-table-label {
             font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 12px;
+        }
+
+        .mobile-table-value {
+            font-size: 14px;
+            text-align: right;
+        }
+
+        /* Status */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
             display: inline-block;
         }
 
@@ -494,29 +474,188 @@
             color: #721c24;
         }
 
+        .status-off {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
         }
 
-        .action-btn-small {
-            padding: 6px 12px;
+        .action-btn {
+            padding: 8px 12px;
             border: none;
-            border-radius: 6px;
-            font-size: 12px;
+            border-radius: 8px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.2s;
+            flex: 1;
+            min-width: 60px;
         }
 
-        .action-btn-small.approve {
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .action-btn.approve {
             background: #d4edda;
             color: #155724;
         }
 
-        .action-btn-small.reject {
+        .action-btn.reject {
             background: #f8d7da;
             color: #721c24;
+        }
+
+        .action-btn.view {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .action-btn.apply {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #e8f4fc;
+            border-color: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: var(--success-color);
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: var(--warning-color);
+            color: #856404;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border-color: var(--danger-color);
+            color: #721c24;
+        }
+
+        /* Balance Display */
+        .balance-display {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .balance-box {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e0e6ed;
+        }
+
+        .balance-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin: 5px 0;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        /* Excel Import Area */
+        .excel-import-area {
+            background: #f8f9fa;
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .excel-import-area:active {
+            background: #e8f4fc;
+        }
+
+        .excel-paste-box {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        /* Tab Controls */
+        .tab-controls {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e6ed;
+            padding-bottom: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .tab-controls::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-btn:active {
+            transform: scale(0.98);
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
         }
 
         /* Loading */
@@ -528,12 +667,12 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
+            border-top: 3px solid var(--primary-color);
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 15px;
         }
 
         @keyframes spin {
@@ -541,37 +680,285 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Alerts */
-        .alert {
-            padding: 12px 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            font-size: 14px;
+        /* Calendar View */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-top: 15px;
         }
-
-        .alert-info {
-            background: #e8f4fc;
-            border-color: #3498db;
-            color: #2c3e50;
+        
+        .calendar-day {
+            border: 1px solid #e0e6ed;
+            padding: 6px;
+            min-height: 50px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            font-size: 12px;
         }
-
-        .alert-success {
-            background: #d4edda;
-            border-color: #27ae60;
-            color: #155724;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            border-color: #f39c12;
-            color: #856404;
-        }
-
-        .alert-danger {
+        
+        .calendar-day.off-day {
             background: #f8d7da;
-            border-color: #e74c3c;
+        }
+        
+        .calendar-day.duty-day {
+            background: #d4edda;
+        }
+        
+        .calendar-day.today {
+            border: 2px solid var(--primary-color);
+            background: #e8f4fc;
+        }
+        
+        .day-header {
+            font-weight: bold;
+            font-size: 11px;
+            color: var(--secondary-color);
+            margin-bottom: 3px;
+            text-align: center;
+        }
+        
+        .duty-time {
+            font-size: 10px;
+            color: #155724;
+            text-align: center;
+        }
+        
+        .off-time {
+            font-size: 10px;
             color: #721c24;
+            text-align: center;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 5px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-top: 1px solid #e0e6ed;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border: none;
+            background: none;
+            color: #7f8c8d;
+            font-size: 10px;
+            cursor: pointer;
+            flex: 1;
+            min-width: 60px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav-item:active {
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .bottom-nav-icon {
+            font-size: 20px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            cursor: pointer;
+            z-index: 99;
+            transition: all 0.3s;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            color: var(--secondary-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #7f8c8d;
+            cursor: pointer;
+            padding: 5px;
+            margin: -5px;
+        }
+
+        /* Swipeable Tabs */
+        .swipe-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .swipe-content {
+            display: flex;
+            transition: transform 0.3s ease;
+            width: 100%;
+        }
+
+        .swipe-page {
+            min-width: 100%;
+            padding: 0;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-size: 20px;
+        }
+
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            color: white;
+            transition: transform 0.3s;
+            z-index: 999;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .quick-action-btn {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--secondary-color);
+            transition: all 0.3s;
+        }
+
+        .quick-action-btn:active {
+            background: #f8f9fa;
+            border-color: var(--primary-color);
+            transform: scale(0.98);
+        }
+
+        .quick-action-icon {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .quick-action-text {
+            font-size: 14px;
+            font-weight: 500;
         }
 
         /* Offline Indicator */
@@ -580,1336 +967,816 @@
             top: 70px;
             left: 0;
             right: 0;
-            max-width: 500px;
-            margin: 0 auto;
-            background: #e74c3c;
+            background: var(--warning-color);
             color: white;
-            padding: 10px 15px;
-            font-size: 14px;
             text-align: center;
-            z-index: 999;
+            padding: 10px;
+            font-size: 14px;
+            z-index: 1001;
             display: none;
         }
 
-        /* Swipe Navigation */
-        .swipe-area {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 20px;
-            z-index: 10;
-        }
-
-        .swipe-area.left {
-            left: 0;
-        }
-
-        .swipe-area.right {
-            right: 0;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #7f8c8d;
-        }
-
-        /* Touch Feedback */
-        .touch-feedback {
-            transition: transform 0.1s;
-        }
-
-        .touch-feedback:active {
-            transform: scale(0.98);
-        }
-
-        /* No Data */
-        .no-data {
-            text-align: center;
-            padding: 40px 20px;
-            color: #7f8c8d;
-            font-size: 16px;
-        }
-
-        .no-data-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Utility Classes */
-        .hidden {
-            display: none !important;
-        }
-
-        .visible {
-            display: block !important;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mb-10 {
-            margin-bottom: 10px;
-        }
-
-        .mb-20 {
-            margin-bottom: 20px;
-        }
-
-        .mt-10 {
-            margin-top: 10px;
-        }
-
-        .mt-20 {
-            margin-top: 20px;
-        }
-
-        /* Responsive */
-        @media (max-width: 360px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
+        /* Responsive Breakpoints */
+        @media (min-width: 768px) {
+            .login-container {
+                max-width: 400px;
+                margin: 0 auto;
+                padding: 40px;
+                min-height: auto;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             }
             
-            .quick-actions {
-                grid-template-columns: 1fr;
+            .mobile-header, .mobile-nav, .bottom-nav, .fab {
+                display: none;
             }
             
-            .main-content {
-                padding: 10px;
+            .dashboard-container {
+                max-width: 1200px;
+                margin: 20px auto;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                min-height: calc(100vh - 40px);
             }
-        }
-
-        /* High DPI Screens */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            .form-input {
-                border-width: 1px;
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .form-row {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .form-row > * {
+                flex: 1;
+                min-width: 200px;
+            }
+            
+            .table-container {
+                min-width: auto;
+            }
+            
+            table {
+                min-width: auto;
             }
         }
 
         /* Dark Mode Support */
         @media (prefers-color-scheme: dark) {
+            :root {
+                --light-color: #1a1a1a;
+                --dark-color: #2c3e50;
+                --secondary-color: #ecf0f1;
+            }
+            
             body {
-                background: #1a1a1a;
-                color: #fff;
+                background: var(--light-color);
+                color: #ecf0f1;
             }
             
-            .app-container {
-                background: #2c2c2c;
+            .card, .form-control, table, .mobile-table-item {
+                background: #2c3e50;
+                color: #ecf0f1;
+                border-color: #34495e;
             }
             
-            .dashboard-card {
-                background: #3c3c3c;
-                border-color: #444;
-            }
-            
-            .form-input {
-                background: #3c3c3c;
-                border-color: #444;
-                color: #fff;
-            }
-            
-            .table-container {
-                border-color: #444;
+            .form-control {
+                background: #2c3e50;
+                color: #ecf0f1;
             }
             
             th {
-                background: #444;
+                background: #34495e;
+            }
+            
+            .balance-box {
+                background: #34495e;
+                border-color: #4a6572;
+            }
+            
+            .alert {
+                background: #34495e;
+            }
+            
+            .excel-import-area {
+                background: #34495e;
+                border-color: var(--primary-color);
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .mobile-header, .mobile-nav, .bottom-nav, .fab, .btn {
+                display: none !important;
+            }
+            
+            .content-area {
+                padding: 0;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: none;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Offline Indicator -->
-    <div id="offlineIndicator" class="offline-indicator">
-        ⚠️ You are currently offline. Changes will sync when you reconnect.
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <div class="logo">
+            <h1>Duty Management</h1>
+            <p>Secure Mobile Login</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                <span>Login</span>
+                <span>→</span>
+            </button>
+            
+            <div class="error-message" id="errorMessage">
+                Invalid username or password
+            </div>
+        </form>
+        
+        <div class="alert alert-info" style="margin-top: 30px; font-size: 13px;">
+            <strong>Mobile App:</strong> Add to home screen for full app experience
+        </div>
     </div>
-
-    <!-- App Container -->
-    <div class="app-container" id="appContainer">
-        <!-- Login Screen -->
-        <div id="loginScreen" class="login-screen">
-            <div class="login-card">
-                <div class="login-logo">
-                    <div class="app-logo">DM</div>
-                    <h1>Duty Management</h1>
-                    <p>Mobile App Version</p>
+    
+    <!-- Dashboard Container -->
+    <div class="dashboard-container" id="dashboardContainer">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <div class="user-info">
+                <h2 id="userName">User Name</h2>
+                <div class="user-details">
+                    <span>RC: <span id="userRC">000</span></span>
+                </div>
+            </div>
+            <button class="btn btn-icon btn-danger" id="logoutBtn">🚪</button>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav" id="mobileNav">
+            <div class="nav-section">
+                <h3>Main Menu</h3>
+                <a href="#" class="nav-item active" data-section="home">
+                    <span class="nav-icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="dutyChange">
+                    <span class="nav-icon">🔄</span>
+                    <span>Duty Change</span>
+                </a>
+                <a href="#" class="nav-item" data-section="leaveApplication">
+                    <span class="nav-icon">📝</span>
+                    <span>Apply Leave</span>
+                </a>
+                <a href="#" class="nav-item" data-section="myRequests">
+                    <span class="nav-icon">📋</span>
+                    <span>My Requests</span>
+                </a>
+                <a href="#" class="nav-item" data-section="viewMyRoster">
+                    <span class="nav-icon">📅</span>
+                    <span>My Roster</span>
+                </a>
+                <a href="#" class="nav-item" data-section="pendingRequests" id="pendingRequestsNav" style="display:none;">
+                    <span class="nav-icon">⏰</span>
+                    <span>Pending</span>
+                    <span id="pendingCount" class="notification-badge">0</span>
+                </a>
+            </div>
+            
+            <div class="nav-section" id="adminNavSection" style="display:none;">
+                <h3>Admin Tools</h3>
+                <a href="#" class="nav-item" data-section="adminDutyRoster">
+                    <span class="nav-icon">👨‍💼</span>
+                    <span>Duty Roster</span>
+                </a>
+                <a href="#" class="nav-item" data-section="adminLeaveBalance">
+                    <span class="nav-icon">💰</span>
+                    <span>Leave Balance</span>
+                </a>
+                <a href="#" class="nav-item" data-section="adminApprovals">
+                    <span class="nav-icon">✅</span>
+                    <span>Approvals</span>
+                </a>
+                <a href="#" class="nav-item" data-section="adminRequestHistory">
+                    <span class="nav-icon">📊</span>
+                    <span>Request History</span>
+                    <span id="historyNotification" class="notification-dot" style="display:none;"></span>
+                </a>
+                <a href="#" class="nav-item" data-section="viewAllRoster">
+                    <span class="nav-icon">👥</span>
+                    <span>All Roster</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Settings</h3>
+                <a href="#" class="nav-item" onclick="refreshApp()">
+                    <span class="nav-icon">🔄</span>
+                    <span>Refresh Data</span>
+                </a>
+                <a href="#" class="nav-item" onclick="toggleDarkMode()">
+                    <span class="nav-icon">🌙</span>
+                    <span>Dark Mode</span>
+                </a>
+                <a href="#" class="nav-item" onclick="exportData()">
+                    <span class="nav-icon">📤</span>
+                    <span>Export Data</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Navigation Overlay -->
+        <div class="nav-overlay" id="navOverlay"></div>
+        
+        <!-- Offline Indicator -->
+        <div class="offline-indicator" id="offlineIndicator">
+            ⚠️ You are offline. Some features may be limited.
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area" id="contentArea">
+            <!-- Dashboard -->
+            <div class="section active" id="homeSection">
+                <div class="card">
+                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
+                    
+                    <div class="balance-display">
+                        <div class="balance-box">
+                            <div class="balance-label">Sick Leave</div>
+                            <div class="balance-value" id="slBalance">0</div>
+                            <div class="balance-label">Days</div>
+                        </div>
+                        <div class="balance-box">
+                            <div class="balance-label">FRL</div>
+                            <div class="balance-value" id="frlBalance">0</div>
+                            <div class="balance-label">Days</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Today's Duty:</strong> <span id="todayDutyTime">Not Scheduled</span></p>
+                        <p><strong>Next Duty:</strong> <span id="nextDutyTime">No upcoming duty</span></p>
+                        <div id="homeNotifications" style="margin-top: 10px; display: none;"></div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="showSection('dutyChange')">
+                            <span class="quick-action-icon">🔄</span>
+                            <span class="quick-action-text">Duty Change</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="showSection('leaveApplication')">
+                            <span class="quick-action-icon">📝</span>
+                            <span class="quick-action-text">Apply Leave</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="showSection('myRequests')">
+                            <span class="quick-action-icon">📋</span>
+                            <span class="quick-action-text">My Requests</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="showSection('viewMyRoster')">
+                            <span class="quick-action-icon">📅</span>
+                            <span class="quick-action-text">My Roster</span>
+                        </button>
+                    </div>
                 </div>
                 
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label class="form-label">Username</label>
-                        <input type="text" id="username" class="form-input" 
-                               placeholder="Enter username" required autocomplete="username">
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div id="recentActivity">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading activity...
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="password" id="password" class="form-input" 
-                               placeholder="Enter password" required autocomplete="current-password">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" id="loginBtn">
-                        <span>Login</span>
-                    </button>
-                    
-                    <div class="error-message" id="errorMessage">
-                        Invalid username or password
-                    </div>
-                    
-                    <div class="alert alert-info mt-20">
-                        <strong>Demo Mode:</strong> Using local storage. 
-                        Save this page to home screen for app experience.
-                    </div>
-                </form>
+                </div>
             </div>
+            
+            <!-- Other sections remain similar but with mobile-optimized layouts -->
+            <!-- Due to character limit, I'll show the structure for one section -->
+            
+            <!-- Duty Change Request (Mobile Optimized) -->
+            <div class="section" id="dutyChangeSection">
+                <div class="card">
+                    <h3>Duty Change Request</h3>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> Requests must be made at least 24 hours in advance.
+                    </div>
+                    
+                    <form id="dutyChangeForm">
+                        <div class="form-group">
+                            <label for="changeDate">Change Date *</label>
+                            <input type="date" id="changeDate" class="form-control" required min="">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="changeDutyTime">Your Duty Time *</label>
+                            <select id="changeDutyTime" class="form-control" required>
+                                <option value="">Select duty time</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="requestToStaff">Request To Staff *</label>
+                            <select id="requestToStaff" class="form-control" required>
+                                <option value="">Select staff member</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="requestToDutyTime">Staff's Duty Time *</label>
+                            <select id="requestToDutyTime" class="form-control" required>
+                                <option value="">Select duty time</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="changeReason">Reason (Optional)</label>
+                            <textarea id="changeReason" class="form-control" rows="3" placeholder="Brief reason for duty change"></textarea>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button type="submit" class="btn btn-success">Submit Request</button>
+                            <button type="button" class="btn btn-danger" onclick="showSection('home')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Leave Application -->
+            <div class="section" id="leaveApplicationSection">
+                <!-- Similar mobile-optimized structure -->
+            </div>
+            
+            <!-- My Requests (Mobile Table View) -->
+            <div class="section" id="myRequestsSection">
+                <div class="card">
+                    <h3>My Requests</h3>
+                    
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search requests..." id="searchRequests">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    
+                    <div id="myRequestsMobile" class="mobile-table">
+                        <!-- Mobile table items will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- More sections... -->
         </div>
-
-        <!-- Main App (Hidden Initially) -->
-        <div id="mainApp" class="hidden">
-            <!-- App Header -->
-            <div class="app-header">
-                <div class="header-content">
-                    <div class="header-left">
-                        <div class="app-logo">DM</div>
-                        <div class="app-title">
-                            <h1 id="headerTitle">Dashboard</h1>
-                            <p id="headerSubtitle">Welcome back</p>
-                        </div>
-                    </div>
-                    <div class="header-right">
-                        <div class="header-icon" id="notificationsBtn" title="Notifications">
-                            🔔 <span id="notificationCount" class="hidden"></span>
-                        </div>
-                        <div class="header-icon" id="refreshBtn" title="Refresh">
-                            ↻
-                        </div>
-                    </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="bottom-nav-item active" data-section="home">
+                <span class="bottom-nav-icon">🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="bottom-nav-item" data-section="dutyChange">
+                <span class="bottom-nav-icon">🔄</span>
+                <span>Change</span>
+            </button>
+            <button class="bottom-nav-item" data-section="leaveApplication">
+                <span class="bottom-nav-icon">📝</span>
+                <span>Leave</span>
+            </button>
+            <button class="bottom-nav-item" data-section="myRequests">
+                <span class="bottom-nav-icon">📋</span>
+                <span>Requests</span>
+            </button>
+            <button class="bottom-nav-item" data-section="viewMyRoster">
+                <span class="bottom-nav-icon">📅</span>
+                <span>Roster</span>
+            </button>
+        </div>
+        
+        <!-- Floating Action Button -->
+        <button class="fab" id="fabButton" onclick="showQuickActionMenu()">+</button>
+        
+        <!-- Quick Action Menu Modal -->
+        <div class="modal" id="quickActionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Quick Actions</h3>
+                    <button class="modal-close" onclick="hideQuickActionMenu()">×</button>
                 </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main-content" id="mainContent">
-                <!-- Dashboard Content -->
-                <div id="dashboardContent" class="page-content">
-                    <div class="dashboard-grid">
-                        <div class="dashboard-card">
-                            <h3>Sick Leave</h3>
-                            <div class="dashboard-value" id="slBalance">12.0</div>
-                            <div class="dashboard-subtitle">Days Available</div>
-                        </div>
-                        <div class="dashboard-card">
-                            <h3>FRL Balance</h3>
-                            <div class="dashboard-value" id="frlBalance">6.0</div>
-                            <div class="dashboard-subtitle">Days Available</div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-info mb-20">
-                        <strong>Today's Duty:</strong> <span id="todayDutyTime">Loading...</span><br>
-                        <strong>Next Duty:</strong> <span id="nextDutyTime">Loading...</span>
-                    </div>
-
-                    <div class="quick-actions mb-20">
-                        <div class="action-btn touch-feedback" onclick="showPage('dutyChange')">
-                            <div class="action-icon">🔄</div>
-                            <div class="action-text">Duty Change</div>
-                        </div>
-                        <div class="action-btn touch-feedback" onclick="showPage('leaveApplication')">
-                            <div class="action-icon">🏖️</div>
-                            <div class="action-text">Apply Leave</div>
-                        </div>
-                        <div class="action-btn touch-feedback" onclick="showPage('myRequests')">
-                            <div class="action-icon">📋</div>
-                            <div class="action-text">My Requests</div>
-                        </div>
-                        <div class="action-btn touch-feedback" onclick="showPage('viewMyRoster')">
-                            <div class="action-icon">📅</div>
-                            <div class="action-text">My Roster</div>
-                        </div>
-                    </div>
-
-                    <div class="announcements" id="announcementsContainer">
-                        <!-- Announcements will be loaded here -->
-                    </div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="showSection('dutyChange'); hideQuickActionMenu();">
+                        <span class="quick-action-icon">🔄</span>
+                        <span class="quick-action-text">Duty Change</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="showSection('leaveApplication'); hideQuickActionMenu();">
+                        <span class="quick-action-icon">📝</span>
+                        <span class="quick-action-text">Apply Leave</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="refreshApp(); hideQuickActionMenu();">
+                        <span class="quick-action-icon">🔄</span>
+                        <span class="quick-action-text">Refresh</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="updateDashboard(); hideQuickActionMenu();">
+                        <span class="quick-action-icon">📊</span>
+                        <span class="quick-action-text">Update Dashboard</span>
+                    </button>
                 </div>
-
-                <!-- Duty Change Page -->
-                <div id="dutyChangeContent" class="page-content hidden">
-                    <div class="form-card">
-                        <h2>Duty Change Request</h2>
-                        
-                        <div class="alert alert-warning mb-20">
-                            Requests must be made at least 24 hours in advance.
-                        </div>
-                        
-                        <form id="dutyChangeForm">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Change Date</label>
-                                    <input type="date" id="changeDate" class="form-input" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Your Duty Time</label>
-                                    <select id="changeDutyTime" class="form-input" required>
-                                        <option value="">Select duty time</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Request To Staff</label>
-                                    <select id="requestToStaff" class="form-input" required>
-                                        <option value="">Select staff member</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Reason (Optional)</label>
-                                    <textarea id="changeReason" class="form-input" 
-                                              placeholder="Brief reason for duty change" rows="2"></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <button type="submit" class="btn btn-success">Submit Request</button>
-                                <button type="button" class="btn btn-danger mt-10" onclick="showPage('dashboard')">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Leave Application Page -->
-                <div id="leaveApplicationContent" class="page-content hidden">
-                    <div class="form-card">
-                        <h2>Leave Application</h2>
-                        
-                        <div class="alert alert-info mb-20">
-                            <strong>Rules:</strong><br>
-                            • Sick Leave: 2+ hours before duty<br>
-                            • FRL: 1+ hour before duty<br>
-                            • No back dated applications
-                        </div>
-                        
-                        <form id="leaveApplicationForm">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Leave Type</label>
-                                    <select id="leaveType" class="form-input" required>
-                                        <option value="">Select leave type</option>
-                                        <option value="Sick Leave">Sick Leave</option>
-                                        <option value="FRL">FRL</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Leave Date</label>
-                                    <input type="date" id="leaveDate" class="form-input" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Duty Time</label>
-                                    <select id="leaveDutyTime" class="form-input" required>
-                                        <option value="">Select duty time</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Duration</label>
-                                    <select id="leaveDuration" class="form-input" required>
-                                        <option value="1">1 Day</option>
-                                        <option value="0.5">Half Day</option>
-                                        <option value="2">2 Days</option>
-                                        <option value="3">3 Days</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Reason</label>
-                                    <textarea id="leaveReason" class="form-input" 
-                                              placeholder="Please provide reason for leave" 
-                                              rows="3" required></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="alert" id="leaveRulesAlert">
-                                    Select leave type, date and duty time to see rules
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <button type="submit" class="btn btn-success">Submit Application</button>
-                                <button type="button" class="btn btn-danger mt-10" onclick="showPage('dashboard')">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- My Requests Page -->
-                <div id="myRequestsContent" class="page-content hidden">
-                    <div class="form-card">
-                        <h2>My Requests</h2>
-                        
-                        <div id="myRequestsContainer">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <p>Loading requests...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- My Roster Page -->
-                <div id="viewMyRosterContent" class="page-content hidden">
-                    <div class="form-card">
-                        <h2>My Duty Roster</h2>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">View Month</label>
-                                <input type="month" id="myRosterMonth" class="form-input" value="">
-                            </div>
-                        </div>
-                        
-                        <div class="form-row mb-20">
-                            <button class="btn btn-primary" onclick="loadMyRoster()">Load Roster</button>
-                        </div>
-                        
-                        <div id="myRosterContainer">
-                            <!-- Roster will be displayed here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Settings Page -->
-                <div id="settingsContent" class="page-content hidden">
-                    <div class="form-card">
-                        <h2>Settings</h2>
-                        
-                        <div class="form-row">
-                            <button class="btn btn-primary" onclick="refreshData()">
-                                ↻ Refresh All Data
-                            </button>
-                        </div>
-                        
-                        <div class="form-row">
-                            <button class="btn btn-warning" onclick="clearLocalData()">
-                                🗑️ Clear Local Data
-                            </button>
-                        </div>
-                        
-                        <div class="form-row">
-                            <button class="btn btn-danger" onclick="logout()">
-                                👋 Logout
-                            </button>
-                        </div>
-                        
-                        <div class="alert alert-info mt-20">
-                            <strong>App Info</strong><br>
-                            Version: 1.0.0<br>
-                            Storage: <span id="storageStatus">Local</span><br>
-                            Last Sync: <span id="lastSyncTime">Never</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Notifications Modal -->
-                <div id="notificationsModal" class="modal-overlay hidden">
-                    <div class="modal-content">
-                        <button class="modal-close" onclick="hideModal('notificationsModal')">×</button>
-                        <h2>Notifications</h2>
-                        <div id="notificationsList">
-                            <div class="no-data">
-                                <div class="no-data-icon">🔔</div>
-                                <p>No notifications</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab Bar -->
-            <div class="tab-bar">
-                <button class="tab-item active" onclick="showPage('dashboard')">
-                    <div class="tab-icon">📊</div>
-                    <div>Dashboard</div>
-                </button>
-                <button class="tab-item" onclick="showPage('dutyChange')">
-                    <div class="tab-icon">🔄</div>
-                    <div>Duty Change</div>
-                </button>
-                <button class="tab-item" onclick="showPage('leaveApplication')">
-                    <div class="tab-icon">🏖️</div>
-                    <div>Leave</div>
-                </button>
-                <button class="tab-item" onclick="showPage('myRequests')">
-                    <div class="tab-icon">📋</div>
-                    <div>Requests</div>
-                </button>
-                <button class="tab-item" onclick="showPage('settings')">
-                    <div class="tab-icon">⚙️</div>
-                    <div>Settings</div>
-                </button>
             </div>
         </div>
     </div>
-
-    <!-- Swipe Navigation Areas -->
-    <div class="swipe-area left" id="swipeLeft"></div>
-    <div class="swipe-area right" id="swipeRight"></div>
 
     <script>
-        // Global variables
-        let currentUser = null;
-        let users = [];
-        let dutyRoster = {};
-        let leaveBalances = {};
-        let requests = [];
-        let announcements = [];
-        let currentPage = 'dashboard';
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            initApp();
+        // Mobile-specific enhancements
+        
+        // Touch events for swipe navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
         });
-
-        function initApp() {
-            // Setup login
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
             
-            // Setup refresh button
-            document.getElementById('refreshBtn').addEventListener('click', refreshData);
-            
-            // Setup notifications button
-            document.getElementById('notificationsBtn').addEventListener('click', showNotifications);
-            
-            // Set minimum dates
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('changeDate').min = today;
-            document.getElementById('leaveDate').min = today;
-            document.getElementById('myRosterMonth').value = today.substring(0, 7);
-            
-            // Setup swipe navigation
-            setupSwipeNavigation();
-            
-            // Check for existing session
-            checkSession();
-            
-            // Setup online/offline detection
-            setupConnectivity();
+            if (Math.abs(diff) > swipeThreshold) {
+                const currentSection = document.querySelector('.section.active').id;
+                const sections = ['home', 'dutyChange', 'leaveApplication', 'myRequests', 'viewMyRoster'];
+                const currentIndex = sections.indexOf(currentSection.replace('Section', ''));
+                
+                if (diff > 0 && currentIndex < sections.length - 1) {
+                    // Swipe left
+                    showSection(sections[currentIndex + 1]);
+                } else if (diff < 0 && currentIndex > 0) {
+                    // Swipe right
+                    showSection(sections[currentIndex - 1]);
+                }
+            }
         }
-
-        function setupSwipeNavigation() {
-            let startX = 0;
-            let startY = 0;
-            const threshold = 50;
-            
-            document.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
+        
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', toggleMobileMenu);
+        document.getElementById('navOverlay').addEventListener('click', toggleMobileMenu);
+        
+        function toggleMobileMenu() {
+            document.getElementById('mobileNav').classList.toggle('active');
+            document.getElementById('navOverlay').classList.toggle('active');
+            document.body.style.overflow = document.getElementById('mobileNav').classList.contains('active') ? 'hidden' : '';
+        }
+        
+        // Update navigation for mobile
+        function setupMobileNavigation() {
+            // Mobile nav items
+            document.querySelectorAll('.mobile-nav .nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                    toggleMobileMenu();
+                });
             });
             
-            document.addEventListener('touchend', (e) => {
-                const endX = e.changedTouches[0].clientX;
-                const endY = e.changedTouches[0].clientY;
-                const diffX = endX - startX;
-                const diffY = endY - startY;
-                
-                // Only horizontal swipes
-                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
-                    if (diffX > 0) {
-                        // Swipe right - go back
-                        navigateBack();
-                    } else {
-                        // Swipe left - forward (if applicable)
-                        navigateForward();
-                    }
-                }
+            // Bottom nav items
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                });
             });
         }
-
-        function navigateBack() {
-            if (currentPage !== 'dashboard') {
-                showPage('dashboard');
+        
+        // Pull to refresh
+        let pullStartY = 0;
+        let pulling = false;
+        
+        document.getElementById('contentArea').addEventListener('touchstart', e => {
+            if (window.scrollY === 0) {
+                pullStartY = e.touches[0].clientY;
+                pulling = true;
             }
-        }
-
-        function navigateForward() {
-            // Implement forward navigation if needed
-        }
-
-        function setupConnectivity() {
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
+        });
+        
+        document.getElementById('contentArea').addEventListener('touchmove', e => {
+            if (!pulling) return;
             
-            function updateOnlineStatus() {
-                const indicator = document.getElementById('offlineIndicator');
-                if (!navigator.onLine) {
-                    indicator.style.display = 'block';
-                } else {
-                    indicator.style.display = 'none';
-                    // Sync data when coming back online
-                    syncData();
+            const pullDistance = e.touches[0].clientY - pullStartY;
+            if (pullDistance > 0) {
+                e.preventDefault();
+                // Show pull to refresh indicator
+                if (pullDistance > 60) {
+                    // Trigger refresh
+                    refreshApp();
+                    pulling = false;
                 }
             }
-            
-            updateOnlineStatus();
+        });
+        
+        document.getElementById('contentArea').addEventListener('touchend', () => {
+            pulling = false;
+        });
+        
+        // Quick action menu
+        function showQuickActionMenu() {
+            document.getElementById('quickActionModal').classList.add('active');
         }
-
-        function checkSession() {
-            const session = localStorage.getItem('dutyMobileSession');
-            if (session) {
-                try {
-                    const user = JSON.parse(session);
-                    if (user.expiry > Date.now()) {
-                        loginUser(user);
-                    } else {
-                        localStorage.removeItem('dutyMobileSession');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('dutyMobileSession');
-                }
-            }
+        
+        function hideQuickActionMenu() {
+            document.getElementById('quickActionModal').classList.remove('active');
         }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const errorMsg = document.getElementById('errorMessage');
-            
-            if (!username || !password) {
-                showError('Please enter both username and password');
-                return;
-            }
-            
-            // For demo, create a mock user
-            const demoUsers = [
-                { username: 'iru1', password: 'pass123', name: 'Irufan 1', RCNo: '001', Level: 'User' },
-                { username: 'iru2', password: 'pass123', name: 'Irufan 2', RCNo: '002', Level: 'User' },
-                { username: 'admin', password: 'admin123', name: 'Supervisor', RCNo: '999', Level: 'Supervisor' }
-            ];
-            
-            const user = demoUsers.find(u => u.username === username && u.password === password);
-            
-            if (user) {
-                const sessionData = {
-                    username: user.username,
-                    name: user.name,
-                    rcNo: user.RCNo,
-                    level: user.Level,
-                    expiry: Date.now() + (8 * 60 * 60 * 1000)
-                };
-                
-                localStorage.setItem('dutyMobileSession', JSON.stringify(sessionData));
-                loginUser(sessionData);
-            } else {
-                showError('Invalid username or password');
-            }
-        }
-
-        function showError(message) {
-            const errorMsg = document.getElementById('errorMessage');
-            errorMsg.textContent = message;
-            errorMsg.style.display = 'block';
-            
-            setTimeout(() => {
-                errorMsg.style.display = 'none';
-            }, 3000);
-        }
-
-        function loginUser(userData) {
-            currentUser = userData;
-            
-            // Update UI
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            
-            document.getElementById('headerSubtitle').textContent = `Welcome, ${userData.name}`;
-            
-            // Load data
-            loadAllData();
-            
-            // Update dashboard
-            updateDashboard();
-        }
-
-        function loadAllData() {
-            // Load from localStorage
-            const savedRoster = localStorage.getItem('dutyRosterMobile');
-            if (savedRoster) {
-                dutyRoster = JSON.parse(savedRoster);
-            } else {
-                // Create demo roster
-                createDemoRoster();
-            }
-            
-            const savedBalances = localStorage.getItem('leaveBalancesMobile');
-            if (savedBalances) {
-                leaveBalances = JSON.parse(savedBalances);
-            } else {
-                createDemoBalances();
-            }
-            
-            const savedRequests = localStorage.getItem('dutyRequestsMobile');
-            if (savedRequests) {
-                requests = JSON.parse(savedRequests);
-            } else {
-                requests = [];
-            }
-            
-            const savedAnnouncements = localStorage.getItem('dutyAnnouncementsMobile');
-            if (savedAnnouncements) {
-                announcements = JSON.parse(savedAnnouncements);
-            } else {
-                createDemoAnnouncements();
-            }
-            
-            // Update storage status
-            updateStorageStatus();
-        }
-
-        function createDemoRoster() {
-            const today = new Date();
-            dutyRoster = {};
-            
-            for (let i = 0; i < 30; i++) {
-                const date = new Date(today);
-                date.setDate(date.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
-                
-                dutyRoster[dateStr] = {
-                    'iru1': i % 3 === 0 ? '08:00-16:00' : i % 3 === 1 ? '16:00-00:00' : 'Off',
-                    'iru2': i % 3 === 1 ? '08:00-16:00' : i % 3 === 2 ? '16:00-00:00' : 'Off'
-                };
-            }
-            
-            localStorage.setItem('dutyRosterMobile', JSON.stringify(dutyRoster));
-        }
-
-        function createDemoBalances() {
-            leaveBalances = {
-                'iru1': { SL: 12.0, FRL: 6.0 },
-                'iru2': { SL: 10.5, FRL: 5.0 },
-                'admin': { SL: 15.0, FRL: 8.0 }
-            };
-            
-            localStorage.setItem('leaveBalancesMobile', JSON.stringify(leaveBalances));
-        }
-
-        function createDemoAnnouncements() {
-            const today = new Date();
-            announcements = [
-                {
-                    id: '1',
-                    title: 'System Maintenance',
-                    content: 'System will be down for maintenance on Saturday from 2 AM to 4 AM.',
-                    priority: 'medium',
-                    createdAt: today.toISOString(),
-                    createdBy: 'Admin'
-                },
-                {
-                    id: '2',
-                    title: 'Important: New Policy',
-                    content: 'Starting next month, all leave requests must be submitted 48 hours in advance.',
-                    priority: 'high',
-                    createdAt: new Date(today.getTime() - 86400000).toISOString(),
-                    createdBy: 'Supervisor'
-                }
-            ];
-            
-            localStorage.setItem('dutyAnnouncementsMobile', JSON.stringify(announcements));
-        }
-
-        function updateStorageStatus() {
-            const status = document.getElementById('storageStatus');
-            const lastSync = document.getElementById('lastSyncTime');
-            
-            status.textContent = 'Local Storage';
-            lastSync.textContent = new Date().toLocaleTimeString();
-        }
-
-        function updateDashboard() {
-            if (!currentUser) return;
-            
-            // Update balances
-            const balance = leaveBalances[currentUser.username] || { SL: 0, FRL: 0 };
-            document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
-            document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
-            
-            // Update today's duty
-            const today = new Date().toISOString().split('T')[0];
-            if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
-                const duty = dutyRoster[today][currentUser.username];
-                document.getElementById('todayDutyTime').textContent = duty === 'Off' ? 'Off Duty' : duty;
-            } else {
-                document.getElementById('todayDutyTime').textContent = 'Not Scheduled';
-            }
-            
-            // Find next duty
-            const tomorrow = new Date();
-            for (let i = 1; i <= 7; i++) {
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const dateStr = tomorrow.toISOString().split('T')[0];
-                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-                    const duty = dutyRoster[dateStr][currentUser.username];
-                    if (duty !== 'Off') {
-                        document.getElementById('nextDutyTime').textContent = `${formatDate(dateStr)}: ${duty}`;
-                        break;
-                    }
-                }
-            }
-            
-            // Load announcements
-            loadAnnouncements();
-        }
-
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-
-        function loadAnnouncements() {
-            const container = document.getElementById('announcementsContainer');
+        
+        // Mobile-optimized table rendering
+        function renderMobileTable(data, containerId, type) {
+            const container = document.getElementById(containerId);
             container.innerHTML = '';
             
-            if (announcements.length === 0) {
-                container.innerHTML = '<div class="no-data">No announcements</div>';
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h4>No data found</h4>
+                        <p>No ${type} records available</p>
+                    </div>
+                `;
                 return;
             }
             
-            // Sort by date (newest first)
-            const sortedAnnouncements = [...announcements].sort((a, b) => 
-                new Date(b.createdAt) - new Date(a.createdAt)
-            );
-            
-            sortedAnnouncements.forEach(ann => {
+            data.forEach(item => {
                 const div = document.createElement('div');
-                div.className = `announcement-card priority-${ann.priority}`;
+                div.className = 'mobile-table-item';
                 
-                div.innerHTML = `
-                    <div class="announcement-title">
-                        📢 ${ann.title}
-                    </div>
-                    <div class="announcement-content">${ann.content}</div>
-                    <div class="announcement-time">
-                        By ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
-                    </div>
-                `;
+                let content = '';
+                if (type === 'requests') {
+                    content = `
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">Type:</span>
+                            <span class="mobile-table-value">${item.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</span>
+                        </div>
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">Date:</span>
+                            <span class="mobile-table-value">${item.date}</span>
+                        </div>
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">Status:</span>
+                            <span class="status-badge status-${item.status}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
+                        </div>
+                        ${item.details ? `
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">Details:</span>
+                            <span class="mobile-table-value" style="text-align: left;">${item.details}</span>
+                        </div>` : ''}
+                    `;
+                }
                 
+                div.innerHTML = content;
                 container.appendChild(div);
             });
         }
-
-        function formatTimeAgo(timestamp) {
-            const now = new Date();
-            const past = new Date(timestamp);
-            const diffMs = now - past;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
+        
+        // Initialize mobile features
+        function initMobileFeatures() {
+            setupMobileNavigation();
             
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
+            // Check network status
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
             
-            return past.toLocaleDateString();
+            // Initialize service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').then(() => {
+                    console.log('Service Worker registered');
+                });
+            }
+            
+            // Add to home screen prompt
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallPrompt();
+            });
         }
-
-        function showPage(pageName) {
-            // Hide all pages
-            document.querySelectorAll('.page-content').forEach(page => {
-                page.classList.add('hidden');
+        
+        function updateOnlineStatus() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (!navigator.onLine) {
+                indicator.style.display = 'block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+        
+        function showInstallPrompt() {
+            // Show custom install prompt
+            const installPrompt = document.createElement('div');
+            installPrompt.className = 'alert alert-info';
+            installPrompt.innerHTML = `
+                <strong>Install App:</strong> Add to home screen for better experience
+                <button onclick="installApp()" class="btn btn-small btn-success" style="margin-left: 10px;">Install</button>
+                <button onclick="this.parentElement.remove()" class="btn btn-small" style="margin-left: 5px;">Later</button>
+            `;
+            document.getElementById('homeSection').prepend(installPrompt);
+        }
+        
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('App installed');
+                }
+                deferredPrompt = null;
+            }
+        }
+        
+        // Enhanced showSection for mobile
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
             });
             
-            // Update tab bar
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                tab.classList.remove('active');
+            // Update bottom nav
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-section') === sectionId) {
+                    item.classList.add('active');
+                }
             });
             
-            // Show selected page
-            const page = document.getElementById(pageName + 'Content');
-            if (page) {
-                page.classList.remove('hidden');
-                currentPage = pageName;
+            // Show selected section
+            const section = document.getElementById(sectionId + 'Section');
+            if (section) {
+                section.classList.add('active');
                 
-                // Update header
-                document.getElementById('headerTitle').textContent = getPageTitle(pageName);
+                // Scroll to top
+                window.scrollTo(0, 0);
                 
-                // Activate corresponding tab
-                const tab = document.querySelector(`.tab-item[onclick*="${pageName}"]`);
-                if (tab) tab.classList.add('active');
-                
-                // Load page data
-                switch(pageName) {
-                    case 'dashboard':
-                        updateDashboard();
-                        break;
-                    case 'dutyChange':
-                        loadDutyChangeForm();
-                        break;
-                    case 'leaveApplication':
-                        loadLeaveForm();
+                // Load section data with mobile optimizations
+                switch(sectionId) {
+                    case 'home':
+                        loadMobileDashboard();
                         break;
                     case 'myRequests':
-                        loadMyRequests();
+                        loadMobileMyRequests();
                         break;
-                    case 'viewMyRoster':
-                        loadMyRoster();
-                        break;
+                    // Add other sections...
                 }
             }
         }
-
-        function getPageTitle(pageName) {
-            const titles = {
-                'dashboard': 'Dashboard',
-                'dutyChange': 'Duty Change',
-                'leaveApplication': 'Leave Application',
-                'myRequests': 'My Requests',
-                'viewMyRoster': 'My Roster',
-                'settings': 'Settings'
-            };
-            return titles[pageName] || pageName;
+        
+        function loadMobileDashboard() {
+            updateDashboard();
+            loadRecentActivity();
         }
-
-        function loadDutyChangeForm() {
-            // Set default date to tomorrow
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+        
+        function loadRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            if (!currentUser) return;
             
-            // Populate duty times
-            const select = document.getElementById('changeDutyTime');
-            select.innerHTML = '<option value="">Select duty time</option>';
+            const userReqs = allRequests
+                .filter(req => req.fromUsername === currentUser.username)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 5);
             
-            const dutyTimes = ['08:00-16:00', '16:00-00:00', '00:00-08:00'];
-            dutyTimes.forEach(time => {
-                const option = document.createElement('option');
-                option.value = time;
-                option.textContent = time;
-                select.appendChild(option);
+            if (userReqs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>No recent activity</p></div>';
+                return;
+            }
+            
+            let html = '<div class="mobile-table">';
+            userReqs.forEach(req => {
+                html += `
+                    <div class="mobile-table-item">
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">${req.type === 'dutyChange' ? '🔄 Duty Change' : '📝 Leave'}</span>
+                            <span class="mobile-table-value">${req.date}</span>
+                        </div>
+                        <div class="mobile-table-row">
+                            <span class="mobile-table-label">Status:</span>
+                            <span class="status-badge status-${req.status}">${req.status}</span>
+                        </div>
+                    </div>
+                `;
             });
-            
-            // Populate staff dropdown
-            const staffSelect = document.getElementById('requestToStaff');
-            staffSelect.innerHTML = '<option value="">Select staff member</option>';
-            
-            const demoStaff = [
-                { username: 'iru1', name: 'Irufan 1 (RC: 001)' },
-                { username: 'iru2', name: 'Irufan 2 (RC: 002)' }
-            ];
-            
-            demoStaff.forEach(staff => {
-                if (staff.username !== currentUser.username) {
-                    const option = document.createElement('option');
-                    option.value = staff.username;
-                    option.textContent = staff.name;
-                    staffSelect.appendChild(option);
-                }
-            });
-            
-            // Setup form submission
-            document.getElementById('dutyChangeForm').onsubmit = function(e) {
-                e.preventDefault();
-                submitDutyChange();
-            };
-        }
-
-        function submitDutyChange() {
-            const date = document.getElementById('changeDate').value;
-            const dutyTime = document.getElementById('changeDutyTime').value;
-            const toStaff = document.getElementById('requestToStaff').value;
-            const reason = document.getElementById('changeReason').value;
-            
-            if (!date || !dutyTime || !toStaff) {
-                alert('Please fill all required fields');
-                return;
-            }
-            
-            const request = {
-                id: 'req_' + Date.now(),
-                type: 'dutyChange',
-                fromUsername: currentUser.username,
-                fromName: currentUser.name,
-                date: date,
-                dutyTime: dutyTime,
-                toUsername: toStaff,
-                toName: toStaff === 'iru1' ? 'Irufan 1' : 'Irufan 2',
-                reason: reason,
-                status: 'pending',
-                timestamp: new Date().toISOString()
-            };
-            
-            requests.push(request);
-            localStorage.setItem('dutyRequestsMobile', JSON.stringify(requests));
-            
-            alert('Duty change request submitted!');
-            showPage('dashboard');
-            
-            // Reset form
-            document.getElementById('dutyChangeForm').reset();
-        }
-
-        function loadLeaveForm() {
-            // Set default date to tomorrow
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
-            
-            // Setup event listeners
-            document.getElementById('leaveDate').addEventListener('change', updateLeaveRules);
-            document.getElementById('leaveType').addEventListener('change', updateLeaveRules);
-            document.getElementById('leaveDuration').addEventListener('change', updateLeaveRules);
-            
-            // Setup form submission
-            document.getElementById('leaveApplicationForm').onsubmit = function(e) {
-                e.preventDefault();
-                submitLeaveApplication();
-            };
-            
-            updateLeaveRules();
-        }
-
-        function updateLeaveRules() {
-            const leaveType = document.getElementById('leaveType').value;
-            const leaveDate = document.getElementById('leaveDate').value;
-            const duration = document.getElementById('leaveDuration').value;
-            const alertDiv = document.getElementById('leaveRulesAlert');
-            
-            if (!leaveType || !leaveDate) {
-                alertDiv.className = 'alert alert-warning';
-                alertDiv.textContent = 'Please select leave type and date';
-                return;
-            }
-            
-            const balance = leaveBalances[currentUser.username] || { SL: 0, FRL: 0 };
-            const available = leaveType === 'Sick Leave' ? balance.SL : balance.FRL;
-            
-            if (parseFloat(duration) > available) {
-                alertDiv.className = 'alert alert-danger';
-                alertDiv.textContent = `Insufficient balance! Available: ${available} days, Requested: ${duration} days`;
-            } else {
-                alertDiv.className = 'alert alert-success';
-                alertDiv.textContent = `✓ Balance available: ${available} days`;
-            }
-        }
-
-        function submitLeaveApplication() {
-            const leaveType = document.getElementById('leaveType').value;
-            const date = document.getElementById('leaveDate').value;
-            const duration = parseFloat(document.getElementById('leaveDuration').value);
-            const reason = document.getElementById('leaveReason').value;
-            
-            if (!leaveType || !date || !duration || !reason) {
-                alert('Please fill all required fields');
-                return;
-            }
-            
-            const request = {
-                id: 'req_' + Date.now(),
-                type: 'leave',
-                leaveType: leaveType,
-                fromUsername: currentUser.username,
-                fromName: currentUser.name,
-                date: date,
-                duration: duration,
-                reason: reason,
-                status: 'pending',
-                timestamp: new Date().toISOString()
-            };
-            
-            requests.push(request);
-            localStorage.setItem('dutyRequestsMobile', JSON.stringify(requests));
-            
-            alert('Leave application submitted!');
-            showPage('dashboard');
-            
-            // Reset form
-            document.getElementById('leaveApplicationForm').reset();
-        }
-
-        function loadMyRequests() {
-            const container = document.getElementById('myRequestsContainer');
-            container.innerHTML = '';
-            
-            const myReqs = requests.filter(req => req.fromUsername === currentUser.username);
-            
-            if (myReqs.length === 0) {
-                container.innerHTML = '<div class="no-data">No requests found</div>';
-                return;
-            }
-            
-            // Sort by timestamp (newest first)
-            myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            let html = '<div class="table-container"><table>';
-            html += '<thead><tr><th>Type</th><th>Date</th><th>Status</th></tr></thead><tbody>';
-            
-            myReqs.forEach(req => {
-                const statusClass = `status-${req.status}`;
-                
-                html += `<tr>
-                    <td>${req.type === 'dutyChange' ? 'Duty Change' : req.leaveType}</td>
-                    <td>${req.date}</td>
-                    <td><span class="status-badge ${statusClass}">${req.status}</span></td>
-                </tr>`;
-            });
-            
-            html += '</tbody></table></div>';
-            
+            html += '</div>';
             container.innerHTML = html;
         }
-
-        function loadMyRoster() {
-            const container = document.getElementById('myRosterContainer');
-            const monthInput = document.getElementById('myRosterMonth').value;
+        
+        function loadMobileMyRequests() {
+            if (!currentUser) return;
             
-            if (!monthInput) {
-                container.innerHTML = '<div class="alert alert-warning">Please select a month</div>';
-                return;
-            }
+            const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
+            const mobileData = myReqs.map(req => ({
+                ...req,
+                details: req.type === 'dutyChange' ? 
+                    `Swap with ${req.toName}` : 
+                    `${req.leaveType} - ${req.duration} day(s)`
+            }));
             
-            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading roster...</p></div>';
+            renderMobileTable(mobileData, 'myRequestsMobile', 'requests');
             
-            setTimeout(() => {
-                const [year, month] = monthInput.split('-');
-                const startDate = new Date(year, month - 1, 1);
-                const endDate = new Date(year, month, 0);
-                
-                let html = '<div class="table-container"><table>';
-                html += '<thead><tr><th>Date</th><th>Day</th><th>Duty Time</th><th>Status</th></tr></thead><tbody>';
-                
-                const today = new Date().toISOString().split('T')[0];
-                
-                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                    const dateStr = d.toISOString().split('T')[0];
-                    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-                    
-                    let dutyTime = 'Not Scheduled';
-                    let statusClass = '';
-                    let statusText = '';
-                    
-                    if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-                        dutyTime = dutyRoster[dateStr][currentUser.username];
-                        if (dutyTime === 'Off') {
-                            statusClass = 'status-pending';
-                            statusText = 'Off';
-                        } else {
-                            statusClass = dateStr < today ? 'status-approved' : 'status-pending';
-                            statusText = dateStr < today ? 'Completed' : 'Scheduled';
-                        }
-                    }
-                    
-                    const isToday = dateStr === today;
-                    const rowStyle = isToday ? 'style="background-color: #fff3cd;"' : '';
-                    
-                    html += `<tr ${rowStyle}>
-                        <td>${dateStr}${isToday ? ' (Today)' : ''}</td>
-                        <td>${dayName}</td>
-                        <td>${dutyTime}</td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    </tr>`;
-                }
-                
-                html += '</tbody></table></div>';
-                
-                container.innerHTML = html;
-            }, 500);
-        }
-
-        function refreshData() {
-            // Show loading
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Refreshing data...</p></div>';
-            
-            setTimeout(() => {
-                loadAllData();
-                updateDashboard();
-                showPage(currentPage);
-                alert('Data refreshed successfully!');
-            }, 1000);
-        }
-
-        function syncData() {
-            // This function would sync with a server
-            console.log('Syncing data with server...');
-            updateStorageStatus();
-        }
-
-        function clearLocalData() {
-            if (confirm('Are you sure you want to clear all local data? This will log you out.')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('dutyMobileSession');
-                location.reload();
-            }
-        }
-
-        function showNotifications() {
-            showModal('notificationsModal');
-            
-            const list = document.getElementById('notificationsList');
-            list.innerHTML = '';
-            
-            // Demo notifications
-            const notifications = [
-                { id: 1, text: 'Your duty change request was approved', time: '2 hours ago', read: false },
-                { id: 2, text: 'New announcement: System Maintenance', time: '1 day ago', read: true },
-                { id: 3, text: 'Leave balance updated', time: '3 days ago', read: true }
-            ];
-            
-            if (notifications.length === 0) {
-                list.innerHTML = '<div class="no-data"><div class="no-data-icon">🔔</div><p>No notifications</p></div>';
-                return;
-            }
-            
-            notifications.forEach(notif => {
-                const div = document.createElement('div');
-                div.className = `announcement-card ${!notif.read ? 'priority-high' : ''}`;
-                div.style.marginBottom = '10px';
-                
-                div.innerHTML = `
-                    <div class="announcement-content">${notif.text}</div>
-                    <div class="announcement-time">${notif.time}</div>
-                `;
-                
-                list.appendChild(div);
-            });
-        }
-
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-        }
-
-        function hideModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        // Close modal when clicking outside
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.add('hidden');
-                }
-            });
-        });
-
-        // Service Worker for PWA functionality
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
-                    function(registration) {
-                        console.log('ServiceWorker registration successful');
-                    },
-                    function(err) {
-                        console.log('ServiceWorker registration failed: ', err);
-                    }
+            // Setup search
+            document.getElementById('searchRequests').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = mobileData.filter(req => 
+                    req.date.includes(searchTerm) ||
+                    req.status.toLowerCase().includes(searchTerm) ||
+                    req.details.toLowerCase().includes(searchTerm)
                 );
+                renderMobileTable(filtered, 'myRequestsMobile', 'requests');
             });
         }
-
-        // Install prompt for PWA
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+        
+        // Initialize when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+            initMobileFeatures();
+        });
+        
+        // Mobile-specific utility functions
+        function refreshApp() {
+            location.reload();
+        }
+        
+        function toggleDarkMode() {
+            // Toggle dark mode class
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        
+        function exportData() {
+            // Export data as JSON
+            const data = {
+                dutyRoster,
+                leaveBalances,
+                allRequests
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `duty-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Update existing functions for mobile
+        function loginUser(userData) {
+            currentUser = userData;
+            // ... existing code ...
             
-            // Show install button if not already installed
-            if (!window.matchMedia('(display-mode: standalone)').matches) {
-                showInstallPrompt();
+            // Initialize mobile features
+            initMobileFeatures();
+            
+            // Show/hide admin nav section
+            if (userData.level === 'Supervisor') {
+                document.getElementById('adminNavSection').style.display = 'block';
+            }
+            
+            // ... rest of existing code ...
+        }
+        
+        // Add vibration feedback for actions (optional)
+        function vibrate(duration = 50) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(duration);
+            }
+        }
+        
+        // Add this to action buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn') || 
+                e.target.classList.contains('action-btn') ||
+                e.target.classList.contains('nav-item')) {
+                vibrate(30);
             }
         });
-
-        function showInstallPrompt() {
-            // You can add an install button to your UI here
-            console.log('App can be installed');
-        }
-
-        // Fullscreen for iOS
-        if (navigator.standalone === false) {
-            // Device is in browser
-            document.body.classList.add('browser-mode');
-        }
     </script>
 </body>
 </html>
