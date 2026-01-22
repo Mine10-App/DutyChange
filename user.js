@@ -28,6 +28,6 @@ const users = [
   { username: "Shiara", name: "Shiara Saudulla", passwordHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",  Level: "User", RCNo: "A-7503" },
   { username: "Master", name: "Master", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d",  Level: "User", RCNo: "978"},
   
-  { username: "Irufan1", name: "Abdulla Irufan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "User", RCNo: "978" },
-  { username: "Irufan2", name: "Abdulla Irufan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "User", RCNo: "977" },
+  { username: "Irufan1", name: "Abdulla Irufaan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "User", RCNo: "978" },
+  { username: "Irufan2", name: "Abdulla Irfan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "User", RCNo: "977" },
 ];
