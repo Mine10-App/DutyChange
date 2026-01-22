@@ -879,6 +879,7 @@
                     </div>
                     
                     <div class="form-row">
+                        <button class="btn btn-primary" onclick="updateDashboard()">Refresh Dashboard</button>
                         <button class="btn btn-warning" onclick="showSection('dutyChange')">Request Duty Change</button>
                         <button class="btn btn-success" onclick="showSection('leaveApplication')">Apply Leave</button>
                         <button class="btn btn-primary" onclick="showSection('myRequests')">My Requests</button>
@@ -1711,8 +1712,8 @@ Date	Irufan	Hussain	Mohamed
             if (!currentUser) return;
             
             const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-            document.getElementById('slBalance').textContent = balance.SL;
-            document.getElementById('frlBalance').textContent = balance.FRL;
+            document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
+            document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
         }
 
         function setupNavigation() {
@@ -2027,13 +2028,14 @@ Date	Irufan	Hussain	Mohamed
                 return;
             }
             
+            // Validate sufficient balance
             if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
-                alert(`Insufficient Sick Leave balance. Available: ${userBalance.SL} days, Requested: ${duration} days`);
+                alert(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${duration} days`);
                 return;
             }
             
             if (leaveType === 'FRL' && userBalance.FRL < duration) {
-                alert(`Insufficient FRL balance. Available: ${userBalance.FRL} days, Requested: ${duration} days`);
+                alert(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${duration} days`);
                 return;
             }
             
@@ -2061,9 +2063,13 @@ Date	Irufan	Hussain	Mohamed
             saveAllRequests();
             updateRequestCounts();
             
-            alert('Leave application submitted!');
+            alert('Leave application submitted! It will be processed after supervisor approval.');
             showSection('home');
             document.getElementById('leaveApplicationForm').reset();
+            
+            // Force dashboard update
+            updateDashboard();
+            updateUserBalance();
         }
 
         function updateRequestCounts() {
@@ -2931,6 +2937,7 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             saveLeaveBalances();
             alert('All balances saved successfully!');
             loadBulkBalanceTable();
+            updateUserBalance();
         }
 
         function resetAllBalances() {
@@ -3192,13 +3199,19 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     return;
                 }
                 
+                // Check if leave was already approved (prevent double deduction)
+                if (request.status === 'approved') {
+                    alert('This leave request is already approved!');
+                    return;
+                }
+                
                 if (request.leaveType === 'Sick Leave' && userBalance.SL < request.duration) {
-                    alert(`Cannot approve: Insufficient Sick Leave balance. Available: ${userBalance.SL} days, Requested: ${request.duration} days`);
+                    alert(`Cannot approve: Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${request.duration} days`);
                     return;
                 }
                 
                 if (request.leaveType === 'FRL' && userBalance.FRL < request.duration) {
-                    alert(`Cannot approve: Insufficient FRL balance. Available: ${userBalance.FRL} days, Requested: ${request.duration} days`);
+                    alert(`Cannot approve: Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${request.duration} days`);
                     return;
                 }
                 
@@ -3211,6 +3224,9 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     userBalance.FRL = Math.max(0, userBalance.FRL);
                 }
                 saveLeaveBalances();
+                
+                // Show updated balance
+                alert(`Request approved! Leave balance deducted. Remaining balance: ${request.leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`);
             }
             
             request.status = 'approved';
@@ -3223,11 +3239,11 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             });
             saveAllRequests();
             
-            alert('Request approved! Leave balance deducted if applicable.');
+            // Refresh the approvals view
             showApprovalsTab('approved');
             updateRequestCounts();
             
-            // Update user's balance display if it's their request
+            // Update dashboard balance display if it's the current user's request
             if (request.fromUsername === currentUser.username) {
                 updateUserBalance();
             }
@@ -3277,7 +3293,12 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                         timestamp: new Date().toISOString()
                     });
                     saveAllRequests();
+                    
+                    alert('Request rejected!');
                     showApprovalsTab('rejected');
+                    
+                    // Update counts
+                    updateRequestCounts();
                 }
             }
         }
@@ -3757,11 +3778,13 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                     const duty = dutyRoster[dateStr][currentUser.username];
                     if (duty !== 'Off') {
                         document.getElementById('nextDutyTime').textContent = `${dateStr}: ${duty}`;
-                        return;
+                        break;
                     }
                 }
             }
-            document.getElementById('nextDutyTime').textContent = 'No upcoming duty';
+            
+            // Update balance display
+            updateUserBalance();
             
             // Check for recent updates to user's requests
             checkForUserUpdates();
