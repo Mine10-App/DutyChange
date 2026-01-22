@@ -681,6 +681,101 @@
             font-size: 11px;
             color: #888;
         }
+        
+        /* View All Roster Styles */
+        .roster-all-view {
+            overflow-x: auto;
+        }
+        
+        .roster-all-view table {
+            min-width: 800px;
+        }
+        
+        .staff-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .leave-indicator {
+            background-color: #ffeaa7;
+            border: 1px solid #fdcb6e;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-size: 10px;
+            margin-left: 5px;
+            color: #e17055;
+            font-weight: bold;
+        }
+        
+        .off-day-cell {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: 500;
+        }
+        
+        .duty-day-cell {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .today-cell {
+            border: 2px solid #3498db !important;
+            background-color: #e8f4fc !important;
+        }
+        
+        /* Date Navigation */
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .date-nav-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .date-nav-btn:hover {
+            background: #2980b9;
+        }
+        
+        .current-date-display {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e0e6ed;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -748,6 +843,10 @@
             </button>
             <button class="nav-btn" data-section="adminRequestHistory" id="adminRequestHistoryBtn" style="display:none;">
                 Request History <span id="historyNotification" class="notification-dot" style="display:none;"></span>
+            </button>
+            <!-- View All Roster (Admin Only) -->
+            <button class="nav-btn" data-section="viewAllRoster" id="viewAllRosterBtn" style="display:none;">
+                View All Roster
             </button>
         </div>
         
@@ -1318,6 +1417,45 @@ Date	Irufan	Hussain	Mohamed
                     </div>
                 </div>
             </div>
+            
+            <!-- View All Roster -->
+            <div class="section" id="viewAllRosterSection">
+                <div class="card">
+                    <h3>Complete Duty Roster - All Staff</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="allRosterStartDate">From Date</label>
+                            <input type="date" id="allRosterStartDate" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterEndDate">To Date</label>
+                            <input type="date" id="allRosterEndDate" class="form-control" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterViewType">View Type</label>
+                            <select id="allRosterViewType" class="form-control">
+                                <option value="table">Daily Table</option>
+                                <option value="staff">Staff View</option>
+                                <option value="calendar">Calendar View</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="loadAllRoster()" style="margin-top: 25px;">Load Roster</button>
+                        <button class="btn btn-secondary" onclick="printAllRoster()" style="margin-top: 25px;">Print</button>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        This shows the complete duty roster for all staff members. Approved leaves are shown as "Leave".
+                    </div>
+                    
+                    <div id="allRosterContainer" style="margin-top: 20px;">
+                        <!-- Complete roster will be displayed here -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1349,9 +1487,17 @@ Date	Irufan	Hussain	Mohamed
             document.getElementById('rosterDate').value = today;
             document.getElementById('viewRosterDate').value = today;
             document.getElementById('myRosterMonth').value = today.substring(0, 7);
+            document.getElementById('allRosterStartDate').value = today;
+            document.getElementById('allRosterEndDate').value = getDateAfterDays(today, 7);
             
             // Check session
             checkSession();
+        }
+
+        function getDateAfterDays(startDate, days) {
+            const date = new Date(startDate);
+            date.setDate(date.getDate() + days);
+            return date.toISOString().split('T')[0];
         }
 
         function checkSession() {
@@ -1439,6 +1585,7 @@ Date	Irufan	Hussain	Mohamed
                 document.getElementById('adminLeaveBalanceBtn').style.display = 'inline-block';
                 document.getElementById('adminApprovalsBtn').style.display = 'inline-block';
                 document.getElementById('adminRequestHistoryBtn').style.display = 'inline-block';
+                document.getElementById('viewAllRosterBtn').style.display = 'inline-block';
             }
             
             // Initialize data and UI
@@ -1629,6 +1776,9 @@ Date	Irufan	Hussain	Mohamed
                         break;
                     case 'adminRequestHistory':
                         loadAdminRequestHistory();
+                        break;
+                    case 'viewAllRoster':
+                        loadAllRoster();
                         break;
                 }
             }
@@ -2021,67 +2171,172 @@ Date	Irufan	Hussain	Mohamed
             const endDate = new Date(year, month, 0);
             
             if (viewType === 'calendar') {
-                displayCalendarView(container, startDate, endDate, year, month);
+                displayCalendarView(container, startDate, endDate, year, month, true);
             } else {
-                displayTableView(container, startDate, endDate, year, month);
+                displayTableView(container, startDate, endDate, year, month, true);
             }
         }
 
-        function displayTableView(container, startDate, endDate, year, month) {
-            let html = `<h4>Your Roster for ${month}/${year}</h4>`;
-            html += '<div class="table-container"><table><thead><tr><th>Date</th><th>Day</th><th>Duty Time</th><th>Status</th></tr></thead><tbody>';
+        function displayTableView(container, startDate, endDate, year, month, isMyRoster = false) {
+            let html = `<h4>${isMyRoster ? 'Your Roster' : 'Staff Roster'} for ${month}/${year}</h4>`;
             
-            const today = new Date().toISOString().split('T')[0];
-            let dutyCount = 0;
-            let offCount = 0;
-            
-            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                const dateStr = d.toISOString().split('T')[0];
-                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            if (isMyRoster) {
+                html += '<div class="table-container"><table><thead><tr><th>Date</th><th>Day</th><th>Duty Time</th><th>Status</th></tr></thead><tbody>';
                 
-                let dutyTime = 'Not Scheduled';
-                let statusClass = '';
-                let statusText = '';
+                const today = new Date().toISOString().split('T')[0];
+                let dutyCount = 0;
+                let offCount = 0;
                 
-                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-                    dutyTime = dutyRoster[dateStr][currentUser.username];
-                    if (dutyTime === 'Off') {
-                        statusClass = 'status-off';
-                        statusText = 'Off Duty';
-                        offCount++;
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const dateStr = d.toISOString().split('T')[0];
+                    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                    
+                    let dutyTime = 'Not Scheduled';
+                    let statusClass = '';
+                    let statusText = '';
+                    
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === currentUser.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === dateStr
+                    );
+                    
+                    if (approvedLeave) {
+                        dutyTime = `${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)`;
+                        statusClass = 'status-approved';
+                        statusText = 'On Leave';
+                    } else if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                        dutyTime = dutyRoster[dateStr][currentUser.username];
+                        if (dutyTime === 'Off') {
+                            statusClass = 'status-off';
+                            statusText = 'Off Duty';
+                            offCount++;
+                        } else {
+                            statusClass = dateStr < today ? 'status-completed' : 'status-pending';
+                            statusText = dateStr < today ? 'Completed' : 'Scheduled';
+                            dutyCount++;
+                        }
                     } else {
-                        statusClass = dateStr < today ? 'status-completed' : 'status-pending';
-                        statusText = dateStr < today ? 'Completed' : 'Scheduled';
-                        dutyCount++;
+                        statusClass = 'status-pending';
+                        statusText = 'Not Scheduled';
                     }
-                } else {
-                    statusClass = 'status-pending';
-                    statusText = 'Not Scheduled';
+                    
+                    const isToday = dateStr === today;
+                    const rowClass = isToday ? 'style="background-color: #fff3cd;"' : '';
+                    
+                    html += `<tr ${rowClass}>
+                        <td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>
+                        <td>${dayName}</td>
+                        <td>${dutyTime}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    </tr>`;
                 }
                 
-                const isToday = dateStr === today;
-                const rowClass = isToday ? 'style="background-color: #fff3cd;"' : '';
+                html += '</tbody></table></div>';
                 
-                html += `<tr ${rowClass}>
-                    <td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>
-                    <td>${dayName}</td>
-                    <td>${dutyTime}</td>
-                    <td class="${statusClass}">${statusText}</td>
-                </tr>`;
+                // Add summary
+                html += `<div class="alert alert-info" style="margin-top: 15px;">
+                    <strong>Summary:</strong> ${dutyCount} duty days, ${offCount} off days
+                </div>`;
+            } else {
+                // Display all staff roster
+                html += displayAllRosterTable(startDate, endDate, year, month);
             }
-            
-            html += '</tbody></table></div>';
-            
-            // Add summary
-            html += `<div class="alert alert-info" style="margin-top: 15px;">
-                <strong>Summary:</strong> ${dutyCount} duty days, ${offCount} off days
-            </div>`;
             
             container.innerHTML = html;
         }
 
-        function displayCalendarView(container, startDate, endDate, year, month) {
-            let html = `<h4>Your Roster for ${month}/${year} - Calendar View</h4>`;
+        function displayAllRosterTable(startDate, endDate, year, month) {
+            const today = new Date().toISOString().split('T')[0];
+            let html = `<div class="roster-all-view"><table><thead><tr><th>Date</th><th>Day</th>`;
+            
+            // Add staff headers
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    html += `<th class="staff-name">${user.name}<br><small>${user.RCNo}</small></th>`;
+                }
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            // Add rows for each date
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                const isToday = dateStr === today;
+                
+                html += `<tr ${isToday ? 'style="background-color: #fff3cd;"' : ''}>`;
+                html += `<td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>`;
+                html += `<td>${dayName}</td>`;
+                
+                // Add duty times for each staff
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        let dutyTime = 'Not Scheduled';
+                        let cellClass = '';
+                        let leaveIndicator = '';
+                        
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            dutyTime = 'Leave';
+                            cellClass = 'off-day-cell';
+                            leaveIndicator = `<span class="leave-indicator" title="${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            dutyTime = dutyRoster[dateStr][user.username];
+                            if (dutyTime === 'Off') {
+                                cellClass = 'off-day-cell';
+                            } else {
+                                cellClass = 'duty-day-cell';
+                            }
+                        }
+                        
+                        if (isToday) {
+                            cellClass += ' today-cell';
+                        }
+                        
+                        html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table></div>';
+            
+            // Add legend
+            html += `<div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #d4edda;"></div>
+                    <span>Duty Day</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f8d7da;"></div>
+                    <span>Off Day</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #fff3cd;"></div>
+                    <span>Today</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ffeaa7;"></div>
+                    <span>Leave (SL/FRL)</span>
+                </div>
+            </div>`;
+            
+            return html;
+        }
+
+        function displayCalendarView(container, startDate, endDate, year, month, isMyRoster = false) {
+            let html = `<h4>${isMyRoster ? 'Your Roster' : 'Staff Roster'} for ${month}/${year} - Calendar View</h4>`;
             html += '<div class="calendar-grid">';
             
             // Add day headers
@@ -2106,21 +2361,34 @@ Date	Irufan	Hussain	Mohamed
                 const dayNum = d.getDate();
                 const isToday = dateStr === today;
                 
-                let dutyTime = 'Not Scheduled';
                 let dayClass = 'calendar-day';
                 let timeClass = '';
                 let timeText = '';
                 
-                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-                    dutyTime = dutyRoster[dateStr][currentUser.username];
-                    if (dutyTime === 'Off') {
+                if (isMyRoster) {
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === currentUser.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === dateStr
+                    );
+                    
+                    if (approvedLeave) {
                         dayClass += ' off-day';
                         timeClass = 'off-time';
-                        timeText = 'Off';
-                    } else {
-                        dayClass += ' duty-day';
-                        timeClass = 'duty-time';
-                        timeText = dutyTime;
+                        timeText = `${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}`;
+                    } else if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                        const dutyTime = dutyRoster[dateStr][currentUser.username];
+                        if (dutyTime === 'Off') {
+                            dayClass += ' off-day';
+                            timeClass = 'off-time';
+                            timeText = 'Off';
+                        } else {
+                            dayClass += ' duty-day';
+                            timeClass = 'duty-time';
+                            timeText = dutyTime;
+                        }
                     }
                 }
                 
@@ -2150,6 +2418,12 @@ Date	Irufan	Hussain	Mohamed
                     <div style="width: 15px; height: 15px; background-color: #e8f4fc; border: 2px solid #3498db;"></div>
                     <span style="font-size: 12px;">Today</span>
                 </div>
+                ${isMyRoster ? '' : `
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; background-color: #ffeaa7; border: 1px solid #fdcb6e;"></div>
+                    <span style="font-size: 12px;">Leave</span>
+                </div>
+                `}
             </div>`;
             
             container.innerHTML = html;
@@ -2931,8 +3205,10 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
                 // Deduct from balance
                 if (request.leaveType === 'Sick Leave') {
                     userBalance.SL -= request.duration;
+                    userBalance.SL = Math.max(0, userBalance.SL);
                 } else if (request.leaveType === 'FRL') {
                     userBalance.FRL -= request.duration;
+                    userBalance.FRL = Math.max(0, userBalance.FRL);
                 }
                 saveLeaveBalances();
             }
@@ -2947,7 +3223,7 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             });
             saveAllRequests();
             
-            alert('Request approved!');
+            alert('Request approved! Leave balance deducted if applicable.');
             showApprovalsTab('approved');
             updateRequestCounts();
             
@@ -3123,6 +3399,343 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             document.getElementById('historyStartDate').value = '';
             document.getElementById('historyEndDate').value = '';
             loadRequestHistory();
+        }
+
+        // View All Roster Functions
+        function loadAllRoster() {
+            const container = document.getElementById('allRosterContainer');
+            const startDate = document.getElementById('allRosterStartDate').value;
+            const endDate = document.getElementById('allRosterEndDate').value;
+            const viewType = document.getElementById('allRosterViewType').value;
+            
+            if (!startDate || !endDate) {
+                container.innerHTML = '<div class="alert alert-warning">Please select start and end dates</div>';
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (start > end) {
+                container.innerHTML = '<div class="alert alert-warning">Start date must be before end date</div>';
+                return;
+            }
+            
+            if (viewType === 'calendar') {
+                displayAllRosterCalendar(container, start, end);
+            } else if (viewType === 'staff') {
+                displayAllRosterByStaff(container, start, end);
+            } else {
+                displayAllRosterDaily(container, start, end);
+            }
+        }
+
+        function displayAllRosterDaily(container, startDate, endDate) {
+            let html = `<h4>Complete Duty Roster (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
+            
+            // Create date navigation
+            const prevStart = new Date(startDate);
+            prevStart.setDate(prevStart.getDate() - 7);
+            const prevEnd = new Date(endDate);
+            prevEnd.setDate(prevEnd.getDate() - 7);
+            const nextStart = new Date(startDate);
+            nextStart.setDate(nextStart.getDate() + 7);
+            const nextEnd = new Date(endDate);
+            nextEnd.setDate(nextEnd.getDate() + 7);
+            
+            html += `<div class="date-navigation">
+                <button class="date-nav-btn" onclick="navigateAllRoster('${prevStart.toISOString().split('T')[0]}', '${prevEnd.toISOString().split('T')[0]}')">← Previous Week</button>
+                <span class="current-date-display">${formatDateRange(startDate, endDate)}</span>
+                <button class="date-nav-btn" onclick="navigateAllRoster('${nextStart.toISOString().split('T')[0]}', '${nextEnd.toISOString().split('T')[0]}')">Next Week →</button>
+            </div>`;
+            
+            // Create table
+            html += '<div class="roster-all-view"><table><thead><tr><th>Date</th><th>Day</th>';
+            
+            // Add staff headers
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    html += `<th class="staff-name">${user.name}<br><small>${user.RCNo}</small></th>`;
+                }
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Add rows for each date
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                const isToday = dateStr === today;
+                
+                html += `<tr ${isToday ? 'style="background-color: #fff3cd;"' : ''}>`;
+                html += `<td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>`;
+                html += `<td>${dayName}</td>`;
+                
+                // Add duty times for each staff
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        let dutyTime = 'Not Scheduled';
+                        let cellClass = '';
+                        let leaveIndicator = '';
+                        
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            dutyTime = 'Leave';
+                            cellClass = 'off-day-cell';
+                            leaveIndicator = `<span class="leave-indicator" title="${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            dutyTime = dutyRoster[dateStr][user.username];
+                            if (dutyTime === 'Off') {
+                                cellClass = 'off-day-cell';
+                            } else {
+                                cellClass = 'duty-day-cell';
+                            }
+                        }
+                        
+                        if (isToday) {
+                            cellClass += ' today-cell';
+                        }
+                        
+                        html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table></div>';
+            
+            // Add summary statistics
+            html += generateRosterSummary(startDate, endDate);
+            
+            container.innerHTML = html;
+        }
+
+        function displayAllRosterByStaff(container, startDate, endDate) {
+            let html = `<h4>Staff Duty Summary (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
+            
+            html += '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC No</th><th>Duty Days</th><th>Off Days</th><th>Leave Days</th><th>Details</th></tr></thead><tbody>';
+            
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    let dutyDays = 0;
+                    let offDays = 0;
+                    let leaveDays = 0;
+                    let details = [];
+                    
+                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const dateStr = d.toISOString().split('T')[0];
+                        
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            leaveDays += approvedLeave.duration;
+                            details.push(`${dateStr}: ${approvedLeave.leaveType} (${approvedLeave.duration} day)`);
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            if (dutyRoster[dateStr][user.username] === 'Off') {
+                                offDays++;
+                            } else {
+                                dutyDays++;
+                                details.push(`${dateStr}: ${dutyRoster[dateStr][user.username]}`);
+                            }
+                        }
+                    }
+                    
+                    html += `<tr>
+                        <td class="staff-name">${user.name}</td>
+                        <td>${user.RCNo}</td>
+                        <td>${dutyDays}</td>
+                        <td>${offDays}</td>
+                        <td>${leaveDays}</td>
+                        <td><small>${details.slice(0, 3).join('<br>')}${details.length > 3 ? '<br>...' : ''}</small></td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</tbody></table></div>';
+            
+            container.innerHTML = html;
+        }
+
+        function displayAllRosterCalendar(container, startDate, endDate) {
+            let html = `<h4>Calendar View (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
+            
+            // Group by week
+            const weeks = [];
+            let currentWeek = [];
+            let currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                currentWeek.push(new Date(currentDate));
+                if (currentWeek.length === 7 || currentDate.getTime() === endDate.getTime()) {
+                    weeks.push([...currentWeek]);
+                    currentWeek = [];
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Display each week
+            weeks.forEach((week, weekIndex) => {
+                html += `<h5>Week ${weekIndex + 1}</h5>`;
+                html += '<div class="calendar-grid">';
+                
+                // Day headers
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                days.forEach(day => {
+                    html += `<div class="calendar-day" style="text-align: center; font-weight: bold; background: #f0f0f0;">${day}</div>`;
+                });
+                
+                // Calendar cells
+                week.forEach(day => {
+                    const dateStr = day.toISOString().split('T')[0];
+                    const dayNum = day.getDate();
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+                    
+                    let dayClass = 'calendar-day';
+                    let dayContent = `<div class="day-header">${dayNum}</div>`;
+                    
+                    // Add staff duties for this day
+                    allUsers.forEach(user => {
+                        if (user.Level === 'User') {
+                            let dutyInfo = '';
+                            
+                            // Check for approved leave
+                            const approvedLeave = allRequests.find(req => 
+                                req.fromUsername === user.username &&
+                                req.type === 'leave' &&
+                                req.status === 'approved' &&
+                                req.date === dateStr
+                            );
+                            
+                            if (approvedLeave) {
+                                dutyInfo = `${user.name.substring(0, 3)}: ${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}<br>`;
+                            } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                                const dutyTime = dutyRoster[dateStr][user.username];
+                                if (dutyTime !== 'Off') {
+                                    dutyInfo = `${user.name.substring(0, 3)}: ${dutyTime.substring(0, 5)}<br>`;
+                                }
+                            }
+                            
+                            dayContent += `<div style="font-size: 10px;">${dutyInfo}</div>`;
+                        }
+                    });
+                    
+                    if (isToday) {
+                        dayClass += ' today';
+                    }
+                    
+                    html += `<div class="${dayClass}" style="min-height: 100px; overflow-y: auto;">${dayContent}</div>`;
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function navigateAllRoster(startDate, endDate) {
+            document.getElementById('allRosterStartDate').value = startDate;
+            document.getElementById('allRosterEndDate').value = endDate;
+            loadAllRoster();
+        }
+
+        function formatDateRange(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+        }
+
+        function generateRosterSummary(startDate, endDate) {
+            let html = '<div class="alert alert-info" style="margin-top: 15px;">';
+            html += '<strong>Summary Statistics:</strong><br>';
+            
+            const stats = {
+                totalStaff: allUsers.filter(u => u.Level === 'User').length,
+                totalDays: Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1,
+                totalDutySlots: 0,
+                totalOffSlots: 0,
+                totalLeaveSlots: 0
+            };
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            stats.totalLeaveSlots++;
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            if (dutyRoster[dateStr][user.username] === 'Off') {
+                                stats.totalOffSlots++;
+                            } else {
+                                stats.totalDutySlots++;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            html += `• ${stats.totalStaff} staff members<br>`;
+            html += `• ${stats.totalDays} days in period<br>`;
+            html += `• ${stats.totalDutySlots} duty assignments<br>`;
+            html += `• ${stats.totalOffSlots} off days<br>`;
+            html += `• ${stats.totalLeaveSlots} leave days (${stats.totalLeaveSlots > 0 ? 'SL/FRL' : 'None'})`;
+            html += '</div>';
+            
+            return html;
+        }
+
+        function printAllRoster() {
+            const container = document.getElementById('allRosterContainer').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Duty Roster Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .leave-indicator { background-color: #ffeaa7; padding: 2px 5px; border-radius: 3px; font-size: 10px; }
+                        .off-day-cell { background-color: #f8d7da; }
+                        .duty-day-cell { background-color: #d4edda; }
+                        h3 { color: #2c3e50; }
+                    </style>
+                </head>
+                <body>
+                    <h3>Duty Roster Report</h3>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <p>Generated by: ${currentUser.name}</p>
+                    ${container}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         function updateDashboard() {
