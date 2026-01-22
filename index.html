@@ -11,10 +11,6 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- External files -->
-    <script src="dcfire.js" defer></script>
-    <script src="user.js" defer></script>
-    
     <style>
         * {
             margin: 0;
@@ -776,6 +772,263 @@
             height: 15px;
             border-radius: 3px;
         }
+
+        /* Events/Banners Styles */
+        .events-container {
+            margin-top: 20px;
+        }
+        
+        .event-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease;
+        }
+        
+        .event-banner.info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        
+        .event-banner.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+        }
+        
+        .event-banner.urgent {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        .event-banner.success {
+            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+        }
+        
+        .event-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .event-content {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .event-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .close-event {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .close-event:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .no-events {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        /* Event Management (Admin) */
+        .events-management {
+            margin-top: 20px;
+        }
+        
+        .event-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .event-type-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .event-type-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .event-type-btn.active {
+            transform: scale(0.98);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .event-target-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e0e6ed;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .target-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        
+        .target-user input[type="checkbox"] {
+            margin: 0;
+        }
+        
+        /* Priority indicators */
+        .priority-high {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .priority-medium {
+            background: #f39c12;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .priority-low {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        /* Events list in admin */
+        .events-list {
+            margin-top: 20px;
+        }
+        
+        .event-item {
+            background: white;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        
+        .event-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .event-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .event-item-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .event-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .event-item-content {
+            color: #34495e;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .event-item-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes highlight {
+            0% { background-color: #fff3cd; }
+            100% { background-color: transparent; }
+        }
+        
+        .highlight-event {
+            animation: highlight 2s ease;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .event-type-buttons {
+                flex-direction: column;
+            }
+            
+            .event-target-selection {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .event-item-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
     </style>
 </head>
 <body>
@@ -814,6 +1067,10 @@
                 <div class="user-details">
                     <span>RC: <span id="userRC">000</span></span>
                     <span>Level: <span id="userLevel">User</span></span>
+                    <!-- Events notification badge in header -->
+                    <span id="eventsNotification" style="display:none;">
+                        <span class="notification-dot"></span> New Announcements
+                    </span>
                 </div>
             </div>
             <div class="header-actions">
@@ -848,6 +1105,10 @@
             <button class="nav-btn" data-section="viewAllRoster" id="viewAllRosterBtn" style="display:none;">
                 View All Roster
             </button>
+            <!-- Events Management (Supervisor Only) -->
+            <button class="nav-btn" data-section="eventsManagement" id="eventsManagementBtn" style="display:none;">
+                Events & Banners
+            </button>
         </div>
         
         <!-- Content Area -->
@@ -856,6 +1117,11 @@
             <div class="section active" id="homeSection">
                 <div class="card">
                     <h3>Welcome, <span id="welcomeName">User</span>!</h3>
+                    
+                    <!-- Events/Banners Section -->
+                    <div class="events-container" id="eventsContainer">
+                        <!-- Events will be dynamically loaded here -->
+                    </div>
                     
                     <div class="balance-display">
                         <div class="balance-box">
@@ -884,6 +1150,7 @@
                         <button class="btn btn-success" onclick="showSection('leaveApplication')">Apply Leave</button>
                         <button class="btn btn-primary" onclick="showSection('myRequests')">My Requests</button>
                         <button class="btn btn-primary" onclick="showSection('viewMyRoster')">View My Roster</button>
+                        <button class="btn btn-primary" onclick="refreshEvents()">Refresh Events</button>
                     </div>
                 </div>
             </div>
@@ -1457,6 +1724,101 @@ Date	Irufan	Hussain	Mohamed
                     </div>
                 </div>
             </div>
+            
+            <!-- Events Management (Supervisor Only) -->
+            <div class="section" id="eventsManagementSection">
+                <div class="card">
+                    <h3>Events & Banners Management</h3>
+                    
+                    <div class="alert alert-info">
+                        <strong>Instructions:</strong> Create announcements that will appear on users' dashboards. You can target all users or specific individuals.
+                    </div>
+                    
+                    <!-- Create Event Form -->
+                    <div class="event-form">
+                        <h4>Create New Announcement</h4>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventTitle">Title *</label>
+                                <input type="text" id="eventTitle" class="form-control" placeholder="Enter announcement title" maxlength="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="eventPriority">Priority</label>
+                                <select id="eventPriority" class="form-control">
+                                    <option value="low">Low (Information)</option>
+                                    <option value="medium">Medium (Warning)</option>
+                                    <option value="high">High (Urgent)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventContent">Content *</label>
+                                <textarea id="eventContent" class="form-control" rows="4" placeholder="Enter announcement content" maxlength="500"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Target Users</label>
+                                <div class="form-group-inline">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="selectAllUsers()">Select All</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearAllUsers()">Clear All</button>
+                                    <select id="quickUserSelect" class="form-control" style="flex: 1;" onchange="addQuickUser(this.value)">
+                                        <option value="">Quick Add User</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="event-target-selection" id="targetUsersList">
+                                    <!-- User checkboxes will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="eventExpiry">Expiry Date (Optional)</label>
+                                <input type="date" id="eventExpiry" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="eventReminder">Reminder Before Expiry</label>
+                                <select id="eventReminder" class="form-control">
+                                    <option value="0">No Reminder</option>
+                                    <option value="1">1 Day Before</option>
+                                    <option value="2">2 Days Before</option>
+                                    <option value="7">1 Week Before</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button class="btn btn-success" onclick="createEvent()">
+                                <span class="btn-icon">📢</span> Publish Announcement
+                            </button>
+                            <button class="btn btn-danger" onclick="clearEventForm()">Clear Form</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Active Events List -->
+                    <div class="events-list">
+                        <h4>Active Announcements</h4>
+                        <div id="activeEventsList">
+                            <!-- Active events will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Past Events (Archived) -->
+                    <div class="events-list" style="margin-top: 30px;">
+                        <h4>Past Announcements</h4>
+                        <div id="pastEventsList">
+                            <!-- Past events will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -1468,6 +1830,22 @@ Date	Irufan	Hussain	Mohamed
         let leaveBalances = {};
         let allRequests = [];
         let userDisplayNameMap = {};
+        let allEvents = []; // New: Store events/banners
+        let userEvents = []; // New: Events visible to current user
+        
+        // Event types and priorities
+        const EVENT_TYPES = {
+            INFO: 'info',
+            WARNING: 'warning',
+            URGENT: 'urgent',
+            SUCCESS: 'success'
+        };
+        
+        const EVENT_PRIORITIES = {
+            LOW: 'low',
+            MEDIUM: 'medium',
+            HIGH: 'high'
+        };
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -1587,6 +1965,7 @@ Date	Irufan	Hussain	Mohamed
                 document.getElementById('adminApprovalsBtn').style.display = 'inline-block';
                 document.getElementById('adminRequestHistoryBtn').style.display = 'inline-block';
                 document.getElementById('viewAllRosterBtn').style.display = 'inline-block';
+                document.getElementById('eventsManagementBtn').style.display = 'inline-block'; // NEW: Show events management
             }
             
             // Initialize data and UI
@@ -1594,6 +1973,9 @@ Date	Irufan	Hussain	Mohamed
             setupNavigation();
             setupEventListeners();
             updateDashboard();
+            
+            // Load events for current user
+            loadUserEvents();
         }
 
         function initializeUserDisplayMap() {
@@ -1627,6 +2009,7 @@ Date	Irufan	Hussain	Mohamed
             loadDutyRoster();
             loadLeaveBalances();
             loadAllRequests();
+            loadAllEvents(); // NEW: Load events
             
             // Update user's balance display
             updateUserBalance();
@@ -1708,6 +2091,30 @@ Date	Irufan	Hussain	Mohamed
             }
         }
 
+        // NEW: Load all events
+        function loadAllEvents() {
+            const savedEvents = localStorage.getItem('dutySystemEvents');
+            if (savedEvents) {
+                allEvents = JSON.parse(savedEvents);
+            } else {
+                allEvents = [];
+                saveAllEvents();
+            }
+        }
+
+        // NEW: Save all events
+        function saveAllEvents() {
+            localStorage.setItem('dutySystemEvents', JSON.stringify(allEvents));
+            
+            if (typeof db !== 'undefined') {
+                try {
+                    db.collection('events').doc('all').set({events: allEvents});
+                } catch (error) {
+                    console.log('Firebase save skipped for events');
+                }
+            }
+        }
+
         function updateUserBalance() {
             if (!currentUser) return;
             
@@ -1780,6 +2187,9 @@ Date	Irufan	Hussain	Mohamed
                         break;
                     case 'viewAllRoster':
                         loadAllRoster();
+                        break;
+                    case 'eventsManagement': // NEW: Events management
+                        loadEventsManagement();
                         break;
                 }
             }
@@ -3759,6 +4169,573 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             printWindow.print();
         }
 
+        // NEW: Load events for current user
+        function loadUserEvents() {
+            if (!currentUser) return;
+            
+            const now = new Date();
+            userEvents = allEvents.filter(event => {
+                // Check if event is active (not expired)
+                if (event.expiryDate && new Date(event.expiryDate) < now) {
+                    return false;
+                }
+                
+                // Check if event targets current user
+                if (event.targetUsers === 'all') {
+                    return true;
+                } else if (Array.isArray(event.targetUsers)) {
+                    return event.targetUsers.includes(currentUser.username);
+                }
+                
+                return false;
+            });
+            
+            // Sort by priority and date (urgent first, then by date)
+            userEvents.sort((a, b) => {
+                const priorityOrder = {high: 3, medium: 2, low: 1};
+                const aPriority = priorityOrder[a.priority] || 0;
+                const bPriority = priorityOrder[b.priority] || 0;
+                
+                if (bPriority !== aPriority) {
+                    return bPriority - aPriority;
+                }
+                
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
+            displayUserEvents();
+        }
+
+        // NEW: Display events on user dashboard
+        function displayUserEvents() {
+            const container = document.getElementById('eventsContainer');
+            
+            if (!userEvents || userEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="no-events">
+                        No announcements at the moment.
+                    </div>
+                `;
+                document.getElementById('eventsNotification').style.display = 'none';
+                return;
+            }
+            
+            let html = '<h4 style="margin-bottom: 15px;">📢 Announcements</h4>';
+            
+            userEvents.forEach((event, index) => {
+                // Check if user has dismissed this event
+                const dismissedEvents = JSON.parse(localStorage.getItem('dismissedEvents') || '{}');
+                if (dismissedEvents[event.id] && dismissedEvents[event.id] === currentUser.username) {
+                    return; // Skip dismissed events
+                }
+                
+                let typeClass = 'info';
+                if (event.priority === 'high') typeClass = 'urgent';
+                else if (event.priority === 'medium') typeClass = 'warning';
+                else if (event.type === 'success') typeClass = 'success';
+                
+                const createdDate = new Date(event.createdAt);
+                const expiryDate = event.expiryDate ? new Date(event.expiryDate) : null;
+                const timeAgo = formatTimeAgo(event.createdAt);
+                
+                let expiryText = '';
+                if (expiryDate) {
+                    const daysLeft = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+                    if (daysLeft > 0) {
+                        expiryText = `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`;
+                    } else if (daysLeft === 0) {
+                        expiryText = 'Expires today';
+                        typeClass = 'urgent';
+                    }
+                }
+                
+                html += `
+                    <div class="event-banner ${typeClass}" id="event-${event.id}">
+                        <div class="event-title">
+                            <span>${event.title}</span>
+                            <button class="close-event" onclick="dismissEvent('${event.id}')" title="Dismiss">×</button>
+                        </div>
+                        <div class="event-content">${event.content}</div>
+                        <div class="event-meta">
+                            <span>Posted by: ${event.createdBy}</span>
+                            <span>${timeAgo} ${expiryText ? ' • ' + expiryText : ''}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Show notification if there are new events
+            const lastEventCheck = localStorage.getItem('lastEventCheck') || 0;
+            const newEvents = userEvents.filter(event => 
+                new Date(event.createdAt) > new Date(lastEventCheck)
+            );
+            
+            if (newEvents.length > 0) {
+                document.getElementById('eventsNotification').style.display = 'inline-block';
+            }
+            
+            // Update last check time
+            localStorage.setItem('lastEventCheck', new Date().toISOString());
+            
+            // Highlight important events
+            highlightImportantEvents();
+        }
+
+        // NEW: Dismiss/close an event
+        function dismissEvent(eventId) {
+            const dismissedEvents = JSON.parse(localStorage.getItem('dismissedEvents') || '{}');
+            dismissedEvents[eventId] = currentUser.username;
+            localStorage.setItem('dismissedEvents', JSON.stringify(dismissedEvents));
+            
+            // Remove from display
+            const eventElement = document.getElementById(`event-${eventId}`);
+            if (eventElement) {
+                eventElement.style.opacity = '0';
+                eventElement.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    eventElement.style.display = 'none';
+                    loadUserEvents(); // Reload to update count
+                }, 300);
+            }
+        }
+
+        // NEW: Refresh events
+        function refreshEvents() {
+            loadUserEvents();
+            showUserNotification('Announcements refreshed');
+        }
+
+        // NEW: Load events management for supervisor
+        function loadEventsManagement() {
+            // Populate quick user select
+            const quickSelect = document.getElementById('quickUserSelect');
+            quickSelect.innerHTML = '<option value="">Quick Add User</option>';
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                quickSelect.appendChild(option);
+            });
+            
+            // Load target users list
+            loadTargetUsersList();
+            
+            // Load active and past events
+            loadActiveEvents();
+            loadPastEvents();
+        }
+
+        // NEW: Load target users list with checkboxes
+        function loadTargetUsersList() {
+            const container = document.getElementById('targetUsersList');
+            container.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'target-user';
+                div.innerHTML = `
+                    <input type="checkbox" id="target_${user.username}" value="${user.username}">
+                    <label for="target_${user.username}">${user.name} (${user.RCNo})</label>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // NEW: Select all users
+        function selectAllUsers() {
+            document.querySelectorAll('#targetUsersList input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+
+        // NEW: Clear all users
+        function clearAllUsers() {
+            document.querySelectorAll('#targetUsersList input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        // NEW: Add user via quick select
+        function addQuickUser(username) {
+            if (username) {
+                const checkbox = document.getElementById(`target_${username}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+                document.getElementById('quickUserSelect').value = '';
+            }
+        }
+
+        // NEW: Create a new event/announcement
+        function createEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const content = document.getElementById('eventContent').value.trim();
+            const priority = document.getElementById('eventPriority').value;
+            const expiryDate = document.getElementById('eventExpiry').value;
+            const reminderDays = parseInt(document.getElementById('eventReminder').value);
+            
+            if (!title || !content) {
+                alert('Please enter title and content');
+                return;
+            }
+            
+            // Get selected target users
+            const selectedUsers = [];
+            document.querySelectorAll('#targetUsersList input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedUsers.push(checkbox.value);
+            });
+            
+            const targetUsers = selectedUsers.length === allUsers.length ? 'all' : selectedUsers;
+            
+            // Create event object
+            const event = {
+                id: 'event_' + Date.now(),
+                title: title,
+                content: content,
+                priority: priority,
+                type: getEventTypeFromPriority(priority),
+                targetUsers: targetUsers,
+                createdBy: currentUser.name,
+                createdByUsername: currentUser.username,
+                createdAt: new Date().toISOString(),
+                expiryDate: expiryDate || null,
+                reminderDays: reminderDays,
+                status: 'active',
+                isReadBy: [] // Track who has read/dismissed
+            };
+            
+            allEvents.push(event);
+            saveAllEvents();
+            
+            // Clear form
+            clearEventForm();
+            
+            // Show success message
+            alert(`Announcement published successfully! It will appear on ${targetUsers === 'all' ? 'all users\'' : selectedUsers.length + ' users\''} dashboards.`);
+            
+            // Refresh events lists
+            loadActiveEvents();
+            loadPastEvents();
+            
+            // Show preview
+            showEventPreview(event);
+        }
+
+        // NEW: Get event type based on priority
+        function getEventTypeFromPriority(priority) {
+            switch(priority) {
+                case 'high': return 'urgent';
+                case 'medium': return 'warning';
+                case 'low': return 'info';
+                default: return 'info';
+            }
+        }
+
+        // NEW: Clear event form
+        function clearEventForm() {
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventContent').value = '';
+            document.getElementById('eventPriority').value = 'low';
+            document.getElementById('eventExpiry').value = '';
+            document.getElementById('eventReminder').value = '0';
+            clearAllUsers();
+        }
+
+        // NEW: Show event preview
+        function showEventPreview(event) {
+            const container = document.getElementById('eventsContainer');
+            const previewHtml = `
+                <div class="event-banner ${event.type}" style="animation: slideIn 0.5s ease;">
+                    <div class="event-title">
+                        <span>PREVIEW: ${event.title}</span>
+                    </div>
+                    <div class="event-content">${event.content}</div>
+                    <div class="event-meta">
+                        <span>Target: ${event.targetUsers === 'all' ? 'All Users' : event.targetUsers.length + ' Users'}</span>
+                        <span>Priority: <span class="priority-${event.priority}">${event.priority.toUpperCase()}</span></span>
+                    </div>
+                </div>
+            `;
+            
+            // Insert at beginning
+            container.innerHTML = previewHtml + container.innerHTML;
+            
+            // Auto-remove preview after 5 seconds
+            setTimeout(() => {
+                const preview = container.querySelector('.event-banner:first-child');
+                if (preview && preview.textContent.includes('PREVIEW')) {
+                    preview.style.opacity = '0';
+                    preview.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        preview.remove();
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // NEW: Load active events for management
+        function loadActiveEvents() {
+            const container = document.getElementById('activeEventsList');
+            const now = new Date();
+            
+            const activeEvents = allEvents.filter(event => 
+                event.status === 'active' && 
+                (!event.expiryDate || new Date(event.expiryDate) > now)
+            );
+            
+            if (activeEvents.length === 0) {
+                container.innerHTML = '<div class="no-events">No active announcements</div>';
+                return;
+            }
+            
+            let html = '';
+            activeEvents.forEach(event => {
+                const createdDate = new Date(event.createdAt);
+                const expiryDate = event.expiryDate ? new Date(event.expiryDate) : null;
+                
+                let targetText = event.targetUsers === 'all' ? 'All Users' : 
+                                `${event.targetUsers.length} User${event.targetUsers.length !== 1 ? 's' : ''}`;
+                
+                let expiryText = '';
+                if (expiryDate) {
+                    const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+                    expiryText = ` • Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`;
+                }
+                
+                html += `
+                    <div class="event-item">
+                        <div class="event-item-header">
+                            <div class="event-item-title">
+                                ${event.title}
+                                <span class="priority-${event.priority}" style="margin-left: 10px;">${event.priority.toUpperCase()}</span>
+                            </div>
+                            <div class="event-item-actions">
+                                <button class="action-btn view" onclick="editEvent('${event.id}')">Edit</button>
+                                <button class="action-btn reject" onclick="archiveEvent('${event.id}')">Archive</button>
+                                <button class="action-btn approve" onclick="sendReminder('${event.id}')">Remind</button>
+                            </div>
+                        </div>
+                        <div class="event-item-content">${event.content}</div>
+                        <div class="event-item-footer">
+                            <span>Posted by ${event.createdBy} on ${createdDate.toLocaleDateString()}</span>
+                            <span>Target: ${targetText}${expiryText}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // NEW: Load past/archived events
+        function loadPastEvents() {
+            const container = document.getElementById('pastEventsList');
+            const now = new Date();
+            
+            const pastEvents = allEvents.filter(event => 
+                event.status === 'archived' || 
+                (event.expiryDate && new Date(event.expiryDate) <= now)
+            );
+            
+            if (pastEvents.length === 0) {
+                container.innerHTML = '<div class="no-events">No past announcements</div>';
+                return;
+            }
+            
+            let html = '';
+            pastEvents.forEach(event => {
+                const createdDate = new Date(event.createdAt);
+                const expiryDate = event.expiryDate ? new Date(event.expiryDate) : null;
+                
+                let targetText = event.targetUsers === 'all' ? 'All Users' : 
+                                `${event.targetUsers.length} User${event.targetUsers.length !== 1 ? 's' : ''}`;
+                
+                let statusText = event.status === 'archived' ? 'Archived' : 'Expired';
+                
+                html += `
+                    <div class="event-item" style="opacity: 0.7;">
+                        <div class="event-item-header">
+                            <div class="event-item-title">
+                                ${event.title}
+                                <span style="margin-left: 10px; font-size: 11px; color: #7f8c8d;">${statusText}</span>
+                            </div>
+                            <div class="event-item-actions">
+                                <button class="action-btn view" onclick="restoreEvent('${event.id}')">Restore</button>
+                                <button class="action-btn reject" onclick="deleteEvent('${event.id}')">Delete</button>
+                            </div>
+                        </div>
+                        <div class="event-item-content">${event.content}</div>
+                        <div class="event-item-footer">
+                            <span>Posted by ${event.createdBy} on ${createdDate.toLocaleDateString()}</span>
+                            <span>Target: ${targetText}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // NEW: Edit an event
+        function editEvent(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            if (!event) return;
+            
+            // Populate form with event data
+            document.getElementById('eventTitle').value = event.title;
+            document.getElementById('eventContent').value = event.content;
+            document.getElementById('eventPriority').value = event.priority;
+            document.getElementById('eventExpiry').value = event.expiryDate || '';
+            document.getElementById('eventReminder').value = event.reminderDays || 0;
+            
+            // Check target users
+            clearAllUsers();
+            if (event.targetUsers !== 'all') {
+                event.targetUsers.forEach(username => {
+                    const checkbox = document.getElementById(`target_${username}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            } else {
+                selectAllUsers();
+            }
+            
+            // Scroll to form
+            document.getElementById('eventTitle').scrollIntoView({behavior: 'smooth'});
+            
+            // Add update button
+            const formRow = document.querySelector('.event-form .form-row:last-child');
+            formRow.innerHTML = `
+                <button class="btn btn-success" onclick="updateEvent('${eventId}')">
+                    <span class="btn-icon">✏️</span> Update Announcement
+                </button>
+                <button class="btn btn-warning" onclick="cancelEdit()">Cancel</button>
+                <button class="btn btn-danger" onclick="clearEventForm()">Clear</button>
+            `;
+        }
+
+        // NEW: Update an existing event
+        function updateEvent(eventId) {
+            const eventIndex = allEvents.findIndex(e => e.id === eventId);
+            if (eventIndex === -1) return;
+            
+            const title = document.getElementById('eventTitle').value.trim();
+            const content = document.getElementById('eventContent').value.trim();
+            const priority = document.getElementById('eventPriority').value;
+            const expiryDate = document.getElementById('eventExpiry').value;
+            const reminderDays = parseInt(document.getElementById('eventReminder').value);
+            
+            if (!title || !content) {
+                alert('Please enter title and content');
+                return;
+            }
+            
+            // Get selected target users
+            const selectedUsers = [];
+            document.querySelectorAll('#targetUsersList input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedUsers.push(checkbox.value);
+            });
+            
+            const targetUsers = selectedUsers.length === allUsers.length ? 'all' : selectedUsers;
+            
+            // Update event
+            allEvents[eventIndex] = {
+                ...allEvents[eventIndex],
+                title: title,
+                content: content,
+                priority: priority,
+                type: getEventTypeFromPriority(priority),
+                targetUsers: targetUsers,
+                expiryDate: expiryDate || null,
+                reminderDays: reminderDays,
+                updatedAt: new Date().toISOString(),
+                isReadBy: [] // Reset read status since content changed
+            };
+            
+            saveAllEvents();
+            clearEventForm();
+            resetFormButtons();
+            
+            alert('Announcement updated successfully!');
+            
+            // Refresh displays
+            loadActiveEvents();
+            loadPastEvents();
+            if (currentUser.level !== 'Supervisor') {
+                loadUserEvents();
+            }
+        }
+
+        // NEW: Cancel edit mode
+        function cancelEdit() {
+            clearEventForm();
+            resetFormButtons();
+        }
+
+        // NEW: Reset form buttons to default
+        function resetFormButtons() {
+            const formRow = document.querySelector('.event-form .form-row:last-child');
+            formRow.innerHTML = `
+                <button class="btn btn-success" onclick="createEvent()">
+                    <span class="btn-icon">📢</span> Publish Announcement
+                </button>
+                <button class="btn btn-danger" onclick="clearEventForm()">Clear Form</button>
+            `;
+        }
+
+        // NEW: Archive an event
+        function archiveEvent(eventId) {
+            if (confirm('Archive this announcement? Users will no longer see it.')) {
+                const eventIndex = allEvents.findIndex(e => e.id === eventId);
+                if (eventIndex !== -1) {
+                    allEvents[eventIndex].status = 'archived';
+                    allEvents[eventIndex].archivedAt = new Date().toISOString();
+                    saveAllEvents();
+                    loadActiveEvents();
+                    loadPastEvents();
+                }
+            }
+        }
+
+        // NEW: Restore an archived event
+        function restoreEvent(eventId) {
+            const eventIndex = allEvents.findIndex(e => e.id === eventId);
+            if (eventIndex !== -1) {
+                allEvents[eventIndex].status = 'active';
+                delete allEvents[eventIndex].archivedAt;
+                saveAllEvents();
+                loadActiveEvents();
+                loadPastEvents();
+            }
+        }
+
+        // NEW: Delete an event permanently
+        function deleteEvent(eventId) {
+            if (confirm('Permanently delete this announcement? This action cannot be undone.')) {
+                allEvents = allEvents.filter(e => e.id !== eventId);
+                saveAllEvents();
+                loadActiveEvents();
+                loadPastEvents();
+            }
+        }
+
+        // NEW: Send reminder for an event
+        function sendReminder(eventId) {
+            const event = allEvents.find(e => e.id === eventId);
+            if (!event) return;
+            
+            // In a real implementation, this would send email/push notifications
+            // For now, we'll just show a confirmation
+            alert(`Reminder sent for announcement: "${event.title}"\n\nTarget users will receive a notification.`);
+            
+            // Update event with reminder sent time
+            const eventIndex = allEvents.findIndex(e => e.id === eventId);
+            allEvents[eventIndex].lastReminderSent = new Date().toISOString();
+            saveAllEvents();
+        }
+
+        // NEW: Add to updateDashboard function
         function updateDashboard() {
             // Update today's duty
             const today = new Date().toISOString().split('T')[0];
@@ -3788,6 +4765,30 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t15:30-23:30\t16:00-00:00\t08:00-16
             
             // Check for recent updates to user's requests
             checkForUserUpdates();
+            
+            // Load events
+            loadUserEvents();
+        }
+
+        // NEW: Highlight important events
+        function highlightImportantEvents() {
+            const urgentEvents = userEvents.filter(event => 
+                event.priority === 'high' || 
+                (event.expiryDate && new Date(event.expiryDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000))
+            );
+            
+            if (urgentEvents.length > 0) {
+                // Add visual indicator
+                document.getElementById('eventsNotification').style.display = 'inline-block';
+                
+                // Highlight each urgent event
+                urgentEvents.forEach(event => {
+                    const eventElement = document.getElementById(`event-${event.id}`);
+                    if (eventElement) {
+                        eventElement.classList.add('highlight-event');
+                    }
+                });
+            }
         }
 
         function checkForUserUpdates() {
