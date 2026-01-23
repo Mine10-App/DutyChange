@@ -1482,6 +1482,41 @@
     <script>
 // Mobile-First Responsive Duty Management System
 // Global variables
+
+// Add this at the beginning of your script
+function checkFirebaseConnection() {
+    console.log('Checking Firebase connection...');
+    console.log('Firebase app name:', firebase.app().name);
+    console.log('Firebase project ID:', firebase.app().options.projectId);
+    
+    // Test Firebase connection
+    db.collection('test').doc('test').get()
+        .then(() => console.log('Firebase connection successful'))
+        .catch(error => console.error('Firebase connection failed:', error));
+}
+
+// Call this after Firebase is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, checking Firebase...');
+    
+    // Check if Firebase and db are available
+    if (typeof firebase === 'undefined') {
+        console.error('Firebase SDK not loaded');
+        return;
+    }
+    
+    if (typeof db === 'undefined') {
+        console.error('Firestore db not defined. Check dcfire.js');
+        return;
+    }
+    
+    // Test Firebase connection
+    checkFirebaseConnection();
+    
+    // Rest of your initialization...
+});
+
+
 let currentUser = null;
 let allUsers = [];
 let dutyRoster = {};
@@ -1835,35 +1870,37 @@ function initializeUserDisplayMap() {
 
 // FIREBASE FUNCTIONS
 async function loadDutyRoster() {
+    console.log('Attempting to load duty roster...');
     try {
         const doc = await db.collection('dutyRoster').doc('current').get();
+        console.log('Duty roster document:', doc);
+        
         if (doc.exists) {
             dutyRoster = doc.data() || {};
+            console.log('Duty roster data loaded:', dutyRoster);
         } else {
+            console.log('Duty roster document does not exist, creating default...');
             dutyRoster = {};
             await saveDutyRoster();
         }
     } catch (error) {
         console.error('Error loading duty roster:', error);
+        console.error('Error details:', error.message, error.code);
         dutyRoster = {};
     }
 }
 
-async function saveDutyRoster() {
-    try {
-        await db.collection('dutyRoster').doc('current').set(dutyRoster);
-    } catch (error) {
-        console.error('Error saving duty roster:', error);
-        alert('Failed to save duty roster. Please try again.');
-    }
-}
-
 async function loadLeaveBalances() {
+    console.log('Attempting to load leave balances...');
     try {
         const doc = await db.collection('leaveBalances').doc('current').get();
+        console.log('Leave balances document:', doc);
+        
         if (doc.exists) {
             leaveBalances = doc.data() || {};
+            console.log('Leave balances data loaded:', leaveBalances);
         } else {
+            console.log('Leave balances document does not exist, creating default...');
             leaveBalances = {};
             allUsers.forEach(user => {
                 leaveBalances[user.username] = {
@@ -1875,54 +1912,50 @@ async function loadLeaveBalances() {
         }
     } catch (error) {
         console.error('Error loading leave balances:', error);
+        console.error('Error details:', error.message, error.code);
         leaveBalances = {};
     }
 }
 
-async function saveLeaveBalances() {
-    try {
-        await db.collection('leaveBalances').doc('current').set(leaveBalances);
-    } catch (error) {
-        console.error('Error saving leave balances:', error);
-        alert('Failed to save leave balances. Please try again.');
-    }
-}
-
 async function loadAllRequests() {
+    console.log('Attempting to load all requests...');
     try {
         const doc = await db.collection('requests').doc('all').get();
+        console.log('Requests document:', doc);
+        
         if (doc.exists && doc.data().requests) {
             allRequests = doc.data().requests;
+            console.log('Requests data loaded, count:', allRequests.length);
         } else {
+            console.log('Requests document does not exist or empty, creating default...');
             allRequests = [];
+            await saveAllRequests();
         }
         updateRequestCounts();
     } catch (error) {
         console.error('Error loading requests:', error);
+        console.error('Error details:', error.message, error.code);
         allRequests = [];
     }
 }
 
-async function saveAllRequests() {
-    try {
-        await db.collection('requests').doc('all').set({ requests: allRequests });
-    } catch (error) {
-        console.error('Error saving requests:', error);
-        alert('Failed to save requests. Please try again.');
-    }
-}
-
 async function loadAnnouncements() {
+    console.log('Attempting to load announcements...');
     try {
         const doc = await db.collection('announcements').doc('all').get();
+        console.log('Announcements document:', doc);
+        
         if (doc.exists && doc.data().announcements) {
             announcements = doc.data().announcements;
+            console.log('Announcements data loaded, count:', announcements.length);
         } else {
+            console.log('Announcements document does not exist, creating default...');
             announcements = [];
             await saveAnnouncements();
         }
     } catch (error) {
         console.error('Error loading announcements:', error);
+        console.error('Error details:', error.message, error.code);
         announcements = [];
     }
 }
@@ -1937,15 +1970,28 @@ async function saveAnnouncements() {
 }
 
 async function initializeData() {
+    console.log('Starting data initialization...');
+    
     try {
-        await Promise.all([
-            loadDutyRoster(),
-            loadLeaveBalances(),
-            loadAllRequests(),
-            loadAnnouncements()
-        ]);
+        console.log('Loading duty roster...');
+        await loadDutyRoster();
+        console.log('Duty roster loaded:', dutyRoster);
+        
+        console.log('Loading leave balances...');
+        await loadLeaveBalances();
+        console.log('Leave balances loaded:', leaveBalances);
+        
+        console.log('Loading all requests...');
+        await loadAllRequests();
+        console.log('All requests loaded:', allRequests);
+        
+        console.log('Loading announcements...');
+        await loadAnnouncements();
+        console.log('Announcements loaded:', announcements);
         
         updateUserBalance();
+        console.log('Data initialization complete');
+        
     } catch (error) {
         console.error('Error initializing data:', error);
         alert('Failed to load data from Firebase. Please refresh the page.');
