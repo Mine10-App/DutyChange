@@ -4948,14 +4948,24 @@ async function submitNewAnnouncement() {
     const priority = document.getElementById('announcementPriority').value;
     const status = document.getElementById('announcementStatus').value;
     const target = document.getElementById('announcementTarget').value;
-    const expiryInput = document.getElementById('announcementExpiry').value;
+    const expiryInput = document.getElementById('announcementExpiry').value; // Only declare once
     
     if (!title || !content) {
         showToast('Please fill all required fields', 'warning');
         return;
     }
     
-    const expiryInput = document.getElementById('announcementExpiry').value;
+    let targetUsers = [];
+    if (target === 'specific') {
+        const checkboxes = document.querySelectorAll('#specificStaffContainer input[type="checkbox"]:checked');
+        targetUsers = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (targetUsers.length === 0) {
+            showToast('Please select at least one staff member', 'warning');
+            return;
+        }
+    }
+    
     let expiry = null;
     if (expiryInput) {
         const expiryDate = new Date(expiryInput);
@@ -4970,7 +4980,7 @@ async function submitNewAnnouncement() {
         status: status,
         target: target,
         targetUsers: targetUsers,
-        expiry: expiry, // Use ISO string format for storage
+        expiry: expiry,
         createdAt: new Date().toISOString(),
         createdBy: currentUser.name
     };
@@ -5003,20 +5013,18 @@ function editAnnouncement(announcementId) {
         return;
     }
     
-    // Build the staff checkboxes separately
-    let staffCheckboxes = '';function editAnnouncement(announcementId) {
-    const announcement = announcements.find(ann => ann.id === announcementId);
-    if (!announcement) {
-        showToast('Announcement not found', 'error');
-        return;
-    }
-    
     // Format expiry date correctly for input field
     let expiryDate = '';
-    if (announcement.expiry) {
+if (announcement.expiry) {
+    try {
         const expiry = new Date(announcement.expiry);
-        expiryDate = expiry.toISOString().split('T')[0];
+        if (!isNaN(expiry.getTime())) {
+            expiryDate = expiry.toISOString().split('T')[0];
+        }
+    } catch (e) {
+        console.error('Error parsing expiry date:', e);
     }
+}
     
     // Build the staff checkboxes
     let staffCheckboxes = '';
@@ -5056,7 +5064,7 @@ function editAnnouncement(announcementId) {
                 
                 <div class="form-group">
                     <label for="editAnnouncementContent" class="form-label">Content *</label>
-                    <textarea id="editAnnouncementContent" class="form-control" rows="4" required>${announcement.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                    <textarea id="editAnnouncementContent" class="form-control" rows="4" required>${announcement.content}</textarea>
                 </div>
                 
                 <div class="form-row">
