@@ -16,6 +16,7 @@
     <script src="user.js" defer></script>
     
     <style>
+        /* All CSS styles remain the same as before */
         * {
             margin: 0;
             padding: 0;
@@ -2445,469 +2446,6 @@ Date	Irufan	Hussain	Mohamed
             }
         }
 
-        // [Rest of your JavaScript functions remain the same as in the original code...]
-        // All other functions (loadHomeAnnouncements, loadAnnouncementsAdmin, setupAnnouncementForm, etc.)
-        // should be kept exactly as they were in your original code, but now they will use Firebase functions
-
-        function createAnnouncement() {
-            const title = document.getElementById('announcementTitle').value.trim();
-            const content = document.getElementById('announcementContent').value.trim();
-            const priority = document.getElementById('announcementPriority').value;
-            const target = document.querySelector('input[name="target"]:checked').value;
-            const expiry = document.getElementById('announcementExpiry').value;
-            let targetUsers = [];
-            
-            if (target === 'specific') {
-                const staffSelect = document.getElementById('announcementStaff');
-                targetUsers = Array.from(staffSelect.selectedOptions).map(option => option.value);
-                
-                if (targetUsers.length === 0) {
-                    alert('Please select at least one staff member for specific announcement');
-                    return;
-                }
-            }
-            
-            if (!title || !content) {
-                alert('Please fill in title and content');
-                return;
-            }
-            
-            const announcement = {
-                id: 'ann_' + Date.now(),
-                title: title,
-                content: content,
-                priority: priority,
-                target: target,
-                targetUsers: targetUsers,
-                createdBy: currentUser.name,
-                createdByUsername: currentUser.username,
-                createdAt: new Date().toISOString(),
-                expiry: expiry || null,
-                status: 'active'
-            };
-            
-            announcements.push(announcement);
-            
-            // Save to Firebase
-            saveAnnouncements().then(() => {
-                alert('Announcement created successfully!');
-                clearAnnouncementForm();
-                
-                // Reload announcements
-                loadActiveAnnouncements();
-                
-                // Show success message
-                showUserNotification('New announcement created successfully!');
-            }).catch(error => {
-                alert('Failed to create announcement. Please try again.');
-            });
-        }
-
-        function submitDutyChange() {
-            const date = document.getElementById('changeDate').value;
-            const dutyTime = document.getElementById('changeDutyTime').value;
-            const toStaff = document.getElementById('requestToStaff').value;
-            const toRcNo = document.getElementById('requestToRcNo').value;
-            const toDutyTime = document.getElementById('requestToDutyTime').value;
-            const reason = document.getElementById('changeReason').value;
-            
-            if (!date || !dutyTime || !toStaff || !toDutyTime) {
-                alert('Please fill all required fields');
-                return;
-            }
-            
-            if (dutyTime === 'No Duty' || toDutyTime === 'No Duty') {
-                alert('Cannot request duty change when no duty is scheduled');
-                return;
-            }
-            
-            const toUser = allUsers.find(u => u.username === toStaff);
-            if (!toUser) {
-                alert('Selected staff not found');
-                return;
-            }
-            
-            const request = {
-                id: 'req_' + Date.now(),
-                type: 'dutyChange',
-                fromUsername: currentUser.username,
-                fromName: currentUser.name,
-                fromRcNo: currentUser.rcNo,
-                date: date,
-                dutyTime: dutyTime,
-                toUsername: toStaff,
-                toName: toUser.name,
-                toRcNo: toRcNo,
-                toDutyTime: toDutyTime,
-                reason: reason,
-                status: 'pending',
-                timestamp: new Date().toISOString(),
-                history: [{
-                    action: 'created',
-                    by: currentUser.name,
-                    timestamp: new Date().toISOString()
-                }]
-            };
-            
-            allRequests.push(request);
-            
-            // Save to Firebase
-            saveAllRequests().then(() => {
-                updateRequestCounts();
-                alert('Duty change request submitted!');
-                showSection('home');
-                document.getElementById('dutyChangeForm').reset();
-            }).catch(error => {
-                alert('Failed to submit request. Please try again.');
-            });
-        }
-
-        function submitLeaveApplication() {
-            const leaveType = document.getElementById('leaveType').value;
-            const date = document.getElementById('leaveDate').value;
-            const dutyTime = document.getElementById('leaveDutyTime').value;
-            const duration = parseFloat(document.getElementById('leaveDuration').value);
-            const reason = document.getElementById('leaveReason').value;
-            
-            if (!leaveType || !date || !dutyTime || !reason) {
-                alert('Please fill all required fields');
-                return;
-            }
-            
-            if (dutyTime === 'No Duty' || dutyTime === 'Off') {
-                alert('You are off duty on this date. No leave needed.');
-                return;
-            }
-            
-            // Check balance
-            const userBalance = leaveBalances[currentUser.username];
-            if (!userBalance) {
-                alert('Error: User balance not found');
-                return;
-            }
-            
-            // Validate sufficient balance
-            if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
-                alert(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${duration} days`);
-                return;
-            }
-            
-            if (leaveType === 'FRL' && userBalance.FRL < duration) {
-                alert(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${duration} days`);
-                return;
-            }
-            
-            const request = {
-                id: 'req_' + Date.now(),
-                type: 'leave',
-                leaveType: leaveType,
-                fromUsername: currentUser.username,
-                fromName: currentUser.name,
-                fromRcNo: currentUser.rcNo,
-                date: date,
-                dutyTime: dutyTime,
-                duration: duration,
-                reason: reason,
-                status: 'pending',
-                timestamp: new Date().toISOString(),
-                history: [{
-                    action: 'created',
-                    by: currentUser.name,
-                    timestamp: new Date().toISOString()
-                }]
-            };
-            
-            allRequests.push(request);
-            
-            // Save to Firebase
-            saveAllRequests().then(() => {
-                updateRequestCounts();
-                alert('Leave application submitted! It will be processed after supervisor approval.');
-                showSection('home');
-                document.getElementById('leaveApplicationForm').reset();
-                
-                // Force dashboard update
-                updateDashboard();
-                updateUserBalance();
-            }).catch(error => {
-                alert('Failed to submit leave application. Please try again.');
-            });
-        }
-
-        function adminApprove(requestId) {
-            const request = allRequests.find(req => req.id === requestId);
-            if (!request) return;
-            
-            if (request.type === 'leave') {
-                // Check balance
-                const userBalance = leaveBalances[request.fromUsername];
-                if (!userBalance) {
-                    alert('Error: User balance not found');
-                    return;
-                }
-                
-                // Check if leave was already approved (prevent double deduction)
-                if (request.status === 'approved') {
-                    alert('This leave request is already approved!');
-                    return;
-                }
-                
-                if (request.leaveType === 'Sick Leave' && userBalance.SL < request.duration) {
-                    alert(`Cannot approve: Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${request.duration} days`);
-                    return;
-                }
-                
-                if (request.leaveType === 'FRL' && userBalance.FRL < request.duration) {
-                    alert(`Cannot approve: Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${request.duration} days`);
-                    return;
-                }
-                
-                // Deduct from balance
-                if (request.leaveType === 'Sick Leave') {
-                    userBalance.SL -= request.duration;
-                    userBalance.SL = Math.max(0, userBalance.SL);
-                } else if (request.leaveType === 'FRL') {
-                    userBalance.FRL -= request.duration;
-                    userBalance.FRL = Math.max(0, userBalance.FRL);
-                }
-                
-                // Save updated balances to Firebase
-                saveLeaveBalances();
-            }
-            
-            request.status = 'approved';
-            request.approvedBy = currentUser.name;
-            request.approvedAt = new Date().toISOString();
-            request.history.push({
-                action: 'approved',
-                by: currentUser.name,
-                timestamp: new Date().toISOString()
-            });
-            
-            // Save updated requests to Firebase
-            saveAllRequests().then(() => {
-                alert('Request approved successfully!');
-                showApprovalsTab('approved');
-                updateRequestCounts();
-                
-                // Update dashboard balance display if it's the current user's request
-                if (request.fromUsername === currentUser.username) {
-                    updateUserBalance();
-                }
-            }).catch(error => {
-                alert('Failed to approve request. Please try again.');
-            });
-        }
-
-        function saveExcelData() {
-            const pasteText = document.getElementById('excelPasteBox').value.trim();
-            const lines = pasteText.split('\n').filter(line => line.trim());
-            
-            if (lines.length < 2) {
-                alert('No data to save');
-                return;
-            }
-            
-            const headers = lines[0].split('\t');
-            let successCount = 0;
-            let errorCount = 0;
-            
-            for (let i = 1; i < lines.length; i++) {
-                const cells = lines[i].split('\t');
-                const date = cells[0];
-                
-                // Validate date format
-                if (!isValidDate(date)) {
-                    console.log(`Skipping invalid date: ${date}`);
-                    errorCount++;
-                    continue;
-                }
-                
-                if (!dutyRoster[date]) {
-                    dutyRoster[date] = {};
-                }
-                
-                for (let j = 1; j < headers.length && j < cells.length; j++) {
-                    const displayName = headers[j];
-                    const dutyTime = cells[j] || 'Off';
-                    
-                    // Find username using display name map
-                    const username = findUsernameFromDisplayName(displayName);
-                    
-                    if (username) {
-                        dutyRoster[date][username] = dutyTime;
-                        successCount++;
-                    } else {
-                        console.log(`User not found for display name: ${displayName}`);
-                        errorCount++;
-                    }
-                }
-            }
-            
-            // Save to Firebase
-            saveDutyRoster().then(() => {
-                alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
-                document.getElementById('excelPreview').style.display = 'none';
-                document.getElementById('excelPasteBox').value = '';
-            }).catch(error => {
-                alert('Failed to save roster. Please try again.');
-            });
-        }
-
-             function loadLeaveBalances() {
-            const savedBalances = localStorage.getItem('leaveBalancesData');
-            if (savedBalances) {
-                leaveBalances = JSON.parse(savedBalances);
-            } else {
-                // Initialize with default balances (in days)
-                leaveBalances = {};
-                allUsers.forEach(user => {
-                    leaveBalances[user.username] = {
-                        SL: 12,  // 12 days Sick Leave
-                        FRL: 6   // 6 days FRL
-                    };
-                });
-                saveLeaveBalances();
-            }
-        }
-
-        function saveLeaveBalances() {
-            localStorage.setItem('leaveBalancesData', JSON.stringify(leaveBalances));
-            
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('leaveBalances').doc('current').set(leaveBalances);
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
-            }
-        }
-
-        function loadAllRequests() {
-            const savedRequests = localStorage.getItem('dutyRequestsData');
-            if (savedRequests) {
-                allRequests = JSON.parse(savedRequests);
-            } else {
-                allRequests = [];
-            }
-            
-            updateRequestCounts();
-        }
-
-        function saveAllRequests() {
-            localStorage.setItem('dutyRequestsData', JSON.stringify(allRequests));
-            
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('requests').doc('all').set({requests: allRequests});
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
-            }
-        }
-
-        function loadAnnouncements() {
-            const savedAnnouncements = localStorage.getItem('dutyAnnouncementsData');
-            if (savedAnnouncements) {
-                announcements = JSON.parse(savedAnnouncements);
-            } else {
-                announcements = [];
-                saveAnnouncements();
-            }
-        }
-
-        function saveAnnouncements() {
-            localStorage.setItem('dutyAnnouncementsData', JSON.stringify(announcements));
-            
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('announcements').doc('all').set({announcements: announcements});
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
-            }
-        }
-
-        function updateUserBalance() {
-            if (!currentUser) return;
-            
-            const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-            document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
-            document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
-        }
-
-        function setupNavigation() {
-            const navBtns = document.querySelectorAll('.nav-btn');
-            navBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    navBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const sectionId = this.getAttribute('data-section');
-                    showSection(sectionId);
-                });
-            });
-            
-            // Logout button
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                localStorage.removeItem('dutySystemSession');
-                location.reload();
-            });
-        }
-
-        function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Show selected section
-            const section = document.getElementById(sectionId + 'Section');
-            if (section) {
-                section.classList.add('active');
-                
-                // Load section data
-                switch(sectionId) {
-                    case 'home':
-                        loadHomeAnnouncements();
-                        break;
-                    case 'dutyChange':
-                        loadDutyChangeForm();
-                        break;
-                    case 'leaveApplication':
-                        loadLeaveForm();
-                        break;
-                    case 'myRequests':
-                        loadMyRequests();
-                        break;
-                    case 'viewMyRoster':
-                        loadMyRoster();
-                        break;
-                    case 'viewAllRoster':
-                        loadAllRoster();
-                        break;
-                    case 'pendingRequests':
-                        loadPendingRequests();
-                        break;
-                    case 'adminAnnouncements':
-                        loadAnnouncementsAdmin();
-                        break;
-                    case 'adminDutyRoster':
-                        loadDutyRosterAdmin();
-                        break;
-                    case 'adminLeaveBalance':
-                        loadLeaveBalanceAdmin();
-                        break;
-                    case 'adminApprovals':
-                        loadAdminApprovals();
-                        break;
-                    case 'adminRequestHistory':
-                        loadAdminRequestHistory();
-                        break;
-                }
-            }
-        }
-
         function loadHomeAnnouncements() {
             const container = document.getElementById('homeAnnouncements');
             container.innerHTML = '';
@@ -3060,16 +2598,20 @@ Date	Irufan	Hussain	Mohamed
             };
             
             announcements.push(announcement);
-            saveAnnouncements();
             
-            alert('Announcement created successfully!');
-            clearAnnouncementForm();
-            
-            // Reload announcements
-            loadActiveAnnouncements();
-            
-            // Show success message
-            showUserNotification('New announcement created successfully!');
+            // Save to Firebase
+            saveAnnouncements().then(() => {
+                alert('Announcement created successfully!');
+                clearAnnouncementForm();
+                
+                // Reload announcements
+                loadActiveAnnouncements();
+                
+                // Show success message
+                showUserNotification('New announcement created successfully!');
+            }).catch(error => {
+                alert('Failed to create announcement. Please try again.');
+            });
         }
 
         function clearAnnouncementForm() {
@@ -3569,12 +3111,16 @@ Date	Irufan	Hussain	Mohamed
             };
             
             allRequests.push(request);
-            saveAllRequests();
-            updateRequestCounts();
             
-            alert('Duty change request submitted!');
-            showSection('home');
-            document.getElementById('dutyChangeForm').reset();
+            // Save to Firebase
+            saveAllRequests().then(() => {
+                updateRequestCounts();
+                alert('Duty change request submitted!');
+                showSection('home');
+                document.getElementById('dutyChangeForm').reset();
+            }).catch(error => {
+                alert('Failed to submit request. Please try again.');
+            });
         }
 
         function submitLeaveApplication() {
@@ -3633,16 +3179,20 @@ Date	Irufan	Hussain	Mohamed
             };
             
             allRequests.push(request);
-            saveAllRequests();
-            updateRequestCounts();
             
-            alert('Leave application submitted! It will be processed after supervisor approval.');
-            showSection('home');
-            document.getElementById('leaveApplicationForm').reset();
-            
-            // Force dashboard update
-            updateDashboard();
-            updateUserBalance();
+            // Save to Firebase
+            saveAllRequests().then(() => {
+                updateRequestCounts();
+                alert('Leave application submitted! It will be processed after supervisor approval.');
+                showSection('home');
+                document.getElementById('leaveApplicationForm').reset();
+                
+                // Force dashboard update
+                updateDashboard();
+                updateUserBalance();
+            }).catch(error => {
+                alert('Failed to submit leave application. Please try again.');
+            });
         }
 
         function updateRequestCounts() {
@@ -4361,10 +3911,14 @@ Date	Irufan	Hussain	Mohamed
                 }
             }
             
-            saveDutyRoster();
-            alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
-            document.getElementById('excelPreview').style.display = 'none';
-            document.getElementById('excelPasteBox').value = '';
+            // Save to Firebase
+            saveDutyRoster().then(() => {
+                alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
+                document.getElementById('excelPreview').style.display = 'none';
+                document.getElementById('excelPasteBox').value = '';
+            }).catch(error => {
+                alert('Failed to save roster. Please try again.');
+            });
         }
 
         function findUsernameFromDisplayName(displayName) {
@@ -4444,8 +3998,6 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
             }
         }
 
-
-        // Example of other functions that need Firebase integration:
         function addRosterEntry() {
             const date = document.getElementById('rosterDate').value;
             const staff = document.getElementById('rosterStaffSingle').value;
@@ -4472,6 +4024,155 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
             });
         }
 
+        function clearRosterForm() {
+            document.getElementById('rosterDutyTime').value = '';
+        }
+
+        function editRosterEntry(date, username) {
+            const currentTime = dutyRoster[date][username];
+            const dutyTime = prompt('Enter new duty time:', currentTime);
+            if (dutyTime !== null) {
+                dutyRoster[date][username] = dutyTime;
+                saveDutyRoster();
+                loadTodayRoster();
+            }
+        }
+
+        function deleteRosterEntry(date, username) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                delete dutyRoster[date][username];
+                saveDutyRoster();
+                loadTodayRoster();
+            }
+        }
+
+        function loadRosterView() {
+            const container = document.getElementById('rosterViewContainer');
+            const date = document.getElementById('viewRosterDate').value;
+            const staffFilter = document.getElementById('viewRosterStaff').value;
+            
+            if (!date) {
+                container.innerHTML = '<div class="alert alert-warning">Please select a date</div>';
+                return;
+            }
+            
+            let html = '<h4>Roster for ' + date + '</h4>';
+            
+            if (!dutyRoster[date] || Object.keys(dutyRoster[date]).length === 0) {
+                html += '<div class="alert alert-warning">No roster entries for this date</div>';
+                container.innerHTML = html;
+                return;
+            }
+            
+            html += '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC No</th><th>Duty Time</th></tr></thead><tbody>';
+            
+            for (const [username, dutyTime] of Object.entries(dutyRoster[date])) {
+                const user = allUsers.find(u => u.username === username);
+                if (user && (!staffFilter || user.username === staffFilter)) {
+                    const dutyClass = getDutyTimeClass(dutyTime);
+                    html += `<tr>
+                        <td>${user.name}</td>
+                        <td>${user.RCNo}</td>
+                        <td class="${dutyClass}">${dutyTime}</td>
+                    </tr>`;
+                }
+            }
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function loadLeaveBalanceAdmin() {
+            showBalanceTab('bulkUpdate');
+            
+            // Populate staff dropdown for individual tab
+            const staffSelect = document.getElementById('balanceStaff');
+            staffSelect.innerHTML = '<option value="">Select staff</option>';
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                staffSelect.appendChild(option);
+            });
+            
+            staffSelect.addEventListener('change', function() {
+                const form = document.getElementById('individualBalanceForm');
+                if (this.value) {
+                    const balance = leaveBalances[this.value] || {SL: 0, FRL: 0};
+                    document.getElementById('individualSL').value = balance.SL;
+                    document.getElementById('individualFRL').value = balance.FRL;
+                    form.style.display = 'block';
+                } else {
+                    form.style.display = 'none';
+                }
+            });
+            
+            // Load bulk update table
+            loadBulkBalanceTable();
+        }
+
+        function showBalanceTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.balance-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('#adminLeaveBalanceSection .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Activate corresponding button
+            document.querySelectorAll('#adminLeaveBalanceSection .tab-btn').forEach(btn => {
+                if (btn.textContent.includes(tabName === 'bulkUpdate' ? 'Bulk' : 'Individual')) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function loadBulkBalanceTable() {
+            const tbody = document.getElementById('bulkBalanceTable');
+            tbody.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                const balance = leaveBalances[user.username] || {SL: 0, FRL: 0};
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.name}</td>
+                    <td>${user.RCNo}</td>
+                    <td>
+                        <input type="number" class="excel-input" 
+                               value="${balance.SL}" 
+                               step="0.5" 
+                               min="0"
+                               onchange="updateTempBalance('${user.username}', 'SL', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="excel-input" 
+                               value="${balance.FRL}" 
+                               step="0.5" 
+                               min="0"
+                               onchange="updateTempBalance('${user.username}', 'FRL', this.value)">
+                    </td>
+                    <td>
+                        <button class="action-btn view" onclick="resetUserBalance('${user.username}')">Reset</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateTempBalance(username, type, value) {
+            if (!leaveBalances[username]) {
+                leaveBalances[username] = {SL: 0, FRL: 0};
+            }
+            leaveBalances[username][type] = parseFloat(value) || 0;
+        }
+
         function saveAllBalances() {
             // Save to Firebase
             saveLeaveBalances().then(() => {
@@ -4483,52 +4184,980 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
             });
         }
 
-        // Add Firebase error handling
-        function handleFirebaseError(error) {
-            console.error('Firebase error:', error);
-            alert('A Firebase error occurred. Please check your connection and try again.');
+        function resetAllBalances() {
+            if (confirm('Reset ALL balances to default (12 days SL, 6 days FRL)?')) {
+                allUsers.forEach(user => {
+                    leaveBalances[user.username] = {SL: 12, FRL: 6};
+                });
+                saveLeaveBalances();
+                loadBulkBalanceTable();
+                updateUserBalance();
+            }
         }
 
-        // Add real-time listeners (optional)
-        function setupRealtimeListeners() {
-            // Listen for announcement updates
-            db.collection('announcements').doc('all')
-                .onSnapshot((doc) => {
-                    if (doc.exists) {
-                        announcements = doc.data().announcements || [];
-                        if (document.getElementById('homeSection').classList.contains('active')) {
-                            loadHomeAnnouncements();
+        function resetUserBalance(username) {
+            if (confirm(`Reset balance for this user to default?`)) {
+                leaveBalances[username] = {SL: 12, FRL: 6};
+                saveLeaveBalances();
+                loadBulkBalanceTable();
+                if (username === currentUser.username) {
+                    updateUserBalance();
+                }
+            }
+        }
+
+        function saveIndividualBalance() {
+            const staff = document.getElementById('balanceStaff').value;
+            const sl = parseFloat(document.getElementById('individualSL').value) || 0;
+            const frl = parseFloat(document.getElementById('individualFRL').value) || 0;
+            
+            if (!staff) {
+                alert('Please select a staff member');
+                return;
+            }
+            
+            if (!leaveBalances[staff]) {
+                leaveBalances[staff] = {SL: 0, FRL: 0};
+            }
+            
+            leaveBalances[staff].SL = sl;
+            leaveBalances[staff].FRL = frl;
+            saveLeaveBalances();
+            
+            alert('Balance saved successfully!');
+            
+            // Update bulk table if on that view
+            loadBulkBalanceTable();
+            
+            // Update current user's display if it's them
+            if (staff === currentUser.username) {
+                updateUserBalance();
+            }
+        }
+
+        function resetIndividualBalance() {
+            const staff = document.getElementById('balanceStaff').value;
+            if (!staff) {
+                alert('Please select a staff member');
+                return;
+            }
+            
+            if (confirm(`Reset balance for this staff to default (12 days SL, 6 days FRL)?`)) {
+                leaveBalances[staff] = {SL: 12, FRL: 6};
+                document.getElementById('individualSL').value = 12;
+                document.getElementById('individualFRL').value = 6;
+                saveLeaveBalances();
+                
+                // Update bulk table
+                loadBulkBalanceTable();
+                
+                if (staff === currentUser.username) {
+                    updateUserBalance();
+                }
+            }
+        }
+
+        function loadAdminApprovals() {
+            showApprovalsTab('pending');
+        }
+
+        function showApprovalsTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.approvals-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('#adminApprovalsSection .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'ApprovalsTab').classList.add('active');
+            
+            // Activate corresponding button
+            document.querySelectorAll('#adminApprovalsSection .tab-btn').forEach(btn => {
+                if (btn.textContent.includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Load data for the tab
+            if (tabName === 'pending') {
+                loadPendingApprovals();
+            } else if (tabName === 'approved') {
+                loadApprovedRequests();
+            } else if (tabName === 'rejected') {
+                loadRejectedRequests();
+            }
+        }
+
+        function loadPendingApprovals() {
+            const tbody = document.getElementById('adminApprovalsTable');
+            tbody.innerHTML = '';
+            
+            const pendingRequests = allRequests.filter(req => req.status === 'pending');
+            
+            if (pendingRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No pending requests</td></tr>';
+                return;
+            }
+            
+            // Sort by timestamp ascending (oldest first)
+            pendingRequests.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            pendingRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `
+                        <div class="request-details">
+                            <strong>Swap Request:</strong><br>
+                            ${req.fromName} (${req.dutyTime}) ↔ ${req.toName} (${req.toDutyTime})
+                        </div>
+                    `;
+                } else {
+                    details = `
+                        <div class="request-details">
+                            <strong>${req.leaveType}:</strong> ${req.duration} day(s)<br>
+                            <em>${req.reason}</em>
+                        </div>
+                    `;
+                }
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-pending">Pending</td>
+                    <td class="action-buttons">
+                        <button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
+                        <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>
+                        ${req.type === 'dutyChange' ? 
+                            `<button class="action-btn apply" onclick="adminApplyDutyChange('${req.id}')">Apply & Approve</button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadApprovedRequests() {
+            const tbody = document.getElementById('approvedRequestsTable');
+            tbody.innerHTML = '';
+            
+            const approvedRequests = allRequests.filter(req => req.status === 'approved');
+            
+            if (approvedRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No approved requests</td></tr>';
+                return;
+            }
+            
+            // Sort by approval date descending (newest first)
+            approvedRequests.sort((a, b) => {
+                const aDate = a.approvedAt ? new Date(a.approvedAt) : new Date(0);
+                const bDate = b.approvedAt ? new Date(b.approvedAt) : new Date(0);
+                return bDate - aDate;
+            });
+            
+            approvedRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                } else {
+                    details = `${req.leaveType}: ${req.duration} day(s)`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                }
+                
+                const appliedBy = req.appliedBy || req.approvedBy || 'System';
+                const appliedAt = req.appliedAt || req.approvedAt || req.timestamp;
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-approved">Approved</td>
+                    <td>${appliedBy}</td>
+                    <td class="timestamp">${formatDateTime(appliedAt)}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadRejectedRequests() {
+            const tbody = document.getElementById('rejectedRequestsTable');
+            tbody.innerHTML = '';
+            
+            const rejectedRequests = allRequests.filter(req => req.status === 'rejected');
+            
+            if (rejectedRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No rejected requests</td></tr>';
+                return;
+            }
+            
+            rejectedRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                } else {
+                    details = `${req.leaveType}: ${req.duration} day(s)`;
+                    if (req.reason) details += `<br><small>Reason: ${req.reason}</small>`;
+                }
+                
+                const rejectedBy = req.rejectedBy || 'System';
+                const rejectedAt = req.rejectedAt || req.timestamp;
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="status-rejected">Rejected</td>
+                    <td>${rejectedBy}</td>
+                    <td class="timestamp">${formatDateTime(rejectedAt)}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function adminApprove(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            if (request.type === 'leave') {
+                // Check balance
+                const userBalance = leaveBalances[request.fromUsername];
+                if (!userBalance) {
+                    alert('Error: User balance not found');
+                    return;
+                }
+                
+                // Check if leave was already approved (prevent double deduction)
+                if (request.status === 'approved') {
+                    alert('This leave request is already approved!');
+                    return;
+                }
+                
+                if (request.leaveType === 'Sick Leave' && userBalance.SL < request.duration) {
+                    alert(`Cannot approve: Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${request.duration} days`);
+                    return;
+                }
+                
+                if (request.leaveType === 'FRL' && userBalance.FRL < request.duration) {
+                    alert(`Cannot approve: Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${request.duration} days`);
+                    return;
+                }
+                
+                // Deduct from balance
+                if (request.leaveType === 'Sick Leave') {
+                    userBalance.SL -= request.duration;
+                    userBalance.SL = Math.max(0, userBalance.SL);
+                } else if (request.leaveType === 'FRL') {
+                    userBalance.FRL -= request.duration;
+                    userBalance.FRL = Math.max(0, userBalance.FRL);
+                }
+                
+                // Save updated balances to Firebase
+                saveLeaveBalances();
+            }
+            
+            request.status = 'approved';
+            request.approvedBy = currentUser.name;
+            request.approvedAt = new Date().toISOString();
+            request.history.push({
+                action: 'approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Save updated requests to Firebase
+            saveAllRequests().then(() => {
+                alert('Request approved successfully!');
+                showApprovalsTab('approved');
+                updateRequestCounts();
+                
+                // Update dashboard balance display if it's the current user's request
+                if (request.fromUsername === currentUser.username) {
+                    updateUserBalance();
+                }
+            }).catch(error => {
+                alert('Failed to approve request. Please try again.');
+            });
+        }
+
+        function adminApplyDutyChange(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+            
+            // Apply the duty change immediately
+            const date = request.date;
+            if (dutyRoster[date]) {
+                const temp = dutyRoster[date][request.fromUsername];
+                dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
+                dutyRoster[date][request.toUsername] = temp;
+                saveDutyRoster();
+            }
+            
+            // Mark as approved
+            request.status = 'approved';
+            request.approvedBy = currentUser.name;
+            request.appliedBy = currentUser.name;
+            request.approvedAt = new Date().toISOString();
+            request.appliedAt = new Date().toISOString();
+            request.history.push({
+                action: 'applied_and_approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            });
+            saveAllRequests();
+            
+            alert('Duty change applied and approved! Roster updated.');
+            showApprovalsTab('approved');
+            updateRequestCounts();
+        }
+
+        function adminReject(requestId) {
+            if (confirm('Are you sure you want to reject this request?')) {
+                const request = allRequests.find(req => req.id === requestId);
+                if (request) {
+                    request.status = 'rejected';
+                    request.rejectedBy = currentUser.name;
+                    request.rejectedAt = new Date().toISOString();
+                    request.history.push({
+                        action: 'rejected',
+                        by: currentUser.name,
+                        timestamp: new Date().toISOString()
+                    });
+                    saveAllRequests();
+                    
+                    alert('Request rejected!');
+                    showApprovalsTab('rejected');
+                    
+                    // Update counts
+                    updateRequestCounts();
+                }
+            }
+        }
+
+        function loadAdminRequestHistory() {
+            // Populate staff filter dropdown
+            const staffSelect = document.getElementById('historyFilterStaff');
+            staffSelect.innerHTML = '<option value="">All Staff</option>';
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                staffSelect.appendChild(option);
+            });
+            
+            // Load all requests
+            loadRequestHistory();
+        }
+
+        function loadRequestHistory() {
+            const tbody = document.getElementById('requestHistoryTable');
+            tbody.innerHTML = '';
+            
+            // Get filter values
+            const staffFilter = document.getElementById('historyFilterStaff').value;
+            const typeFilter = document.getElementById('historyFilterType').value;
+            const statusFilter = document.getElementById('historyFilterStatus').value;
+            const startDate = document.getElementById('historyStartDate').value;
+            const endDate = document.getElementById('historyEndDate').value;
+            
+            // Filter requests
+            let filteredRequests = allRequests;
+            
+            if (staffFilter) {
+                filteredRequests = filteredRequests.filter(req => req.fromUsername === staffFilter);
+            }
+            
+            if (typeFilter) {
+                filteredRequests = filteredRequests.filter(req => req.type === typeFilter);
+            }
+            
+            if (statusFilter) {
+                filteredRequests = filteredRequests.filter(req => req.status === statusFilter);
+            }
+            
+            if (startDate) {
+                filteredRequests = filteredRequests.filter(req => req.date >= startDate);
+            }
+            
+            if (endDate) {
+                filteredRequests = filteredRequests.filter(req => req.date <= endDate);
+            }
+            
+            if (filteredRequests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No requests found</td></tr>';
+                return;
+            }
+            
+            // Sort by timestamp descending (newest first)
+            filteredRequests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            filteredRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let details = '';
+                if (req.type === 'dutyChange') {
+                    details = `
+                        <div class="request-details">
+                            <strong>Swap with:</strong> ${req.toName}<br>
+                            <strong>From:</strong> ${req.dutyTime} → <strong>To:</strong> ${req.toDutyTime}<br>
+                            ${req.reason ? `<em>${req.reason}</em>` : ''}
+                        </div>
+                    `;
+                } else {
+                    details = `
+                        <div class="request-details">
+                            <strong>${req.leaveType}:</strong> ${req.duration} day(s)<br>
+                            <em>${req.reason}</em>
+                        </div>
+                    `;
+                }
+                
+                let statusClass = 'status-' + req.status;
+                let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+                
+                // Create timeline HTML
+                let timeline = '';
+                if (req.history && req.history.length > 0) {
+                    req.history.forEach((event, index) => {
+                        timeline += `<div class="status-update">${event.action} by ${event.by}<br>
+                                     <small>${formatTimeAgo(event.timestamp)}</small></div>`;
+                    });
+                }
+                
+                tr.innerHTML = `
+                    <td>${req.fromName} (${req.fromRcNo})</td>
+                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                    <td>${req.date}</td>
+                    <td>${details}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>${timeline}</td>
+                    <td class="action-buttons">
+                        ${req.status === 'pending' ? 
+                            `<button class="action-btn approve" onclick="adminApprove('${req.id}')">Approve</button>
+                             <button class="action-btn reject" onclick="adminReject('${req.id}')">Reject</button>` : ''}
+                        ${req.type === 'dutyChange' && req.status === 'pending' ? 
+                            `<button class="action-btn apply" onclick="adminApplyDutyChange('${req.id}')">Apply</button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearHistoryFilters() {
+            document.getElementById('historyFilterStaff').value = '';
+            document.getElementById('historyFilterType').value = '';
+            document.getElementById('historyFilterStatus').value = '';
+            document.getElementById('historyStartDate').value = '';
+            document.getElementById('historyEndDate').value = '';
+            loadRequestHistory();
+        }
+
+        // View All Roster Functions (Now accessible to all users)
+        function loadAllRoster() {
+            const container = document.getElementById('allRosterContainer');
+            const startDate = document.getElementById('allRosterStartDate').value;
+            const endDate = document.getElementById('allRosterEndDate').value;
+            const viewType = document.getElementById('allRosterViewType').value;
+            
+            if (!startDate || !endDate) {
+                container.innerHTML = '<div class="alert alert-warning">Please select start and end dates</div>';
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (start > end) {
+                container.innerHTML = '<div class="alert alert-warning">Start date must be before end date</div>';
+                return;
+            }
+            
+            if (viewType === 'calendar') {
+                displayAllRosterCalendar(container, start, end);
+            } else if (viewType === 'staff') {
+                displayAllRosterByStaff(container, start, end);
+            } else {
+                displayAllRosterDaily(container, start, end);
+            }
+        }
+
+        function displayAllRosterDaily(container, startDate, endDate) {
+            let html = `<h4>Complete Duty Roster (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
+            
+            // Create date navigation
+            const prevStart = new Date(startDate);
+            prevStart.setDate(prevStart.getDate() - 7);
+            const prevEnd = new Date(endDate);
+            prevEnd.setDate(prevEnd.getDate() - 7);
+            const nextStart = new Date(startDate);
+            nextStart.setDate(nextStart.getDate() + 7);
+            const nextEnd = new Date(endDate);
+            nextEnd.setDate(nextEnd.getDate() + 7);
+            
+            html += `<div class="date-navigation">
+                <button class="date-nav-btn" onclick="navigateAllRoster('${prevStart.toISOString().split('T')[0]}', '${prevEnd.toISOString().split('T')[0]}')">← Previous Week</button>
+                <span class="current-date-display">${formatDateRange(startDate, endDate)}</span>
+                <button class="date-nav-btn" onclick="navigateAllRoster('${nextStart.toISOString().split('T')[0]}', '${nextEnd.toISOString().split('T')[0]}')">Next Week →</button>
+            </div>`;
+            
+            // Create table
+            html += '<div class="roster-all-view"><table><thead><tr><th>Date</th><th>Day</th>';
+            
+            // Add staff headers
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    html += `<th class="staff-name">${user.name}<br><small>${user.RCNo}</small></th>`;
+                }
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Add rows for each date
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                const isToday = dateStr === today;
+                
+                html += `<tr ${isToday ? 'style="background-color: #fff3cd;"' : ''}>`;
+                html += `<td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>`;
+                html += `<td>${dayName}</td>`;
+                
+                // Add duty times for each staff
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        let dutyTime = 'Not Scheduled';
+                        let cellClass = '';
+                        let leaveIndicator = '';
+                        
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            dutyTime = 'Leave';
+                            cellClass = 'duty-leave';
+                            leaveIndicator = `<span class="leave-indicator" title="${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            dutyTime = dutyRoster[dateStr][user.username];
+                            cellClass = getDutyTimeClass(dutyTime);
+                        } else {
+                            cellClass = 'off-day-cell';
+                            dutyTime = 'Off';
+                        }
+                        
+                        if (isToday) {
+                            cellClass += ' today-cell';
+                        }
+                        
+                        html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table></div>';
+            
+            // Add summary statistics
+            html += generateRosterSummary(startDate, endDate);
+            
+            container.innerHTML = html;
+        }
+
+        function displayAllRosterByStaff(container, startDate, endDate) {
+            let html = `<h4>Staff Duty Summary (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
+            
+            html += '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC No</th><th>Duty Days</th><th>Off Days</th><th>Leave Days</th><th>Details</th></tr></thead><tbody>';
+            
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    let dutyDays = 0;
+                    let offDays = 0;
+                    let leaveDays = 0;
+                    let details = [];
+                    
+                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const dateStr = d.toISOString().split('T')[0];
+                        
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            leaveDays += approvedLeave.duration;
+                            details.push(`${dateStr}: ${approvedLeave.leaveType} (${approvedLeave.duration} day)`);
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            if (dutyRoster[dateStr][user.username] === 'Off') {
+                                offDays++;
+                            } else {
+                                dutyDays++;
+                                details.push(`${dateStr}: ${dutyRoster[dateStr][user.username]}`);
+                            }
                         }
                     }
-                }, handleFirebaseError);
+                    
+                    html += `<tr>
+                        <td class="staff-name">${user.name}</td>
+                        <td>${user.RCNo}</td>
+                        <td>${dutyDays}</td>
+                        <td>${offDays}</td>
+                        <td>${leaveDays}</td>
+                        <td><small>${details.slice(0, 3).join('<br>')}${details.length > 3 ? '<br>...' : ''}</small></td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</tbody></table></div>';
+            
+            container.innerHTML = html;
+        }
 
-            // Listen for request updates
-            db.collection('requests').doc('all')
-                .onSnapshot((doc) => {
-                    if (doc.exists && doc.data().requests) {
-                        allRequests = doc.data().requests;
-                        updateRequestCounts();
+        function displayAllRosterCalendar(container, startDate, endDate) {
+            let html = `<h4>Calendar View (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})</h4>`;
+            
+            // Group by week
+            const weeks = [];
+            let currentWeek = [];
+            let currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                currentWeek.push(new Date(currentDate));
+                if (currentWeek.length === 7 || currentDate.getTime() === endDate.getTime()) {
+                    weeks.push([...currentWeek]);
+                    currentWeek = [];
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Display each week
+            weeks.forEach((week, weekIndex) => {
+                html += `<h5>Week ${weekIndex + 1}</h5>`;
+                html += '<div class="calendar-grid">';
+                
+                // Day headers
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                days.forEach(day => {
+                    html += `<div class="calendar-day" style="text-align: center; font-weight: bold; background: #f0f0f0;">${day}</div>`;
+                });
+                
+                // Calendar cells
+                week.forEach(day => {
+                    const dateStr = day.toISOString().split('T')[0];
+                    const dayNum = day.getDate();
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+                    
+                    let dayClass = 'calendar-day';
+                    let dayContent = `<div class="day-header">${dayNum}</div>`;
+                    
+                    // Add staff duties for this day
+                    allUsers.forEach(user => {
+                        if (user.Level === 'User') {
+                            let dutyInfo = '';
+                            
+                            // Check for approved leave
+                            const approvedLeave = allRequests.find(req => 
+                                req.fromUsername === user.username &&
+                                req.type === 'leave' &&
+                                req.status === 'approved' &&
+                                req.date === dateStr
+                            );
+                            
+                            if (approvedLeave) {
+                                dutyInfo = `${user.name.substring(0, 3)}: ${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}<br>`;
+                            } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                                const dutyTime = dutyRoster[dateStr][user.username];
+                                if (dutyTime !== 'Off') {
+                                    dutyInfo = `${user.name.substring(0, 3)}: ${dutyTime.substring(0, 5)}<br>`;
+                                }
+                            }
+                            
+                            dayContent += `<div style="font-size: 10px;">${dutyInfo}</div>`;
+                        }
+                    });
+                    
+                    if (isToday) {
+                        dayClass += ' today';
                     }
-                }, handleFirebaseError);
+                    
+                    html += `<div class="${dayClass}" style="min-height: 100px; overflow-y: auto;">${dayContent}</div>`;
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function navigateAllRoster(startDate, endDate) {
+            document.getElementById('allRosterStartDate').value = startDate;
+            document.getElementById('allRosterEndDate').value = endDate;
+            loadAllRoster();
+        }
+
+        function formatDateRange(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+        }
+
+        function generateRosterSummary(startDate, endDate) {
+            let html = '<div class="alert alert-info" style="margin-top: 15px;">';
+            html += '<strong>Summary Statistics:</strong><br>';
+            
+            const stats = {
+                totalStaff: allUsers.filter(u => u.Level === 'User').length,
+                totalDays: Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1,
+                totalDutySlots: 0,
+                totalOffSlots: 0,
+                totalLeaveSlots: 0
+            };
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                
+                allUsers.forEach(user => {
+                    if (user.Level === 'User') {
+                        // Check for approved leave
+                        const approvedLeave = allRequests.find(req => 
+                            req.fromUsername === user.username &&
+                            req.type === 'leave' &&
+                            req.status === 'approved' &&
+                            req.date === dateStr
+                        );
+                        
+                        if (approvedLeave) {
+                            stats.totalLeaveSlots++;
+                        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                            if (dutyRoster[dateStr][user.username] === 'Off') {
+                                stats.totalOffSlots++;
+                            } else {
+                                stats.totalDutySlots++;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            html += `• ${stats.totalStaff} staff members<br>`;
+            html += `• ${stats.totalDays} days in period<br>`;
+            html += `• ${stats.totalDutySlots} duty assignments<br>`;
+            html += `• ${stats.totalOffSlots} off days<br>`;
+            html += `• ${stats.totalLeaveSlots} leave days (${stats.totalLeaveSlots > 0 ? 'SL/FRL' : 'None'})`;
+            html += '</div>';
+            
+            return html;
+        }
+
+        function printAllRoster() {
+            const container = document.getElementById('allRosterContainer').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Duty Roster Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .leave-indicator { background-color: #ffeaa7; padding: 2px 5px; border-radius: 3px; font-size: 10px; }
+                        .duty-0730-1530 { background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); color: #856404; }
+                        .duty-0830-1630 { background: linear-gradient(135deg, #e2d9f3 0%, #d6c6f7 100%); color: #563d7c; }
+                        .duty-1030-1830 { background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); color: #827717; }
+                        .duty-1530-2330 { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); color: #0d47a1; }
+                        .duty-1630-0030 { background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%); color: #424242; }
+                        .duty-1730-0130 { background: linear-gradient(135deg, #eeeeee 0%, #bdbdbd 100%); color: #212121; }
+                        .duty-0030-0830 { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); color: #c62828; }
+                        .duty-leave { background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%); color: #e8590c; border: 1px dashed #fd7e14; }
+                        .off-day-cell { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; }
+                        .today-cell { border: 2px solid #3498db !important; box-shadow: 0 0 10px rgba(52, 152, 219, 0.3) !important; }
+                        h3 { color: #2c3e50; }
+                    </style>
+                </head>
+                <body>
+                    <h3>Duty Roster Report</h3>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <p>Generated by: ${currentUser.name}</p>
+                    ${container}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function updateDashboard() {
+            // Update today's duty
+            const today = new Date().toISOString().split('T')[0];
+            if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
+                const duty = dutyRoster[today][currentUser.username];
+                document.getElementById('todayDutyTime').textContent = duty === 'Off' ? 'Off Duty' : duty;
+            } else {
+                document.getElementById('todayDutyTime').textContent = 'Not Scheduled';
+            }
+            
+            // Find next duty (next 7 days)
+            const tomorrow = new Date();
+            for (let i = 1; i <= 7; i++) {
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                    const duty = dutyRoster[dateStr][currentUser.username];
+                    if (duty !== 'Off') {
+                        document.getElementById('nextDutyTime').textContent = `${dateStr}: ${duty}`;
+                        break;
+                    }
+                }
+            }
+            
+            // Update balance display
+            updateUserBalance();
+            
+            // Load announcements
+            loadHomeAnnouncements();
+            
+            // Check for recent updates to user's requests
+            checkForUserUpdates();
+        }
+
+        function checkForUserUpdates() {
+            const userReqs = allRequests.filter(req => 
+                req.fromUsername === currentUser.username && 
+                req.status !== 'pending' &&
+                req.history && req.history.length > 0
+            );
+            
+            // Find requests updated in the last 24 hours
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const recentUpdates = userReqs.filter(req => {
+                const lastUpdate = new Date(req.history[req.history.length - 1].timestamp);
+                return lastUpdate > twentyFourHoursAgo;
+            });
+            
+            if (recentUpdates.length > 0) {
+                showUserUpdates(recentUpdates);
+            }
+        }
+
+        function showUserUpdates(updates) {
+            const notificationContainer = document.getElementById('homeNotifications');
+            let html = '<strong>Recent Updates:</strong><br>';
+            
+            updates.forEach(req => {
+                const lastEvent = req.history[req.history.length - 1];
+                const timeAgo = formatTimeAgo(lastEvent.timestamp);
+                
+                if (req.type === 'dutyChange') {
+                    html += `• Duty change ${req.status} ${timeAgo}<br>`;
+                } else {
+                    html += `• Leave ${req.status} ${timeAgo}<br>`;
+                }
+            });
+            
+            notificationContainer.innerHTML = `<div class="alert alert-info">${html}</div>`;
+            notificationContainer.style.display = 'block';
+        }
+
+        // Utility functions
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            
+            return past.toLocaleDateString();
+        }
+
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+
+        // Handle the QUIC protocol error by retrying Firebase operations
+        function handleFirebaseError(error) {
+            console.error('Firebase error:', error);
+            
+            if (error.code === 'failed-precondition' || error.message.includes('QUIC')) {
+                console.log('Retrying Firebase operation...');
+                // Retry the operation after a delay
+                setTimeout(() => {
+                    initializeData();
+                }, 2000);
+            } else {
+                alert('A Firebase error occurred. Please check your connection and try again.');
+            }
+        }
+
+        // Setup real-time listeners with error handling
+        function setupRealtimeListeners() {
+            try {
+                // Listen for announcement updates
+                db.collection('announcements').doc('all')
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            announcements = doc.data().announcements || [];
+                            if (document.getElementById('homeSection').classList.contains('active')) {
+                                loadHomeAnnouncements();
+                            }
+                        }
+                    }, handleFirebaseError);
+
+                // Listen for request updates
+                db.collection('requests').doc('all')
+                    .onSnapshot((doc) => {
+                        if (doc.exists && doc.data().requests) {
+                            allRequests = doc.data().requests;
+                            updateRequestCounts();
+                        }
+                    }, handleFirebaseError);
+                    
+                console.log('Real-time listeners established');
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
+            }
         }
 
         // Call this after login
         setTimeout(setupRealtimeListeners, 2000);
-
-        // Add connection status monitoring
-        function monitorConnection() {
-            db.enableNetwork()
-                .then(() => {
-                    console.log('Firebase connection established');
-                })
-                .catch(error => {
-                    console.error('Firebase connection error:', error);
-                    alert('No internet connection. Some features may not work.');
-                });
-        }
-
-        // Check connection on startup
-        monitorConnection();
     </script>
 </body>
 </html>
