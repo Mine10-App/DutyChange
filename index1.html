@@ -5032,31 +5032,20 @@ function editAnnouncement(announcementId) {
         }
     }
     
-    // Build the staff checkboxes
-    let staffCheckboxes = '';
-    allUsers
-        .filter(user => user.Level !== 'Inactive')
-        .forEach(user => {
-            const isChecked = announcement.targetUsers && 
-                            announcement.targetUsers.includes(user.username) ? 'checked' : '';
-            const checkboxId = `staff_${user.username}_edit`;
-            staffCheckboxes += `
-                <div style="margin-bottom: 5px;">
-                    <label for="${checkboxId}" style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="${checkboxId}" name="${checkboxId}" value="${user.username}" 
-                               ${isChecked}
-                               style="margin-right: 8px;">
-                        ${user.name} (RC: ${user.RCNo})
-                    </label>
-                </div>
-            `;
-        });
-
-    // Determine display style
-    const displayStyle = announcement.target === 'specific' ? 'block' : 'none';
-
-    // Build the modal content manually instead of using template literals for the entire thing
-    const modalContent = `
+    let modal = document.getElementById('editAnnouncementModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'editAnnouncementModal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+    }
+    
+    // Create modal content without template literals for the date field
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalContent.style.maxWidth = '500px';
+    
+    modalContent.innerHTML = `
         <div class="modal-header">
             <h3 class="modal-title">Edit Announcement</h3>
             <button class="modal-close" onclick="hideModal('editAnnouncementModal')">
@@ -5106,10 +5095,24 @@ function editAnnouncement(announcementId) {
                     </select>
                 </div>
                 
-                <div id="editSpecificStaffContainer" style="display: ${displayStyle};">
+                <div id="editSpecificStaffContainer" style="display: ${announcement.target === 'specific' ? 'block' : 'none'};">
                     <label class="form-label">Select Staff</label>
                     <div style="max-height: 150px; overflow-y: auto; border: 1px solid var(--light-gray); border-radius: var(--radius-sm); padding: 10px;">
-                        ${staffCheckboxes}
+                        ${allUsers.filter(user => user.Level !== 'Inactive').map(user => {
+                            const isChecked = announcement.targetUsers && 
+                                            announcement.targetUsers.includes(user.username) ? 'checked' : '';
+                            const checkboxId = `staff_${user.username}_edit`;
+                            return `
+                                <div style="margin-bottom: 5px;">
+                                    <label for="${checkboxId}" style="display: flex; align-items: center; cursor: pointer;">
+                                        <input type="checkbox" id="${checkboxId}" name="${checkboxId}" value="${user.username}" 
+                                               ${isChecked}
+                                               style="margin-right: 8px;">
+                                        ${user.name} (RC: ${user.RCNo})
+                                    </label>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
                 
@@ -5126,51 +5129,23 @@ function editAnnouncement(announcementId) {
         </div>
     `;
     
-    let modal = document.getElementById('editAnnouncementModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'editAnnouncementModal';
-        modal.className = 'modal';
-        modal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${modalContent}</div>`;
-        document.body.appendChild(modal);
-        
-        // Set the date value AFTER the modal is created
-        setTimeout(() => {
-            const dateInput = modal.querySelector('#editAnnouncementExpiry');
-            if (dateInput && expiryDate) {
-                dateInput.value = expiryDate;
-            }
-        }, 0);
-        
-        // Add event listener for target change
-        const targetSelect = modal.querySelector('#editAnnouncementTarget');
-        const specificContainer = modal.querySelector('#editSpecificStaffContainer');
-        
-        if (targetSelect && specificContainer) {
-            targetSelect.addEventListener('change', function() {
-                specificContainer.style.display = this.value === 'specific' ? 'block' : 'none';
-            });
-        }
-    } else {
-        modal.querySelector('.modal-content').innerHTML = modalContent;
-        
-        // Set the date value AFTER updating modal content
-        setTimeout(() => {
-            const dateInput = modal.querySelector('#editAnnouncementExpiry');
-            if (dateInput && expiryDate) {
-                dateInput.value = expiryDate;
-            }
-        }, 0);
-        
-        // Re-add event listener for target change
-        const targetSelect = modal.querySelector('#editAnnouncementTarget');
-        const specificContainer = modal.querySelector('#editSpecificStaffContainer');
-        
-        if (targetSelect && specificContainer) {
-            targetSelect.addEventListener('change', function() {
-                specificContainer.style.display = this.value === 'specific' ? 'block' : 'none';
-            });
-        }
+    modal.innerHTML = '';
+    modal.appendChild(modalContent);
+    
+    // Set the date value programmatically
+    const dateInput = modal.querySelector('#editAnnouncementExpiry');
+    if (dateInput && expiryDate) {
+        dateInput.value = expiryDate;
+    }
+    
+    // Add event listener for target change
+    const targetSelect = modal.querySelector('#editAnnouncementTarget');
+    const specificContainer = modal.querySelector('#editSpecificStaffContainer');
+    
+    if (targetSelect && specificContainer) {
+        targetSelect.addEventListener('change', function() {
+            specificContainer.style.display = this.value === 'specific' ? 'block' : 'none';
+        });
     }
     
     modal.classList.add('active');
