@@ -1517,6 +1517,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+// Mobile-First Responsive Duty Management System
+// Global variables
 let currentUser = null;
 let allUsers = [];
 let dutyRoster = {};
@@ -1527,50 +1529,22 @@ let userDisplayNameMap = {};
 let firebaseReady = false;
 
 // Mobile menu toggle
-
 function toggleMobileMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const nav = document.getElementById('mobileNav');
     const overlay = document.getElementById('navOverlay');
     
-    menuToggle.classList.toggle('active');
     nav.classList.toggle('active');
     overlay.classList.toggle('active');
 }
 
-// Close mobile menu when clicking outside
 function closeMobileMenu() {
-    const menuToggle = document.getElementById('menuToggle');
     const nav = document.getElementById('mobileNav');
     const overlay = document.getElementById('navOverlay');
     
-    menuToggle.classList.remove('active');
     nav.classList.remove('active');
     overlay.classList.remove('active');
 }
-
-// Wait for Firebase and user data to load
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if Firebase is available
-    if (typeof db === 'undefined') {
-        console.error('Firebase is not initialized. Make sure dcfire.js is loaded.');
-        showError('Firebase initialization failed. Please check your configuration.');
-        return;
-    }
-    
-    // Wait for user data to load
-    setTimeout(() => {
-        if (typeof users === 'undefined') {
-            console.error('User data not loaded. Make sure user.js is loaded.');
-            showError('User data not loaded. Please check user.js file.');
-            return;
-        }
-        
-        firebaseReady = true;
-        console.log('Firebase and user data loaded successfully');
-        initApp();
-    }, 1000);
-});
 
 // Color mapping for duty times
 const dutyTimeColorMap = {
@@ -1619,6 +1593,229 @@ const dutyTimeColorMap = {
     'leave': 'duty-leave'
 };
 
+// ========== DEBUGGING FUNCTIONS ==========
+async function debugFirebase() {
+    console.log('=== FIREBASE DEBUG ===');
+    
+    // Test 1: Simple write/read test
+    console.log('\n1. Testing write/read permissions...');
+    try {
+        await db.collection('debug').doc('test').set({
+            test: true,
+            timestamp: new Date().toISOString()
+        });
+        console.log('✅ Write successful');
+        
+        const doc = await db.collection('debug').doc('test').get();
+        console.log('✅ Read successful:', doc.data());
+    } catch (error) {
+        console.error('❌ Permission error:', error.message);
+    }
+    
+    // Test 2: Check your specific collections
+    console.log('\n2. Checking your collections...');
+    const collections = ['dutyRoster', 'announcements', 'requests', 'leaveBalances'];
+    
+    for (const collectionName of collections) {
+        console.log(`\nChecking ${collectionName}...`);
+        try {
+            const query = db.collection(collectionName);
+            const snapshot = await query.limit(1).get();
+            
+            if (snapshot.empty) {
+                console.log(`⚠️ ${collectionName} is empty`);
+                
+                // Try to get specific document
+                const doc = await db.collection(collectionName).doc('current').get();
+                if (!doc.exists) {
+                    const doc2 = await db.collection(collectionName).doc('all').get();
+                    console.log(`${collectionName}/all exists:`, doc2.exists);
+                } else {
+                    console.log(`${collectionName}/current exists:`, doc.exists);
+                }
+            } else {
+                console.log(`✅ ${collectionName} has ${snapshot.size} documents`);
+                snapshot.forEach(doc => {
+                    console.log(`  Document ID: ${doc.id}`);
+                    console.log(`  Data keys:`, Object.keys(doc.data()));
+                });
+            }
+        } catch (error) {
+            console.error(`❌ Error checking ${collectionName}:`, error.message);
+        }
+    }
+    
+    // Test 3: Create sample data if needed
+    console.log('\n3. Creating sample data if needed...');
+    await createSampleDataIfNeeded();
+}
+
+async function createSampleDataIfNeeded() {
+    // Create sample announcements
+    const announcementsRef = db.collection('announcements').doc('all');
+    const announcementsDoc = await announcementsRef.get();
+    
+    if (!announcementsDoc.exists) {
+        console.log('Creating sample announcements...');
+        await announcementsRef.set({
+            announcements: [
+                {
+                    id: '1',
+                    title: 'Welcome to Duty Management System',
+                    message: 'This is a test announcement. The system is now live!',
+                    postedBy: 'Admin',
+                    timestamp: new Date().toISOString(),
+                    priority: 'high'
+                },
+                {
+                    id: '2', 
+                    title: 'System Maintenance',
+                    message: 'The system will undergo maintenance tonight from 2-4 AM.',
+                    postedBy: 'Admin',
+                    timestamp: new Date().toISOString(),
+                    priority: 'medium'
+                }
+            ]
+        });
+        console.log('✅ Sample announcements created');
+    }
+    
+    // Create sample duty roster
+    const rosterRef = db.collection('dutyRoster').doc('current');
+    const rosterDoc = await rosterRef.get();
+    
+    if (!rosterDoc.exists) {
+        console.log('Creating sample duty roster...');
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        
+        const sampleRoster = {
+            [today]: {
+                'admin': '0730-1530',
+                'user1': '0830-1630',
+                'user2': '1030-1830'
+            },
+            [tomorrow]: {
+                'admin': '1530-2330',
+                'user1': '1630-0030',
+                'user2': '0730-1530'
+            }
+        };
+        
+        await rosterRef.set(sampleRoster);
+        console.log('✅ Sample duty roster created:', sampleRoster);
+    }
+    
+    // Create sample leave balances
+    const leaveRef = db.collection('leaveBalances').doc('current');
+    const leaveDoc = await leaveRef.get();
+    
+    if (!leaveDoc.exists && users && Array.isArray(users)) {
+        console.log('Creating sample leave balances...');
+        const sampleBalances = {};
+        
+        users.forEach(user => {
+            if (user.username) {
+                sampleBalances[user.username] = {
+                    SL: 12,
+                    FRL: 6,
+                    lastUpdated: new Date().toISOString()
+                };
+            }
+        });
+        
+        await leaveRef.set(sampleBalances);
+        console.log('✅ Sample leave balances created');
+    }
+}
+
+async function checkFirebaseStructure() {
+    console.log('=== CHECKING FIREBASE STRUCTURE ===');
+    
+    try {
+        // Check what collections exist
+        console.log('Listing all collections...');
+        const collections = await db.listCollections();
+        console.log('Available collections:', collections.map(c => c.id));
+        
+        // Check each collection
+        for (const collection of collections) {
+            console.log(`\nChecking collection: ${collection.id}`);
+            
+            // Get first few documents
+            const snapshot = await collection.limit(3).get();
+            console.log(`  Documents in ${collection.id}:`, snapshot.size);
+            
+            snapshot.forEach(doc => {
+                console.log(`  Document ID: ${doc.id}`);
+                const data = doc.data();
+                console.log(`  Document has keys:`, Object.keys(data));
+            });
+        }
+    } catch (error) {
+        console.error('Error checking Firebase structure:', error);
+    }
+}
+// ========== END DEBUGGING ==========
+
+// Wait for Firebase and user data to load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== APP INITIALIZATION START ===');
+    console.log('DOM fully loaded and parsed');
+    
+    // Check if Firebase is available
+    if (typeof firebase === 'undefined') {
+        console.error('Firebase SDK not loaded');
+        showError('Firebase is not loaded. Please check your internet connection.');
+        return;
+    }
+    
+    if (typeof db === 'undefined') {
+        console.error('Firestore db not defined. Check dcfire.js loading order.');
+        showError('Database not initialized. Please refresh the page.');
+        return;
+    }
+    
+    console.log('Firebase and Firestore available');
+    
+    // Wait for user data to load
+    let checkCount = 0;
+    const maxChecks = 15;
+    
+    const checkDependencies = setInterval(() => {
+        checkCount++;
+        console.log(`Dependency check ${checkCount}/${maxChecks}:`);
+        console.log('- Firebase:', typeof firebase !== 'undefined');
+        console.log('- Firestore db:', typeof db !== 'undefined');
+        console.log('- Users data:', typeof users !== 'undefined');
+        console.log('- SHA256:', typeof sha256 !== 'undefined');
+        
+        // All dependencies loaded?
+        if (typeof firebase !== 'undefined' && 
+            typeof db !== 'undefined' && 
+            typeof users !== 'undefined' &&
+            typeof sha256 !== 'undefined') {
+            
+            console.log('✅ All dependencies loaded successfully!');
+            clearInterval(checkDependencies);
+            
+            firebaseReady = true;
+            setTimeout(initApp, 500);
+            
+        } else if (checkCount >= maxChecks) {
+            console.error('❌ Failed to load all dependencies after maximum attempts');
+            clearInterval(checkDependencies);
+            
+            // Show error to user
+            showError('Failed to load required resources. Please refresh the page.');
+            
+            // Try to initialize anyway with what we have
+            firebaseReady = true;
+            setTimeout(initApp, 500);
+        }
+    }, 1000);
+});
+
 function initApp() {
     if (!firebaseReady) {
         console.log('Waiting for Firebase to be ready...');
@@ -1626,37 +1823,32 @@ function initApp() {
         return;
     }
     
-    console.log('Initializing application...');
+    console.log('=== INIT APP START ===');
     
-    // Setup mobile menu toggle - FIXED ID
-    document.getElementById('menuToggle').addEventListener('click', toggleMobileMenu);
+    // Setup mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMobileMenu);
+        console.log('Menu toggle event listener added');
+    } else {
+        console.error('Menu toggle button not found!');
+    }
     
     // Close menu when clicking on overlay
-    document.getElementById('navOverlay').addEventListener('click', closeMobileMenu);
+    const navOverlay = document.getElementById('navOverlay');
+    if (navOverlay) {
+        navOverlay.addEventListener('click', closeMobileMenu);
+    }
     
     // Setup login form
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleLogin();
-    });
-    
-    // Set minimum dates
-    const today = new Date().toISOString().split('T')[0];
-    setMinimumDates(today);
-    
-    // Check session
-    checkSession();
-
-     // Close menu when clicking outside on mobile
-    document.addEventListener('click', function(event) {
-        const menuToggle = document.getElementById('menuToggle');
-        const nav = document.getElementById('mobileNav');
-        const isClickInside = nav.contains(event.target) || menuToggle.contains(event.target);
-        
-        if (window.innerWidth <= 768 && !isClickInside && nav.classList.contains('active')) {
-            closeMobileMenu();
-        }
-    });
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleLogin();
+        });
+        console.log('Login form event listener added');
+    }
     
     // Setup navigation items
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -1686,14 +1878,25 @@ function initApp() {
     });
     
     // Setup logout button
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        if (confirm('Are you sure you want to logout?')) {
-            localStorage.removeItem('dutySystemSession');
-            location.reload();
-        }
-    });
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('dutySystemSession');
+                location.reload();
+            }
+        });
+    }
+    
+    // Set minimum dates
+    const today = new Date().toISOString().split('T')[0];
+    setMinimumDates(today);
+    
+    // Check session
+    checkSession();
+    
+    console.log('=== INIT APP COMPLETE ===');
 }
-
 
 function setMinimumDates(today) {
     const dateInputs = [
@@ -1717,7 +1920,10 @@ function setMinimumDates(today) {
         }
     });
     
-    document.getElementById('myRosterMonth').value = today.substring(0, 7);
+    const myRosterMonth = document.getElementById('myRosterMonth');
+    if (myRosterMonth) {
+        myRosterMonth.value = today.substring(0, 7);
+    }
 }
 
 function getDateAfterDays(startDate, days) {
@@ -1732,101 +1938,177 @@ function checkSession() {
         try {
             const user = JSON.parse(session);
             if (user.expiry > Date.now()) {
+                console.log('Valid session found, auto-login');
                 loginUser(user);
             } else {
+                console.log('Session expired');
                 localStorage.removeItem('dutySystemSession');
             }
         } catch (e) {
+            console.error('Error parsing session:', e);
             localStorage.removeItem('dutySystemSession');
         }
+    } else {
+        console.log('No session found, showing login');
     }
 }
 
 function handleLogin() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    
-    if (!username || !password) {
-        showError('Please enter both username and password');
-        return;
-    }
-    
-    if (!users || !Array.isArray(users)) {
-        showError('User database not loaded');
-        return;
-    }
-    
-    const user = users.find(u => u.username === username);
-    
-    if (!user) {
-        showError('Invalid username or password');
-        return;
-    }
-    
-    // Hash and check password
-    const hashedPassword = sha256(password);
-    
-    if (hashedPassword === user.passwordHash) {
-        const sessionData = {
-            username: user.username,
-            name: user.name,
-            rcNo: user.RCNo,
-            level: user.Level,
-            expiry: Date.now() + (8 * 60 * 60 * 1000)
-        };
+    try {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
         
-        localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
-        loginUser(sessionData);
-    } else {
-        showError('Invalid username or password');
+        console.log('Login attempt for username:', username);
+        
+        if (!username || !password) {
+            showError('Please enter both username and password');
+            return;
+        }
+        
+        if (!users || !Array.isArray(users)) {
+            console.error('Users data is not properly loaded:', users);
+            showError('User database not loaded. Please refresh the page.');
+            return;
+        }
+        
+        console.log('Total users in database:', users.length);
+        
+        const user = users.find(u => u.username === username);
+        
+        if (!user) {
+            console.log('User not found:', username);
+            showError('Invalid username or password');
+            return;
+        }
+        
+        console.log('User found:', user.username);
+        
+        // Hash and check password
+        const hashedPassword = sha256(password);
+        console.log('Password check - Input hash:', hashedPassword.substring(0, 10) + '...');
+        console.log('Password check - Stored hash:', user.passwordHash?.substring(0, 10) + '...');
+        
+        if (hashedPassword === user.passwordHash) {
+            const sessionData = {
+                username: user.username,
+                name: user.name,
+                rcNo: user.RCNo,
+                level: user.Level,
+                expiry: Date.now() + (8 * 60 * 60 * 1000)
+            };
+            
+            console.log('Login successful, creating session:', sessionData);
+            
+            localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
+            loginUser(sessionData);
+        } else {
+            console.log('Password mismatch for user:', username);
+            showError('Invalid username or password');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showError('An error occurred during login. Please try again.');
     }
 }
 
 function showError(message) {
     const errorMsg = document.getElementById('errorMessage');
-    errorMsg.textContent = message;
-    errorMsg.style.display = 'block';
-    
-    // Auto hide error after 5 seconds
-    setTimeout(() => {
-        errorMsg.style.display = 'none';
-    }, 5000);
+    if (errorMsg) {
+        errorMsg.textContent = message;
+        errorMsg.style.display = 'block';
+        
+        // Auto hide error after 5 seconds
+        setTimeout(() => {
+            errorMsg.style.display = 'none';
+        }, 5000);
+    } else {
+        console.error('Error (no error element):', message);
+        alert(message);
+    }
 }
 
-function loginUser(userData) {
-    currentUser = userData;
-    allUsers = users || [];
-    
-    console.log('User logged in:', currentUser);
-    
-    // Initialize user display name map
-    initializeUserDisplayMap();
-    
-    // Update UI
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('dashboardContainer').style.display = 'block';
-    
-    // Update user info
-    updateUserInfo(userData);
-    
-    // Show/hide admin sections
-    setupAdminSections();
-    
-    // Initialize data and UI
-    initializeData();
-    setupNavigation();
-    setupEventListeners();
-    updateDashboard();
+async function loginUser(userData) {
+    try {
+        console.log('=== LOGIN USER START ===');
+        console.log('User data:', userData);
+        
+        currentUser = userData;
+        allUsers = users || [];
+        
+        console.log('Current user set:', currentUser);
+        console.log('Total users loaded:', allUsers.length);
+        
+        // Initialize user display name map
+        initializeUserDisplayMap();
+        
+        // Update UI
+        const loginContainer = document.getElementById('loginContainer');
+        const dashboardContainer = document.getElementById('dashboardContainer');
+        
+        if (loginContainer) {
+            loginContainer.style.display = 'none';
+            console.log('Login container hidden');
+        }
+        
+        if (dashboardContainer) {
+            dashboardContainer.style.display = 'flex';
+            console.log('Dashboard container shown');
+        } else {
+            console.error('Dashboard container not found!');
+        }
+        
+        // Update user info
+        updateUserInfo(userData);
+        
+        // Show/hide admin sections
+        setupAdminSections();
+        
+        console.log('Checking Firebase structure...');
+        await checkFirebaseStructure();
+        
+        console.log('Initializing data...');
+        await initializeData();
+        
+        console.log('Setting up navigation and UI...');
+        setupNavigation();
+        setupEventListeners();
+        updateDashboard();
+        
+        // Setup real-time listeners
+        setTimeout(setupRealtimeListeners, 2000);
+        
+        console.log('=== LOGIN USER COMPLETE ===');
+        
+    } catch (error) {
+        console.error('Error in loginUser:', error);
+        alert('An error occurred during login: ' + error.message);
+    }
 }
 
 function updateUserInfo(userData) {
-    document.getElementById('userName').textContent = userData.name;
-    document.getElementById('userRC').textContent = userData.rcNo;
-    document.getElementById('userLevel').textContent = userData.level;
-    document.getElementById('welcomeName').textContent = userData.name;
+    console.log('Updating user info:', userData);
+    
+    // Safely update all elements
+    const elements = {
+        'userName': userData.name,
+        'userRC': userData.rcNo,
+        'userLevel': userData.level
+    };
+    
+    Object.keys(elements).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = elements[id];
+            console.log(`Updated #${id} to:`, elements[id]);
+        } else {
+            console.warn(`Element #${id} not found, skipping`);
+        }
+    });
 }
 
 function setupAdminSections() {
+    console.log('Setting up admin sections for level:', currentUser?.level);
+    
     const adminButtons = [
         'adminDutyRosterBtn',
         'adminLeaveBalanceBtn',
@@ -1835,126 +2117,328 @@ function setupAdminSections() {
         'adminAnnouncementsBtn'
     ];
     
-    adminButtons.forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (btn) {
-            btn.style.display = currentUser.level === 'Supervisor' ? 'inline-block' : 'none';
+    const adminNavItems = [
+        'mobilePendingRequests',
+        'mobileAnnouncements',
+        'mobileDutyRoster',
+        'mobileLeaveBalance',
+        'mobileApprovals'
+    ];
+    
+    const adminNavHeader = document.getElementById('adminNavHeader');
+    
+    if (currentUser?.level === 'Supervisor') {
+        console.log('User is Supervisor, showing admin sections');
+        
+        // Show admin buttons
+        adminButtons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.style.display = 'inline-block';
+            }
+        });
+        
+        // Show admin nav items
+        adminNavItems.forEach(itemId => {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.style.display = 'flex';
+            }
+        });
+        
+        // Show admin nav header
+        if (adminNavHeader) {
+            adminNavHeader.style.display = 'block';
         }
-    });
+    } else {
+        console.log('User is not Supervisor, hiding admin sections');
+        
+        // Hide admin buttons
+        adminButtons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.style.display = 'none';
+            }
+        });
+        
+        // Hide admin nav items
+        adminNavItems.forEach(itemId => {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Hide admin nav header
+        if (adminNavHeader) {
+            adminNavHeader.style.display = 'none';
+        }
+    }
     
     // Always show "View All Roster" button to all users
-    document.getElementById('viewAllRosterBtn').style.display = 'inline-block';
+    const viewAllRosterBtn = document.getElementById('viewAllRosterBtn');
+    if (viewAllRosterBtn) {
+        viewAllRosterBtn.style.display = 'inline-block';
+    }
 }
 
 function initializeUserDisplayMap() {
+    console.log('Initializing user display name map');
     userDisplayNameMap = {};
+    
+    if (!allUsers || !Array.isArray(allUsers)) {
+        console.error('allUsers is not an array:', allUsers);
+        return;
+    }
+    
     allUsers.forEach(user => {
-        userDisplayNameMap[user.name] = user.username;
-        userDisplayNameMap[user.RCNo] = user.username;
-        userDisplayNameMap[user.username] = user.username;
-        
-        // For names like "Irufan1", "Irufan2"
-        if (user.name.includes('Irufan')) {
-            const match = user.name.match(/Irufan\s*(\d*)/i);
-            if (match && match[1]) {
-                userDisplayNameMap[`Irufan${match[1]}`] = user.username;
+        if (user.username) {
+            userDisplayNameMap[user.username] = user.username;
+            
+            if (user.name) {
+                userDisplayNameMap[user.name] = user.username;
+            }
+            
+            if (user.RCNo) {
+                userDisplayNameMap[user.RCNo] = user.username;
             }
         }
-        
-        const nameLower = user.name.toLowerCase();
-        const usernameLower = user.username.toLowerCase();
-        userDisplayNameMap[nameLower] = user.username;
-        userDisplayNameMap[usernameLower] = user.username;
     });
+    
+    console.log('User display map initialized with', Object.keys(userDisplayNameMap).length, 'entries');
 }
 
-// FIREBASE FUNCTIONS
+// ========== FIREBASE FUNCTIONS ==========
 async function loadDutyRoster() {
-    console.log('Attempting to load duty roster...');
+    console.log('🔍 Loading dutyRoster from: dutyRoster/current');
+    
     try {
-        const doc = await db.collection('dutyRoster').doc('current').get();
-        console.log('Duty roster document:', doc);
+        const docRef = db.collection('dutyRoster').doc('current');
+        console.log('Document reference created');
+        
+        const doc = await docRef.get();
+        console.log('Document retrieved, exists:', doc.exists);
         
         if (doc.exists) {
-            dutyRoster = doc.data() || {};
-            console.log('Duty roster data loaded:', dutyRoster);
+            const data = doc.data();
+            console.log('Raw data from Firebase:', data);
+            
+            if (data && typeof data === 'object') {
+                dutyRoster = data;
+                console.log('✅ Duty roster loaded successfully');
+                console.log('Duty roster has dates:', Object.keys(dutyRoster).length);
+                
+                if (Object.keys(dutyRoster).length > 0) {
+                    const firstDate = Object.keys(dutyRoster)[0];
+                    console.log('Sample date:', firstDate);
+                    console.log('Sample data:', dutyRoster[firstDate]);
+                }
+            } else {
+                console.warn('⚠️ Duty roster data is not an object:', data);
+                dutyRoster = {};
+            }
         } else {
-            console.log('Duty roster document does not exist, creating default...');
+            console.warn('⚠️ dutyRoster/current document does not exist');
+            console.log('Creating default empty duty roster...');
             dutyRoster = {};
-            await saveDutyRoster();
+            
+            await docRef.set({});
+            console.log('Created empty duty roster document');
         }
     } catch (error) {
-        console.error('Error loading duty roster:', error);
+        console.error('❌ Error loading duty roster:', error);
         console.error('Error details:', error.message, error.code);
         dutyRoster = {};
     }
 }
 
-async function loadLeaveBalances() {
-    console.log('Attempting to load leave balances...');
+async function saveDutyRoster() {
     try {
-        const doc = await db.collection('leaveBalances').doc('current').get();
-        console.log('Leave balances document:', doc);
+        console.log('Saving duty roster...');
+        await db.collection('dutyRoster').doc('current').set(dutyRoster);
+        console.log('✅ Duty roster saved');
+    } catch (error) {
+        console.error('❌ Error saving duty roster:', error);
+        alert('Failed to save duty roster. Please try again.');
+    }
+}
+
+async function loadLeaveBalances() {
+    console.log('🔍 Loading leaveBalances from: leaveBalances/current');
+    
+    try {
+        const docRef = db.collection('leaveBalances').doc('current');
+        const doc = await docRef.get();
+        console.log('Leave balances document exists:', doc.exists);
         
         if (doc.exists) {
-            leaveBalances = doc.data() || {};
-            console.log('Leave balances data loaded:', leaveBalances);
+            const data = doc.data();
+            console.log('Raw leave balances data:', data);
+            
+            if (data && typeof data === 'object') {
+                leaveBalances = data;
+                console.log('✅ Leave balances loaded');
+                console.log('Leave balance users:', Object.keys(leaveBalances).length);
+                
+                // Ensure current user has balance
+                if (currentUser && !leaveBalances[currentUser.username]) {
+                    console.log('Creating default balance for current user');
+                    leaveBalances[currentUser.username] = {
+                        SL: 12,
+                        FRL: 6,
+                        lastUpdated: new Date().toISOString()
+                    };
+                    await saveLeaveBalances();
+                }
+            } else {
+                console.warn('⚠️ Unexpected leave balances data structure:', data);
+                leaveBalances = {};
+            }
         } else {
-            console.log('Leave balances document does not exist, creating default...');
+            console.warn('⚠️ leaveBalances/current document does not exist');
             leaveBalances = {};
-            allUsers.forEach(user => {
-                leaveBalances[user.username] = {
-                    SL: 12,
-                    FRL: 6
-                };
-            });
-            await saveLeaveBalances();
+            
+            // Create default leave balances
+            const defaultBalances = {};
+            if (users && Array.isArray(users)) {
+                users.forEach(user => {
+                    if (user.username) {
+                        defaultBalances[user.username] = {
+                            SL: 12,
+                            FRL: 6,
+                            lastUpdated: new Date().toISOString()
+                        };
+                    }
+                });
+            }
+            
+            await docRef.set(defaultBalances);
+            console.log('Created default leave balances for', Object.keys(defaultBalances).length, 'users');
+            leaveBalances = defaultBalances;
         }
     } catch (error) {
-        console.error('Error loading leave balances:', error);
+        console.error('❌ Error loading leave balances:', error);
         console.error('Error details:', error.message, error.code);
         leaveBalances = {};
     }
 }
 
-async function loadAllRequests() {
-    console.log('Attempting to load all requests...');
+async function saveLeaveBalances() {
     try {
-        const doc = await db.collection('requests').doc('all').get();
-        console.log('Requests document:', doc);
+        await db.collection('leaveBalances').doc('current').set(leaveBalances);
+        console.log('✅ Leave balances saved');
+    } catch (error) {
+        console.error('❌ Error saving leave balances:', error);
+        alert('Failed to save leave balances. Please try again.');
+    }
+}
+
+async function loadAllRequests() {
+    console.log('🔍 Loading requests from: requests/all');
+    
+    try {
+        const docRef = db.collection('requests').doc('all');
+        const doc = await docRef.get();
+        console.log('Requests document exists:', doc.exists);
         
-        if (doc.exists && doc.data().requests) {
-            allRequests = doc.data().requests;
-            console.log('Requests data loaded, count:', allRequests.length);
+        if (doc.exists) {
+            const data = doc.data();
+            console.log('Raw requests data:', data);
+            
+            if (data && data.requests && Array.isArray(data.requests)) {
+                allRequests = data.requests;
+                console.log('✅ Requests loaded from data.requests');
+            } else if (data && Array.isArray(data)) {
+                allRequests = data;
+                console.log('✅ Requests loaded from array data');
+            } else if (data && typeof data === 'object') {
+                // Try to find any array in the object
+                const arrays = Object.values(data).filter(item => Array.isArray(item));
+                if (arrays.length > 0) {
+                    allRequests = arrays[0];
+                    console.log('✅ Requests loaded from object array');
+                } else {
+                    console.warn('⚠️ Unexpected requests data structure:', data);
+                    allRequests = [];
+                }
+            } else {
+                console.warn('⚠️ Unexpected requests data structure:', data);
+                allRequests = [];
+            }
+            
+            console.log('Requests loaded:', allRequests.length);
+            if (allRequests.length > 0) {
+                console.log('First request:', allRequests[0]);
+            }
         } else {
-            console.log('Requests document does not exist or empty, creating default...');
+            console.warn('⚠️ requests/all document does not exist');
             allRequests = [];
-            await saveAllRequests();
+            
+            await docRef.set({ requests: [] });
+            console.log('Created empty requests document');
         }
+        
         updateRequestCounts();
     } catch (error) {
-        console.error('Error loading requests:', error);
+        console.error('❌ Error loading requests:', error);
         console.error('Error details:', error.message, error.code);
         allRequests = [];
     }
 }
 
-async function loadAnnouncements() {
-    console.log('Attempting to load announcements...');
+async function saveAllRequests() {
     try {
-        const doc = await db.collection('announcements').doc('all').get();
-        console.log('Announcements document:', doc);
+        await db.collection('requests').doc('all').set({ requests: allRequests });
+        console.log('✅ Requests saved');
+    } catch (error) {
+        console.error('❌ Error saving requests:', error);
+        alert('Failed to save requests. Please try again.');
+    }
+}
+
+async function loadAnnouncements() {
+    console.log('🔍 Loading announcements from: announcements/all');
+    
+    try {
+        const docRef = db.collection('announcements').doc('all');
+        const doc = await docRef.get();
+        console.log('Announcements document exists:', doc.exists);
         
-        if (doc.exists && doc.data().announcements) {
-            announcements = doc.data().announcements;
-            console.log('Announcements data loaded, count:', announcements.length);
+        if (doc.exists) {
+            const data = doc.data();
+            console.log('Raw announcements data:', data);
+            
+            // Check different possible data structures
+            if (data && data.announcements && Array.isArray(data.announcements)) {
+                announcements = data.announcements;
+                console.log('✅ Announcements loaded from data.announcements');
+            } else if (data && Array.isArray(data)) {
+                announcements = data;
+                console.log('✅ Announcements loaded from array data');
+            } else if (data && typeof data === 'object') {
+                // Try to extract announcements from object
+                announcements = Object.values(data).filter(item => 
+                    item && typeof item === 'object' && (item.title || item.message)
+                );
+                console.log('✅ Announcements extracted from object');
+            } else {
+                console.warn('⚠️ Unexpected announcements data structure:', data);
+                announcements = [];
+            }
+            
+            console.log('Announcements loaded:', announcements.length);
+            if (announcements.length > 0) {
+                console.log('First announcement:', announcements[0]);
+            }
         } else {
-            console.log('Announcements document does not exist, creating default...');
+            console.warn('⚠️ announcements/all document does not exist');
             announcements = [];
-            await saveAnnouncements();
+            
+            await docRef.set({ announcements: [] });
+            console.log('Created empty announcements document');
         }
     } catch (error) {
-        console.error('Error loading announcements:', error);
+        console.error('❌ Error loading announcements:', error);
         console.error('Error details:', error.message, error.code);
         announcements = [];
     }
@@ -1963,76 +2447,87 @@ async function loadAnnouncements() {
 async function saveAnnouncements() {
     try {
         await db.collection('announcements').doc('all').set({ announcements: announcements });
+        console.log('✅ Announcements saved');
     } catch (error) {
-        console.error('Error saving announcements:', error);
+        console.error('❌ Error saving announcements:', error);
         alert('Failed to save announcements. Please try again.');
     }
 }
 
 async function initializeData() {
-    console.log('Starting data initialization...');
+    console.log('=== INITIALIZE DATA START ===');
     
     try {
-        console.log('Loading duty roster...');
+        // Load all data
+        console.log('1. Loading duty roster...');
         await loadDutyRoster();
-        console.log('Duty roster loaded:', dutyRoster);
         
-        console.log('Loading leave balances...');
+        console.log('2. Loading leave balances...');
         await loadLeaveBalances();
-        console.log('Leave balances loaded:', leaveBalances);
         
-        console.log('Loading all requests...');
+        console.log('3. Loading all requests...');
         await loadAllRequests();
-        console.log('All requests loaded:', allRequests);
         
-        console.log('Loading announcements...');
+        console.log('4. Loading announcements...');
         await loadAnnouncements();
-        console.log('Announcements loaded:', announcements);
+        
+        console.log('=== DATA LOADED SUMMARY ===');
+        console.log('Duty Roster dates:', Object.keys(dutyRoster).length);
+        console.log('Leave Balances users:', Object.keys(leaveBalances).length);
+        console.log('All Requests count:', allRequests.length);
+        console.log('Announcements count:', announcements.length);
         
         updateUserBalance();
-        console.log('Data initialization complete');
+        console.log('=== INITIALIZE DATA COMPLETE ===');
         
     } catch (error) {
-        console.error('Error initializing data:', error);
-        alert('Failed to load data from Firebase. Please refresh the page.');
+        console.error('=== ERROR INITIALIZING DATA ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.code);
+        
+        // Try to create sample data
+        console.log('Attempting to create sample data...');
+        await createSampleDataIfNeeded();
+        
+        // Try loading again
+        try {
+            await loadDutyRoster();
+            await loadAnnouncements();
+        } catch (retryError) {
+            console.error('Retry also failed:', retryError);
+        }
     }
 }
 
 function updateUserBalance() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.warn('No current user for balance update');
+        return;
+    }
     
-    const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-    document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
-    document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
+    const balance = leaveBalances[currentUser.username] || {SL: 12, FRL: 6};
+    console.log('User balance:', balance);
+    
+    const slElement = document.getElementById('slBalance');
+    const frlElement = document.getElementById('frlBalance');
+    
+    if (slElement) slElement.textContent = balance.SL.toFixed(1);
+    if (frlElement) frlElement.textContent = balance.FRL.toFixed(1);
 }
 
 function setupNavigation() {
-    const navBtns = document.querySelectorAll('.nav-btn');
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            navBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            const sectionId = this.getAttribute('data-section');
-            showSection(sectionId);
-            
-            // Close mobile menu after selection
-            if (window.innerWidth <= 768) {
-                closeMobileMenu();
-            }
-        });
-    });
+    console.log('Setting up navigation...');
     
-    // Logout button
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        if (confirm('Are you sure you want to logout?')) {
-            localStorage.removeItem('dutySystemSession');
-            location.reload();
-        }
-    });
+    // Update request counts
+    updateRequestCounts();
+    
+    console.log('Navigation setup complete');
 }
 
 function showSection(sectionId) {
+    console.log('Showing section:', sectionId);
+    
     // Hide all sections
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
@@ -2053,13 +2548,26 @@ function showSection(sectionId) {
         
         // Load section data
         loadSectionData(sectionId);
+    } else {
+        console.error('Section not found:', sectionId + 'Section');
+    }
+    
+    // Close mobile menu if open
+    closeMobileMenu();
+    
+    // Scroll to top on mobile
+    if (window.innerWidth <= 768) {
+        window.scrollTo(0, 0);
     }
 }
 
 function loadSectionData(sectionId) {
+    console.log('Loading data for section:', sectionId);
+    
     switch(sectionId) {
         case 'home':
             loadHomeAnnouncements();
+            updateDashboard();
             break;
         case 'dutyChange':
             loadDutyChangeForm();
@@ -2094,1832 +2602,71 @@ function loadSectionData(sectionId) {
         case 'adminRequestHistory':
             loadAdminRequestHistory();
             break;
-    }
-    
-    // Scroll to top on mobile
-    if (window.innerWidth <= 768) {
-        window.scrollTo(0, 0);
+        default:
+            console.log('No special data loading for section:', sectionId);
     }
 }
 
 // HOME SECTION FUNCTIONS
 function loadHomeAnnouncements() {
     const container = document.getElementById('homeAnnouncements');
-    if (!container) return;
+    if (!container) {
+        console.error('Home announcements container not found');
+        return;
+    }
     
-    // Clear existing content
-    container.innerHTML = '';
+    console.log('Loading home announcements, count:', announcements.length);
     
-    // Sort announcements by date (newest first)
-    const sortedAnnouncements = announcements.sort((a, b) => 
-        new Date(b.timestamp) - new Date(a.timestamp)
-    );
-    
-    if (sortedAnnouncements.length === 0) {
+    if (announcements.length === 0) {
         container.innerHTML = '<div class="alert alert-info">No announcements yet.</div>';
         return;
     }
     
-    // Display announcements (max 5 on mobile for better performance)
-    const maxDisplay = window.innerWidth <= 768 ? 5 : 10;
-    const displayAnnouncements = sortedAnnouncements.slice(0, maxDisplay);
-    
-    displayAnnouncements.forEach(announcement => {
-        const announcementDate = new Date(announcement.timestamp);
-        const formattedDate = announcementDate.toLocaleDateString('en-US', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        
-        const announcementElement = document.createElement('div');
-        announcementElement.className = 'announcement-card';
-        announcementElement.innerHTML = `
-            <div class="announcement-header">
-                <strong>${announcement.title}</strong>
-                <small class="text-muted">${formattedDate}</small>
-            </div>
-            <div class="announcement-body">
-                ${announcement.message.replace(/\n/g, '<br>')}
-            </div>
-            <div class="announcement-footer">
-                <small>Posted by: ${announcement.postedBy}</small>
-            </div>
-        `;
-        
-        container.appendChild(announcementElement);
-    });
-    
-    // Show "load more" on mobile if there are more announcements
-    if (window.innerWidth <= 768 && sortedAnnouncements.length > maxDisplay) {
-        const loadMoreBtn = document.createElement('button');
-        loadMoreBtn.className = 'btn btn-secondary btn-sm mt-2';
-        loadMoreBtn.textContent = 'Load More Announcements';
-        loadMoreBtn.addEventListener('click', function() {
-            loadAllAnnouncements(container, sortedAnnouncements);
-            this.remove();
-        });
-        container.appendChild(loadMoreBtn);
-    }
-}
-
-function loadAllAnnouncements(container, allAnnouncements) {
-    container.innerHTML = '';
-    
-    allAnnouncements.forEach(announcement => {
-        const announcementDate = new Date(announcement.timestamp);
-        const formattedDate = announcementDate.toLocaleDateString('en-US', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        
-        const announcementElement = document.createElement('div');
-        announcementElement.className = 'announcement-card';
-        announcementElement.innerHTML = `
-            <div class="announcement-header">
-                <strong>${announcement.title}</strong>
-                <small class="text-muted">${formattedDate}</small>
-            </div>
-            <div class="announcement-body">
-                ${announcement.message.replace(/\n/g, '<br>')}
-            </div>
-            <div class="announcement-footer">
-                <small>Posted by: ${announcement.postedBy}</small>
-            </div>
-        `;
-        
-        container.appendChild(announcementElement);
-    });
-}
-
-// DUTY CHANGE FUNCTIONS
-function loadDutyChangeForm() {
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-    
-    const dateInput = document.getElementById('changeDate');
-    if (dateInput) {
-        dateInput.value = tomorrowStr;
-        dateInput.min = new Date().toISOString().split('T')[0];
-    }
-    
-    // Load user's duty times
-    loadUserDutyTimes('changeDutyTime', tomorrowStr);
-    
-    // Clear form
-    document.getElementById('swapWith').value = '';
-    document.getElementById('changeReason').value = '';
-}
-
-function loadUserDutyTimes(selectId, date) {
-    if (!date || !dutyRoster[date] || !currentUser) return;
-    
-    const userDuty = dutyRoster[date][currentUser.username];
-    const select = document.getElementById(selectId);
-    
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">Select Duty Time</option>';
-    
-    if (userDuty && userDuty !== 'Off') {
-        const option = document.createElement('option');
-        option.value = userDuty;
-        option.textContent = userDuty;
-        select.appendChild(option);
-    } else {
-        const option = document.createElement('option');
-        option.value = 'Off';
-        option.textContent = 'Off Duty';
-        select.appendChild(option);
-    }
-    
-    // Add other available duty times
-    const allDutyTimes = new Set();
-    Object.values(dutyRoster[date] || {}).forEach(time => {
-        if (time && time !== 'Off') {
-            allDutyTimes.add(time);
-        }
-    });
-    
-    allDutyTimes.forEach(time => {
-        if (time !== userDuty) {
-            const option = document.createElement('option');
-            option.value = time;
-            option.textContent = time;
-            select.appendChild(option);
-        }
-    });
-}
-
-async function submitDutyChange() {
-    if (!currentUser) {
-        showError('Please login first');
-        return;
-    }
-    
-    const date = document.getElementById('changeDate').value;
-    const currentDuty = document.getElementById('changeDutyTime').value;
-    const swapWith = document.getElementById('swapWith').value;
-    const reason = document.getElementById('changeReason').value.trim();
-    
-    if (!date || !currentDuty || !swapWith || !reason) {
-        showError('Please fill all fields');
-        return;
-    }
-    
-    // Check if date is in the past
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-        showError('Cannot request duty change for past dates');
-        return;
-    }
-    
-    // Validate swap partner
-    let swapUsername = '';
-    
-    if (userDisplayNameMap[swapWith]) {
-        swapUsername = userDisplayNameMap[swapWith];
-    } else {
-        // Try to find by RC number or partial name
-        const foundUser = allUsers.find(user => 
-            user.RCNo === swapWith || 
-            user.name.toLowerCase().includes(swapWith.toLowerCase())
-        );
-        
-        if (foundUser) {
-            swapUsername = foundUser.username;
-        } else {
-            showError('User not found. Please enter full name or RC number');
-            return;
-        }
-    }
-    
-    if (swapUsername === currentUser.username) {
-        showError('Cannot swap duty with yourself');
-        return;
-    }
-    
-    // Check if swap partner is scheduled for duty on that date
-    if (!dutyRoster[date] || !dutyRoster[date][swapUsername] || dutyRoster[date][swapUsername] === 'Off') {
-        showError('Selected staff is not scheduled for duty on this date');
-        return;
-    }
-    
-    // Check for existing pending requests for same date
-    const existingRequest = allRequests.find(req => 
-        req.fromUsername === currentUser.username &&
-        req.date === date &&
-        req.status === 'pending' &&
-        req.type === 'duty_change'
-    );
-    
-    if (existingRequest) {
-        showError('You already have a pending duty change request for this date');
-        return;
-    }
-    
-    // Create request object
-    const request = {
-        id: Date.now().toString(),
-        type: 'duty_change',
-        fromUsername: currentUser.username,
-        fromName: currentUser.name,
-        toUsername: swapUsername,
-        toName: allUsers.find(u => u.username === swapUsername)?.name || swapUsername,
-        date: date,
-        currentDuty: currentDuty,
-        requestedDuty: dutyRoster[date][swapUsername],
-        reason: reason,
-        status: 'pending',
-        timestamp: new Date().toISOString()
-    };
-    
-    // Add to requests array
-    allRequests.unshift(request);
-    
-    try {
-        await saveAllRequests();
-        
-        // Clear form
-        document.getElementById('dutyChangeForm').reset();
-        
-        // Show success message
-        alert('Duty change request submitted successfully!');
-        
-        // Reload requests if on that section
-        if (document.getElementById('myRequestsSection').classList.contains('active')) {
-            loadMyRequests();
-        }
-    } catch (error) {
-        console.error('Error submitting request:', error);
-        showError('Failed to submit request. Please try again.');
-    }
-}
-
-// LEAVE APPLICATION FUNCTIONS
-function loadLeaveForm() {
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-    
-    const dateInput = document.getElementById('leaveDate');
-    if (dateInput) {
-        dateInput.value = tomorrowStr;
-        dateInput.min = new Date().toISOString().split('T')[0];
-    }
-    
-    // Load user's duty times
-    loadUserDutyTimes('leaveDutyTime', tomorrowStr);
-    
-    // Clear form
-    document.getElementById('leaveType').value = 'Sick Leave';
-    document.getElementById('leaveReason').value = '';
-    
-    // Update leave rules display
-    updateLeaveRules();
-}
-
-function updateLeaveRules() {
-    const leaveType = document.getElementById('leaveType').value;
-    const leaveDate = document.getElementById('leaveDate').value;
-    const rulesContainer = document.getElementById('leaveRules');
-    
-    if (!rulesContainer) return;
-    
-    let rulesHtml = '<div class="alert alert-warning">';
-    
-    if (leaveType === 'Sick Leave') {
-        rulesHtml += '<strong>Sick Leave Rules:</strong><br>';
-        rulesHtml += '• Requires medical certificate if more than 2 days<br>';
-        rulesHtml += '• Maximum 12 days per year<br>';
-        rulesHtml += '• Cannot be taken on weekends unless emergency';
-    } else {
-        rulesHtml += '<strong>Family Responsibility Leave Rules:</strong><br>';
-        rulesHtml += '• Maximum 6 days per year<br>';
-        rulesHtml += '• Requires proof of family event<br>';
-        rulesHtml += '• 24-hour notice required';
-    }
-    
-    // Add date-specific rules
-    if (leaveDate) {
-        const date = new Date(leaveDate);
-        const dayOfWeek = date.getDay();
-        
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            rulesHtml += '<br>• <span class="text-danger">Weekend leave requires supervisor approval</span>';
-        }
-    }
-    
-    rulesHtml += '</div>';
-    rulesContainer.innerHTML = rulesHtml;
-}
-
-async function submitLeaveApplication() {
-    if (!currentUser) {
-        showError('Please login first');
-        return;
-    }
-    
-    const date = document.getElementById('leaveDate').value;
-    const currentDuty = document.getElementById('leaveDutyTime').value;
-    const leaveType = document.getElementById('leaveType').value;
-    const reason = document.getElementById('leaveReason').value.trim();
-    
-    if (!date || !currentDuty || !reason) {
-        showError('Please fill all fields');
-        return;
-    }
-    
-    // Check if date is in the past
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-        showError('Cannot apply for leave on past dates');
-        return;
-    }
-    
-    // Check user's leave balance
-    const userBalance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-    const leaveTypeKey = leaveType === 'Sick Leave' ? 'SL' : 'FRL';
-    
-    if (userBalance[leaveTypeKey] <= 0) {
-        showError(`Insufficient ${leaveType} balance`);
-        return;
-    }
-    
-    // Check for existing pending leave request for same date
-    const existingRequest = allRequests.find(req => 
-        req.fromUsername === currentUser.username &&
-        req.date === date &&
-        req.status === 'pending' &&
-        req.type === 'leave'
-    );
-    
-    if (existingRequest) {
-        showError('You already have a pending leave request for this date');
-        return;
-    }
-    
-    // Check if already on approved leave for this date
-    const approvedLeave = allRequests.find(req => 
-        req.fromUsername === currentUser.username &&
-        req.date === date &&
-        req.status === 'approved' &&
-        req.type === 'leave'
-    );
-    
-    if (approvedLeave) {
-        showError('You already have approved leave for this date');
-        return;
-    }
-    
-    // Create request object
-    const request = {
-        id: Date.now().toString(),
-        type: 'leave',
-        fromUsername: currentUser.username,
-        fromName: currentUser.name,
-        date: date,
-        leaveType: leaveType,
-        reason: reason,
-        status: 'pending',
-        timestamp: new Date().toISOString()
-    };
-    
-    // Add to requests array
-    allRequests.unshift(request);
-    
-    try {
-        await saveAllRequests();
-        
-        // Clear form
-        document.getElementById('leaveApplicationForm').reset();
-        
-        // Show success message
-        alert('Leave application submitted successfully!');
-        
-        // Reload requests if on that section
-        if (document.getElementById('myRequestsSection').classList.contains('active')) {
-            loadMyRequests();
-        }
-    } catch (error) {
-        console.error('Error submitting leave application:', error);
-        showError('Failed to submit leave application. Please try again.');
-    }
-}
-
-// MY REQUESTS FUNCTIONS
-function loadMyRequests() {
-    const container = document.getElementById('myRequestsContainer');
-    if (!container) return;
-    
-    // Filter requests for current user
-    const userRequests = allRequests.filter(req => 
-        req.fromUsername === currentUser.username
-    ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    if (userRequests.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No requests found.</div>';
-        return;
-    }
-    
-    // Create table for desktop, cards for mobile
-    let html = '';
-    
-    if (window.innerWidth > 768) {
-        html = '<div class="table-responsive"><table class="table table-striped">';
-        html += '<thead><tr>';
-        html += '<th>Date</th>';
-        html += '<th>Type</th>';
-        html += '<th>Details</th>';
-        html += '<th>Status</th>';
-        html += '<th>Date Submitted</th>';
-        html += '<th>Actions</th>';
-        html += '</tr></thead><tbody>';
-        
-        userRequests.forEach(request => {
-            html += '<tr>';
-            html += `<td>${request.date}</td>`;
-            html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
-            
-            if (request.type === 'duty_change') {
-                html += `<td>Swap ${request.currentDuty} with ${request.toName} (${request.requestedDuty})</td>`;
-            } else {
-                html += `<td>${request.leaveType}: ${request.reason.substring(0, 50)}${request.reason.length > 50 ? '...' : ''}</td>`;
-            }
-            
-            html += `<td><span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></td>`;
-            
-            const requestDate = new Date(request.timestamp);
-            html += `<td>${requestDate.toLocaleDateString()} ${requestDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
-            
-            html += '<td>';
-            if (request.status === 'pending') {
-                html += `<button class="btn btn-sm btn-danger" onclick="cancelRequest('${request.id}')">Cancel</button>`;
-            } else if (request.status === 'approved' && request.type === 'duty_change') {
-                html += `<button class="btn btn-sm btn-info" onclick="viewSwapDetails('${request.id}')">Details</button>`;
-            }
-            html += '</td>';
-            
-            html += '</tr>';
-        });
-        
-        html += '</tbody></table></div>';
-    } else {
-        // Mobile view - cards
-        html = '<div class="requests-mobile">';
-        
-        userRequests.forEach(request => {
-            const requestDate = new Date(request.timestamp);
-            const formattedDate = requestDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-            
-            html += '<div class="request-card">';
-            html += '<div class="request-header">';
-            html += `<span class="request-type">${request.type === 'duty_change' ? '🔀 Duty Change' : '🏖️ Leave'}</span>`;
-            html += `<span class="request-date">${formattedDate}</span>`;
-            html += '</div>';
-            
-            html += '<div class="request-body">';
-            html += `<p><strong>Date:</strong> ${request.date}</p>`;
-            
-            if (request.type === 'duty_change') {
-                html += `<p><strong>Swap:</strong> ${request.currentDuty} ↔ ${request.toName}</p>`;
-                html += `<p><strong>To:</strong> ${request.requestedDuty}</p>`;
-            } else {
-                html += `<p><strong>Type:</strong> ${request.leaveType}</p>`;
-                html += `<p><strong>Reason:</strong> ${request.reason.substring(0, 60)}${request.reason.length > 60 ? '...' : ''}</p>`;
-            }
-            
-            html += `<p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></p>`;
-            html += '</div>';
-            
-            html += '<div class="request-actions">';
-            if (request.status === 'pending') {
-                html += `<button class="btn btn-sm btn-danger btn-block" onclick="cancelRequest('${request.id}')">Cancel Request</button>`;
-            } else if (request.status === 'approved' && request.type === 'duty_change') {
-                html += `<button class="btn btn-sm btn-info btn-block" onclick="viewSwapDetails('${request.id}')">View Details</button>`;
-            }
-            html += '</div>';
-            
-            html += '</div>';
-        });
-        
-        html += '</div>';
-    }
-    
-    container.innerHTML = html;
-}
-
-function getStatusBadgeClass(status) {
-    switch(status) {
-        case 'pending': return 'badge-warning';
-        case 'approved': return 'badge-success';
-        case 'rejected': return 'badge-danger';
-        case 'cancelled': return 'badge-secondary';
-        default: return 'badge-light';
-    }
-}
-
-async function cancelRequest(requestId) {
-    if (!confirm('Are you sure you want to cancel this request?')) {
-        return;
-    }
-    
-    const requestIndex = allRequests.findIndex(req => req.id === requestId);
-    
-    if (requestIndex === -1) {
-        showError('Request not found');
-        return;
-    }
-    
-    // Only allow cancelling pending requests
-    if (allRequests[requestIndex].status !== 'pending') {
-        showError('Only pending requests can be cancelled');
-        return;
-    }
-    
-    // Check if request belongs to current user
-    if (allRequests[requestIndex].fromUsername !== currentUser.username) {
-        showError('You can only cancel your own requests');
-        return;
-    }
-    
-    // Update status
-    allRequests[requestIndex].status = 'cancelled';
-    allRequests[requestIndex].cancelledAt = new Date().toISOString();
-    
-    try {
-        await saveAllRequests();
-        loadMyRequests();
-        showUserNotification('Request cancelled successfully');
-    } catch (error) {
-        console.error('Error cancelling request:', error);
-        showError('Failed to cancel request');
-    }
-}
-
-function viewSwapDetails(requestId) {
-    const request = allRequests.find(req => req.id === requestId);
-    
-    if (!request) {
-        showError('Request not found');
-        return;
-    }
-    
-    let details = `<strong>Duty Change Details:</strong><br><br>`;
-    details += `<strong>Date:</strong> ${request.date}<br>`;
-    details += `<strong>Your Original Duty:</strong> ${request.currentDuty}<br>`;
-    details += `<strong>Swapping With:</strong> ${request.toName}<br>`;
-    details += `<strong>You Will Work:</strong> ${request.requestedDuty}<br>`;
-    details += `<strong>They Will Work:</strong> ${request.currentDuty}<br>`;
-    details += `<strong>Reason:</strong> ${request.reason}<br>`;
-    details += `<strong>Approved By:</strong> ${request.approvedBy || 'Supervisor'}<br>`;
-    details += `<strong>Approved At:</strong> ${request.approvedAt ? new Date(request.approvedAt).toLocaleString() : 'N/A'}`;
-    
-    alert(details);
-}
-
-// VIEW MY ROSTER FUNCTIONS
-function loadMyRoster() {
-    const monthInput = document.getElementById('myRosterMonth').value;
-    if (!monthInput) return;
-    
-    const [year, month] = monthInput.split('-').map(Number);
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0); // Last day of month
-    
-    const container = document.getElementById('myRosterContainer');
-    if (!container) return;
-    
-    // Create table
-    let html = `<h4 class="text-center mb-3">${getMonthName(month)} ${year}</h4>`;
-    
-    html += '<div class="table-responsive"><table class="table table-bordered table-striped">';
-    html += '<thead class="thead-dark"><tr>';
-    html += '<th>Date</th>';
-    html += '<th>Day</th>';
-    html += '<th>Duty Time</th>';
-    html += '<th>Status</th>';
-    html += '</tr></thead><tbody>';
-    
-    const today = new Date().toISOString().split('T')[0];
-    
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
-        const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-        const isToday = dateStr === today;
-        const isPast = d < new Date(today);
-        
-        let dutyTime = 'Not Scheduled';
-        let cellClass = '';
-        let leaveIndicator = '';
-        
-        // Check for approved leave
-        const approvedLeave = allRequests.find(req => 
-            req.fromUsername === currentUser.username &&
-            req.type === 'leave' &&
-            req.status === 'approved' &&
-            req.date === dateStr
-        );
-        
-        if (approvedLeave) {
-            dutyTime = 'Leave';
-            cellClass = 'duty-leave';
-            leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
-        } else if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-            dutyTime = dutyRoster[dateStr][currentUser.username];
-            cellClass = getDutyTimeClass(dutyTime);
-        } else {
-            cellClass = 'off-day-cell';
-            dutyTime = 'Off';
-        }
-        
-        if (isToday) {
-            cellClass += ' today-cell';
-        }
-        
-        html += `<tr ${isToday ? 'class="table-warning"' : ''}>`;
-        html += `<td><strong>${dateStr}</strong>${isToday ? ' <span class="badge badge-info">Today</span>' : ''}</td>`;
-        html += `<td>${dayName}</td>`;
-        html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
-        
-        let statusText = '';
-        if (isPast) {
-            statusText = '<span class="badge badge-secondary">Completed</span>';
-        } else if (isToday) {
-            statusText = '<span class="badge badge-primary">Today</span>';
-        } else if (approvedLeave) {
-            statusText = '<span class="badge badge-success">Leave Approved</span>';
-        } else if (dutyTime === 'Off') {
-            statusText = '<span class="badge badge-info">Off Day</span>';
-        } else {
-            statusText = '<span class="badge badge-light">Scheduled</span>';
-        }
-        
-        html += `<td>${statusText}</td>`;
-        html += '</tr>';
-    }
-    
-    html += '</tbody></table></div>';
-    
-    // Add duty time legend
-    html += getDutyTimeLegend();
-    
-    container.innerHTML = html;
-}
-
-function getMonthName(month) {
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[month - 1];
-}
-
-// VIEW ALL ROSTER FUNCTIONS
-function loadAllRoster() {
-    const startDate = document.getElementById('allRosterStartDate').value;
-    const endDate = document.getElementById('allRosterEndDate').value;
-    
-    if (!startDate || !endDate) {
-        showError('Please select both start and end dates');
-        return;
-    }
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (start > end) {
-        showError('Start date must be before end date');
-        return;
-    }
-    
-    // Limit date range for mobile performance
-    const maxDays = window.innerWidth <= 768 ? 14 : 31;
-    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff > maxDays) {
-        if (window.innerWidth <= 768) {
-            alert(`For mobile devices, maximum ${maxDays} days allowed. Showing first ${maxDays} days.`);
-            end.setDate(start.getDate() + maxDays - 1);
-            document.getElementById('allRosterEndDate').value = end.toISOString().split('T')[0];
-        }
-    }
-    
-    const year = start.getFullYear();
-    const month = start.getMonth() + 1;
-    
-    const container = document.getElementById('allRosterContainer');
-    container.innerHTML = displayAllRosterTable(start, end, year, month);
-}
-
-function displayAllRosterTable(startDate, endDate, year, month) {
-    const today = new Date().toISOString().split('T')[0];
-    let html = `<h4>${getMonthName(month)} ${year}</h4>`;
-    html += `<p class="text-muted">${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}</p>`;
-    
-    // Mobile view - simplified table
-    if (window.innerWidth <= 768) {
-        html += '<div class="table-container-mobile">';
-        
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-            const isToday = dateStr === today;
-            
-            html += '<div class="roster-day-card">';
-            html += `<div class="roster-day-header ${isToday ? 'today-header' : ''}">`;
-            html += `<span class="roster-date">${dateStr}</span>`;
-            html += `<span class="roster-day">${dayName} ${isToday ? ' (Today)' : ''}</span>`;
-            html += '</div>';
-            
-            html += '<div class="roster-day-body">';
-            
-            // Show staff and duties for this day
-            allUsers.forEach(user => {
-                if (user.Level === 'User') {
-                    let dutyTime = 'Off';
-                    let cellClass = 'off-day-cell';
-                    let leaveIndicator = '';
-                    
-                    // Check for approved leave
-                    const approvedLeave = allRequests.find(req => 
-                        req.fromUsername === user.username &&
-                        req.type === 'leave' &&
-                        req.status === 'approved' &&
-                        req.date === dateStr
-                    );
-                    
-                    if (approvedLeave) {
-                        dutyTime = 'Leave';
-                        cellClass = 'duty-leave';
-                        leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
-                    } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                        dutyTime = dutyRoster[dateStr][user.username];
-                        cellClass = getDutyTimeClass(dutyTime);
-                    }
-                    
-                    html += '<div class="roster-staff-row">';
-                    html += `<span class="roster-staff-name">${user.name}</span>`;
-                    html += `<span class="roster-duty-time ${cellClass}">${dutyTime} ${leaveIndicator}</span>`;
-                    html += '</div>';
-                }
-            });
-            
-            html += '</div>';
-            html += '</div>';
-        }
-        
-        html += '</div>';
-    } else {
-        // Desktop view - full table
-        html += '<div class="table-container"><table class="table table-bordered">';
-        html += '<thead><tr><th>Date</th><th>Day</th>';
-        
-        // Add staff headers
-        allUsers.forEach(user => {
-            if (user.Level === 'User') {
-                html += `<th class="staff-name">${user.name}<br><small>${user.RCNo}</small></th>`;
-            }
-        });
-        
-        html += '</tr></thead><tbody>';
-        
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-            const isToday = dateStr === today;
-            
-            html += `<tr ${isToday ? 'class="table-warning"' : ''}>`;
-            html += `<td><strong>${dateStr}</strong>${isToday ? ' <span class="badge badge-info">Today</span>' : ''}</td>`;
-            html += `<td>${dayName}</td>`;
-            
-            // Add duty times for each staff
-            allUsers.forEach(user => {
-                if (user.Level === 'User') {
-                    let dutyTime = 'Off';
-                    let cellClass = 'off-day-cell';
-                    let leaveIndicator = '';
-                    
-                    // Check for approved leave
-                    const approvedLeave = allRequests.find(req => 
-                        req.fromUsername === user.username &&
-                        req.type === 'leave' &&
-                        req.status === 'approved' &&
-                        req.date === dateStr
-                    );
-                    
-                    if (approvedLeave) {
-                        dutyTime = 'Leave';
-                        cellClass = 'duty-leave';
-                        leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
-                    } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                        dutyTime = dutyRoster[dateStr][user.username];
-                        cellClass = getDutyTimeClass(dutyTime);
-                    }
-                    
-                    if (isToday) {
-                        cellClass += ' today-cell';
-                    }
-                    
-                    html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
-                }
-            });
-            
-            html += '</tr>';
-        }
-        
-        html += '</tbody></table></div>';
-    }
-    
-    // Add duty time legend
-    html += getDutyTimeLegend();
-    
-    return html;
-}
-
-function getDutyTimeLegend() {
-    return `
-        <div class="duty-legend">
-            <h5>Duty Time Legend:</h5>
-            <div class="legend-items">
-                <span class="legend-item"><span class="color-box duty-0730-1530"></span> 0730-1530</span>
-                <span class="legend-item"><span class="color-box duty-0830-1630"></span> 0830-1630</span>
-                <span class="legend-item"><span class="color-box duty-1030-1830"></span> 1030-1830</span>
-                <span class="legend-item"><span class="color-box duty-1530-2330"></span> 1530-2330</span>
-                <span class="legend-item"><span class="color-box duty-1630-0030"></span> 1630-0030</span>
-                <span class="legend-item"><span class="color-box duty-leave"></span> Leave</span>
-                <span class="legend-item"><span class="color-box off-day-cell"></span> Off Day</span>
-            </div>
-        </div>
-    `;
-}
-
-function printAllRoster() {
-    const originalContent = document.getElementById('allRosterContainer').innerHTML;
-    const printWindow = window.open('', '_blank');
-    
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Duty Roster Report</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
-                table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 10px; }
-                th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
-                th { background-color: #f2f2f2; font-weight: bold; }
-                .leave-indicator { background-color: #ffeaa7; padding: 1px 3px; border-radius: 2px; font-size: 8px; }
-                h3 { color: #2c3e50; margin-bottom: 5px; }
-                .print-header { margin-bottom: 15px; }
-                .duty-0730-1530 { background-color: #a3e4d7 !important; }
-                .duty-0830-1630 { background-color: #aed6f1 !important; }
-                .duty-1030-1830 { background-color: #f9e79f !important; }
-                .duty-1530-2330 { background-color: #d5dbdb !important; }
-                .duty-1630-0030 { background-color: #f1948a !important; }
-                .duty-leave { background-color: #82e0aa !important; }
-                .off-day-cell { background-color: #f8f9fa !important; }
-                @media print {
-                    body { margin: 0; padding: 10px; }
-                    table { font-size: 8px; }
-                    .no-print { display: none; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="print-header">
-                <h3>Duty Roster Report</h3>
-                <p>Generated on: ${new Date().toLocaleString()}</p>
-                <p>Generated by: ${currentUser.name} (${currentUser.rcNo})</p>
-            </div>
-            ${originalContent}
-            <div class="no-print">
-                <p><em>Report generated from Duty Management System</em></p>
-            </div>
-        </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-    
-    // Wait for content to load before printing
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
-}
-
-// ADMIN PENDING REQUESTS
-function loadPendingRequests() {
-    if (currentUser.level !== 'Supervisor') {
-        document.getElementById('pendingRequestsContainer').innerHTML = 
-            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
-        return;
-    }
-    
-    const container = document.getElementById('pendingRequestsContainer');
-    if (!container) return;
-    
-    // Filter pending requests
-    const pendingRequests = allRequests.filter(req => req.status === 'pending');
-    
-    if (pendingRequests.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No pending requests.</div>';
-        updateRequestCounts();
-        return;
-    }
-    
-    let html = '';
-    
-    if (window.innerWidth > 768) {
-        html = '<div class="table-responsive"><table class="table table-striped">';
-        html += '<thead><tr>';
-        html += '<th>Date</th>';
-        html += '<th>Staff</th>';
-        html += '<th>Type</th>';
-        html += '<th>Details</th>';
-        html += '<th>Submitted</th>';
-        html += '<th>Actions</th>';
-        html += '</tr></thead><tbody>';
-        
-        pendingRequests.forEach(request => {
-            html += '<tr>';
-            html += `<td>${request.date}</td>`;
-            html += `<td>${request.fromName} (${request.fromUsername})</td>`;
-            html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
-            
-            if (request.type === 'duty_change') {
-                html += `<td>Swap ${request.currentDuty} with ${request.toName} (${request.requestedDuty})<br>`;
-                html += `<small>Reason: ${request.reason}</small></td>`;
-            } else {
-                html += `<td>${request.leaveType}<br>`;
-                html += `<small>Reason: ${request.reason}</small></td>`;
-            }
-            
-            const requestDate = new Date(request.timestamp);
-            html += `<td>${requestDate.toLocaleDateString()} ${requestDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
-            
-            html += '<td>';
-            html += `<button class="btn btn-sm btn-success" onclick="approveRequest('${request.id}')">Approve</button> `;
-            html += `<button class="btn btn-sm btn-danger" onclick="rejectRequest('${request.id}')">Reject</button>`;
-            
-            if (request.type === 'leave') {
-                const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
-                const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
-                html += `<br><small>Balance: ${userBalance[leaveTypeKey]} days</small>`;
-            }
-            html += '</td>';
-            
-            html += '</tr>';
-        });
-        
-        html += '</tbody></table></div>';
-    } else {
-        // Mobile view - cards
-        html = '<div class="pending-requests-mobile">';
-        
-        pendingRequests.forEach(request => {
-            const requestDate = new Date(request.timestamp);
-            const formattedDate = requestDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            html += '<div class="pending-request-card">';
-            html += '<div class="pending-request-header">';
-            html += `<span class="request-type">${request.type === 'duty_change' ? '🔀 Duty Change' : '🏖️ Leave'}</span>`;
-            html += `<span class="request-date">${formattedDate}</span>`;
-            html += '</div>';
-            
-            html += '<div class="pending-request-body">';
-            html += `<p><strong>Staff:</strong> ${request.fromName}</p>`;
-            html += `<p><strong>Date:</strong> ${request.date}</p>`;
-            
-            if (request.type === 'duty_change') {
-                html += `<p><strong>Swap:</strong> ${request.currentDuty} ↔ ${request.toName}</p>`;
-                html += `<p><strong>To:</strong> ${request.requestedDuty}</p>`;
-            } else {
-                html += `<p><strong>Type:</strong> ${request.leaveType}</p>`;
-                const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
-                const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
-                html += `<p><strong>Balance:</strong> ${userBalance[leaveTypeKey]} days</p>`;
-            }
-            
-            html += `<p><strong>Reason:</strong> ${request.reason}</p>`;
-            html += '</div>';
-            
-            html += '<div class="pending-request-actions">';
-            html += `<button class="btn btn-success btn-sm" onclick="approveRequest('${request.id}')">Approve</button>`;
-            html += `<button class="btn btn-danger btn-sm" onclick="rejectRequest('${request.id}')">Reject</button>`;
-            html += '</div>';
-            
-            html += '</div>';
-        });
-        
-        html += '</div>';
-    }
-    
-    container.innerHTML = html;
-    updateRequestCounts();
-}
-
-async function approveRequest(requestId) {
-    if (currentUser.level !== 'Supervisor') {
-        showError('Supervisor privileges required');
-        return;
-    }
-    
-    const requestIndex = allRequests.findIndex(req => req.id === requestId);
-    
-    if (requestIndex === -1) {
-        showError('Request not found');
-        return;
-    }
-    
-    const request = allRequests[requestIndex];
-    
-    // Process based on request type
-    if (request.type === 'duty_change') {
-        // Check if both staff are still scheduled for their respective duties
-        if (!dutyRoster[request.date] || 
-            !dutyRoster[request.date][request.fromUsername] ||
-            !dutyRoster[request.date][request.toUsername]) {
-            showError('One or both staff are not scheduled for duty on this date');
-            return;
-        }
-        
-        // Swap duties
-        const tempDuty = dutyRoster[request.date][request.fromUsername];
-        dutyRoster[request.date][request.fromUsername] = dutyRoster[request.date][request.toUsername];
-        dutyRoster[request.date][request.toUsername] = tempDuty;
-        
-        try {
-            await saveDutyRoster();
-        } catch (error) {
-            console.error('Error updating duty roster:', error);
-            showError('Failed to update duty roster');
-            return;
-        }
-        
-    } else if (request.type === 'leave') {
-        // Check leave balance
-        const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
-        const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
-        
-        if (userBalance[leaveTypeKey] <= 0) {
-            showError('Staff has insufficient leave balance');
-            return;
-        }
-        
-        // Deduct leave balance
-        userBalance[leaveTypeKey] -= 1;
-        leaveBalances[request.fromUsername] = userBalance;
-        
-        try {
-            await saveLeaveBalances();
-        } catch (error) {
-            console.error('Error updating leave balance:', error);
-            showError('Failed to update leave balance');
-            return;
-        }
-    }
-    
-    // Update request status
-    allRequests[requestIndex].status = 'approved';
-    allRequests[requestIndex].approvedBy = currentUser.name;
-    allRequests[requestIndex].approvedAt = new Date().toISOString();
-    
-    try {
-        await saveAllRequests();
-        
-        // Reload pending requests
-        loadPendingRequests();
-        
-        // Show success message
-        showUserNotification(`${request.type === 'duty_change' ? 'Duty change' : 'Leave'} approved for ${request.fromName}`);
-        
-        // Refresh affected sections
-        if (document.getElementById('viewMyRosterSection').classList.contains('active')) {
-            loadMyRoster();
-        }
-        if (document.getElementById('viewAllRosterSection').classList.contains('active')) {
-            loadAllRoster();
-        }
-        
-    } catch (error) {
-        console.error('Error approving request:', error);
-        showError('Failed to approve request');
-    }
-}
-
-async function rejectRequest(requestId) {
-    if (currentUser.level !== 'Supervisor') {
-        showError('Supervisor privileges required');
-        return;
-    }
-    
-    const reason = prompt('Please enter reason for rejection:');
-    if (!reason) return;
-    
-    const requestIndex = allRequests.findIndex(req => req.id === requestId);
-    
-    if (requestIndex === -1) {
-        showError('Request not found');
-        return;
-    }
-    
-    // Update request status
-    allRequests[requestIndex].status = 'rejected';
-    allRequests[requestIndex].rejectedBy = currentUser.name;
-    allRequests[requestIndex].rejectedAt = new Date().toISOString();
-    allRequests[requestIndex].rejectionReason = reason;
-    
-    try {
-        await saveAllRequests();
-        
-        // Reload pending requests
-        loadPendingRequests();
-        
-        // Show success message
-        showUserNotification(`Request rejected for ${allRequests[requestIndex].fromName}`);
-        
-    } catch (error) {
-        console.error('Error rejecting request:', error);
-        showError('Failed to reject request');
-    }
-}
-
-// ADMIN ANNOUNCEMENTS
-function loadAnnouncementsAdmin() {
-    if (currentUser.level !== 'Supervisor') {
-        document.getElementById('adminAnnouncementsContainer').innerHTML = 
-            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
-        return;
-    }
-    
-    const container = document.getElementById('announcementsList');
-    if (!container) return;
-    
     // Sort announcements by date (newest first)
-    const sortedAnnouncements = announcements.sort((a, b) => 
-        new Date(b.timestamp) - new Date(a.timestamp)
+    const sortedAnnouncements = [...announcements].sort((a, b) => 
+        new Date(b.timestamp || b.date || 0) - new Date(a.timestamp || a.date || 0)
     );
     
-    if (sortedAnnouncements.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No announcements yet.</div>';
-        return;
-    }
-    
     let html = '';
+    const maxDisplay = window.innerWidth <= 768 ? 3 : 5;
     
-    sortedAnnouncements.forEach((announcement, index) => {
-        const announcementDate = new Date(announcement.timestamp);
+    sortedAnnouncements.slice(0, maxDisplay).forEach(announcement => {
+        const announcementDate = new Date(announcement.timestamp || announcement.date || Date.now());
         const formattedDate = announcementDate.toLocaleDateString('en-US', {
-            year: 'numeric',
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
         
-        html += '<div class="announcement-item">';
-        html += '<div class="announcement-item-header">';
-        html += `<strong>${announcement.title}</strong>`;
-        html += `<small class="text-muted">${formattedDate} - ${announcement.postedBy}</small>`;
-        html += '</div>';
-        html += '<div class="announcement-item-body">';
-        html += announcement.message.replace(/\n/g, '<br>');
-        html += '</div>';
-        html += '<div class="announcement-item-actions">';
-        html += `<button class="btn btn-sm btn-danger" onclick="deleteAnnouncement(${index})">Delete</button>`;
-        html += '</div>';
-        html += '</div>';
+        html += `
+            <div class="announcement-card ${announcement.priority || 'medium'}">
+                <div class="announcement-title">
+                    <i class="fas fa-bullhorn"></i>
+                    ${announcement.title || 'Announcement'}
+                </div>
+                <div class="announcement-content">
+                    ${(announcement.message || announcement.content || '').replace(/\n/g, '<br>')}
+                </div>
+                <div class="announcement-meta">
+                    <span>${formattedDate}</span>
+                    <span>${announcement.postedBy || 'Admin'}</span>
+                </div>
+            </div>
+        `;
     });
     
     container.innerHTML = html;
-}
-
-async function createAnnouncement() {
-    if (currentUser.level !== 'Supervisor') {
-        showError('Supervisor privileges required');
-        return;
-    }
-    
-    const title = document.getElementById('announcementTitle').value.trim();
-    const message = document.getElementById('announcementMessage').value.trim();
-    
-    if (!title || !message) {
-        showError('Please enter both title and message');
-        return;
-    }
-    
-    const announcement = {
-        id: Date.now().toString(),
-        title: title,
-        message: message,
-        postedBy: currentUser.name,
-        timestamp: new Date().toISOString()
-    };
-    
-    announcements.unshift(announcement);
-    
-    try {
-        await saveAnnouncements();
-        
-        // Clear form
-        document.getElementById('announcementForm').reset();
-        
-        // Reload announcements
-        loadAnnouncementsAdmin();
-        if (document.getElementById('homeSection').classList.contains('active')) {
-            loadHomeAnnouncements();
-        }
-        
-        // Show success message
-        alert('Announcement posted successfully!');
-        
-    } catch (error) {
-        console.error('Error creating announcement:', error);
-        showError('Failed to create announcement');
-    }
-}
-
-async function deleteAnnouncement(index) {
-    if (currentUser.level !== 'Supervisor') {
-        showError('Supervisor privileges required');
-        return;
-    }
-    
-    if (!confirm('Are you sure you want to delete this announcement?')) {
-        return;
-    }
-    
-    announcements.splice(index, 1);
-    
-    try {
-        await saveAnnouncements();
-        
-        // Reload announcements
-        loadAnnouncementsAdmin();
-        if (document.getElementById('homeSection').classList.contains('active')) {
-            loadHomeAnnouncements();
-        }
-        
-        showUserNotification('Announcement deleted');
-        
-    } catch (error) {
-        console.error('Error deleting announcement:', error);
-        showError('Failed to delete announcement');
-    }
-}
-
-// ADMIN DUTY ROSTER MANAGEMENT
-function loadDutyRosterAdmin() {
-    if (currentUser.level !== 'Supervisor') {
-        document.getElementById('adminDutyRosterContainer').innerHTML = 
-            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
-        return;
-    }
-    
-    const dateInput = document.getElementById('rosterDate');
-    if (!dateInput.value) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
-    }
-    
-    loadRosterForDate(dateInput.value);
-}
-
-async function loadRosterForDate(date) {
-    if (!date) return;
-    
-    const container = document.getElementById('rosterEntryContainer');
-    if (!container) return;
-    
-    let html = '';
-    
-    // Get duty times for this date
-    const dateDuties = dutyRoster[date] || {};
-    
-    allUsers.forEach(user => {
-        if (user.Level === 'User') {
-            const currentDuty = dateDuties[user.username] || 'Off';
-            
-            html += '<div class="roster-entry-row">';
-            html += `<div class="roster-entry-user">${user.name} (${user.RCNo})</div>`;
-            html += '<div class="roster-entry-duty">';
-            html += `<select class="form-control duty-time-select" data-username="${user.username}" data-date="${date}">`;
-            
-            // Add options
-            const options = ['Off', '0730-1530', '0830-1630', '1030-1830', '1530-2330', '1630-0030', '1730-0130'];
-            options.forEach(option => {
-                const selected = option === currentDuty ? 'selected' : '';
-                html += `<option value="${option}" ${selected}>${option}</option>`;
-            });
-            
-            // Add custom duty times if present
-            if (currentDuty && !options.includes(currentDuty)) {
-                html += `<option value="${currentDuty}" selected>${currentDuty}</option>`;
-            }
-            
-            html += `<option value="custom">Custom Time...</option>`;
-            html += '</select>';
-            html += '</div>';
-            html += '</div>';
-        }
-    });
-    
-    container.innerHTML = html;
-    
-    // Add event listeners to selects
-    document.querySelectorAll('.duty-time-select').forEach(select => {
-        select.addEventListener('change', async function() {
-            const username = this.getAttribute('data-username');
-            const date = this.getAttribute('data-date');
-            const value = this.value;
-            
-            if (value === 'custom') {
-                const customTime = prompt('Enter custom duty time (e.g., 0900-1700):');
-                if (customTime) {
-                    await updateDutyRoster(date, username, customTime);
-                    this.innerHTML = ''; // Will be regenerated
-                    loadRosterForDate(date);
-                } else {
-                    this.value = 'Off';
-                }
-            } else {
-                await updateDutyRoster(date, username, value);
-            }
-        });
-    });
-}
-
-async function updateDutyRoster(date, username, dutyTime) {
-    if (!dutyRoster[date]) {
-        dutyRoster[date] = {};
-    }
-    
-    dutyRoster[date][username] = dutyTime;
-    
-    try {
-        await saveDutyRoster();
-        showUserNotification(`Duty updated for ${username} on ${date}`);
-    } catch (error) {
-        console.error('Error updating duty roster:', error);
-        showError('Failed to update duty roster');
-    }
-}
-
-async function saveRosterDate() {
-    const date = document.getElementById('rosterDate').value;
-    if (!date) {
-        showError('Please select a date');
-        return;
-    }
-    
-    try {
-        await saveDutyRoster();
-        alert('Duty roster saved successfully!');
-    } catch (error) {
-        console.error('Error saving duty roster:', error);
-        showError('Failed to save duty roster');
-    }
-}
-
-// ADMIN LEAVE BALANCE MANAGEMENT
-function loadLeaveBalanceAdmin() {
-    if (currentUser.level !== 'Supervisor') {
-        document.getElementById('adminLeaveBalanceContainer').innerHTML = 
-            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
-        return;
-    }
-    
-    const container = document.getElementById('leaveBalanceContainer');
-    if (!container) return;
-    
-    let html = '<div class="table-responsive"><table class="table table-striped">';
-    html += '<thead><tr>';
-    html += '<th>Staff Name</th>';
-    html += '<th>RC No</th>';
-    html += '<th>Sick Leave (SL)</th>';
-    html += '<th>Family Responsibility Leave (FRL)</th>';
-    html += '<th>Actions</th>';
-    html += '</tr></thead><tbody>';
-    
-    allUsers.forEach(user => {
-        if (user.Level === 'User') {
-            const balance = leaveBalances[user.username] || {SL: 0, FRL: 0};
-            
-            html += '<tr>';
-            html += `<td>${user.name}</td>`;
-            html += `<td>${user.RCNo}</td>`;
-            html += `<td><input type="number" step="0.5" min="0" max="30" class="form-control leave-balance-input" 
-                     data-username="${user.username}" data-type="SL" value="${balance.SL}" 
-                     onchange="updateLeaveBalance('${user.username}', 'SL', this.value)"></td>`;
-            html += `<td><input type="number" step="0.5" min="0" max="30" class="form-control leave-balance-input" 
-                     data-username="${user.username}" data-type="FRL" value="${balance.FRL}" 
-                     onchange="updateLeaveBalance('${user.username}', 'FRL', this.value)"></td>`;
-            html += '<td>';
-            html += `<button class="btn btn-sm btn-info" onclick="adjustLeaveBalance('${user.username}')">Adjust</button>`;
-            html += '</td>';
-            html += '</tr>';
-        }
-    });
-    
-    html += '</tbody></table></div>';
-    
-    // Add leave history section
-    html += '<div class="mt-4">';
-    html += '<h5>Leave History</h5>';
-    html += '<div id="leaveHistory" class="table-responsive"></div>';
-    html += '</div>';
-    
-    container.innerHTML = html;
-    
-    // Load leave history
-    loadLeaveHistory();
-}
-
-async function updateLeaveBalance(username, type, value) {
-    const numValue = parseFloat(value);
-    
-    if (isNaN(numValue) || numValue < 0) {
-        showError('Please enter a valid positive number');
-        return;
-    }
-    
-    if (!leaveBalances[username]) {
-        leaveBalances[username] = {SL: 0, FRL: 0};
-    }
-    
-    leaveBalances[username][type] = numValue;
-    
-    try {
-        await saveLeaveBalances();
-        showUserNotification(`${type} balance updated for ${username}`);
-    } catch (error) {
-        console.error('Error updating leave balance:', error);
-        showError('Failed to update leave balance');
-    }
-}
-
-function adjustLeaveBalance(username) {
-    const user = allUsers.find(u => u.username === username);
-    if (!user) return;
-    
-    const balance = leaveBalances[username] || {SL: 0, FRL: 0};
-    
-    let adjustment = prompt(`Adjust leave balance for ${user.name}:\n\nCurrent SL: ${balance.SL}\nCurrent FRL: ${balance.FRL}\n\nEnter adjustment (e.g., "+2" or "-1.5" for SL, or "FRL:+3" for FRL):`);
-    
-    if (!adjustment) return;
-    
-    let type = 'SL';
-    let amount = adjustment.trim();
-    
-    // Check if specific type is mentioned
-    if (amount.toUpperCase().includes('FRL')) {
-        type = 'FRL';
-        amount = amount.replace(/[^0-9.\+\-]/g, '');
-    } else {
-        amount = amount.replace(/[^0-9.\+\-]/g, '');
-    }
-    
-    if (!amount.match(/^[+\-]?\d+(\.\d+)?$/)) {
-        showError('Invalid adjustment format. Use "+2", "-1.5", "FRL:+3", etc.');
-        return;
-    }
-    
-    const currentBalance = balance[type] || 0;
-    const newBalance = currentBalance + parseFloat(amount);
-    
-    if (newBalance < 0) {
-        showError('Cannot set negative leave balance');
-        return;
-    }
-    
-    updateLeaveBalance(username, type, newBalance.toString());
-}
-
-function loadLeaveHistory() {
-    const container = document.getElementById('leaveHistory');
-    if (!container) return;
-    
-    // Get all approved leave requests
-    const leaveRequests = allRequests.filter(req => 
-        req.type === 'leave' && req.status === 'approved'
-    ).sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    if (leaveRequests.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No leave history found.</div>';
-        return;
-    }
-    
-    let html = '<table class="table table-sm">';
-    html += '<thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Approved By</th><th>Balance After</th></tr></thead>';
-    html += '<tbody>';
-    
-    leaveRequests.forEach(request => {
-        const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
-        const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
-        
-        html += '<tr>';
-        html += `<td>${request.date}</td>`;
-        html += `<td>${request.fromName}</td>`;
-        html += `<td>${request.leaveType}</td>`;
-        html += `<td>${request.approvedBy || 'N/A'}</td>`;
-        html += `<td>${leaveTypeKey}: ${userBalance[leaveTypeKey]}</td>`;
-        html += '</tr>';
-    });
-    
-    html += '</tbody></table>';
-    
-    container.innerHTML = html;
-}
-
-// ADMIN APPROVALS HISTORY
-function loadAdminApprovals() {
-    if (currentUser.level !== 'Supervisor') {
-        document.getElementById('adminApprovalsContainer').innerHTML = 
-            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
-        return;
-    }
-    
-    const container = document.getElementById('approvalsHistoryContainer');
-    if (!container) return;
-    
-    // Get all approved/rejected requests
-    const processedRequests = allRequests.filter(req => 
-        req.status === 'approved' || req.status === 'rejected'
-    ).sort((a, b) => {
-        const dateA = a.approvedAt || a.rejectedAt || a.timestamp;
-        const dateB = b.approvedAt || b.rejectedAt || b.timestamp;
-        return new Date(dateB) - new Date(dateA);
-    });
-    
-    if (processedRequests.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No approval history found.</div>';
-        return;
-    }
-    
-    let html = '<div class="table-responsive"><table class="table table-striped">';
-    html += '<thead><tr>';
-    html += '<th>Date</th>';
-    html += '<th>Staff</th>';
-    html += '<th>Type</th>';
-    html += '<th>Details</th>';
-    html += '<th>Status</th>';
-    html += '<th>Processed By</th>';
-    html += '<th>Time</th>';
-    html += '</tr></thead><tbody>';
-    
-    processedRequests.forEach(request => {
-        const processedBy = request.approvedBy || request.rejectedBy || 'N/A';
-        const processedAt = request.approvedAt || request.rejectedAt || request.timestamp;
-        const processedDate = new Date(processedAt);
-        
-        html += '<tr>';
-        html += `<td>${request.date}</td>`;
-        html += `<td>${request.fromName}</td>`;
-        html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
-        
-        if (request.type === 'duty_change') {
-            html += `<td>Swap ${request.currentDuty} with ${request.toName}</td>`;
-        } else {
-            html += `<td>${request.leaveType}</td>`;
-        }
-        
-        html += `<td><span class="badge ${request.status === 'approved' ? 'badge-success' : 'badge-danger'}">${request.status}</span></td>`;
-        html += `<td>${processedBy}</td>`;
-        html += `<td>${processedDate.toLocaleDateString()} ${processedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
-        html += '</tr>';
-    });
-    
-    html += '</tbody></table></div>';
-    
-    container.innerHTML = html;
-}
-
-// ADMIN REQUEST HISTORY
-function loadAdminRequestHistory() {
-    if (currentUser.level !== 'Supervisor') {
-        document.getElementById('adminRequestHistoryContainer').innerHTML = 
-            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
-        return;
-    }
-    
-    const container = document.getElementById('allRequestsHistoryContainer');
-    if (!container) return;
-    
-    // Sort all requests by timestamp
-    const sortedRequests = [...allRequests].sort((a, b) => 
-        new Date(b.timestamp) - new Date(a.timestamp)
-    );
-    
-    if (sortedRequests.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No request history found.</div>';
-        return;
-    }
-    
-    let html = '';
-    
-    if (window.innerWidth > 768) {
-        html = '<div class="table-responsive"><table class="table table-striped">';
-        html += '<thead><tr>';
-        html += '<th>Date</th>';
-        html += '<th>Staff</th>';
-        html += '<th>Type</th>';
-        html += '<th>Details</th>';
-        html += '<th>Status</th>';
-        html += '<th>Submitted</th>';
-        html += '<th>Processed</th>';
-        html += '</tr></thead><tbody>';
-        
-        sortedRequests.forEach(request => {
-            const requestDate = new Date(request.timestamp);
-            const processedDate = request.approvedAt || request.rejectedAt || request.cancelledAt;
-            
-            html += '<tr>';
-            html += `<td>${request.date}</td>`;
-            html += `<td>${request.fromName}</td>`;
-            html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
-            
-            if (request.type === 'duty_change') {
-                html += `<td>Swap ${request.currentDuty} with ${request.toName}</td>`;
-            } else {
-                html += `<td>${request.leaveType}: ${request.reason.substring(0, 30)}${request.reason.length > 30 ? '...' : ''}</td>`;
-            }
-            
-            html += `<td><span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></td>`;
-            html += `<td>${requestDate.toLocaleDateString()} ${requestDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
-            
-            if (processedDate) {
-                const processed = new Date(processedDate);
-                html += `<td>${processed.toLocaleDateString()} ${processed.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
-            } else {
-                html += '<td>-</td>';
-            }
-            
-            html += '</tr>';
-        });
-        
-        html += '</tbody></table></div>';
-    } else {
-        // Mobile view - cards
-        html = '<div class="requests-history-mobile">';
-        
-        sortedRequests.forEach(request => {
-            const requestDate = new Date(request.timestamp);
-            const formattedDate = requestDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            html += '<div class="request-history-card">';
-            html += '<div class="request-history-header">';
-            html += `<span class="request-type">${request.type === 'duty_change' ? '🔀' : '🏖️'} ${request.fromName}</span>`;
-            html += `<span class="request-date">${request.date}</span>`;
-            html += '</div>';
-            
-            html += '<div class="request-history-body">';
-            
-            if (request.type === 'duty_change') {
-                html += `<p>Swap ${request.currentDuty} with ${request.toName}</p>`;
-            } else {
-                html += `<p>${request.leaveType}</p>`;
-            }
-            
-            html += `<p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></p>`;
-            html += `<p><strong>Submitted:</strong> ${formattedDate}</p>`;
-            
-            if (request.approvedBy || request.rejectedBy) {
-                const processedBy = request.approvedBy || request.rejectedBy;
-                const processedAt = request.approvedAt || request.rejectedAt;
-                const processedDate = new Date(processedAt);
-                html += `<p><strong>Processed by:</strong> ${processedBy} at ${processedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>`;
-            }
-            
-            html += '</div>';
-            html += '</div>';
-        });
-        
-        html += '</div>';
-    }
-    
-    container.innerHTML = html;
-}
-
-// UTILITY FUNCTIONS
-function updateRequestCounts() {
-    if (!currentUser) return;
-    
-    // Pending requests count for supervisor
-    if (currentUser.level === 'Supervisor') {
-        const pendingCount = allRequests.filter(req => req.status === 'pending').length;
-        const pendingBadge = document.getElementById('pendingRequestsBadge');
-        if (pendingBadge) {
-            pendingBadge.textContent = pendingCount;
-            pendingBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
-        }
-    }
-    
-    // User's pending requests count
-    const userPendingCount = allRequests.filter(req => 
-        req.fromUsername === currentUser.username && 
-        req.status === 'pending'
-    ).length;
-    
-    const myRequestsBadge = document.getElementById('myRequestsBadge');
-    if (myRequestsBadge) {
-        myRequestsBadge.textContent = userPendingCount;
-        myRequestsBadge.style.display = userPendingCount > 0 ? 'inline-block' : 'none';
-    }
-}
-
-function setupEventListeners() {
-    // Duty Change Form
-    document.getElementById('dutyChangeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitDutyChange();
-    });
-    
-    // Leave Application Form
-    document.getElementById('leaveApplicationForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitLeaveApplication();
-    });
-    
-    // Announcement Form
-    document.getElementById('announcementForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        createAnnouncement();
-    });
-    
-    // Date change handlers
-    document.getElementById('changeDate')?.addEventListener('change', function() {
-        loadUserDutyTimes('changeDutyTime', this.value);
-    });
-    
-    document.getElementById('leaveDate')?.addEventListener('change', function() {
-        loadUserDutyTimes('leaveDutyTime', this.value);
-        updateLeaveRules();
-    });
-    
-    document.getElementById('leaveType')?.addEventListener('change', updateLeaveRules);
-    
-    // Roster date change
-    document.getElementById('rosterDate')?.addEventListener('change', function() {
-        loadRosterForDate(this.value);
-    });
-    
-    // View roster date change
-    document.getElementById('myRosterMonth')?.addEventListener('change', loadMyRoster);
-    document.getElementById('viewRosterDate')?.addEventListener('change', loadAllRoster);
-    document.getElementById('allRosterStartDate')?.addEventListener('change', loadAllRoster);
-    document.getElementById('allRosterEndDate')?.addEventListener('change', loadAllRoster);
-    
-    // Save roster button
-    document.getElementById('saveRosterBtn')?.addEventListener('click', saveRosterDate);
-    
-    // Print button
-    document.getElementById('printRosterBtn')?.addEventListener('click', printAllRoster);
-    
-    // Touch-friendly select elements
-    const selectElements = document.querySelectorAll('select');
-    selectElements.forEach(select => {
-        select.addEventListener('touchstart', function() {
-            if (window.innerWidth <= 768) {
-                this.style.fontSize = '16px'; // Prevent zoom on iOS
-            }
-        });
-    });
+    console.log('Home announcements loaded:', sortedAnnouncements.length);
 }
 
 function updateDashboard() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        console.warn('No current user for dashboard update');
+        return;
+    }
+    
+    console.log('Updating dashboard...');
     
     // Update today's duty
     const today = new Date().toISOString().split('T')[0];
@@ -3929,8 +2676,10 @@ function updateDashboard() {
         if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
             const duty = dutyRoster[today][currentUser.username];
             todayDutyElement.textContent = duty === 'Off' ? 'Off Duty' : duty;
+            console.log('Today\'s duty:', duty);
         } else {
             todayDutyElement.textContent = 'Not Scheduled';
+            console.log('Today\'s duty: Not scheduled');
         }
     }
     
@@ -3948,6 +2697,7 @@ function updateDashboard() {
                 if (duty !== 'Off') {
                     nextDutyElement.textContent = `${dateStr}: ${duty}`;
                     nextDutyFound = true;
+                    console.log('Next duty found:', dateStr, duty);
                     break;
                 }
             }
@@ -3955,6 +2705,7 @@ function updateDashboard() {
         
         if (!nextDutyFound) {
             nextDutyElement.textContent = 'No upcoming duty';
+            console.log('No upcoming duty found');
         }
     }
     
@@ -3964,144 +2715,195 @@ function updateDashboard() {
     // Load announcements
     loadHomeAnnouncements();
     
-    // Check for recent updates
-    checkForUserUpdates();
+    console.log('Dashboard update complete');
 }
 
-function showUserNotification(message) {
-    const notificationContainer = document.getElementById('homeNotifications');
-    if (notificationContainer) {
-        notificationContainer.style.display = 'block';
-        notificationContainer.innerHTML = `<div class="alert alert-info alert-dismissible fade show">
-            <strong>Update:</strong> ${message}
-            <button type="button" class="close" data-dismiss="alert" onclick="this.parentElement.style.display='none'">
-                <span>&times;</span>
-            </button>
-        </div>`;
-        
-        // Auto hide after 8 seconds on mobile, 10 on desktop
-        const hideTime = window.innerWidth <= 768 ? 8000 : 10000;
-        setTimeout(() => {
-            if (notificationContainer.style.display !== 'none') {
-                notificationContainer.style.display = 'none';
-            }
-        }, hideTime);
+// DUTY CHANGE FUNCTIONS
+function loadDutyChangeForm() {
+    console.log('Loading duty change form');
+    
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    const dateInput = document.getElementById('changeDate');
+    if (dateInput) {
+        dateInput.value = tomorrowStr;
+        dateInput.min = new Date().toISOString().split('T')[0];
     }
+    
+    // Load duty times
+    loadUserDutyTimes('changeDutyTime', tomorrowStr);
+    
+    // Load staff dropdown
+    loadStaffDropdown('requestToStaff');
 }
 
-function checkForUserUpdates() {
-    // Check for any approved/rejected requests in last 5 minutes
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+function loadUserDutyTimes(selectId, date) {
+    if (!date || !dutyRoster[date] || !currentUser) {
+        console.log('Cannot load duty times: missing data');
+        return;
+    }
     
-    const recentUpdates = allRequests.filter(req => {
-        const updateTime = req.approvedAt || req.rejectedAt;
-        if (!updateTime) return false;
-        
-        const updateDate = new Date(updateTime);
-        return updateDate > fiveMinutesAgo && 
-               (req.fromUsername === currentUser.username || req.toUsername === currentUser.username);
-    });
+    const select = document.getElementById(selectId);
+    if (!select) return;
     
-    if (recentUpdates.length > 0) {
-        recentUpdates.forEach(update => {
-            let message = '';
-            if (update.status === 'approved') {
-                if (update.type === 'duty_change') {
-                    message = `Your duty change for ${update.date} has been approved`;
-                } else {
-                    message = `Your leave for ${update.date} has been approved`;
-                }
-            } else if (update.status === 'rejected') {
-                message = `Your request for ${update.date} has been rejected`;
-            }
-            
-            if (message) {
-                showUserNotification(message);
+    select.innerHTML = '<option value="">Select Duty Time</option>';
+    
+    const userDuty = dutyRoster[date][currentUser.username];
+    if (userDuty && userDuty !== 'Off') {
+        const option = document.createElement('option');
+        option.value = userDuty;
+        option.textContent = userDuty;
+        select.appendChild(option);
+    } else {
+        const option = document.createElement('option');
+        option.value = 'Off';
+        option.textContent = 'Off Duty';
+        select.appendChild(option);
+    }
+    
+    console.log('Duty times loaded for date:', date);
+}
+
+function loadStaffDropdown(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Select staff member</option>';
+    
+    if (allUsers && Array.isArray(allUsers)) {
+        allUsers.forEach(user => {
+            if (user.username !== currentUser.username && user.Level === 'User') {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = `${user.name} (${user.RCNo})`;
+                select.appendChild(option);
             }
         });
     }
+    
+    console.log('Staff dropdown loaded with', allUsers?.length || 0, 'users');
 }
 
-function getDutyTimeClass(dutyTime) {
-    if (dutyTime === 'Off') return 'off-day-cell';
-    if (dutyTime === 'Not Scheduled') return 'off-day-cell';
-    if (dutyTime === 'Leave' || dutyTime.includes('Leave')) return 'duty-leave';
+// Setup event listeners
+function setupEventListeners() {
+    console.log('Setting up event listeners');
     
-    const normalizedTime = dutyTime.replace(/\s/g, '').toUpperCase();
-    
-    if (dutyTimeColorMap[normalizedTime]) {
-        return dutyTimeColorMap[normalizedTime];
+    // Duty Change Form
+    const dutyChangeForm = document.getElementById('dutyChangeForm');
+    if (dutyChangeForm) {
+        dutyChangeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitDutyChange();
+        });
     }
     
-    if (normalizedTime.includes('-')) {
-        const [startStr] = normalizedTime.split('-');
-        const startHour = parseInt(startStr.substring(0, 2));
-        const startMinute = parseInt(startStr.substring(2, 4)) || 0;
-        const totalStartMinutes = startHour * 60 + startMinute;
+    // Leave Application Form
+    const leaveForm = document.getElementById('leaveApplicationForm');
+    if (leaveForm) {
+        leaveForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitLeaveApplication();
+        });
+    }
+    
+    // Date change handlers
+    const changeDate = document.getElementById('changeDate');
+    if (changeDate) {
+        changeDate.addEventListener('change', function() {
+            loadUserDutyTimes('changeDutyTime', this.value);
+        });
+    }
+    
+    const leaveDate = document.getElementById('leaveDate');
+    if (leaveDate) {
+        leaveDate.addEventListener('change', function() {
+            loadUserDutyTimes('leaveDutyTime', this.value);
+        });
+    }
+    
+    console.log('Event listeners setup complete');
+}
+
+function updateRequestCounts() {
+    if (!currentUser) return;
+    
+    // Pending requests count for supervisor
+    if (currentUser.level === 'Supervisor') {
+        const pendingCount = allRequests.filter(req => req.status === 'pending').length;
+        console.log('Pending requests for supervisor:', pendingCount);
         
-        if (totalStartMinutes >= 0 && totalStartMinutes < 360) {
-            return 'duty-0000-0800';
-        } else if (totalStartMinutes >= 360 && totalStartMinutes < 450) {
-            return 'duty-0600-1400';
-        } else if (totalStartMinutes >= 450 && totalStartMinutes < 540) {
-            return 'duty-0730-1530';
-        } else if (totalStartMinutes >= 540 && totalStartMinutes < 630) {
-            return 'duty-0830-1630';
-        } else if (totalStartMinutes >= 630 && totalStartMinutes < 750) {
-            return 'duty-1030-1830';
-        } else if (totalStartMinutes >= 750 && totalStartMinutes < 930) {
-            return 'duty-1530-2330';
-        } else if (totalStartMinutes >= 930 && totalStartMinutes < 1050) {
-            return 'duty-1630-0030';
-        } else if (totalStartMinutes >= 1050 && totalStartMinutes < 1170) {
-            return 'duty-1730-0130';
-        } else {
-            return 'duty-1900-0300';
+        const pendingBadge = document.getElementById('mobilePendingCount');
+        if (pendingBadge) {
+            pendingBadge.textContent = pendingCount;
+            pendingBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
         }
     }
     
-    return 'duty-other';
+    // User's pending requests count
+    const userPendingCount = allRequests.filter(req => 
+        req.fromUsername === currentUser.username && 
+        req.status === 'pending'
+    ).length;
+    
+    console.log('User pending requests:', userPendingCount);
+    
+    const myRequestsBadge = document.getElementById('mobileRequestCount');
+    if (myRequestsBadge) {
+        myRequestsBadge.textContent = userPendingCount;
+        myRequestsBadge.style.display = userPendingCount > 0 ? 'inline-block' : 'none';
+    }
+    
+    const bottomRequestBadge = document.getElementById('bottomRequestCount');
+    if (bottomRequestBadge) {
+        bottomRequestBadge.textContent = userPendingCount;
+        bottomRequestBadge.style.display = userPendingCount > 0 ? 'inline-block' : 'none';
+    }
 }
 
-// Setup real-time listeners
 function setupRealtimeListeners() {
+    console.log('Setting up real-time listeners...');
+    
     try {
         // Listen for announcement updates
         db.collection('announcements').doc('all')
             .onSnapshot((doc) => {
                 if (doc.exists) {
-                    announcements = doc.data().announcements || [];
-                    if (document.getElementById('homeSection')?.classList.contains('active')) {
-                        loadHomeAnnouncements();
-                    }
-                    if (document.getElementById('adminAnnouncementsSection')?.classList.contains('active')) {
-                        loadAnnouncementsAdmin();
+                    const data = doc.data();
+                    if (data && data.announcements && Array.isArray(data.announcements)) {
+                        announcements = data.announcements;
+                        console.log('Real-time: Announcements updated, count:', announcements.length);
+                        
+                        if (document.getElementById('homeSection')?.classList.contains('active')) {
+                            loadHomeAnnouncements();
+                        }
                     }
                 }
-            }, handleFirebaseError);
+            }, (error) => {
+                console.error('Real-time announcements error:', error);
+            });
 
         // Listen for request updates
         db.collection('requests').doc('all')
             .onSnapshot((doc) => {
                 if (doc.exists && doc.data().requests) {
                     allRequests = doc.data().requests;
+                    console.log('Real-time: Requests updated, count:', allRequests.length);
+                    
                     updateRequestCounts();
                     
                     // Refresh relevant sections
-                    if (document.getElementById('myRequestsSection')?.classList.contains('active')) {
-                        loadMyRequests();
-                    }
-                    if (document.getElementById('pendingRequestsSection')?.classList.contains('active')) {
-                        loadPendingRequests();
-                    }
-                    if (document.getElementById('adminApprovalsSection')?.classList.contains('active')) {
-                        loadAdminApprovals();
-                    }
-                    if (document.getElementById('adminRequestHistorySection')?.classList.contains('active')) {
-                        loadAdminRequestHistory();
+                    const activeSection = document.querySelector('.section.active');
+                    if (activeSection) {
+                        const sectionId = activeSection.id.replace('Section', '');
+                        loadSectionData(sectionId);
                     }
                 }
-            }, handleFirebaseError);
+            }, (error) => {
+                console.error('Real-time requests error:', error);
+            });
             
         console.log('Real-time listeners established');
     } catch (error) {
@@ -4109,56 +2911,26 @@ function setupRealtimeListeners() {
     }
 }
 
-function handleFirebaseError(error) {
-    console.error('Firebase error:', error);
-    
-    if (error.code === 'failed-precondition' || error.message.includes('QUIC')) {
-        console.log('Retrying Firebase operation...');
-        setTimeout(() => {
-            initializeData();
-        }, 2000);
-    } else {
-        alert('A connection error occurred. Please check your internet connection.');
-    }
-}
-
-// Handle orientation changes
-window.addEventListener('orientationchange', function() {
-    // Close mobile menu on orientation change
-    if (window.innerWidth > 768) {
-        closeMobileMenu();
-    }
-    
-    // Redraw any charts or complex layouts if needed
-    setTimeout(updateDashboard, 300);
-    
-    // Refresh current section
-    const activeSection = document.querySelector('.section.active');
-    if (activeSection) {
-        const sectionId = activeSection.id.replace('Section', '');
-        loadSectionData(sectionId);
-    }
-});
-
-// Prevent form submission on enter key in textareas
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && e.target.tagName === 'TEXTAREA' && !e.shiftKey) {
-        e.preventDefault();
-    }
-});
-
-// Initialize app
-window.onload = function() {
-    setTimeout(() => {
-        if (!firebaseReady) {
-            console.log('Firebase not ready, retrying...');
-            initApp();
-        }
-    }, 2000);
+// Add to global scope for debugging
+window.debugApp = function() {
+    console.log('=== APP DEBUG INFO ===');
+    console.log('Current user:', currentUser);
+    console.log('All users:', allUsers?.length || 0);
+    console.log('Duty roster dates:', Object.keys(dutyRoster).length);
+    console.log('Announcements:', announcements.length);
+    console.log('Leave balances:', Object.keys(leaveBalances).length);
+    console.log('All requests:', allRequests.length);
+    console.log('Firebase ready:', firebaseReady);
+    console.log('========================');
 };
 
-// Call this after login
-setTimeout(setupRealtimeListeners, 2000);
+// Add a test button to window
+window.testFirebase = debugFirebase;
+
+// Initialize when page loads
+window.addEventListener('load', function() {
+    console.log('Page fully loaded');
+});
      </script>
      </body>
      </html> 
