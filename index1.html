@@ -4857,12 +4857,14 @@ function showNewAnnouncementModal() {
             <form id="newAnnouncementForm">
                 <div class="form-group">
                     <label for="announcementTitle" class="form-label">Title *</label>
-                    <input type="text" id="announcementTitle" name="announcementTitle" class="form-control" required>
+                    <input type="text" id="announcementTitle" name="announcementTitle" class="form-control" 
+                           required autocomplete="off">
                 </div>
                 
                 <div class="form-group">
                     <label for="announcementContent" class="form-label">Content *</label>
-                    <textarea id="announcementContent" name="announcementContent" class="form-control" rows="4" required></textarea>
+                    <textarea id="announcementContent" name="announcementContent" class="form-control" 
+                              rows="4" required autocomplete="off"></textarea>
                 </div>
                 
                 <div class="form-row">
@@ -4895,20 +4897,24 @@ function showNewAnnouncementModal() {
                 <div id="specificStaffContainer" style="display: none;">
                     <label class="form-label">Select Staff</label>
                     <div style="max-height: 150px; overflow-y: auto; border: 1px solid var(--light-gray); border-radius: var(--radius-sm); padding: 10px;">
-                        ${allUsers.filter(user => user.Level !== 'Inactive').map(user => `
-                            <div style="margin-bottom: 5px;">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" value="${user.username}" name="staff_${user.username}" style="margin-right: 8px;">
-                                    ${user.name} (RC: ${user.RCNo})
-                                </label>
-                            </div>
-                        `).join('')}
+                        ${allUsers.filter(user => user.Level !== 'Inactive').map(user => {
+                            const checkboxId = `staff_${user.username}_new`;
+                            return `
+                                <div style="margin-bottom: 5px;">
+                                    <label for="${checkboxId}" style="display: flex; align-items: center; cursor: pointer;">
+                                        <input type="checkbox" id="${checkboxId}" name="${checkboxId}" 
+                                               value="${user.username}" style="margin-right: 8px;">
+                                        ${user.name} (RC: ${user.RCNo})
+                                    </label>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="announcementExpiry" class="form-label">Expiry Date (Optional)</label>
-                    <input type="date" id="announcementExpiry" name="announcementExpiry" class="form-control">
+                    <input type="date" id="announcementExpiry" name="announcementExpiry" class="form-control" autocomplete="off">
                 </div>
             </form>
         </div>
@@ -5033,10 +5039,11 @@ function editAnnouncement(announcementId) {
         .forEach(user => {
             const isChecked = announcement.targetUsers && 
                             announcement.targetUsers.includes(user.username) ? 'checked' : '';
+            const checkboxId = `staff_${user.username}_edit`;
             staffCheckboxes += `
                 <div style="margin-bottom: 5px;">
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" value="${user.username}" 
+                    <label for="${checkboxId}" style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="${checkboxId}" name="${checkboxId}" value="${user.username}" 
                                ${isChecked}
                                style="margin-right: 8px;">
                         ${user.name} (RC: ${user.RCNo})
@@ -5059,18 +5066,20 @@ function editAnnouncement(announcementId) {
             <form id="editAnnouncementForm">
                 <div class="form-group">
                     <label for="editAnnouncementTitle" class="form-label">Title *</label>
-                    <input type="text" id="editAnnouncementTitle" class="form-control" value="${announcement.title.replace(/"/g, '&quot;')}" required>
+                    <input type="text" id="editAnnouncementTitle" name="editAnnouncementTitle" class="form-control" 
+                           value="${announcement.title.replace(/"/g, '&quot;')}" required autocomplete="off">
                 </div>
                 
                 <div class="form-group">
                     <label for="editAnnouncementContent" class="form-label">Content *</label>
-                    <textarea id="editAnnouncementContent" class="form-control" rows="4" required>${announcement.content}</textarea>
+                    <textarea id="editAnnouncementContent" name="editAnnouncementContent" class="form-control" 
+                              rows="4" required autocomplete="off">${announcement.content}</textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editAnnouncementPriority" class="form-label">Priority *</label>
-                        <select id="editAnnouncementPriority" class="form-control" required>
+                        <select id="editAnnouncementPriority" name="editAnnouncementPriority" class="form-control" required>
                             <option value="high" ${announcement.priority === 'high' ? 'selected' : ''}>High</option>
                             <option value="medium" ${announcement.priority === 'medium' ? 'selected' : ''}>Medium</option>
                             <option value="low" ${announcement.priority === 'low' ? 'selected' : ''}>Low</option>
@@ -5078,7 +5087,7 @@ function editAnnouncement(announcementId) {
                     </div>
                     <div class="form-group">
                         <label for="editAnnouncementStatus" class="form-label">Status *</label>
-                        <select id="editAnnouncementStatus" class="form-control" required>
+                        <select id="editAnnouncementStatus" name="editAnnouncementStatus" class="form-control" required>
                             <option value="active" ${announcement.status === 'active' ? 'selected' : ''}>Active</option>
                             <option value="scheduled" ${announcement.status === 'scheduled' ? 'selected' : ''}>Scheduled</option>
                             <option value="draft" ${announcement.status === 'draft' ? 'selected' : ''}>Draft</option>
@@ -5090,7 +5099,7 @@ function editAnnouncement(announcementId) {
                 
                 <div class="form-group">
                     <label for="editAnnouncementTarget" class="form-label">Target Audience *</label>
-                    <select id="editAnnouncementTarget" class="form-control" required>
+                    <select id="editAnnouncementTarget" name="editAnnouncementTarget" class="form-control" required>
                         <option value="all" ${announcement.target === 'all' ? 'selected' : ''}>All Staff</option>
                         <option value="specific" ${announcement.target === 'specific' ? 'selected' : ''}>Specific Staff</option>
                     </select>
@@ -5105,8 +5114,8 @@ function editAnnouncement(announcementId) {
                 
                 <div class="form-group">
                     <label for="editAnnouncementExpiry" class="form-label">Expiry Date</label>
-                    <input type="date" id="editAnnouncementExpiry" class="form-control" 
-                           value="${expiryDate}">
+                    <input type="date" id="editAnnouncementExpiry" name="editAnnouncementExpiry" class="form-control" 
+                           value="${expiryDate}" autocomplete="off">
                 </div>
             </form>
         </div>
