@@ -1959,131 +1959,131 @@
 
         // Create section templates
         function createDutyChangeSection() {
-            return `
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <ion-icon name="swap-horizontal-outline"></ion-icon>
-                            Duty Change Request
-                        </h3>
-                    </div>
-                    
-                    <div class="alert alert-warning">
-                        <strong>Note:</strong> Requests must be made at least 24 hours in advance. No back dates allowed.
-                    </div>
-                    
-                    <form id="dutyChangeForm">
-                        <div class="form-group">
-                            <label for="changeDate" class="form-label">Change Date *</label>
-                            <input type="date" id="changeDate" class="form-control" required min="">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="changeDutyTime" class="form-label">Your Duty Time *</label>
-                            <select id="changeDutyTime" class="form-control" required>
-                                <option value="">Select duty time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="requestToStaff" class="form-label">Request To Staff *</label>
-                            <select id="requestToStaff" class="form-control" required>
-                                <option value="">Select staff member</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="requestToRcNo" class="form-label">Staff RC No</label>
-                            <input type="text" id="requestToRcNo" class="form-control" readonly>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="requestToDutyTime" class="form-label">Staff's Duty Time *</label>
-                            <select id="requestToDutyTime" class="form-control" required>
-                                <option value="">Select duty time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="changeReason" class="form-label">Reason (Optional)</label>
-                            <textarea id="changeReason" class="form-control" rows="2" placeholder="Brief reason for duty change"></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <button type="submit" class="btn btn-success">Submit Request</button>
-                            <button type="button" class="btn btn-secondary" onclick="showSection('home')">Cancel</button>
-                        </div>
-                    </form>
+    return `
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <ion-icon name="swap-horizontal-outline"></ion-icon>
+                    Duty Change Request
+                </h3>
+            </div>
+            
+            <div class="alert alert-warning">
+                <strong>Note:</strong> Requests must be made at least 24 hours in advance. No back dates allowed.
+            </div>
+            
+            <form id="dutyChangeForm">
+                <div class="form-group">
+                    <label for="changeDate" class="form-label">Change Date *</label>
+                    <input type="date" id="changeDate" class="form-control" required min="" autocomplete="off">
                 </div>
-            `;
-        }
+                
+                <div class="form-group">
+                    <label for="changeDutyTime" class="form-label">Your Duty Time *</label>
+                    <select id="changeDutyTime" class="form-control" required autocomplete="off">
+                        <option value="">Select duty time</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="requestToStaff" class="form-label">Request To Staff *</label>
+                    <select id="requestToStaff" class="form-control" required autocomplete="off">
+                        <option value="">Select staff member</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="requestToRcNo" class="form-label">Staff RC No</label>
+                    <input type="text" id="requestToRcNo" class="form-control" readonly autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="requestToDutyTime" class="form-label">Staff's Duty Time *</label>
+                    <select id="requestToDutyTime" class="form-control" required autocomplete="off">
+                        <option value="">Select duty time</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="changeReason" class="form-label">Reason (Optional)</label>
+                    <textarea id="changeReason" class="form-control" rows="2" placeholder="Brief reason for duty change" autocomplete="off"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <button type="submit" class="btn btn-success">Submit Request</button>
+                    <button type="button" class="btn btn-secondary" onclick="showSection('home')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+}
 
         function createLeaveApplicationSection() {
-            return `
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <ion-icon name="calendar-outline"></ion-icon>
-                            Leave Application
-                        </h3>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <p><strong>Application Rules:</strong></p>
-                        <p>• Sick Leave: Minimum 2 hours before duty time</p>
-                        <p>• FRL: Minimum 1 hour before duty time</p>
-                        <p>• No back dated applications allowed</p>
-                    </div>
-                    
-                    <form id="leaveApplicationForm">
-                        <div class="form-group">
-                            <label for="leaveType" class="form-label">Leave Type *</label>
-                            <select id="leaveType" class="form-control" required>
-                                <option value="">Select leave type</option>
-                                <option value="Sick Leave">Sick Leave</option>
-                                <option value="FRL">FRL</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveDate" class="form-label">Leave Date *</label>
-                            <input type="date" id="leaveDate" class="form-control" required min="">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveDutyTime" class="form-label">Duty Time *</label>
-                            <select id="leaveDutyTime" class="form-control" required>
-                                <option value="">Select duty time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveDuration" class="form-label">Duration *</label>
-                            <select id="leaveDuration" class="form-control" required>
-                                <option value="1">1 Day</option>
-                                <option value="0.5">Half Day</option>
-                                <option value="2">2 Days</option>
-                                <option value="3">3 Days</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveReason" class="form-label">Reason *</label>
-                            <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required></textarea>
-                        </div>
-                        
-                        <div class="alert" id="leaveRulesAlert">
-                            Select leave type, date and duty time to see rules
-                        </div>
-                        
-                        <div class="form-row">
-                            <button type="submit" class="btn btn-success" id="submitLeaveBtn">Submit Application</button>
-                            <button type="button" class="btn btn-secondary" onclick="showSection('home')">Cancel</button>
-                        </div>
-                    </form>
+    return `
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    Leave Application
+                </h3>
+            </div>
+            
+            <div class="alert alert-info">
+                <p><strong>Application Rules:</strong></p>
+                <p>• Sick Leave: Minimum 2 hours before duty time</p>
+                <p>• FRL: Minimum 1 hour before duty time</p>
+                <p>• No back dated applications allowed</p>
+            </div>
+            
+            <form id="leaveApplicationForm">
+                <div class="form-group">
+                    <label for="leaveType" class="form-label">Leave Type *</label>
+                    <select id="leaveType" class="form-control" required autocomplete="off">
+                        <option value="">Select leave type</option>
+                        <option value="Sick Leave">Sick Leave</option>
+                        <option value="FRL">FRL</option>
+                    </select>
                 </div>
-            `;
-        }
+                
+                <div class="form-group">
+                    <label for="leaveDate" class="form-label">Leave Date *</label>
+                    <input type="date" id="leaveDate" class="form-control" required min="" autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="leaveDutyTime" class="form-label">Duty Time *</label>
+                    <select id="leaveDutyTime" class="form-control" required autocomplete="off">
+                        <option value="">Select duty time</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="leaveDuration" class="form-label">Duration *</label>
+                    <select id="leaveDuration" class="form-control" required autocomplete="off">
+                        <option value="1">1 Day</option>
+                        <option value="0.5">Half Day</option>
+                        <option value="2">2 Days</option>
+                        <option value="3">3 Days</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="leaveReason" class="form-label">Reason *</label>
+                    <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required autocomplete="off"></textarea>
+                </div>
+                
+                <div class="alert" id="leaveRulesAlert">
+                    Select leave type, date and duty time to see rules
+                </div>
+                
+                <div class="form-row">
+                    <button type="submit" class="btn btn-success" id="submitLeaveBtn">Submit Application</button>
+                    <button type="button" class="btn btn-secondary" onclick="showSection('home')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+}
 
         // ... Additional section creation functions ...
 
@@ -4913,11 +4913,8 @@ function showNewAnnouncementModal() {
                                 </div>
                             `;
                         }).join('')}
-                     </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
                 
                 <div class="form-group">
                     <label for="announcementExpiry" class="form-label">Expiry Date (Optional)</label>
