@@ -4857,18 +4857,18 @@ function showNewAnnouncementModal() {
             <form id="newAnnouncementForm">
                 <div class="form-group">
                     <label for="announcementTitle" class="form-label">Title *</label>
-                    <input type="text" id="announcementTitle" class="form-control" required>
+                    <input type="text" id="announcementTitle" name="announcementTitle" class="form-control" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="announcementContent" class="form-label">Content *</label>
-                    <textarea id="announcementContent" class="form-control" rows="4" required></textarea>
+                    <textarea id="announcementContent" name="announcementContent" class="form-control" rows="4" required></textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="announcementPriority" class="form-label">Priority *</label>
-                        <select id="announcementPriority" class="form-control" required>
+                        <select id="announcementPriority" name="announcementPriority" class="form-control" required>
                             <option value="high">High</option>
                             <option value="medium" selected>Medium</option>
                             <option value="low">Low</option>
@@ -4876,7 +4876,7 @@ function showNewAnnouncementModal() {
                     </div>
                     <div class="form-group">
                         <label for="announcementStatus" class="form-label">Status *</label>
-                        <select id="announcementStatus" class="form-control" required>
+                        <select id="announcementStatus" name="announcementStatus" class="form-control" required>
                             <option value="active">Active</option>
                             <option value="scheduled">Scheduled</option>
                             <option value="draft">Draft</option>
@@ -4886,7 +4886,7 @@ function showNewAnnouncementModal() {
                 
                 <div class="form-group">
                     <label for="announcementTarget" class="form-label">Target Audience *</label>
-                    <select id="announcementTarget" class="form-control" required>
+                    <select id="announcementTarget" name="announcementTarget" class="form-control" required>
                         <option value="all">All Staff</option>
                         <option value="specific">Specific Staff</option>
                     </select>
@@ -4898,7 +4898,7 @@ function showNewAnnouncementModal() {
                         ${allUsers.filter(user => user.Level !== 'Inactive').map(user => `
                             <div style="margin-bottom: 5px;">
                                 <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" value="${user.username}" style="margin-right: 8px;">
+                                    <input type="checkbox" value="${user.username}" name="staff_${user.username}" style="margin-right: 8px;">
                                     ${user.name} (RC: ${user.RCNo})
                                 </label>
                             </div>
@@ -4908,7 +4908,7 @@ function showNewAnnouncementModal() {
                 
                 <div class="form-group">
                     <label for="announcementExpiry" class="form-label">Expiry Date (Optional)</label>
-                    <input type="date" id="announcementExpiry" class="form-control">
+                    <input type="date" id="announcementExpiry" name="announcementExpiry" class="form-control">
                 </div>
             </form>
         </div>
@@ -5015,16 +5015,16 @@ function editAnnouncement(announcementId) {
     
     // Format expiry date correctly for input field
     let expiryDate = '';
-if (announcement.expiry) {
-    try {
-        const expiry = new Date(announcement.expiry);
-        if (!isNaN(expiry.getTime())) {
-            expiryDate = expiry.toISOString().split('T')[0];
+    if (announcement.expiry) {
+        try {
+            const expiry = new Date(announcement.expiry);
+            if (!isNaN(expiry.getTime())) {
+                expiryDate = expiry.toISOString().split('T')[0];
+            }
+        } catch (e) {
+            console.error('Error parsing expiry date:', e);
         }
-    } catch (e) {
-        console.error('Error parsing expiry date:', e);
     }
-}
     
     // Build the staff checkboxes
     let staffCheckboxes = '';
@@ -5115,72 +5115,6 @@ if (announcement.expiry) {
             <button class="btn btn-primary" onclick="submitEditAnnouncement('${announcementId}')">Update Announcement</button>
         </div>
     `;
-    
-    let modal = document.getElementById('editAnnouncementModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'editAnnouncementModal';
-        modal.className = 'modal';
-        modal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${modalContent}</div>`;
-        document.body.appendChild(modal);
-        
-        // Add event listener for target change
-        const targetSelect = modal.querySelector('#editAnnouncementTarget');
-        const specificContainer = modal.querySelector('#editSpecificStaffContainer');
-        
-        if (targetSelect && specificContainer) {
-            targetSelect.addEventListener('change', function() {
-                specificContainer.style.display = this.value === 'specific' ? 'block' : 'none';
-            });
-        }
-    } else {
-        modal.querySelector('.modal-content').innerHTML = modalContent;
-    }
-    
-    modal.classList.add('active');
-}
-    
-    // Continue with the rest of the modal
-    modalHTML += `
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editAnnouncementExpiry" class="form-label">Expiry Date</label>
-                    <input type="date" id="editAnnouncementExpiry" class="form-control" 
-                           value="${announcement.expiry ? announcement.expiry.split('T')[0] : ''}">
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="hideModal('editAnnouncementModal')">Cancel</button>
-            <button class="btn btn-primary" onclick="submitEditAnnouncement('${announcementId}')">Update Announcement</button>
-        </div>
-    `;
-    
-    let modal = document.getElementById('editAnnouncementModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'editAnnouncementModal';
-        modal.className = 'modal';
-        modal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${modalHTML}</div>`;
-        document.body.appendChild(modal);
-        
-        // Add event listener for target change
-        const targetSelect = modal.querySelector('#editAnnouncementTarget');
-        const specificContainer = modal.querySelector('#editSpecificStaffContainer');
-        
-        if (targetSelect && specificContainer) {
-            targetSelect.addEventListener('change', function() {
-                specificContainer.style.display = this.value === 'specific' ? 'block' : 'none';
-            });
-        }
-    } else {
-        modal.querySelector('.modal-content').innerHTML = modalHTML;
-    }
-    
-    modal.classList.add('active');
-}
     
     let modal = document.getElementById('editAnnouncementModal');
     if (!modal) {
