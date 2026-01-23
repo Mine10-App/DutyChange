@@ -5055,6 +5055,7 @@ function editAnnouncement(announcementId) {
     // Determine display style
     const displayStyle = announcement.target === 'specific' ? 'block' : 'none';
 
+    // Build the modal content manually instead of using template literals for the entire thing
     const modalContent = `
         <div class="modal-header">
             <h3 class="modal-title">Edit Announcement</h3>
@@ -5115,7 +5116,7 @@ function editAnnouncement(announcementId) {
                 <div class="form-group">
                     <label for="editAnnouncementExpiry" class="form-label">Expiry Date</label>
                     <input type="date" id="editAnnouncementExpiry" name="editAnnouncementExpiry" class="form-control" 
-                           value="${expiryDate}" autocomplete="off">
+                           autocomplete="off">
                 </div>
             </form>
         </div>
@@ -5133,6 +5134,14 @@ function editAnnouncement(announcementId) {
         modal.innerHTML = `<div class="modal-content" style="max-width: 500px;">${modalContent}</div>`;
         document.body.appendChild(modal);
         
+        // Set the date value AFTER the modal is created
+        setTimeout(() => {
+            const dateInput = modal.querySelector('#editAnnouncementExpiry');
+            if (dateInput && expiryDate) {
+                dateInput.value = expiryDate;
+            }
+        }, 0);
+        
         // Add event listener for target change
         const targetSelect = modal.querySelector('#editAnnouncementTarget');
         const specificContainer = modal.querySelector('#editSpecificStaffContainer');
@@ -5144,6 +5153,24 @@ function editAnnouncement(announcementId) {
         }
     } else {
         modal.querySelector('.modal-content').innerHTML = modalContent;
+        
+        // Set the date value AFTER updating modal content
+        setTimeout(() => {
+            const dateInput = modal.querySelector('#editAnnouncementExpiry');
+            if (dateInput && expiryDate) {
+                dateInput.value = expiryDate;
+            }
+        }, 0);
+        
+        // Re-add event listener for target change
+        const targetSelect = modal.querySelector('#editAnnouncementTarget');
+        const specificContainer = modal.querySelector('#editSpecificStaffContainer');
+        
+        if (targetSelect && specificContainer) {
+            targetSelect.addEventListener('change', function() {
+                specificContainer.style.display = this.value === 'specific' ? 'block' : 'none';
+            });
+        }
     }
     
     modal.classList.add('active');
