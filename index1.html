@@ -1479,9 +1479,7 @@
     </div>
 
     <script>
-      // Mobile Duty Management System
-// Complete JavaScript Implementation
-
+// Mobile-First Responsive Duty Management System
 // Global variables
 let currentUser = null;
 let allUsers = [];
@@ -1491,180 +1489,197 @@ let allRequests = [];
 let announcements = [];
 let userDisplayNameMap = {};
 let firebaseReady = false;
-let refreshTimer = null;
 
-// Color mapping for duty times (optimized for mobile)
-const dutyTimeColorMap = {
-    // Common shift times
-    '07:30-15:30': 'duty-0730',
-    '08:30-16:30': 'duty-0830',
-    '10:30-18:30': 'duty-1030',
-    '15:30-23:30': 'duty-1530',
-    '16:30-00:30': 'duty-1630',
-    '17:30-01:30': 'duty-1730',
-    '00:30-08:30': 'duty-0030',
+// Mobile menu toggle
+function toggleMobileMenu() {
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const nav = document.getElementById('dashboardNav');
     
-    // Off duty
-    'Off': 'off-day',
-    'Not Scheduled': 'off-day',
-    
-    // Leave
-    'Leave': 'duty-leave',
-    'Sick Leave': 'duty-leave',
-    'FRL': 'duty-leave'
-};
+    menuToggle.classList.toggle('active');
+    nav.classList.toggle('mobile-visible');
+}
 
-// Mobile-specific initialization
+// Close mobile menu when clicking outside
+function closeMobileMenu() {
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const nav = document.getElementById('dashboardNav');
+    
+    menuToggle.classList.remove('active');
+    nav.classList.remove('mobile-visible');
+}
+
+// Wait for Firebase and user data to load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Mobile Duty Management System Initializing...');
-    
-    // Check for service worker for PWA capabilities
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then(function(registration) {
-            console.log('Service Worker registered with scope:', registration.scope);
-        }).catch(function(error) {
-            console.log('Service Worker registration failed:', error);
-        });
-    }
-    
     // Check if Firebase is available
     if (typeof db === 'undefined') {
-        showMobileError('Firebase is not initialized. Make sure dcfire.js is loaded.');
+        console.error('Firebase is not initialized. Make sure dcfire.js is loaded.');
+        showError('Firebase initialization failed. Please check your configuration.');
         return;
     }
     
     // Wait for user data to load
     setTimeout(() => {
         if (typeof users === 'undefined') {
-            showMobileError('User data not loaded. Please check user.js file.');
+            console.error('User data not loaded. Make sure user.js is loaded.');
+            showError('User data not loaded. Please check user.js file.');
             return;
         }
         
         firebaseReady = true;
-        console.log('Mobile app initialized successfully');
-        initMobileApp();
+        console.log('Firebase and user data loaded successfully');
+        initApp();
     }, 1000);
-    
-    // Setup mobile-specific event listeners
-    setupMobileEvents();
-    
-    // Handle back button on mobile
-    window.addEventListener('popstate', function(e) {
-        if (currentUser) {
-            showSection('home');
-        }
-    });
 });
 
-function initMobileApp() {
+// Color mapping for duty times
+const dutyTimeColorMap = {
+    '0730-1530': 'duty-0730-1530',
+    '0830-1630': 'duty-0830-1630',
+    '1030-1830': 'duty-1030-1830',
+    '1530-2330': 'duty-1530-2330',
+    '1630-0030': 'duty-1630-0030',
+    '1730-0130': 'duty-1730-0130',
+    '0030-0830': 'duty-0030-0830',
+    '0000-0800': 'duty-0000-0800',
+    '0100-0900': 'duty-0100-0900',
+    '0200-1000': 'duty-0200-1000',
+    '0300-1100': 'duty-0300-1100',
+    '0400-1200': 'duty-0400-1200',
+    '0500-1300': 'duty-0500-1300',
+    '0600-1400': 'duty-0600-1400',
+    '0630-1430': 'duty-0630-1430',
+    '0700-1500': 'duty-0700-1500',
+    '0800-1600': 'duty-0800-1600',
+    '1000-1800': 'duty-1000-1800',
+    '1100-1900': 'duty-1100-1900',
+    '1130-1930': 'duty-1130-1930',
+    '1200-2000': 'duty-1200-2000',
+    '1230-2030': 'duty-1230-2030',
+    '1300-2100': 'duty-1300-2100',
+    '1330-2130': 'duty-1330-2130',
+    '1400-2200': 'duty-1400-2200',
+    '1430-2230': 'duty-1430-2230',
+    '1500-2300': 'duty-1500-2300',
+    '1600-0000': 'duty-1600-0000',
+    '1800-0200': 'duty-1800-0200',
+    '1830-0230': 'duty-1830-0230',
+    '1900-0300': 'duty-1900-0300',
+    '1930-0330': 'duty-1930-0330',
+    '2000-0400': 'duty-2000-0400',
+    '2030-0430': 'duty-2030-0430',
+    '2100-0500': 'duty-2100-0500',
+    '2130-0530': 'duty-2130-0530',
+    '2200-0600': 'duty-2200-0600',
+    '2230-0630': 'duty-2230-0630',
+    '2300-0700': 'duty-2300-0700',
+    '2330-0730': 'duty-2330-0730',
+    'mixed': 'duty-mixed',
+    'special': 'duty-special',
+    'leave': 'duty-leave'
+};
+
+function initApp() {
     if (!firebaseReady) {
-        setTimeout(initMobileApp, 500);
+        console.log('Waiting for Firebase to be ready...');
+        setTimeout(initApp, 500);
         return;
     }
     
-    // Setup login
+    console.log('Initializing application...');
+    
+    // Setup mobile menu toggle
+    document.getElementById('mobileMenuToggle').addEventListener('click', toggleMobileMenu);
+    
+    // Close menu when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const menuToggle = document.getElementById('mobileMenuToggle');
+        const nav = document.getElementById('dashboardNav');
+        const isClickInside = nav.contains(event.target) || menuToggle.contains(event.target);
+        
+        if (window.innerWidth <= 768 && !isClickInside && nav.classList.contains('mobile-visible')) {
+            closeMobileMenu();
+        }
+    });
+    
+    // Setup login form
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        handleMobileLogin();
+        handleLogin();
     });
     
-    // Set minimum dates for forms
+    // Set minimum dates
     const today = new Date().toISOString().split('T')[0];
-    setMinDates(today);
+    setMinimumDates(today);
     
     // Check session
-    checkMobileSession();
+    checkSession();
 }
 
-function setupMobileEvents() {
-    // Menu toggle
-    document.getElementById('menuToggle').addEventListener('click', toggleMobileMenu);
+function setMinimumDates(today) {
+    const dateInputs = [
+        'changeDate', 'leaveDate', 'rosterDate', 'viewRosterDate',
+        'allRosterStartDate', 'allRosterEndDate'
+    ];
     
-    // Bottom nav clicks
-    document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const section = this.getAttribute('onclick').match(/showSection\('([^']+)'\)/)[1];
-            showSection(section);
-        });
-    });
-    
-    // Nav drawer items
-    document.querySelectorAll('.mobile-nav .nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            closeMobileMenu();
-        });
-    });
-    
-    // Logout button
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        localStorage.removeItem('dutySystemSession');
-        clearInterval(refreshTimer);
-        location.reload();
-    });
-    
-    // Form submissions
-    document.getElementById('dutyChangeForm')?.addEventListener('submit', submitDutyChange);
-    document.getElementById('leaveApplicationForm')?.addEventListener('submit', submitLeaveApplication);
-    document.getElementById('announcementForm')?.addEventListener('submit', createAnnouncement);
-    
-    // Search functionality
-    const searchInput = document.getElementById('searchRequests');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            filterMobileRequests(this.value);
-        });
-    }
-    
-    // Date input changes
-    document.getElementById('changeDate')?.addEventListener('change', function() {
-        loadUserDutyTimes('changeDutyTime', this.value);
-    });
-    
-    document.getElementById('requestToStaff')?.addEventListener('change', function() {
-        const user = allUsers.find(u => u.username === this.value);
-        if (user) {
-            const date = document.getElementById('changeDate').value;
-            if (date) {
-                loadStaffDutyTimes('requestToDutyTime', date, user.username);
+    dateInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (id === 'allRosterStartDate') {
+                element.value = today;
+            } else if (id === 'allRosterEndDate') {
+                element.value = getDateAfterDays(today, 7);
+            } else if (id === 'changeDate' || id === 'leaveDate') {
+                element.min = today;
+                element.value = getDateAfterDays(today, 1);
+            } else {
+                element.value = today;
             }
         }
     });
     
-    document.getElementById('leaveDate')?.addEventListener('change', function() {
-        loadUserDutyTimes('leaveDutyTime', this.value);
-        updateLeaveRules();
-    });
-    
-    document.getElementById('leaveType')?.addEventListener('change', updateLeaveRules);
-    document.getElementById('leaveDutyTime')?.addEventListener('change', updateLeaveRules);
-    
-    // Handle offline/online status
-    window.addEventListener('online', handleOnlineStatus);
-    window.addEventListener('offline', handleOfflineStatus);
-    
-    // Handle app visibility
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.getElementById('myRosterMonth').value = today.substring(0, 7);
 }
 
-function handleMobileLogin() {
+function getDateAfterDays(startDate, days) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
+function checkSession() {
+    const session = localStorage.getItem('dutySystemSession');
+    if (session) {
+        try {
+            const user = JSON.parse(session);
+            if (user.expiry > Date.now()) {
+                loginUser(user);
+            } else {
+                localStorage.removeItem('dutySystemSession');
+            }
+        } catch (e) {
+            localStorage.removeItem('dutySystemSession');
+        }
+    }
+}
+
+function handleLogin() {
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
     
     if (!username || !password) {
-        showMobileToast('Please enter both username and password', 'warning');
+        showError('Please enter both username and password');
         return;
     }
     
     if (!users || !Array.isArray(users)) {
-        showMobileToast('User database not loaded', 'danger');
+        showError('User database not loaded');
         return;
     }
     
     const user = users.find(u => u.username === username);
     
     if (!user) {
-        showMobileToast('Invalid username or password', 'danger');
+        showError('Invalid username or password');
         return;
     }
     
@@ -1681,64 +1696,79 @@ function handleMobileLogin() {
         };
         
         localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
-        loginMobileUser(sessionData);
+        loginUser(sessionData);
     } else {
-        showMobileToast('Invalid username or password', 'danger');
+        showError('Invalid username or password');
     }
 }
 
-function checkMobileSession() {
-    const session = localStorage.getItem('dutySystemSession');
-    if (session) {
-        try {
-            const user = JSON.parse(session);
-            if (user.expiry > Date.now()) {
-                loginMobileUser(user);
-            } else {
-                localStorage.removeItem('dutySystemSession');
-                showMobileToast('Session expired. Please login again.', 'info');
-            }
-        } catch (e) {
-            localStorage.removeItem('dutySystemSession');
-        }
-    }
+function showError(message) {
+    const errorMsg = document.getElementById('errorMessage');
+    errorMsg.textContent = message;
+    errorMsg.style.display = 'block';
+    
+    // Auto hide error after 5 seconds
+    setTimeout(() => {
+        errorMsg.style.display = 'none';
+    }, 5000);
 }
 
-function loginMobileUser(userData) {
+function loginUser(userData) {
     currentUser = userData;
     allUsers = users || [];
     
-    console.log('Mobile user logged in:', currentUser);
+    console.log('User logged in:', currentUser);
     
     // Initialize user display name map
     initializeUserDisplayMap();
     
     // Update UI
     document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('dashboardContainer').style.display = 'flex';
+    document.getElementById('dashboardContainer').style.display = 'block';
     
     // Update user info
+    updateUserInfo(userData);
+    
+    // Show/hide admin sections
+    setupAdminSections();
+    
+    // Initialize data and UI
+    initializeData();
+    setupNavigation();
+    setupEventListeners();
+    updateDashboard();
+}
+
+function updateUserInfo(userData) {
     document.getElementById('userName').textContent = userData.name;
     document.getElementById('userRC').textContent = userData.rcNo;
     document.getElementById('userLevel').textContent = userData.level;
+    document.getElementById('welcomeName').textContent = userData.name;
+}
+
+function setupAdminSections() {
+    const adminButtons = [
+        'adminDutyRosterBtn',
+        'adminLeaveBalanceBtn',
+        'adminApprovalsBtn',
+        'adminRequestHistoryBtn',
+        'adminAnnouncementsBtn'
+    ];
     
-    // Show/hide admin sections
-    if (userData.level === 'Supervisor') {
-        showAdminSections(true);
-    }
+    adminButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.style.display = currentUser.level === 'Supervisor' ? 'inline-block' : 'none';
+        }
+    });
     
-    // Initialize data and UI
-    initializeMobileData();
-    updateMobileDashboard();
-    
-    // Start auto-refresh timer
-    startAutoRefresh();
+    // Always show "View All Roster" button to all users
+    document.getElementById('viewAllRosterBtn').style.display = 'inline-block';
 }
 
 function initializeUserDisplayMap() {
     userDisplayNameMap = {};
     allUsers.forEach(user => {
-        // Map common display names to usernames
         userDisplayNameMap[user.name] = user.username;
         userDisplayNameMap[user.RCNo] = user.username;
         userDisplayNameMap[user.username] = user.username;
@@ -1751,49 +1781,19 @@ function initializeUserDisplayMap() {
             }
         }
         
-        // Map common variations
         const nameLower = user.name.toLowerCase();
         const usernameLower = user.username.toLowerCase();
         userDisplayNameMap[nameLower] = user.username;
         userDisplayNameMap[usernameLower] = user.username;
     });
-    
-    console.log('User display map initialized:', Object.keys(userDisplayNameMap).length, 'entries');
 }
 
-async function initializeMobileData() {
-    console.log('Initializing mobile data from Firebase...');
-    
-    try {
-        // Load all data from Firebase
-        await Promise.all([
-            loadDutyRoster(),
-            loadLeaveBalances(),
-            loadAllRequests(),
-            loadAnnouncements()
-        ]);
-        
-        console.log('Mobile data loaded successfully');
-        
-        // Update user's balance display
-        updateUserBalance();
-        
-        // Setup real-time listeners
-        setupRealtimeListeners();
-        
-    } catch (error) {
-        console.error('Error initializing mobile data:', error);
-        showMobileToast('Failed to load data. Please check connection.', 'danger');
-    }
-}
-
-// Firebase Functions
+// FIREBASE FUNCTIONS
 async function loadDutyRoster() {
     try {
         const doc = await db.collection('dutyRoster').doc('current').get();
         if (doc.exists) {
             dutyRoster = doc.data() || {};
-            console.log('Duty roster loaded:', Object.keys(dutyRoster).length, 'dates');
         } else {
             dutyRoster = {};
             await saveDutyRoster();
@@ -1801,17 +1801,15 @@ async function loadDutyRoster() {
     } catch (error) {
         console.error('Error loading duty roster:', error);
         dutyRoster = {};
-        showMobileToast('Error loading roster', 'danger');
     }
 }
 
 async function saveDutyRoster() {
     try {
         await db.collection('dutyRoster').doc('current').set(dutyRoster);
-        console.log('Duty roster saved');
     } catch (error) {
         console.error('Error saving duty roster:', error);
-        showMobileToast('Failed to save roster', 'danger');
+        alert('Failed to save duty roster. Please try again.');
     }
 }
 
@@ -1820,28 +1818,28 @@ async function loadLeaveBalances() {
         const doc = await db.collection('leaveBalances').doc('current').get();
         if (doc.exists) {
             leaveBalances = doc.data() || {};
-            console.log('Leave balances loaded:', Object.keys(leaveBalances).length, 'users');
         } else {
             leaveBalances = {};
             allUsers.forEach(user => {
-                leaveBalances[user.username] = { SL: 12, FRL: 6 };
+                leaveBalances[user.username] = {
+                    SL: 12,
+                    FRL: 6
+                };
             });
             await saveLeaveBalances();
         }
     } catch (error) {
         console.error('Error loading leave balances:', error);
         leaveBalances = {};
-        showMobileToast('Error loading balances', 'danger');
     }
 }
 
 async function saveLeaveBalances() {
     try {
         await db.collection('leaveBalances').doc('current').set(leaveBalances);
-        console.log('Leave balances saved');
     } catch (error) {
         console.error('Error saving leave balances:', error);
-        showMobileToast('Failed to save balances', 'danger');
+        alert('Failed to save leave balances. Please try again.');
     }
 }
 
@@ -1850,7 +1848,6 @@ async function loadAllRequests() {
         const doc = await db.collection('requests').doc('all').get();
         if (doc.exists && doc.data().requests) {
             allRequests = doc.data().requests;
-            console.log('Requests loaded:', allRequests.length, 'requests');
         } else {
             allRequests = [];
         }
@@ -1858,17 +1855,15 @@ async function loadAllRequests() {
     } catch (error) {
         console.error('Error loading requests:', error);
         allRequests = [];
-        showMobileToast('Error loading requests', 'danger');
     }
 }
 
 async function saveAllRequests() {
     try {
         await db.collection('requests').doc('all').set({ requests: allRequests });
-        console.log('Requests saved');
     } catch (error) {
         console.error('Error saving requests:', error);
-        showMobileToast('Failed to save requests', 'danger');
+        alert('Failed to save requests. Please try again.');
     }
 }
 
@@ -1877,7 +1872,6 @@ async function loadAnnouncements() {
         const doc = await db.collection('announcements').doc('all').get();
         if (doc.exists && doc.data().announcements) {
             announcements = doc.data().announcements;
-            console.log('Announcements loaded:', announcements.length, 'announcements');
         } else {
             announcements = [];
             await saveAnnouncements();
@@ -1885,43 +1879,69 @@ async function loadAnnouncements() {
     } catch (error) {
         console.error('Error loading announcements:', error);
         announcements = [];
-        showMobileToast('Error loading announcements', 'danger');
     }
 }
 
 async function saveAnnouncements() {
     try {
         await db.collection('announcements').doc('all').set({ announcements: announcements });
-        console.log('Announcements saved');
     } catch (error) {
         console.error('Error saving announcements:', error);
-        showMobileToast('Failed to save announcements', 'danger');
+        alert('Failed to save announcements. Please try again.');
     }
 }
 
-// UI Functions
-function showSection(sectionId) {
-    // Close mobile menu if open
-    closeMobileMenu();
+async function initializeData() {
+    try {
+        await Promise.all([
+            loadDutyRoster(),
+            loadLeaveBalances(),
+            loadAllRequests(),
+            loadAnnouncements()
+        ]);
+        
+        updateUserBalance();
+    } catch (error) {
+        console.error('Error initializing data:', error);
+        alert('Failed to load data from Firebase. Please refresh the page.');
+    }
+}
+
+function updateUserBalance() {
+    if (!currentUser) return;
     
-    // Update bottom nav active state
-    document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        item.classList.remove('active');
+    const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+    document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
+    document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
+}
+
+function setupNavigation() {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            navBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const sectionId = this.getAttribute('data-section');
+            showSection(sectionId);
+            
+            // Close mobile menu after selection
+            if (window.innerWidth <= 768) {
+                closeMobileMenu();
+            }
+        });
     });
     
-    // Map section to bottom nav item
-    const navMap = {
-        'home': 0,
-        'dutyChange': 1,
-        'leaveApplication': 2,
-        'myRequests': 3,
-        'viewMyRoster': 4
-    };
-    
-    if (navMap[sectionId] !== undefined) {
-        document.querySelectorAll('.bottom-nav-item')[navMap[sectionId]].classList.add('active');
-    }
-    
+    // Logout button
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('dutySystemSession');
+            location.reload();
+        }
+    });
+}
+
+function showSection(sectionId) {
     // Hide all sections
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
@@ -1932,24 +1952,15 @@ function showSection(sectionId) {
     if (section) {
         section.classList.add('active');
         
-        // Scroll to top of content
-        setTimeout(() => {
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        
         // Load section data
         loadSectionData(sectionId);
     }
-    
-    // Update browser history for back button
-    history.pushState({ section: sectionId }, '', `#${sectionId}`);
 }
 
 function loadSectionData(sectionId) {
     switch(sectionId) {
         case 'home':
             loadHomeAnnouncements();
-            updateMobileDashboard();
             break;
         case 'dutyChange':
             loadDutyChangeForm();
@@ -1985,535 +1996,643 @@ function loadSectionData(sectionId) {
             loadAdminRequestHistory();
             break;
     }
-}
-
-function updateMobileDashboard() {
-    if (!currentUser) return;
     
-    // Update today's duty
-    const today = new Date().toISOString().split('T')[0];
-    if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
-        const duty = dutyRoster[today][currentUser.username];
-        document.getElementById('todayDutyTime').textContent = duty === 'Off' ? 'Off Duty' : duty;
-    } else {
-        document.getElementById('todayDutyTime').textContent = 'Not Scheduled';
+    // Scroll to top on mobile
+    if (window.innerWidth <= 768) {
+        window.scrollTo(0, 0);
     }
-    
-    // Find next duty (next 7 days)
-    const tomorrow = new Date();
-    for (let i = 1; i <= 7; i++) {
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dateStr = tomorrow.toISOString().split('T')[0];
-        if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-            const duty = dutyRoster[dateStr][currentUser.username];
-            if (duty !== 'Off') {
-                document.getElementById('nextDutyTime').textContent = `${formatMobileDate(dateStr)}: ${duty}`;
-                break;
-            }
-        }
-    }
-    
-    // Update balance display
-    updateUserBalance();
-    
-    // Load announcements
-    loadHomeAnnouncements();
-    
-    // Show refresh timestamp
-    const now = new Date();
-    document.getElementById('refreshTime')?.textContent = `Last updated: ${formatTime(now)}`;
 }
 
-function updateUserBalance() {
-    if (!currentUser) return;
-    
-    const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-    document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
-    document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
-}
-
+// HOME SECTION FUNCTIONS
 function loadHomeAnnouncements() {
     const container = document.getElementById('homeAnnouncements');
     if (!container) return;
     
+    // Clear existing content
     container.innerHTML = '';
     
-    const now = new Date();
-    const activeAnnouncements = announcements.filter(ann => {
-        if (ann.status === 'expired' || ann.status === 'archived') return false;
-        if (ann.expiry && new Date(ann.expiry) < now) return false;
+    // Sort announcements by date (newest first)
+    const sortedAnnouncements = announcements.sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+    
+    if (sortedAnnouncements.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No announcements yet.</div>';
+        return;
+    }
+    
+    // Display announcements (max 5 on mobile for better performance)
+    const maxDisplay = window.innerWidth <= 768 ? 5 : 10;
+    const displayAnnouncements = sortedAnnouncements.slice(0, maxDisplay);
+    
+    displayAnnouncements.forEach(announcement => {
+        const announcementDate = new Date(announcement.timestamp);
+        const formattedDate = announcementDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
         
-        // Check if announcement is for current user
-        if (ann.target === 'all') return true;
-        if (ann.target === 'specific' && ann.targetUsers && ann.targetUsers.includes(currentUser.username)) return true;
-        return false;
-    });
-    
-    if (activeAnnouncements.length === 0) return;
-    
-    // Sort by priority (high to low) and date (newest first)
-    activeAnnouncements.sort((a, b) => {
-        const priorityOrder = {high: 0, medium: 1, low: 2};
-        if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-            return priorityOrder[a.priority] - priorityOrder[b.priority];
-        }
-        return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-    
-    // Show only latest 3 announcements on home
-    const displayAnnouncements = activeAnnouncements.slice(0, 3);
-    
-    displayAnnouncements.forEach(ann => {
-        const announcementDiv = document.createElement('div');
-        announcementDiv.className = `announcement-card ${ann.priority}`;
-        
-        announcementDiv.innerHTML = `
-            <div class="announcement-title">
-                <i class="fas fa-bullhorn"></i> ${ann.title}
+        const announcementElement = document.createElement('div');
+        announcementElement.className = 'announcement-card';
+        announcementElement.innerHTML = `
+            <div class="announcement-header">
+                <strong>${announcement.title}</strong>
+                <small class="text-muted">${formattedDate}</small>
             </div>
-            <div class="announcement-content">${ann.content}</div>
-            <div class="announcement-meta">
-                <div>${formatTimeAgo(ann.createdAt)}</div>
-                <div>${ann.target === 'all' ? 'All Staff' : 'Specific'}</div>
+            <div class="announcement-body">
+                ${announcement.message.replace(/\n/g, '<br>')}
+            </div>
+            <div class="announcement-footer">
+                <small>Posted by: ${announcement.postedBy}</small>
             </div>
         `;
         
-        container.appendChild(announcementDiv);
+        container.appendChild(announcementElement);
+    });
+    
+    // Show "load more" on mobile if there are more announcements
+    if (window.innerWidth <= 768 && sortedAnnouncements.length > maxDisplay) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.className = 'btn btn-secondary btn-sm mt-2';
+        loadMoreBtn.textContent = 'Load More Announcements';
+        loadMoreBtn.addEventListener('click', function() {
+            loadAllAnnouncements(container, sortedAnnouncements);
+            this.remove();
+        });
+        container.appendChild(loadMoreBtn);
+    }
+}
+
+function loadAllAnnouncements(container, allAnnouncements) {
+    container.innerHTML = '';
+    
+    allAnnouncements.forEach(announcement => {
+        const announcementDate = new Date(announcement.timestamp);
+        const formattedDate = announcementDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const announcementElement = document.createElement('div');
+        announcementElement.className = 'announcement-card';
+        announcementElement.innerHTML = `
+            <div class="announcement-header">
+                <strong>${announcement.title}</strong>
+                <small class="text-muted">${formattedDate}</small>
+            </div>
+            <div class="announcement-body">
+                ${announcement.message.replace(/\n/g, '<br>')}
+            </div>
+            <div class="announcement-footer">
+                <small>Posted by: ${announcement.postedBy}</small>
+            </div>
+        `;
+        
+        container.appendChild(announcementElement);
     });
 }
 
-// Form Handling
+// DUTY CHANGE FUNCTIONS
 function loadDutyChangeForm() {
     // Set default date to tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     
-    document.getElementById('changeDate').value = tomorrowStr;
-    document.getElementById('changeDate').min = tomorrowStr;
+    const dateInput = document.getElementById('changeDate');
+    if (dateInput) {
+        dateInput.value = tomorrowStr;
+        dateInput.min = new Date().toISOString().split('T')[0];
+    }
     
-    // Populate staff dropdown
-    const staffSelect = document.getElementById('requestToStaff');
-    staffSelect.innerHTML = '<option value="">Select staff member</option>';
-    
-    allUsers.forEach(user => {
-        if (user.username !== currentUser.username && user.Level === 'User') {
-            const option = document.createElement('option');
-            option.value = user.username;
-            option.textContent = `${user.name} (RC: ${user.RCNo})`;
-            staffSelect.appendChild(option);
-        }
-    });
-    
-    // Load duty times
+    // Load user's duty times
     loadUserDutyTimes('changeDutyTime', tomorrowStr);
+    
+    // Clear form
+    document.getElementById('swapWith').value = '';
+    document.getElementById('changeReason').value = '';
 }
 
 function loadUserDutyTimes(selectId, date) {
+    if (!date || !dutyRoster[date] || !currentUser) return;
+    
+    const userDuty = dutyRoster[date][currentUser.username];
     const select = document.getElementById(selectId);
+    
     if (!select) return;
     
-    select.innerHTML = '<option value="">Select duty time</option>';
+    select.innerHTML = '<option value="">Select Duty Time</option>';
     
-    if (!date || !currentUser) return;
-    
-    const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
-    if (dutyTime) {
+    if (userDuty && userDuty !== 'Off') {
         const option = document.createElement('option');
-        option.value = dutyTime;
-        option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+        option.value = userDuty;
+        option.textContent = userDuty;
         select.appendChild(option);
     } else {
         const option = document.createElement('option');
-        option.value = 'No Duty';
-        option.textContent = 'No duty scheduled';
+        option.value = 'Off';
+        option.textContent = 'Off Duty';
         select.appendChild(option);
     }
+    
+    // Add other available duty times
+    const allDutyTimes = new Set();
+    Object.values(dutyRoster[date] || {}).forEach(time => {
+        if (time && time !== 'Off') {
+            allDutyTimes.add(time);
+        }
+    });
+    
+    allDutyTimes.forEach(time => {
+        if (time !== userDuty) {
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            select.appendChild(option);
+        }
+    });
 }
 
-function loadStaffDutyTimes(selectId, date, username) {
-    const select = document.getElementById(selectId);
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">Select duty time</option>';
-    
-    if (!date || !username) return;
-    
-    const dutyTime = dutyRoster[date] && dutyRoster[date][username];
-    if (dutyTime) {
-        const option = document.createElement('option');
-        option.value = dutyTime;
-        option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
-        select.appendChild(option);
-    } else {
-        const option = document.createElement('option');
-        option.value = 'No Duty';
-        option.textContent = 'No duty scheduled';
-        select.appendChild(option);
+async function submitDutyChange() {
+    if (!currentUser) {
+        showError('Please login first');
+        return;
     }
-}
-
-async function submitDutyChange(e) {
-    e.preventDefault();
     
     const date = document.getElementById('changeDate').value;
-    const dutyTime = document.getElementById('changeDutyTime').value;
-    const toStaff = document.getElementById('requestToStaff').value;
-    const toDutyTime = document.getElementById('requestToDutyTime').value;
-    const reason = document.getElementById('changeReason').value;
+    const currentDuty = document.getElementById('changeDutyTime').value;
+    const swapWith = document.getElementById('swapWith').value;
+    const reason = document.getElementById('changeReason').value.trim();
     
-    if (!date || !dutyTime || !toStaff || !toDutyTime) {
-        showMobileToast('Please fill all required fields', 'warning');
+    if (!date || !currentDuty || !swapWith || !reason) {
+        showError('Please fill all fields');
         return;
     }
     
-    if (dutyTime === 'No Duty' || toDutyTime === 'No Duty') {
-        showMobileToast('Cannot request duty change when no duty is scheduled', 'warning');
+    // Check if date is in the past
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+        showError('Cannot request duty change for past dates');
         return;
     }
     
-    const toUser = allUsers.find(u => u.username === toStaff);
-    if (!toUser) {
-        showMobileToast('Selected staff not found', 'danger');
+    // Validate swap partner
+    let swapUsername = '';
+    
+    if (userDisplayNameMap[swapWith]) {
+        swapUsername = userDisplayNameMap[swapWith];
+    } else {
+        // Try to find by RC number or partial name
+        const foundUser = allUsers.find(user => 
+            user.RCNo === swapWith || 
+            user.name.toLowerCase().includes(swapWith.toLowerCase())
+        );
+        
+        if (foundUser) {
+            swapUsername = foundUser.username;
+        } else {
+            showError('User not found. Please enter full name or RC number');
+            return;
+        }
+    }
+    
+    if (swapUsername === currentUser.username) {
+        showError('Cannot swap duty with yourself');
         return;
     }
     
-    // Check if date is at least 24 hours in advance
-    const requestDate = new Date(date);
-    const now = new Date();
-    const hoursDifference = (requestDate - now) / (1000 * 60 * 60);
-    
-    if (hoursDifference < 24) {
-        showMobileToast('Duty change must be requested at least 24 hours in advance', 'warning');
+    // Check if swap partner is scheduled for duty on that date
+    if (!dutyRoster[date] || !dutyRoster[date][swapUsername] || dutyRoster[date][swapUsername] === 'Off') {
+        showError('Selected staff is not scheduled for duty on this date');
         return;
     }
     
+    // Check for existing pending requests for same date
+    const existingRequest = allRequests.find(req => 
+        req.fromUsername === currentUser.username &&
+        req.date === date &&
+        req.status === 'pending' &&
+        req.type === 'duty_change'
+    );
+    
+    if (existingRequest) {
+        showError('You already have a pending duty change request for this date');
+        return;
+    }
+    
+    // Create request object
     const request = {
-        id: 'req_' + Date.now(),
-        type: 'dutyChange',
+        id: Date.now().toString(),
+        type: 'duty_change',
         fromUsername: currentUser.username,
         fromName: currentUser.name,
-        fromRcNo: currentUser.rcNo,
+        toUsername: swapUsername,
+        toName: allUsers.find(u => u.username === swapUsername)?.name || swapUsername,
         date: date,
-        dutyTime: dutyTime,
-        toUsername: toStaff,
-        toName: toUser.name,
-        toRcNo: toUser.RCNo,
-        toDutyTime: toDutyTime,
+        currentDuty: currentDuty,
+        requestedDuty: dutyRoster[date][swapUsername],
         reason: reason,
         status: 'pending',
-        timestamp: new Date().toISOString(),
-        history: [{
-            action: 'created',
-            by: currentUser.name,
-            timestamp: new Date().toISOString()
-        }]
+        timestamp: new Date().toISOString()
     };
     
-    allRequests.push(request);
+    // Add to requests array
+    allRequests.unshift(request);
     
     try {
         await saveAllRequests();
-        updateRequestCounts();
-        showMobileToast('Duty change request submitted!', 'success');
-        showSection('myRequests');
+        
+        // Clear form
         document.getElementById('dutyChangeForm').reset();
+        
+        // Show success message
+        alert('Duty change request submitted successfully!');
+        
+        // Reload requests if on that section
+        if (document.getElementById('myRequestsSection').classList.contains('active')) {
+            loadMyRequests();
+        }
     } catch (error) {
-        showMobileToast('Failed to submit request. Please try again.', 'danger');
+        console.error('Error submitting request:', error);
+        showError('Failed to submit request. Please try again.');
     }
 }
 
+// LEAVE APPLICATION FUNCTIONS
 function loadLeaveForm() {
     // Set default date to tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     
-    document.getElementById('leaveDate').value = tomorrowStr;
-    document.getElementById('leaveDate').min = tomorrowStr;
+    const dateInput = document.getElementById('leaveDate');
+    if (dateInput) {
+        dateInput.value = tomorrowStr;
+        dateInput.min = new Date().toISOString().split('T')[0];
+    }
     
-    // Load duty times
+    // Load user's duty times
     loadUserDutyTimes('leaveDutyTime', tomorrowStr);
+    
+    // Clear form
+    document.getElementById('leaveType').value = 'Sick Leave';
+    document.getElementById('leaveReason').value = '';
+    
+    // Update leave rules display
     updateLeaveRules();
 }
 
 function updateLeaveRules() {
     const leaveType = document.getElementById('leaveType').value;
     const leaveDate = document.getElementById('leaveDate').value;
-    const dutyTime = document.getElementById('leaveDutyTime').value;
-    const alertDiv = document.getElementById('leaveRulesAlert');
-    const submitBtn = document.getElementById('submitLeaveBtn');
+    const rulesContainer = document.getElementById('leaveRules');
     
-    if (!leaveType || !leaveDate || !dutyTime || dutyTime === 'No Duty') {
-        alertDiv.className = 'alert alert-warning';
-        alertDiv.textContent = 'Please select leave type, date and duty time';
-        if (submitBtn) submitBtn.disabled = true;
-        return;
-    }
+    if (!rulesContainer) return;
     
-    if (dutyTime === 'Off') {
-        alertDiv.className = 'alert alert-warning';
-        alertDiv.textContent = 'You are off duty on this date. No leave needed.';
-        if (submitBtn) submitBtn.disabled = true;
-        return;
-    }
-    
-    const dutyStart = dutyTime.split('-')[0];
-    const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
-    const now = new Date();
-    const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
-    
-    let canApply = false;
-    let message = '';
+    let rulesHtml = '<div class="alert alert-warning">';
     
     if (leaveType === 'Sick Leave') {
-        canApply = hoursBeforeDuty >= 2;
-        message = canApply 
-            ? '✓ You can apply for Sick Leave (2+ hours before duty)'
-            : `✗ Sick Leave must be applied at least 2 hours before duty (${Math.ceil(2 - hoursBeforeDuty)} more hours needed)`;
-    } else if (leaveType === 'FRL') {
-        canApply = hoursBeforeDuty >= 1;
-        message = canApply
-            ? '✓ You can apply for FRL (1+ hour before duty)'
-            : `✗ FRL must be applied at least 1 hour before duty (${Math.ceil(1 - hoursBeforeDuty)} more hours needed)`;
+        rulesHtml += '<strong>Sick Leave Rules:</strong><br>';
+        rulesHtml += '• Requires medical certificate if more than 2 days<br>';
+        rulesHtml += '• Maximum 12 days per year<br>';
+        rulesHtml += '• Cannot be taken on weekends unless emergency';
+    } else {
+        rulesHtml += '<strong>Family Responsibility Leave Rules:</strong><br>';
+        rulesHtml += '• Maximum 6 days per year<br>';
+        rulesHtml += '• Requires proof of family event<br>';
+        rulesHtml += '• 24-hour notice required';
     }
     
-    alertDiv.className = canApply ? 'alert alert-success' : 'alert alert-danger';
-    alertDiv.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
-    if (submitBtn) submitBtn.disabled = !canApply;
+    // Add date-specific rules
+    if (leaveDate) {
+        const date = new Date(leaveDate);
+        const dayOfWeek = date.getDay();
+        
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            rulesHtml += '<br>• <span class="text-danger">Weekend leave requires supervisor approval</span>';
+        }
+    }
+    
+    rulesHtml += '</div>';
+    rulesContainer.innerHTML = rulesHtml;
 }
 
-async function submitLeaveApplication(e) {
-    e.preventDefault();
+async function submitLeaveApplication() {
+    if (!currentUser) {
+        showError('Please login first');
+        return;
+    }
     
-    const leaveType = document.getElementById('leaveType').value;
     const date = document.getElementById('leaveDate').value;
-    const dutyTime = document.getElementById('leaveDutyTime').value;
-    const duration = parseFloat(document.getElementById('leaveDuration').value);
-    const reason = document.getElementById('leaveReason').value;
+    const currentDuty = document.getElementById('leaveDutyTime').value;
+    const leaveType = document.getElementById('leaveType').value;
+    const reason = document.getElementById('leaveReason').value.trim();
     
-    if (!leaveType || !date || !dutyTime || !reason) {
-        showMobileToast('Please fill all required fields', 'warning');
+    if (!date || !currentDuty || !reason) {
+        showError('Please fill all fields');
         return;
     }
     
-    if (dutyTime === 'No Duty' || dutyTime === 'Off') {
-        showMobileToast('You are off duty on this date. No leave needed.', 'warning');
+    // Check if date is in the past
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+        showError('Cannot apply for leave on past dates');
         return;
     }
     
-    // Check balance
-    const userBalance = leaveBalances[currentUser.username];
-    if (!userBalance) {
-        showMobileToast('Error: User balance not found', 'danger');
+    // Check user's leave balance
+    const userBalance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+    const leaveTypeKey = leaveType === 'Sick Leave' ? 'SL' : 'FRL';
+    
+    if (userBalance[leaveTypeKey] <= 0) {
+        showError(`Insufficient ${leaveType} balance`);
         return;
     }
     
-    // Validate sufficient balance
-    if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
-        showMobileToast(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days, Requested: ${duration} days`, 'warning');
+    // Check for existing pending leave request for same date
+    const existingRequest = allRequests.find(req => 
+        req.fromUsername === currentUser.username &&
+        req.date === date &&
+        req.status === 'pending' &&
+        req.type === 'leave'
+    );
+    
+    if (existingRequest) {
+        showError('You already have a pending leave request for this date');
         return;
     }
     
-    if (leaveType === 'FRL' && userBalance.FRL < duration) {
-        showMobileToast(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days, Requested: ${duration} days`, 'warning');
+    // Check if already on approved leave for this date
+    const approvedLeave = allRequests.find(req => 
+        req.fromUsername === currentUser.username &&
+        req.date === date &&
+        req.status === 'approved' &&
+        req.type === 'leave'
+    );
+    
+    if (approvedLeave) {
+        showError('You already have approved leave for this date');
         return;
     }
     
+    // Create request object
     const request = {
-        id: 'req_' + Date.now(),
+        id: Date.now().toString(),
         type: 'leave',
-        leaveType: leaveType,
         fromUsername: currentUser.username,
         fromName: currentUser.name,
-        fromRcNo: currentUser.rcNo,
         date: date,
-        dutyTime: dutyTime,
-        duration: duration,
+        leaveType: leaveType,
         reason: reason,
         status: 'pending',
-        timestamp: new Date().toISOString(),
-        history: [{
-            action: 'created',
-            by: currentUser.name,
-            timestamp: new Date().toISOString()
-        }]
+        timestamp: new Date().toISOString()
     };
     
-    allRequests.push(request);
+    // Add to requests array
+    allRequests.unshift(request);
     
     try {
         await saveAllRequests();
-        updateRequestCounts();
-        showMobileToast('Leave application submitted!', 'success');
-        showSection('myRequests');
+        
+        // Clear form
         document.getElementById('leaveApplicationForm').reset();
         
-        // Force dashboard update
-        updateMobileDashboard();
-        updateUserBalance();
+        // Show success message
+        alert('Leave application submitted successfully!');
+        
+        // Reload requests if on that section
+        if (document.getElementById('myRequestsSection').classList.contains('active')) {
+            loadMyRequests();
+        }
     } catch (error) {
-        showMobileToast('Failed to submit leave application. Please try again.', 'danger');
+        console.error('Error submitting leave application:', error);
+        showError('Failed to submit leave application. Please try again.');
     }
 }
 
-// My Requests
+// MY REQUESTS FUNCTIONS
 function loadMyRequests() {
-    const container = document.getElementById('myRequestsList');
+    const container = document.getElementById('myRequestsContainer');
     if (!container) return;
     
-    container.innerHTML = '';
+    // Filter requests for current user
+    const userRequests = allRequests.filter(req => 
+        req.fromUsername === currentUser.username
+    ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
-    const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
-    
-    if (myReqs.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <p>No requests found</p>
-                <p class="small">You haven't made any requests yet.</p>
-            </div>
-        `;
+    if (userRequests.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No requests found.</div>';
         return;
     }
     
-    // Sort by timestamp descending (newest first)
-    myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Create table for desktop, cards for mobile
+    let html = '';
     
-    myReqs.forEach(req => {
-        const listItem = document.createElement('div');
-        listItem.className = 'list-item';
+    if (window.innerWidth > 768) {
+        html = '<div class="table-responsive"><table class="table table-striped">';
+        html += '<thead><tr>';
+        html += '<th>Date</th>';
+        html += '<th>Type</th>';
+        html += '<th>Details</th>';
+        html += '<th>Status</th>';
+        html += '<th>Date Submitted</th>';
+        html += '<th>Actions</th>';
+        html += '</tr></thead><tbody>';
         
-        let details = '';
-        let icon = '';
-        
-        if (req.type === 'dutyChange') {
-            details = `Swap with ${req.toName}`;
-            icon = '<i class="fas fa-exchange-alt"></i>';
-        } else {
-            details = `${req.leaveType} - ${req.duration} day(s)`;
-            icon = '<i class="fas fa-calendar-minus"></i>';
-        }
-        
-        const statusClass = `status-${req.status}`;
-        const statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
-        
-        listItem.innerHTML = `
-            <div class="list-item-content">
-                <div class="list-item-title">${icon} ${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</div>
-                <div class="list-item-subtitle">
-                    ${formatMobileDate(req.date)} • ${details}<br>
-                    <small>${req.reason ? req.reason.substring(0, 50) + (req.reason.length > 50 ? '...' : '') : ''}</small>
-                </div>
-            </div>
-            <div class="list-item-badge ${statusClass}">${statusText}</div>
-        `;
-        
-        // Add click handler for details
-        listItem.addEventListener('click', function() {
-            showRequestDetails(req);
+        userRequests.forEach(request => {
+            html += '<tr>';
+            html += `<td>${request.date}</td>`;
+            html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
+            
+            if (request.type === 'duty_change') {
+                html += `<td>Swap ${request.currentDuty} with ${request.toName} (${request.requestedDuty})</td>`;
+            } else {
+                html += `<td>${request.leaveType}: ${request.reason.substring(0, 50)}${request.reason.length > 50 ? '...' : ''}</td>`;
+            }
+            
+            html += `<td><span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></td>`;
+            
+            const requestDate = new Date(request.timestamp);
+            html += `<td>${requestDate.toLocaleDateString()} ${requestDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
+            
+            html += '<td>';
+            if (request.status === 'pending') {
+                html += `<button class="btn btn-sm btn-danger" onclick="cancelRequest('${request.id}')">Cancel</button>`;
+            } else if (request.status === 'approved' && request.type === 'duty_change') {
+                html += `<button class="btn btn-sm btn-info" onclick="viewSwapDetails('${request.id}')">Details</button>`;
+            }
+            html += '</td>';
+            
+            html += '</tr>';
         });
         
-        container.appendChild(listItem);
-    });
-}
-
-function filterMobileRequests(searchTerm) {
-    const container = document.getElementById('myRequestsList');
-    const items = container.querySelectorAll('.list-item');
-    
-    items.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        if (text.includes(searchTerm.toLowerCase())) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-}
-
-function showRequestDetails(request) {
-    let details = '';
-    
-    if (request.type === 'dutyChange') {
-        details = `
-            <p><strong>Type:</strong> Duty Change</p>
-            <p><strong>Date:</strong> ${request.date}</p>
-            <p><strong>Your Duty:</strong> ${request.dutyTime}</p>
-            <p><strong>Swap With:</strong> ${request.toName} (${request.toDutyTime})</p>
-            ${request.reason ? `<p><strong>Reason:</strong> ${request.reason}</p>` : ''}
-            <p><strong>Status:</strong> <span class="status-${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span></p>
-            <p><strong>Submitted:</strong> ${formatDateTime(request.timestamp)}</p>
-        `;
+        html += '</tbody></table></div>';
     } else {
-        details = `
-            <p><strong>Type:</strong> ${request.leaveType}</p>
-            <p><strong>Date:</strong> ${request.date}</p>
-            <p><strong>Duty Time:</strong> ${request.dutyTime}</p>
-            <p><strong>Duration:</strong> ${request.duration} day(s)</p>
-            <p><strong>Reason:</strong> ${request.reason}</p>
-            <p><strong>Status:</strong> <span class="status-${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</span></p>
-            <p><strong>Submitted:</strong> ${formatDateTime(request.timestamp)}</p>
-        `;
-    }
-    
-    // Show history if available
-    if (request.history && request.history.length > 0) {
-        details += `<p><strong>History:</strong></p><ul>`;
-        request.history.forEach(event => {
-            details += `<li>${event.action} by ${event.by} (${formatTimeAgo(event.timestamp)})</li>`;
+        // Mobile view - cards
+        html = '<div class="requests-mobile">';
+        
+        userRequests.forEach(request => {
+            const requestDate = new Date(request.timestamp);
+            const formattedDate = requestDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            html += '<div class="request-card">';
+            html += '<div class="request-header">';
+            html += `<span class="request-type">${request.type === 'duty_change' ? '🔀 Duty Change' : '🏖️ Leave'}</span>`;
+            html += `<span class="request-date">${formattedDate}</span>`;
+            html += '</div>';
+            
+            html += '<div class="request-body">';
+            html += `<p><strong>Date:</strong> ${request.date}</p>`;
+            
+            if (request.type === 'duty_change') {
+                html += `<p><strong>Swap:</strong> ${request.currentDuty} ↔ ${request.toName}</p>`;
+                html += `<p><strong>To:</strong> ${request.requestedDuty}</p>`;
+            } else {
+                html += `<p><strong>Type:</strong> ${request.leaveType}</p>`;
+                html += `<p><strong>Reason:</strong> ${request.reason.substring(0, 60)}${request.reason.length > 60 ? '...' : ''}</p>`;
+            }
+            
+            html += `<p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></p>`;
+            html += '</div>';
+            
+            html += '<div class="request-actions">';
+            if (request.status === 'pending') {
+                html += `<button class="btn btn-sm btn-danger btn-block" onclick="cancelRequest('${request.id}')">Cancel Request</button>`;
+            } else if (request.status === 'approved' && request.type === 'duty_change') {
+                html += `<button class="btn btn-sm btn-info btn-block" onclick="viewSwapDetails('${request.id}')">View Details</button>`;
+            }
+            html += '</div>';
+            
+            html += '</div>';
         });
-        details += `</ul>`;
+        
+        html += '</div>';
     }
     
-    if (request.status === 'pending') {
-        details += `
-            <div style="margin-top: 20px;">
-                <button class="btn btn-danger btn-block" onclick="cancelRequest('${request.id}')">
-                    <i class="fas fa-times"></i> Cancel Request
-                </button>
-            </div>
-        `;
-    }
-    
-    openModal('Request Details', details);
+    container.innerHTML = html;
 }
 
-// Roster Functions
-function loadMyRoster() {
-    const container = document.getElementById('myRosterContainer');
-    const monthInput = document.getElementById('myRosterMonth').value;
-    
-    if (!monthInput) {
-        container.innerHTML = '<div class="alert alert-warning">Please select a month</div>';
+function getStatusBadgeClass(status) {
+    switch(status) {
+        case 'pending': return 'badge-warning';
+        case 'approved': return 'badge-success';
+        case 'rejected': return 'badge-danger';
+        case 'cancelled': return 'badge-secondary';
+        default: return 'badge-light';
+    }
+}
+
+async function cancelRequest(requestId) {
+    if (!confirm('Are you sure you want to cancel this request?')) {
         return;
     }
     
-    const [year, month] = monthInput.split('-');
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const requestIndex = allRequests.findIndex(req => req.id === requestId);
     
-    displayMobileMyRoster(container, startDate, endDate, year, month);
+    if (requestIndex === -1) {
+        showError('Request not found');
+        return;
+    }
+    
+    // Only allow cancelling pending requests
+    if (allRequests[requestIndex].status !== 'pending') {
+        showError('Only pending requests can be cancelled');
+        return;
+    }
+    
+    // Check if request belongs to current user
+    if (allRequests[requestIndex].fromUsername !== currentUser.username) {
+        showError('You can only cancel your own requests');
+        return;
+    }
+    
+    // Update status
+    allRequests[requestIndex].status = 'cancelled';
+    allRequests[requestIndex].cancelledAt = new Date().toISOString();
+    
+    try {
+        await saveAllRequests();
+        loadMyRequests();
+        showUserNotification('Request cancelled successfully');
+    } catch (error) {
+        console.error('Error cancelling request:', error);
+        showError('Failed to cancel request');
+    }
 }
 
-function displayMobileMyRoster(container, startDate, endDate, year, month) {
-    let html = `<h4 style="margin-bottom: 15px;">${getMonthName(month)} ${year}</h4>`;
+function viewSwapDetails(requestId) {
+    const request = allRequests.find(req => req.id === requestId);
+    
+    if (!request) {
+        showError('Request not found');
+        return;
+    }
+    
+    let details = `<strong>Duty Change Details:</strong><br><br>`;
+    details += `<strong>Date:</strong> ${request.date}<br>`;
+    details += `<strong>Your Original Duty:</strong> ${request.currentDuty}<br>`;
+    details += `<strong>Swapping With:</strong> ${request.toName}<br>`;
+    details += `<strong>You Will Work:</strong> ${request.requestedDuty}<br>`;
+    details += `<strong>They Will Work:</strong> ${request.currentDuty}<br>`;
+    details += `<strong>Reason:</strong> ${request.reason}<br>`;
+    details += `<strong>Approved By:</strong> ${request.approvedBy || 'Supervisor'}<br>`;
+    details += `<strong>Approved At:</strong> ${request.approvedAt ? new Date(request.approvedAt).toLocaleString() : 'N/A'}`;
+    
+    alert(details);
+}
+
+// VIEW MY ROSTER FUNCTIONS
+function loadMyRoster() {
+    const monthInput = document.getElementById('myRosterMonth').value;
+    if (!monthInput) return;
+    
+    const [year, month] = monthInput.split('-').map(Number);
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0); // Last day of month
+    
+    const container = document.getElementById('myRosterContainer');
+    if (!container) return;
+    
+    // Create table
+    let html = `<h4 class="text-center mb-3">${getMonthName(month)} ${year}</h4>`;
+    
+    html += '<div class="table-responsive"><table class="table table-bordered table-striped">';
+    html += '<thead class="thead-dark"><tr>';
+    html += '<th>Date</th>';
+    html += '<th>Day</th>';
+    html += '<th>Duty Time</th>';
+    html += '<th>Status</th>';
+    html += '</tr></thead><tbody>';
     
     const today = new Date().toISOString().split('T')[0];
-    let dutyCount = 0;
-    let offCount = 0;
-    let leaveCount = 0;
-    
-    html += '<div class="list-view">';
     
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
         const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+        const isToday = dateStr === today;
+        const isPast = d < new Date(today);
         
         let dutyTime = 'Not Scheduled';
-        let statusClass = '';
-        let statusText = '';
-        let isToday = dateStr === today;
+        let cellClass = '';
+        let leaveIndicator = '';
         
         // Check for approved leave
         const approvedLeave = allRequests.find(req => 
@@ -2524,63 +2643,66 @@ function displayMobileMyRoster(container, startDate, endDate, year, month) {
         );
         
         if (approvedLeave) {
-            dutyTime = `${approvedLeave.leaveType} - ${approvedLeave.duration} day(s)`;
-            statusClass = 'status-approved';
-            statusText = 'On Leave';
-            leaveCount += approvedLeave.duration;
+            dutyTime = 'Leave';
+            cellClass = 'duty-leave';
+            leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
         } else if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
             dutyTime = dutyRoster[dateStr][currentUser.username];
-            if (dutyTime === 'Off') {
-                statusClass = 'status-off';
-                statusText = 'Off Duty';
-                offCount++;
-            } else {
-                statusClass = dateStr < today ? 'status-completed' : 'status-pending';
-                statusText = dateStr < today ? 'Completed' : 'Scheduled';
-                dutyCount++;
-            }
+            cellClass = getDutyTimeClass(dutyTime);
         } else {
-            statusClass = 'status-pending';
-            statusText = 'Not Scheduled';
+            cellClass = 'off-day-cell';
+            dutyTime = 'Off';
         }
         
-        html += `
-            <div class="list-item ${isToday ? 'today-item' : ''}" style="${isToday ? 'border-left: 4px solid #3498db;' : ''}">
-                <div class="list-item-content">
-                    <div class="list-item-title">
-                        ${dateStr} ${isToday ? '<span style="color: #3498db; font-weight: bold;">(Today)</span>' : ''}
-                    </div>
-                    <div class="list-item-subtitle">
-                        ${dayName} • ${dutyTime}
-                    </div>
-                </div>
-                <div class="list-item-badge ${statusClass}">${statusText}</div>
-            </div>
-        `;
+        if (isToday) {
+            cellClass += ' today-cell';
+        }
+        
+        html += `<tr ${isToday ? 'class="table-warning"' : ''}>`;
+        html += `<td><strong>${dateStr}</strong>${isToday ? ' <span class="badge badge-info">Today</span>' : ''}</td>`;
+        html += `<td>${dayName}</td>`;
+        html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
+        
+        let statusText = '';
+        if (isPast) {
+            statusText = '<span class="badge badge-secondary">Completed</span>';
+        } else if (isToday) {
+            statusText = '<span class="badge badge-primary">Today</span>';
+        } else if (approvedLeave) {
+            statusText = '<span class="badge badge-success">Leave Approved</span>';
+        } else if (dutyTime === 'Off') {
+            statusText = '<span class="badge badge-info">Off Day</span>';
+        } else {
+            statusText = '<span class="badge badge-light">Scheduled</span>';
+        }
+        
+        html += `<td>${statusText}</td>`;
+        html += '</tr>';
     }
     
-    html += '</div>';
+    html += '</tbody></table></div>';
     
-    // Add summary
-    html += `
-        <div class="alert alert-info" style="margin-top: 15px;">
-            <strong>Summary:</strong><br>
-            • ${dutyCount} duty days<br>
-            • ${offCount} off days<br>
-            • ${leaveCount.toFixed(1)} leave days
-        </div>
-    `;
+    // Add duty time legend
+    html += getDutyTimeLegend();
     
     container.innerHTML = html;
 }
 
+function getMonthName(month) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[month - 1];
+}
+
+// VIEW ALL ROSTER FUNCTIONS
 function loadAllRoster() {
-    const container = document.getElementById('allRosterContainer');
     const startDate = document.getElementById('allRosterStartDate').value;
     const endDate = document.getElementById('allRosterEndDate').value;
     
     if (!startDate || !endDate) {
-        container.innerHTML = '<div class="alert alert-warning">Please select start and end dates</div>';
+        showError('Please select both start and end dates');
         return;
     }
     
@@ -2588,630 +2710,1258 @@ function loadAllRoster() {
     const end = new Date(endDate);
     
     if (start > end) {
-        container.innerHTML = '<div class="alert alert-warning">Start date must be before end date</div>';
+        showError('Start date must be before end date');
         return;
     }
     
-    displayMobileAllRoster(container, start, end);
+    // Limit date range for mobile performance
+    const maxDays = window.innerWidth <= 768 ? 14 : 31;
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff > maxDays) {
+        if (window.innerWidth <= 768) {
+            alert(`For mobile devices, maximum ${maxDays} days allowed. Showing first ${maxDays} days.`);
+            end.setDate(start.getDate() + maxDays - 1);
+            document.getElementById('allRosterEndDate').value = end.toISOString().split('T')[0];
+        }
+    }
+    
+    const year = start.getFullYear();
+    const month = start.getMonth() + 1;
+    
+    const container = document.getElementById('allRosterContainer');
+    container.innerHTML = displayAllRosterTable(start, end, year, month);
 }
 
-function displayMobileAllRoster(container, startDate, endDate) {
+function displayAllRosterTable(startDate, endDate, year, month) {
     const today = new Date().toISOString().split('T')[0];
+    let html = `<h4>${getMonthName(month)} ${year}</h4>`;
+    html += `<p class="text-muted">${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}</p>`;
     
-    let html = `<h4 style="margin-bottom: 15px;">${formatMobileDate(startDate)} to ${formatMobileDate(endDate)}</h4>`;
-    
-    // Group by date
-    html += '<div class="list-view">';
-    
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
-        const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-        const isToday = dateStr === today;
+    // Mobile view - simplified table
+    if (window.innerWidth <= 768) {
+        html += '<div class="table-container-mobile">';
         
-        html += `
-            <div class="roster-day ${isToday ? 'today' : ''}">
-                <div class="roster-day-header">
-                    <div class="roster-date">${dateStr} ${isToday ? '<strong>(Today)</strong>' : ''}</div>
-                    <div class="roster-day-name">${dayName}</div>
-                </div>
-        `;
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const isToday = dateStr === today;
+            
+            html += '<div class="roster-day-card">';
+            html += `<div class="roster-day-header ${isToday ? 'today-header' : ''}">`;
+            html += `<span class="roster-date">${dateStr}</span>`;
+            html += `<span class="roster-day">${dayName} ${isToday ? ' (Today)' : ''}</span>`;
+            html += '</div>';
+            
+            html += '<div class="roster-day-body">';
+            
+            // Show staff and duties for this day
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    let dutyTime = 'Off';
+                    let cellClass = 'off-day-cell';
+                    let leaveIndicator = '';
+                    
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === user.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === dateStr
+                    );
+                    
+                    if (approvedLeave) {
+                        dutyTime = 'Leave';
+                        cellClass = 'duty-leave';
+                        leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
+                    } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                        dutyTime = dutyRoster[dateStr][user.username];
+                        cellClass = getDutyTimeClass(dutyTime);
+                    }
+                    
+                    html += '<div class="roster-staff-row">';
+                    html += `<span class="roster-staff-name">${user.name}</span>`;
+                    html += `<span class="roster-duty-time ${cellClass}">${dutyTime} ${leaveIndicator}</span>`;
+                    html += '</div>';
+                }
+            });
+            
+            html += '</div>';
+            html += '</div>';
+        }
         
-        // Add staff duties for this day
+        html += '</div>';
+    } else {
+        // Desktop view - full table
+        html += '<div class="table-container"><table class="table table-bordered">';
+        html += '<thead><tr><th>Date</th><th>Day</th>';
+        
+        // Add staff headers
         allUsers.forEach(user => {
             if (user.Level === 'User') {
-                let dutyInfo = '';
-                let dutyClass = '';
-                
-                // Check for approved leave
-                const approvedLeave = allRequests.find(req => 
-                    req.fromUsername === user.username &&
-                    req.type === 'leave' &&
-                    req.status === 'approved' &&
-                    req.date === dateStr
-                );
-                
-                if (approvedLeave) {
-                    dutyInfo = `${user.name}: ${approvedLeave.leaveType} (${approvedLeave.duration} day)`;
-                    dutyClass = 'duty-leave';
-                } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                    const dutyTime = dutyRoster[dateStr][user.username];
-                    if (dutyTime !== 'Off') {
-                        dutyInfo = `${user.name}: ${dutyTime}`;
-                        dutyClass = getDutyClass(dutyTime);
-                    }
-                }
-                
-                if (dutyInfo) {
-                    html += `
-                        <div class="roster-staff ${dutyClass}" style="margin: 5px 0; padding: 5px; border-radius: 4px;">
-                            ${dutyInfo}
-                        </div>
-                    `;
-                }
+                html += `<th class="staff-name">${user.name}<br><small>${user.RCNo}</small></th>`;
             }
         });
         
-        html += `</div>`;
+        html += '</tr></thead><tbody>';
+        
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const isToday = dateStr === today;
+            
+            html += `<tr ${isToday ? 'class="table-warning"' : ''}>`;
+            html += `<td><strong>${dateStr}</strong>${isToday ? ' <span class="badge badge-info">Today</span>' : ''}</td>`;
+            html += `<td>${dayName}</td>`;
+            
+            // Add duty times for each staff
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    let dutyTime = 'Off';
+                    let cellClass = 'off-day-cell';
+                    let leaveIndicator = '';
+                    
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === user.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === dateStr
+                    );
+                    
+                    if (approvedLeave) {
+                        dutyTime = 'Leave';
+                        cellClass = 'duty-leave';
+                        leaveIndicator = `<span class="leave-indicator">${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'}</span>`;
+                    } else if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                        dutyTime = dutyRoster[dateStr][user.username];
+                        cellClass = getDutyTimeClass(dutyTime);
+                    }
+                    
+                    if (isToday) {
+                        cellClass += ' today-cell';
+                    }
+                    
+                    html += `<td class="${cellClass}">${dutyTime} ${leaveIndicator}</td>`;
+                }
+            });
+            
+            html += '</tr>';
+        }
+        
+        html += '</tbody></table></div>';
     }
     
-    html += '</div>';
+    // Add duty time legend
+    html += getDutyTimeLegend();
     
-    // Add legend
-    html += `
-        <div class="alert alert-info" style="margin-top: 15px;">
-            <strong>Legend:</strong><br>
-            <span class="duty-0730" style="padding: 2px 5px;">07:30 Shift</span>
-            <span class="duty-0830" style="padding: 2px 5px;">08:30 Shift</span>
-            <span class="duty-leave" style="padding: 2px 5px;">Leave</span>
-            <span class="off-day" style="padding: 2px 5px;">Off Duty</span>
+    return html;
+}
+
+function getDutyTimeLegend() {
+    return `
+        <div class="duty-legend">
+            <h5>Duty Time Legend:</h5>
+            <div class="legend-items">
+                <span class="legend-item"><span class="color-box duty-0730-1530"></span> 0730-1530</span>
+                <span class="legend-item"><span class="color-box duty-0830-1630"></span> 0830-1630</span>
+                <span class="legend-item"><span class="color-box duty-1030-1830"></span> 1030-1830</span>
+                <span class="legend-item"><span class="color-box duty-1530-2330"></span> 1530-2330</span>
+                <span class="legend-item"><span class="color-box duty-1630-0030"></span> 1630-0030</span>
+                <span class="legend-item"><span class="color-box duty-leave"></span> Leave</span>
+                <span class="legend-item"><span class="color-box off-day-cell"></span> Off Day</span>
+            </div>
         </div>
     `;
-    
-    container.innerHTML = html;
 }
 
-// Pending Requests
+function printAllRoster() {
+    const originalContent = document.getElementById('allRosterContainer').innerHTML;
+    const printWindow = window.open('', '_blank');
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Duty Roster Report</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
+                table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 10px; }
+                th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                .leave-indicator { background-color: #ffeaa7; padding: 1px 3px; border-radius: 2px; font-size: 8px; }
+                h3 { color: #2c3e50; margin-bottom: 5px; }
+                .print-header { margin-bottom: 15px; }
+                .duty-0730-1530 { background-color: #a3e4d7 !important; }
+                .duty-0830-1630 { background-color: #aed6f1 !important; }
+                .duty-1030-1830 { background-color: #f9e79f !important; }
+                .duty-1530-2330 { background-color: #d5dbdb !important; }
+                .duty-1630-0030 { background-color: #f1948a !important; }
+                .duty-leave { background-color: #82e0aa !important; }
+                .off-day-cell { background-color: #f8f9fa !important; }
+                @media print {
+                    body { margin: 0; padding: 10px; }
+                    table { font-size: 8px; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-header">
+                <h3>Duty Roster Report</h3>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <p>Generated by: ${currentUser.name} (${currentUser.rcNo})</p>
+            </div>
+            ${originalContent}
+            <div class="no-print">
+                <p><em>Report generated from Duty Management System</em></p>
+            </div>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Wait for content to load before printing
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
+// ADMIN PENDING REQUESTS
 function loadPendingRequests() {
-    const container = document.getElementById('pendingRequestsList');
+    if (currentUser.level !== 'Supervisor') {
+        document.getElementById('pendingRequestsContainer').innerHTML = 
+            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
+        return;
+    }
+    
+    const container = document.getElementById('pendingRequestsContainer');
     if (!container) return;
     
-    container.innerHTML = '';
+    // Filter pending requests
+    const pendingRequests = allRequests.filter(req => req.status === 'pending');
     
-    const pendingReqs = allRequests.filter(req => 
-        req.status === 'pending' && 
-        req.type === 'dutyChange' && 
-        req.toUsername === currentUser.username
-    );
-    
-    if (pendingReqs.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-check-circle"></i>
-                <p>No pending requests</p>
-                <p class="small">You're all caught up!</p>
-            </div>
-        `;
+    if (pendingRequests.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No pending requests.</div>';
+        updateRequestCounts();
         return;
     }
     
-    pendingReqs.forEach(req => {
-        const listItem = document.createElement('div');
-        listItem.className = 'list-item';
-        
-        listItem.innerHTML = `
-            <div class="list-item-content">
-                <div class="list-item-title">
-                    <i class="fas fa-exchange-alt"></i> Duty Change Request
-                </div>
-                <div class="list-item-subtitle">
-                    From: ${req.fromName}<br>
-                    Date: ${req.date}<br>
-                    Swap: ${req.dutyTime} ↔ ${req.toDutyTime}
-                    ${req.reason ? `<br><small>Reason: ${req.reason}</small>` : ''}
-                </div>
-            </div>
-            <div class="action-buttons">
-                <button class="action-btn approve" onclick="respondToRequest('${req.id}', 'approved')">
-                    <i class="fas fa-check"></i>
-                </button>
-                <button class="action-btn reject" onclick="respondToRequest('${req.id}', 'rejected')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
-        container.appendChild(listItem);
-    });
-}
-
-// Request Management
-async function cancelRequest(requestId) {
-    if (!confirm('Are you sure you want to cancel this request?')) return;
+    let html = '';
     
-    const request = allRequests.find(req => req.id === requestId);
-    if (request) {
-        request.status = 'cancelled';
-        request.history.push({
-            action: 'cancelled',
-            by: currentUser.name,
-            timestamp: new Date().toISOString()
+    if (window.innerWidth > 768) {
+        html = '<div class="table-responsive"><table class="table table-striped">';
+        html += '<thead><tr>';
+        html += '<th>Date</th>';
+        html += '<th>Staff</th>';
+        html += '<th>Type</th>';
+        html += '<th>Details</th>';
+        html += '<th>Submitted</th>';
+        html += '<th>Actions</th>';
+        html += '</tr></thead><tbody>';
+        
+        pendingRequests.forEach(request => {
+            html += '<tr>';
+            html += `<td>${request.date}</td>`;
+            html += `<td>${request.fromName} (${request.fromUsername})</td>`;
+            html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
+            
+            if (request.type === 'duty_change') {
+                html += `<td>Swap ${request.currentDuty} with ${request.toName} (${request.requestedDuty})<br>`;
+                html += `<small>Reason: ${request.reason}</small></td>`;
+            } else {
+                html += `<td>${request.leaveType}<br>`;
+                html += `<small>Reason: ${request.reason}</small></td>`;
+            }
+            
+            const requestDate = new Date(request.timestamp);
+            html += `<td>${requestDate.toLocaleDateString()} ${requestDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
+            
+            html += '<td>';
+            html += `<button class="btn btn-sm btn-success" onclick="approveRequest('${request.id}')">Approve</button> `;
+            html += `<button class="btn btn-sm btn-danger" onclick="rejectRequest('${request.id}')">Reject</button>`;
+            
+            if (request.type === 'leave') {
+                const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
+                const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
+                html += `<br><small>Balance: ${userBalance[leaveTypeKey]} days</small>`;
+            }
+            html += '</td>';
+            
+            html += '</tr>';
         });
         
-        try {
-            await saveAllRequests();
-            loadMyRequests();
-            updateRequestCounts();
-            closeModal();
-            showMobileToast('Request cancelled successfully', 'success');
-        } catch (error) {
-            showMobileToast('Failed to cancel request', 'danger');
-        }
-    }
-}
-
-async function respondToRequest(requestId, response) {
-    const request = allRequests.find(req => req.id === requestId);
-    if (!request) return;
-    
-    if (response === 'approved') {
-        // Swap duty times in roster
-        const date = request.date;
-        if (dutyRoster[date]) {
-            const temp = dutyRoster[date][request.fromUsername];
-            dutyRoster[date][request.fromUsername] = dutyRoster[date][request.toUsername];
-            dutyRoster[date][request.toUsername] = temp;
-            await saveDutyRoster();
-        }
-    }
-    
-    request.status = response;
-    request.respondedAt = new Date().toISOString();
-    request.history.push({
-        action: response,
-        by: currentUser.name,
-        timestamp: new Date().toISOString()
-    });
-    
-    try {
-        await saveAllRequests();
-        showMobileToast(`Request ${response} successfully!`, 'success');
-        loadPendingRequests();
-        updateRequestCounts();
-    } catch (error) {
-        showMobileToast(`Failed to ${response} request`, 'danger');
-    }
-}
-
-// Announcements Admin
-function loadAnnouncementsAdmin() {
-    // Setup announcement form
-    setupAnnouncementForm();
-    loadActiveAnnouncements();
-}
-
-function setupAnnouncementForm() {
-    // Populate staff dropdown
-    const staffSelect = document.getElementById('announcementStaff');
-    staffSelect.innerHTML = '';
-    
-    allUsers.forEach(user => {
-        if (user.Level === 'User') {
-            const option = document.createElement('option');
-            option.value = user.username;
-            option.textContent = `${user.name} (${user.RCNo})`;
-            staffSelect.appendChild(option);
-        }
-    });
-}
-
-function toggleStaffSelection() {
-    const target = document.getElementById('announcementTarget').value;
-    const staffGroup = document.getElementById('specificStaffGroup');
-    
-    if (target === 'specific') {
-        staffGroup.style.display = 'block';
+        html += '</tbody></table></div>';
     } else {
-        staffGroup.style.display = 'none';
+        // Mobile view - cards
+        html = '<div class="pending-requests-mobile">';
+        
+        pendingRequests.forEach(request => {
+            const requestDate = new Date(request.timestamp);
+            const formattedDate = requestDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            html += '<div class="pending-request-card">';
+            html += '<div class="pending-request-header">';
+            html += `<span class="request-type">${request.type === 'duty_change' ? '🔀 Duty Change' : '🏖️ Leave'}</span>`;
+            html += `<span class="request-date">${formattedDate}</span>`;
+            html += '</div>';
+            
+            html += '<div class="pending-request-body">';
+            html += `<p><strong>Staff:</strong> ${request.fromName}</p>`;
+            html += `<p><strong>Date:</strong> ${request.date}</p>`;
+            
+            if (request.type === 'duty_change') {
+                html += `<p><strong>Swap:</strong> ${request.currentDuty} ↔ ${request.toName}</p>`;
+                html += `<p><strong>To:</strong> ${request.requestedDuty}</p>`;
+            } else {
+                html += `<p><strong>Type:</strong> ${request.leaveType}</p>`;
+                const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
+                const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
+                html += `<p><strong>Balance:</strong> ${userBalance[leaveTypeKey]} days</p>`;
+            }
+            
+            html += `<p><strong>Reason:</strong> ${request.reason}</p>`;
+            html += '</div>';
+            
+            html += '<div class="pending-request-actions">';
+            html += `<button class="btn btn-success btn-sm" onclick="approveRequest('${request.id}')">Approve</button>`;
+            html += `<button class="btn btn-danger btn-sm" onclick="rejectRequest('${request.id}')">Reject</button>`;
+            html += '</div>';
+            
+            html += '</div>';
+        });
+        
+        html += '</div>';
     }
+    
+    container.innerHTML = html;
+    updateRequestCounts();
 }
 
-function selectPriority(priority) {
-    document.getElementById('announcementPriority').value = priority;
-    
-    // Update button styles
-    document.querySelectorAll('#announcementForm .btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    const activeBtn = document.querySelector(`#announcementForm .btn-${priority === 'high' ? 'danger' : priority === 'medium' ? 'warning' : 'success'}`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-    }
-}
-
-async function createAnnouncement(e) {
-    e.preventDefault();
-    
-    const title = document.getElementById('announcementTitle').value.trim();
-    const content = document.getElementById('announcementContent').value.trim();
-    const priority = document.getElementById('announcementPriority').value;
-    const target = document.getElementById('announcementTarget').value;
-    
-    if (!title || !content) {
-        showMobileToast('Please fill in title and content', 'warning');
+async function approveRequest(requestId) {
+    if (currentUser.level !== 'Supervisor') {
+        showError('Supervisor privileges required');
         return;
     }
     
-    let targetUsers = [];
-    if (target === 'specific') {
-        const staffSelect = document.getElementById('announcementStaff');
-        targetUsers = Array.from(staffSelect.selectedOptions).map(option => option.value);
+    const requestIndex = allRequests.findIndex(req => req.id === requestId);
+    
+    if (requestIndex === -1) {
+        showError('Request not found');
+        return;
+    }
+    
+    const request = allRequests[requestIndex];
+    
+    // Process based on request type
+    if (request.type === 'duty_change') {
+        // Check if both staff are still scheduled for their respective duties
+        if (!dutyRoster[request.date] || 
+            !dutyRoster[request.date][request.fromUsername] ||
+            !dutyRoster[request.date][request.toUsername]) {
+            showError('One or both staff are not scheduled for duty on this date');
+            return;
+        }
         
-        if (targetUsers.length === 0) {
-            showMobileToast('Please select at least one staff member', 'warning');
+        // Swap duties
+        const tempDuty = dutyRoster[request.date][request.fromUsername];
+        dutyRoster[request.date][request.fromUsername] = dutyRoster[request.date][request.toUsername];
+        dutyRoster[request.date][request.toUsername] = tempDuty;
+        
+        try {
+            await saveDutyRoster();
+        } catch (error) {
+            console.error('Error updating duty roster:', error);
+            showError('Failed to update duty roster');
+            return;
+        }
+        
+    } else if (request.type === 'leave') {
+        // Check leave balance
+        const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
+        const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
+        
+        if (userBalance[leaveTypeKey] <= 0) {
+            showError('Staff has insufficient leave balance');
+            return;
+        }
+        
+        // Deduct leave balance
+        userBalance[leaveTypeKey] -= 1;
+        leaveBalances[request.fromUsername] = userBalance;
+        
+        try {
+            await saveLeaveBalances();
+        } catch (error) {
+            console.error('Error updating leave balance:', error);
+            showError('Failed to update leave balance');
             return;
         }
     }
     
-    const announcement = {
-        id: 'ann_' + Date.now(),
-        title: title,
-        content: content,
-        priority: priority,
-        target: target,
-        targetUsers: targetUsers,
-        createdBy: currentUser.name,
-        createdByUsername: currentUser.username,
-        createdAt: new Date().toISOString(),
-        status: 'active'
-    };
-    
-    announcements.push(announcement);
+    // Update request status
+    allRequests[requestIndex].status = 'approved';
+    allRequests[requestIndex].approvedBy = currentUser.name;
+    allRequests[requestIndex].approvedAt = new Date().toISOString();
     
     try {
-        await saveAnnouncements();
-        showMobileToast('Announcement created successfully!', 'success');
-        clearAnnouncementForm();
-        loadActiveAnnouncements();
+        await saveAllRequests();
+        
+        // Reload pending requests
+        loadPendingRequests();
+        
+        // Show success message
+        showUserNotification(`${request.type === 'duty_change' ? 'Duty change' : 'Leave'} approved for ${request.fromName}`);
+        
+        // Refresh affected sections
+        if (document.getElementById('viewMyRosterSection').classList.contains('active')) {
+            loadMyRoster();
+        }
+        if (document.getElementById('viewAllRosterSection').classList.contains('active')) {
+            loadAllRoster();
+        }
+        
     } catch (error) {
-        showMobileToast('Failed to create announcement', 'danger');
+        console.error('Error approving request:', error);
+        showError('Failed to approve request');
     }
 }
 
-function clearAnnouncementForm() {
-    document.getElementById('announcementForm').reset();
-    document.getElementById('announcementPriority').value = 'medium';
-    document.getElementById('specificStaffGroup').style.display = 'none';
-}
-
-function loadActiveAnnouncements() {
-    const container = document.getElementById('activeAnnouncementsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    const now = new Date();
-    const activeAnnouncements = announcements.filter(ann => {
-        if (ann.status === 'expired' || ann.status === 'archived') return false;
-        if (ann.expiry && new Date(ann.expiry) < now) return false;
-        return true;
-    });
-    
-    if (activeAnnouncements.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bullhorn"></i>
-                <p>No active announcements</p>
-            </div>
-        `;
+async function rejectRequest(requestId) {
+    if (currentUser.level !== 'Supervisor') {
+        showError('Supervisor privileges required');
         return;
     }
     
-    activeAnnouncements.forEach(ann => {
-        const announcementDiv = document.createElement('div');
-        announcementDiv.className = `announcement-card ${ann.priority}`;
-        
-        let targetText = ann.target === 'all' ? 'All Staff' : 'Specific Staff';
-        
-        announcementDiv.innerHTML = `
-            <div class="announcement-title">
-                <i class="fas fa-bullhorn"></i> ${ann.title}
-            </div>
-            <div class="announcement-content">${ann.content}</div>
-            <div class="announcement-meta">
-                <div>By ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}</div>
-                <div>${targetText}</div>
-            </div>
-            <div class="action-buttons" style="margin-top: 10px;">
-                <button class="action-btn delete" onclick="deleteAnnouncement('${ann.id}')">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        `;
-        
-        container.appendChild(announcementDiv);
-    });
-}
-
-async function deleteAnnouncement(announcementId) {
-    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    const reason = prompt('Please enter reason for rejection:');
+    if (!reason) return;
     
-    const index = announcements.findIndex(ann => ann.id === announcementId);
-    if (index !== -1) {
-        announcements.splice(index, 1);
+    const requestIndex = allRequests.findIndex(req => req.id === requestId);
+    
+    if (requestIndex === -1) {
+        showError('Request not found');
+        return;
+    }
+    
+    // Update request status
+    allRequests[requestIndex].status = 'rejected';
+    allRequests[requestIndex].rejectedBy = currentUser.name;
+    allRequests[requestIndex].rejectedAt = new Date().toISOString();
+    allRequests[requestIndex].rejectionReason = reason;
+    
+    try {
+        await saveAllRequests();
         
-        try {
-            await saveAnnouncements();
-            loadActiveAnnouncements();
-            showMobileToast('Announcement deleted!', 'success');
-        } catch (error) {
-            showMobileToast('Failed to delete announcement', 'danger');
-        }
+        // Reload pending requests
+        loadPendingRequests();
+        
+        // Show success message
+        showUserNotification(`Request rejected for ${allRequests[requestIndex].fromName}`);
+        
+    } catch (error) {
+        console.error('Error rejecting request:', error);
+        showError('Failed to reject request');
     }
 }
 
-// Request Counts and Notifications
+// ADMIN ANNOUNCEMENTS
+function loadAnnouncementsAdmin() {
+    if (currentUser.level !== 'Supervisor') {
+        document.getElementById('adminAnnouncementsContainer').innerHTML = 
+            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
+        return;
+    }
+    
+    const container = document.getElementById('announcementsList');
+    if (!container) return;
+    
+    // Sort announcements by date (newest first)
+    const sortedAnnouncements = announcements.sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+    
+    if (sortedAnnouncements.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No announcements yet.</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    sortedAnnouncements.forEach((announcement, index) => {
+        const announcementDate = new Date(announcement.timestamp);
+        const formattedDate = announcementDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        html += '<div class="announcement-item">';
+        html += '<div class="announcement-item-header">';
+        html += `<strong>${announcement.title}</strong>`;
+        html += `<small class="text-muted">${formattedDate} - ${announcement.postedBy}</small>`;
+        html += '</div>';
+        html += '<div class="announcement-item-body">';
+        html += announcement.message.replace(/\n/g, '<br>');
+        html += '</div>';
+        html += '<div class="announcement-item-actions">';
+        html += `<button class="btn btn-sm btn-danger" onclick="deleteAnnouncement(${index})">Delete</button>`;
+        html += '</div>';
+        html += '</div>';
+    });
+    
+    container.innerHTML = html;
+}
+
+async function createAnnouncement() {
+    if (currentUser.level !== 'Supervisor') {
+        showError('Supervisor privileges required');
+        return;
+    }
+    
+    const title = document.getElementById('announcementTitle').value.trim();
+    const message = document.getElementById('announcementMessage').value.trim();
+    
+    if (!title || !message) {
+        showError('Please enter both title and message');
+        return;
+    }
+    
+    const announcement = {
+        id: Date.now().toString(),
+        title: title,
+        message: message,
+        postedBy: currentUser.name,
+        timestamp: new Date().toISOString()
+    };
+    
+    announcements.unshift(announcement);
+    
+    try {
+        await saveAnnouncements();
+        
+        // Clear form
+        document.getElementById('announcementForm').reset();
+        
+        // Reload announcements
+        loadAnnouncementsAdmin();
+        if (document.getElementById('homeSection').classList.contains('active')) {
+            loadHomeAnnouncements();
+        }
+        
+        // Show success message
+        alert('Announcement posted successfully!');
+        
+    } catch (error) {
+        console.error('Error creating announcement:', error);
+        showError('Failed to create announcement');
+    }
+}
+
+async function deleteAnnouncement(index) {
+    if (currentUser.level !== 'Supervisor') {
+        showError('Supervisor privileges required');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this announcement?')) {
+        return;
+    }
+    
+    announcements.splice(index, 1);
+    
+    try {
+        await saveAnnouncements();
+        
+        // Reload announcements
+        loadAnnouncementsAdmin();
+        if (document.getElementById('homeSection').classList.contains('active')) {
+            loadHomeAnnouncements();
+        }
+        
+        showUserNotification('Announcement deleted');
+        
+    } catch (error) {
+        console.error('Error deleting announcement:', error);
+        showError('Failed to delete announcement');
+    }
+}
+
+// ADMIN DUTY ROSTER MANAGEMENT
+function loadDutyRosterAdmin() {
+    if (currentUser.level !== 'Supervisor') {
+        document.getElementById('adminDutyRosterContainer').innerHTML = 
+            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
+        return;
+    }
+    
+    const dateInput = document.getElementById('rosterDate');
+    if (!dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+    
+    loadRosterForDate(dateInput.value);
+}
+
+async function loadRosterForDate(date) {
+    if (!date) return;
+    
+    const container = document.getElementById('rosterEntryContainer');
+    if (!container) return;
+    
+    let html = '';
+    
+    // Get duty times for this date
+    const dateDuties = dutyRoster[date] || {};
+    
+    allUsers.forEach(user => {
+        if (user.Level === 'User') {
+            const currentDuty = dateDuties[user.username] || 'Off';
+            
+            html += '<div class="roster-entry-row">';
+            html += `<div class="roster-entry-user">${user.name} (${user.RCNo})</div>`;
+            html += '<div class="roster-entry-duty">';
+            html += `<select class="form-control duty-time-select" data-username="${user.username}" data-date="${date}">`;
+            
+            // Add options
+            const options = ['Off', '0730-1530', '0830-1630', '1030-1830', '1530-2330', '1630-0030', '1730-0130'];
+            options.forEach(option => {
+                const selected = option === currentDuty ? 'selected' : '';
+                html += `<option value="${option}" ${selected}>${option}</option>`;
+            });
+            
+            // Add custom duty times if present
+            if (currentDuty && !options.includes(currentDuty)) {
+                html += `<option value="${currentDuty}" selected>${currentDuty}</option>`;
+            }
+            
+            html += `<option value="custom">Custom Time...</option>`;
+            html += '</select>';
+            html += '</div>';
+            html += '</div>';
+        }
+    });
+    
+    container.innerHTML = html;
+    
+    // Add event listeners to selects
+    document.querySelectorAll('.duty-time-select').forEach(select => {
+        select.addEventListener('change', async function() {
+            const username = this.getAttribute('data-username');
+            const date = this.getAttribute('data-date');
+            const value = this.value;
+            
+            if (value === 'custom') {
+                const customTime = prompt('Enter custom duty time (e.g., 0900-1700):');
+                if (customTime) {
+                    await updateDutyRoster(date, username, customTime);
+                    this.innerHTML = ''; // Will be regenerated
+                    loadRosterForDate(date);
+                } else {
+                    this.value = 'Off';
+                }
+            } else {
+                await updateDutyRoster(date, username, value);
+            }
+        });
+    });
+}
+
+async function updateDutyRoster(date, username, dutyTime) {
+    if (!dutyRoster[date]) {
+        dutyRoster[date] = {};
+    }
+    
+    dutyRoster[date][username] = dutyTime;
+    
+    try {
+        await saveDutyRoster();
+        showUserNotification(`Duty updated for ${username} on ${date}`);
+    } catch (error) {
+        console.error('Error updating duty roster:', error);
+        showError('Failed to update duty roster');
+    }
+}
+
+async function saveRosterDate() {
+    const date = document.getElementById('rosterDate').value;
+    if (!date) {
+        showError('Please select a date');
+        return;
+    }
+    
+    try {
+        await saveDutyRoster();
+        alert('Duty roster saved successfully!');
+    } catch (error) {
+        console.error('Error saving duty roster:', error);
+        showError('Failed to save duty roster');
+    }
+}
+
+// ADMIN LEAVE BALANCE MANAGEMENT
+function loadLeaveBalanceAdmin() {
+    if (currentUser.level !== 'Supervisor') {
+        document.getElementById('adminLeaveBalanceContainer').innerHTML = 
+            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
+        return;
+    }
+    
+    const container = document.getElementById('leaveBalanceContainer');
+    if (!container) return;
+    
+    let html = '<div class="table-responsive"><table class="table table-striped">';
+    html += '<thead><tr>';
+    html += '<th>Staff Name</th>';
+    html += '<th>RC No</th>';
+    html += '<th>Sick Leave (SL)</th>';
+    html += '<th>Family Responsibility Leave (FRL)</th>';
+    html += '<th>Actions</th>';
+    html += '</tr></thead><tbody>';
+    
+    allUsers.forEach(user => {
+        if (user.Level === 'User') {
+            const balance = leaveBalances[user.username] || {SL: 0, FRL: 0};
+            
+            html += '<tr>';
+            html += `<td>${user.name}</td>`;
+            html += `<td>${user.RCNo}</td>`;
+            html += `<td><input type="number" step="0.5" min="0" max="30" class="form-control leave-balance-input" 
+                     data-username="${user.username}" data-type="SL" value="${balance.SL}" 
+                     onchange="updateLeaveBalance('${user.username}', 'SL', this.value)"></td>`;
+            html += `<td><input type="number" step="0.5" min="0" max="30" class="form-control leave-balance-input" 
+                     data-username="${user.username}" data-type="FRL" value="${balance.FRL}" 
+                     onchange="updateLeaveBalance('${user.username}', 'FRL', this.value)"></td>`;
+            html += '<td>';
+            html += `<button class="btn btn-sm btn-info" onclick="adjustLeaveBalance('${user.username}')">Adjust</button>`;
+            html += '</td>';
+            html += '</tr>';
+        }
+    });
+    
+    html += '</tbody></table></div>';
+    
+    // Add leave history section
+    html += '<div class="mt-4">';
+    html += '<h5>Leave History</h5>';
+    html += '<div id="leaveHistory" class="table-responsive"></div>';
+    html += '</div>';
+    
+    container.innerHTML = html;
+    
+    // Load leave history
+    loadLeaveHistory();
+}
+
+async function updateLeaveBalance(username, type, value) {
+    const numValue = parseFloat(value);
+    
+    if (isNaN(numValue) || numValue < 0) {
+        showError('Please enter a valid positive number');
+        return;
+    }
+    
+    if (!leaveBalances[username]) {
+        leaveBalances[username] = {SL: 0, FRL: 0};
+    }
+    
+    leaveBalances[username][type] = numValue;
+    
+    try {
+        await saveLeaveBalances();
+        showUserNotification(`${type} balance updated for ${username}`);
+    } catch (error) {
+        console.error('Error updating leave balance:', error);
+        showError('Failed to update leave balance');
+    }
+}
+
+function adjustLeaveBalance(username) {
+    const user = allUsers.find(u => u.username === username);
+    if (!user) return;
+    
+    const balance = leaveBalances[username] || {SL: 0, FRL: 0};
+    
+    let adjustment = prompt(`Adjust leave balance for ${user.name}:\n\nCurrent SL: ${balance.SL}\nCurrent FRL: ${balance.FRL}\n\nEnter adjustment (e.g., "+2" or "-1.5" for SL, or "FRL:+3" for FRL):`);
+    
+    if (!adjustment) return;
+    
+    let type = 'SL';
+    let amount = adjustment.trim();
+    
+    // Check if specific type is mentioned
+    if (amount.toUpperCase().includes('FRL')) {
+        type = 'FRL';
+        amount = amount.replace(/[^0-9.\+\-]/g, '');
+    } else {
+        amount = amount.replace(/[^0-9.\+\-]/g, '');
+    }
+    
+    if (!amount.match(/^[+\-]?\d+(\.\d+)?$/)) {
+        showError('Invalid adjustment format. Use "+2", "-1.5", "FRL:+3", etc.');
+        return;
+    }
+    
+    const currentBalance = balance[type] || 0;
+    const newBalance = currentBalance + parseFloat(amount);
+    
+    if (newBalance < 0) {
+        showError('Cannot set negative leave balance');
+        return;
+    }
+    
+    updateLeaveBalance(username, type, newBalance.toString());
+}
+
+function loadLeaveHistory() {
+    const container = document.getElementById('leaveHistory');
+    if (!container) return;
+    
+    // Get all approved leave requests
+    const leaveRequests = allRequests.filter(req => 
+        req.type === 'leave' && req.status === 'approved'
+    ).sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (leaveRequests.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No leave history found.</div>';
+        return;
+    }
+    
+    let html = '<table class="table table-sm">';
+    html += '<thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Approved By</th><th>Balance After</th></tr></thead>';
+    html += '<tbody>';
+    
+    leaveRequests.forEach(request => {
+        const userBalance = leaveBalances[request.fromUsername] || {SL: 0, FRL: 0};
+        const leaveTypeKey = request.leaveType === 'Sick Leave' ? 'SL' : 'FRL';
+        
+        html += '<tr>';
+        html += `<td>${request.date}</td>`;
+        html += `<td>${request.fromName}</td>`;
+        html += `<td>${request.leaveType}</td>`;
+        html += `<td>${request.approvedBy || 'N/A'}</td>`;
+        html += `<td>${leaveTypeKey}: ${userBalance[leaveTypeKey]}</td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    
+    container.innerHTML = html;
+}
+
+// ADMIN APPROVALS HISTORY
+function loadAdminApprovals() {
+    if (currentUser.level !== 'Supervisor') {
+        document.getElementById('adminApprovalsContainer').innerHTML = 
+            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
+        return;
+    }
+    
+    const container = document.getElementById('approvalsHistoryContainer');
+    if (!container) return;
+    
+    // Get all approved/rejected requests
+    const processedRequests = allRequests.filter(req => 
+        req.status === 'approved' || req.status === 'rejected'
+    ).sort((a, b) => {
+        const dateA = a.approvedAt || a.rejectedAt || a.timestamp;
+        const dateB = b.approvedAt || b.rejectedAt || b.timestamp;
+        return new Date(dateB) - new Date(dateA);
+    });
+    
+    if (processedRequests.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No approval history found.</div>';
+        return;
+    }
+    
+    let html = '<div class="table-responsive"><table class="table table-striped">';
+    html += '<thead><tr>';
+    html += '<th>Date</th>';
+    html += '<th>Staff</th>';
+    html += '<th>Type</th>';
+    html += '<th>Details</th>';
+    html += '<th>Status</th>';
+    html += '<th>Processed By</th>';
+    html += '<th>Time</th>';
+    html += '</tr></thead><tbody>';
+    
+    processedRequests.forEach(request => {
+        const processedBy = request.approvedBy || request.rejectedBy || 'N/A';
+        const processedAt = request.approvedAt || request.rejectedAt || request.timestamp;
+        const processedDate = new Date(processedAt);
+        
+        html += '<tr>';
+        html += `<td>${request.date}</td>`;
+        html += `<td>${request.fromName}</td>`;
+        html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
+        
+        if (request.type === 'duty_change') {
+            html += `<td>Swap ${request.currentDuty} with ${request.toName}</td>`;
+        } else {
+            html += `<td>${request.leaveType}</td>`;
+        }
+        
+        html += `<td><span class="badge ${request.status === 'approved' ? 'badge-success' : 'badge-danger'}">${request.status}</span></td>`;
+        html += `<td>${processedBy}</td>`;
+        html += `<td>${processedDate.toLocaleDateString()} ${processedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    
+    container.innerHTML = html;
+}
+
+// ADMIN REQUEST HISTORY
+function loadAdminRequestHistory() {
+    if (currentUser.level !== 'Supervisor') {
+        document.getElementById('adminRequestHistoryContainer').innerHTML = 
+            '<div class="alert alert-danger">Access denied. Supervisor privileges required.</div>';
+        return;
+    }
+    
+    const container = document.getElementById('allRequestsHistoryContainer');
+    if (!container) return;
+    
+    // Sort all requests by timestamp
+    const sortedRequests = [...allRequests].sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+    
+    if (sortedRequests.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No request history found.</div>';
+        return;
+    }
+    
+    let html = '';
+    
+    if (window.innerWidth > 768) {
+        html = '<div class="table-responsive"><table class="table table-striped">';
+        html += '<thead><tr>';
+        html += '<th>Date</th>';
+        html += '<th>Staff</th>';
+        html += '<th>Type</th>';
+        html += '<th>Details</th>';
+        html += '<th>Status</th>';
+        html += '<th>Submitted</th>';
+        html += '<th>Processed</th>';
+        html += '</tr></thead><tbody>';
+        
+        sortedRequests.forEach(request => {
+            const requestDate = new Date(request.timestamp);
+            const processedDate = request.approvedAt || request.rejectedAt || request.cancelledAt;
+            
+            html += '<tr>';
+            html += `<td>${request.date}</td>`;
+            html += `<td>${request.fromName}</td>`;
+            html += `<td>${request.type === 'duty_change' ? 'Duty Change' : 'Leave'}</td>`;
+            
+            if (request.type === 'duty_change') {
+                html += `<td>Swap ${request.currentDuty} with ${request.toName}</td>`;
+            } else {
+                html += `<td>${request.leaveType}: ${request.reason.substring(0, 30)}${request.reason.length > 30 ? '...' : ''}</td>`;
+            }
+            
+            html += `<td><span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></td>`;
+            html += `<td>${requestDate.toLocaleDateString()} ${requestDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
+            
+            if (processedDate) {
+                const processed = new Date(processedDate);
+                html += `<td>${processed.toLocaleDateString()} ${processed.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>`;
+            } else {
+                html += '<td>-</td>';
+            }
+            
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table></div>';
+    } else {
+        // Mobile view - cards
+        html = '<div class="requests-history-mobile">';
+        
+        sortedRequests.forEach(request => {
+            const requestDate = new Date(request.timestamp);
+            const formattedDate = requestDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            html += '<div class="request-history-card">';
+            html += '<div class="request-history-header">';
+            html += `<span class="request-type">${request.type === 'duty_change' ? '🔀' : '🏖️'} ${request.fromName}</span>`;
+            html += `<span class="request-date">${request.date}</span>`;
+            html += '</div>';
+            
+            html += '<div class="request-history-body">';
+            
+            if (request.type === 'duty_change') {
+                html += `<p>Swap ${request.currentDuty} with ${request.toName}</p>`;
+            } else {
+                html += `<p>${request.leaveType}</p>`;
+            }
+            
+            html += `<p><strong>Status:</strong> <span class="badge ${getStatusBadgeClass(request.status)}">${request.status}</span></p>`;
+            html += `<p><strong>Submitted:</strong> ${formattedDate}</p>`;
+            
+            if (request.approvedBy || request.rejectedBy) {
+                const processedBy = request.approvedBy || request.rejectedBy;
+                const processedAt = request.approvedAt || request.rejectedAt;
+                const processedDate = new Date(processedAt);
+                html += `<p><strong>Processed by:</strong> ${processedBy} at ${processedDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>`;
+            }
+            
+            html += '</div>';
+            html += '</div>';
+        });
+        
+        html += '</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// UTILITY FUNCTIONS
 function updateRequestCounts() {
     if (!currentUser) return;
     
-    // Count pending requests for current user
-    const pendingForUser = allRequests.filter(req => 
-        req.status === 'pending' && 
-        req.type === 'dutyChange' && 
-        req.toUsername === currentUser.username
+    // Pending requests count for supervisor
+    if (currentUser.level === 'Supervisor') {
+        const pendingCount = allRequests.filter(req => req.status === 'pending').length;
+        const pendingBadge = document.getElementById('pendingRequestsBadge');
+        if (pendingBadge) {
+            pendingBadge.textContent = pendingCount;
+            pendingBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+    }
+    
+    // User's pending requests count
+    const userPendingCount = allRequests.filter(req => 
+        req.fromUsername === currentUser.username && 
+        req.status === 'pending'
     ).length;
     
-    // Update notification badges
-    updateNotificationBadge('mobilePendingCount', pendingForUser);
-    updateNotificationBadge('bottomRequestCount', pendingForUser);
+    const myRequestsBadge = document.getElementById('myRequestsBadge');
+    if (myRequestsBadge) {
+        myRequestsBadge.textContent = userPendingCount;
+        myRequestsBadge.style.display = userPendingCount > 0 ? 'inline-block' : 'none';
+    }
+}
+
+function setupEventListeners() {
+    // Duty Change Form
+    document.getElementById('dutyChangeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitDutyChange();
+    });
     
-    // Show/hide pending requests in mobile nav
-    const pendingItem = document.getElementById('mobilePendingRequests');
-    if (pendingItem) {
-        if (pendingForUser > 0) {
-            pendingItem.style.display = 'flex';
+    // Leave Application Form
+    document.getElementById('leaveApplicationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitLeaveApplication();
+    });
+    
+    // Announcement Form
+    document.getElementById('announcementForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        createAnnouncement();
+    });
+    
+    // Date change handlers
+    document.getElementById('changeDate')?.addEventListener('change', function() {
+        loadUserDutyTimes('changeDutyTime', this.value);
+    });
+    
+    document.getElementById('leaveDate')?.addEventListener('change', function() {
+        loadUserDutyTimes('leaveDutyTime', this.value);
+        updateLeaveRules();
+    });
+    
+    document.getElementById('leaveType')?.addEventListener('change', updateLeaveRules);
+    
+    // Roster date change
+    document.getElementById('rosterDate')?.addEventListener('change', function() {
+        loadRosterForDate(this.value);
+    });
+    
+    // View roster date change
+    document.getElementById('myRosterMonth')?.addEventListener('change', loadMyRoster);
+    document.getElementById('viewRosterDate')?.addEventListener('change', loadAllRoster);
+    document.getElementById('allRosterStartDate')?.addEventListener('change', loadAllRoster);
+    document.getElementById('allRosterEndDate')?.addEventListener('change', loadAllRoster);
+    
+    // Save roster button
+    document.getElementById('saveRosterBtn')?.addEventListener('click', saveRosterDate);
+    
+    // Print button
+    document.getElementById('printRosterBtn')?.addEventListener('click', printAllRoster);
+    
+    // Touch-friendly select elements
+    const selectElements = document.querySelectorAll('select');
+    selectElements.forEach(select => {
+        select.addEventListener('touchstart', function() {
+            if (window.innerWidth <= 768) {
+                this.style.fontSize = '16px'; // Prevent zoom on iOS
+            }
+        });
+    });
+}
+
+function updateDashboard() {
+    if (!currentUser) return;
+    
+    // Update today's duty
+    const today = new Date().toISOString().split('T')[0];
+    const todayDutyElement = document.getElementById('todayDutyTime');
+    
+    if (todayDutyElement) {
+        if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
+            const duty = dutyRoster[today][currentUser.username];
+            todayDutyElement.textContent = duty === 'Off' ? 'Off Duty' : duty;
         } else {
-            pendingItem.style.display = 'none';
+            todayDutyElement.textContent = 'Not Scheduled';
         }
     }
     
-    // Update supervisor notifications
-    if (currentUser.level === 'Supervisor') {
-        const pendingRequests = allRequests.filter(req => 
-            req.status === 'pending' && 
-            (req.type === 'leave' || req.type === 'dutyChange')
-        ).length;
+    // Find next duty
+    const nextDutyElement = document.getElementById('nextDutyTime');
+    if (nextDutyElement) {
+        const tomorrow = new Date();
+        let nextDutyFound = false;
         
-        updateNotificationBadge('adminNotificationCount', pendingRequests);
-    }
-}
-
-function updateNotificationBadge(elementId, count) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        if (count > 0) {
-            element.textContent = count > 99 ? '99+' : count;
-            element.style.display = 'inline-block';
-        } else {
-            element.style.display = 'none';
-        }
-    }
-}
-
-// Utility Functions
-function setMinDates(today) {
-    const dateInputs = document.querySelectorAll('input[type="date"], input[type="month"]');
-    dateInputs.forEach(input => {
-        if (input.type === 'date') {
-            input.min = today;
-        }
-        if (!input.value) {
-            if (input.type === 'date') {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                input.value = tomorrow.toISOString().split('T')[0];
-            } else if (input.type === 'month') {
-                input.value = today.substring(0, 7);
+        for (let i = 1; i <= 7; i++) {
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+            if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                const duty = dutyRoster[dateStr][currentUser.username];
+                if (duty !== 'Off') {
+                    nextDutyElement.textContent = `${dateStr}: ${duty}`;
+                    nextDutyFound = true;
+                    break;
+                }
             }
         }
-    });
-}
-
-function formatMobileDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function formatDateTime(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-}
-
-function formatTime(date) {
-    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-}
-
-function formatTimeAgo(timestamp) {
-    const now = new Date();
-    const past = new Date(timestamp);
-    const diffMs = now - past;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return past.toLocaleDateString();
-}
-
-function getMonthName(monthNumber) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[parseInt(monthNumber) - 1];
-}
-
-function getDutyClass(dutyTime) {
-    if (!dutyTime) return '';
-    
-    const time = dutyTime.replace(/\s/g, '').toUpperCase();
-    
-    // Try exact match
-    if (dutyTimeColorMap[time]) {
-        return dutyTimeColorMap[time];
-    }
-    
-    // Try partial match
-    for (const key in dutyTimeColorMap) {
-        if (time.includes(key)) {
-            return dutyTimeColorMap[key];
+        
+        if (!nextDutyFound) {
+            nextDutyElement.textContent = 'No upcoming duty';
         }
     }
     
-    // Default based on time
-    if (time.includes('07:30')) return 'duty-0730';
-    if (time.includes('08:30')) return 'duty-0830';
-    if (time.includes('10:30')) return 'duty-1030';
-    if (time.includes('15:30')) return 'duty-1530';
-    if (time.includes('16:30')) return 'duty-1630';
-    if (time.includes('17:30')) return 'duty-1730';
-    if (time.includes('00:30')) return 'duty-0030';
+    // Update balance display
+    updateUserBalance();
     
-    return '';
+    // Load announcements
+    loadHomeAnnouncements();
+    
+    // Check for recent updates
+    checkForUserUpdates();
 }
 
-// Mobile UI Functions
-function toggleMobileMenu() {
-    const nav = document.getElementById('mobileNav');
-    const overlay = document.getElementById('navOverlay');
-    
-    nav.classList.toggle('active');
-    overlay.classList.toggle('active');
-    
-    // Prevent body scroll when menu is open
-    document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : 'auto';
-}
-
-function closeMobileMenu() {
-    document.getElementById('mobileNav').classList.remove('active');
-    document.getElementById('navOverlay').classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-function showAdminSections(show) {
-    const adminElements = [
-        'adminNavHeader',
-        'mobilePendingRequests',
-        'mobileAnnouncements',
-        'mobileDutyRoster',
-        'mobileLeaveBalance',
-        'mobileApprovals'
-    ];
-    
-    adminElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.style.display = show ? 'block' : 'none';
-            if (element.classList.contains('nav-item')) {
-                element.style.display = show ? 'flex' : 'none';
-            }
-        }
-    });
-}
-
-function showMobileToast(message, type = 'info') {
-    // Remove existing toast
-    const existingToast = document.querySelector('.mobile-toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    
-    // Create toast
-    const toast = document.createElement('div');
-    toast.className = `mobile-toast toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-content">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    // Add styles
-    toast.style.cssText = `
-        position: fixed;
-        top: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'success' ? '#27ae60' : type === 'danger' ? '#e74c3c' : type === 'warning' ? '#f39c12' : '#3498db'};
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        animation: slideDown 0.3s ease;
-        max-width: 90%;
-        text-align: center;
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.style.animation = 'slideUp 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function showMobileError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'mobile-error';
-    errorDiv.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 15px;"></i>
-            <h3>System Error</h3>
-            <p>${message}</p>
-            <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                Reload Page
+function showUserNotification(message) {
+    const notificationContainer = document.getElementById('homeNotifications');
+    if (notificationContainer) {
+        notificationContainer.style.display = 'block';
+        notificationContainer.innerHTML = `<div class="alert alert-info alert-dismissible fade show">
+            <strong>Update:</strong> ${message}
+            <button type="button" class="close" data-dismiss="alert" onclick="this.parentElement.style.display='none'">
+                <span>&times;</span>
             </button>
-        </div>
-    `;
-    
-    document.body.innerHTML = '';
-    document.body.appendChild(errorDiv);
-}
-
-// Network Status Handling
-function handleOnlineStatus() {
-    showMobileToast('You are back online', 'success');
-    // Refresh data when coming back online
-    initializeMobileData();
-}
-
-function handleOfflineStatus() {
-    showMobileToast('You are offline. Some features may not work.', 'warning');
-}
-
-function handleVisibilityChange() {
-    if (!document.hidden) {
-        // App became visible, refresh data
-        updateMobileDashboard();
+        </div>`;
+        
+        // Auto hide after 8 seconds on mobile, 10 on desktop
+        const hideTime = window.innerWidth <= 768 ? 8000 : 10000;
+        setTimeout(() => {
+            if (notificationContainer.style.display !== 'none') {
+                notificationContainer.style.display = 'none';
+            }
+        }, hideTime);
     }
 }
 
-// Auto-refresh
-function startAutoRefresh() {
-    // Clear existing timer
-    if (refreshTimer) {
-        clearInterval(refreshTimer);
+function checkForUserUpdates() {
+    // Check for any approved/rejected requests in last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    
+    const recentUpdates = allRequests.filter(req => {
+        const updateTime = req.approvedAt || req.rejectedAt;
+        if (!updateTime) return false;
+        
+        const updateDate = new Date(updateTime);
+        return updateDate > fiveMinutesAgo && 
+               (req.fromUsername === currentUser.username || req.toUsername === currentUser.username);
+    });
+    
+    if (recentUpdates.length > 0) {
+        recentUpdates.forEach(update => {
+            let message = '';
+            if (update.status === 'approved') {
+                if (update.type === 'duty_change') {
+                    message = `Your duty change for ${update.date} has been approved`;
+                } else {
+                    message = `Your leave for ${update.date} has been approved`;
+                }
+            } else if (update.status === 'rejected') {
+                message = `Your request for ${update.date} has been rejected`;
+            }
+            
+            if (message) {
+                showUserNotification(message);
+            }
+        });
+    }
+}
+
+function getDutyTimeClass(dutyTime) {
+    if (dutyTime === 'Off') return 'off-day-cell';
+    if (dutyTime === 'Not Scheduled') return 'off-day-cell';
+    if (dutyTime === 'Leave' || dutyTime.includes('Leave')) return 'duty-leave';
+    
+    const normalizedTime = dutyTime.replace(/\s/g, '').toUpperCase();
+    
+    if (dutyTimeColorMap[normalizedTime]) {
+        return dutyTimeColorMap[normalizedTime];
     }
     
-    // Refresh every 5 minutes
-    refreshTimer = setInterval(() => {
-        if (!document.hidden) {
-            updateMobileDashboard();
+    if (normalizedTime.includes('-')) {
+        const [startStr] = normalizedTime.split('-');
+        const startHour = parseInt(startStr.substring(0, 2));
+        const startMinute = parseInt(startStr.substring(2, 4)) || 0;
+        const totalStartMinutes = startHour * 60 + startMinute;
+        
+        if (totalStartMinutes >= 0 && totalStartMinutes < 360) {
+            return 'duty-0000-0800';
+        } else if (totalStartMinutes >= 360 && totalStartMinutes < 450) {
+            return 'duty-0600-1400';
+        } else if (totalStartMinutes >= 450 && totalStartMinutes < 540) {
+            return 'duty-0730-1530';
+        } else if (totalStartMinutes >= 540 && totalStartMinutes < 630) {
+            return 'duty-0830-1630';
+        } else if (totalStartMinutes >= 630 && totalStartMinutes < 750) {
+            return 'duty-1030-1830';
+        } else if (totalStartMinutes >= 750 && totalStartMinutes < 930) {
+            return 'duty-1530-2330';
+        } else if (totalStartMinutes >= 930 && totalStartMinutes < 1050) {
+            return 'duty-1630-0030';
+        } else if (totalStartMinutes >= 1050 && totalStartMinutes < 1170) {
+            return 'duty-1730-0130';
+        } else {
+            return 'duty-1900-0300';
         }
-    }, 5 * 60 * 1000);
+    }
+    
+    return 'duty-other';
 }
 
 // Setup real-time listeners
@@ -3222,8 +3972,11 @@ function setupRealtimeListeners() {
             .onSnapshot((doc) => {
                 if (doc.exists) {
                     announcements = doc.data().announcements || [];
-                    if (document.getElementById('homeSection').classList.contains('active')) {
+                    if (document.getElementById('homeSection')?.classList.contains('active')) {
                         loadHomeAnnouncements();
+                    }
+                    if (document.getElementById('adminAnnouncementsSection')?.classList.contains('active')) {
+                        loadAnnouncementsAdmin();
                     }
                 }
             }, handleFirebaseError);
@@ -3235,10 +3988,18 @@ function setupRealtimeListeners() {
                     allRequests = doc.data().requests;
                     updateRequestCounts();
                     
-                    // Refresh current view if it's requests-related
-                    const activeSection = document.querySelector('.section.active');
-                    if (activeSection && (activeSection.id.includes('Requests') || activeSection.id.includes('Approvals'))) {
-                        loadSectionData(activeSection.id.replace('Section', ''));
+                    // Refresh relevant sections
+                    if (document.getElementById('myRequestsSection')?.classList.contains('active')) {
+                        loadMyRequests();
+                    }
+                    if (document.getElementById('pendingRequestsSection')?.classList.contains('active')) {
+                        loadPendingRequests();
+                    }
+                    if (document.getElementById('adminApprovalsSection')?.classList.contains('active')) {
+                        loadAdminApprovals();
+                    }
+                    if (document.getElementById('adminRequestHistorySection')?.classList.contains('active')) {
+                        loadAdminRequestHistory();
                     }
                 }
             }, handleFirebaseError);
@@ -3255,123 +4016,50 @@ function handleFirebaseError(error) {
     if (error.code === 'failed-precondition' || error.message.includes('QUIC')) {
         console.log('Retrying Firebase operation...');
         setTimeout(() => {
-            initializeMobileData();
+            initializeData();
         }, 2000);
+    } else {
+        alert('A connection error occurred. Please check your internet connection.');
     }
 }
 
-// Print functionality
-function printAllRoster() {
-    const content = document.getElementById('allRosterContainer').innerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-        <head>
-            <title>Duty Roster Report</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .roster-day { margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; }
-                .roster-day-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-                .roster-staff { margin: 5px 0; padding: 3px; }
-                .duty-0730 { background-color: #fff3cd; }
-                .duty-0830 { background-color: #e2d9f3; }
-                .duty-leave { background-color: #ffd8a6; border: 1px dashed #fd7e14; }
-                .off-day { background-color: #d4edda; }
-                h3 { color: #2c3e50; }
-            </style>
-        </head>
-        <body>
-            <h3>Duty Roster Report</h3>
-            <p>Generated on: ${new Date().toLocaleString()}</p>
-            <p>Generated by: ${currentUser.name}</p>
-            ${content}
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-}
+// Handle orientation changes
+window.addEventListener('orientationchange', function() {
+    // Close mobile menu on orientation change
+    if (window.innerWidth > 768) {
+        closeMobileMenu();
+    }
+    
+    // Redraw any charts or complex layouts if needed
+    setTimeout(updateDashboard, 300);
+    
+    // Refresh current section
+    const activeSection = document.querySelector('.section.active');
+    if (activeSection) {
+        const sectionId = activeSection.id.replace('Section', '');
+        loadSectionData(sectionId);
+    }
+});
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideDown {
-        from { transform: translate(-50%, -100%); opacity: 0; }
-        to { transform: translate(-50%, 0); opacity: 1; }
+// Prevent form submission on enter key in textareas
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.tagName === 'TEXTAREA' && !e.shiftKey) {
+        e.preventDefault();
     }
-    
-    @keyframes slideUp {
-        from { transform: translate(-50%, 0); opacity: 1; }
-        to { transform: translate(-50%, -100%); opacity: 0; }
-    }
-    
-    .today-item {
-        background-color: rgba(52, 152, 219, 0.1);
-        border-left: 4px solid #3498db !important;
-    }
-    
-    .duty-0730 {
-        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-        color: #856404;
-    }
-    
-    .duty-0830 {
-        background: linear-gradient(135deg, #e2d9f3 0%, #d6c6f7 100%);
-        color: #563d7c;
-    }
-    
-    .duty-1030 {
-        background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%);
-        color: #827717;
-    }
-    
-    .duty-1530 {
-        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-        color: #0d47a1;
-    }
-    
-    .duty-1630 {
-        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-        color: #424242;
-    }
-    
-    .duty-1730 {
-        background: linear-gradient(135deg, #eeeeee 0%, #bdbdbd 100%);
-        color: #212121;
-    }
-    
-    .duty-0030 {
-        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-        color: #c62828;
-    }
-    
-    .duty-leave {
-        background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%);
-        color: #e8590c;
-        border: 1px dashed #fd7e14;
-    }
-    
-    .off-day {
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        color: #155724;
-    }
-    
-    .status-off {
-        color: #7f8c8d;
-    }
-    
-    .status-completed {
-        color: #3498db;
-    }
-    
-    .btn.active {
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-    }
-`;
-document.head.appendChild(style);
+});
 
-// Initialize the app
-console.log('Mobile Duty Management System JavaScript loaded');
+// Initialize app
+window.onload = function() {
+    setTimeout(() => {
+        if (!firebaseReady) {
+            console.log('Firebase not ready, retrying...');
+            initApp();
+        }
+    }, 2000);
+};
+
+// Call this after login
+setTimeout(setupRealtimeListeners, 2000);
      </script>
      </body>
      </html> 
