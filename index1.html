@@ -3229,8 +3229,7 @@ Date    Irufan  Hussain Mohamed
 
         // Here's a template for the missing functions - you need to copy the actual implementations:
 
-        
-       function initializeUserDisplayMap() {
+         function initializeUserDisplayMap() {
             userDisplayNameMap = {};
             allUsers.forEach(user => {
                 // Map common display names to usernames
@@ -3435,6 +3434,508 @@ Date    Irufan  Hussain Mohamed
                 localStorage.removeItem('dutySystemSession');
                 location.reload();
             });
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const section = document.getElementById(sectionId + 'Section');
+            if (section) {
+                section.classList.add('active');
+                
+                // Load section data
+                switch(sectionId) {
+                    case 'home':
+                        loadHomeAnnouncements();
+                        break;
+                    case 'dutyChange':
+                        loadDutyChangeForm();
+                        break;
+                    case 'leaveApplication':
+                        loadLeaveForm();
+                        break;
+                    case 'myRequests':
+                        loadMyRequests();
+                        break;
+                    case 'viewMyRoster':
+                        loadMyRoster();
+                        break;
+                    case 'viewAllRoster':
+                        loadAllRoster();
+                        break;
+                    case 'pendingRequests':
+                        loadPendingRequests();
+                        break;
+                    case 'adminAnnouncements':
+                        loadAnnouncementsAdmin();
+                        break;
+                    case 'adminDutyRoster':
+                        loadDutyRosterAdmin();
+                        break;
+                    case 'adminLeaveBalance':
+                        loadLeaveBalanceAdmin();
+                        break;
+                    case 'adminApprovals':
+                        loadAdminApprovals();
+                        break;
+                    case 'adminRequestHistory':
+                        loadAdminRequestHistory();
+                        break;
+                }
+            }
+        }
+
+        function loadHomeAnnouncements() {
+            const container = document.getElementById('homeAnnouncements');
+            container.innerHTML = '';
+            
+            const now = new Date();
+            const activeAnnouncements = announcements.filter(ann => {
+                if (ann.status === 'expired' || ann.status === 'archived') return false;
+                if (ann.expiry && new Date(ann.expiry) < now) return false;
+                
+                // Check if announcement is for current user
+                if (ann.target === 'all') return true;
+                if (ann.target === 'specific' && ann.targetUsers && ann.targetUsers.includes(currentUser.username)) return true;
+                return false;
+            });
+            
+            if (activeAnnouncements.length === 0) return;
+            
+            // Sort by priority (high to low) and date (newest first)
+            activeAnnouncements.sort((a, b) => {
+                const priorityOrder = {high: 0, medium: 1, low: 2};
+                if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+                    return priorityOrder[a.priority] - priorityOrder[b.priority];
+                }
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
+            activeAnnouncements.forEach(ann => {
+                const announcementDiv = document.createElement('div');
+                announcementDiv.className = `announcement-banner priority-${ann.priority}`;
+                
+                let targetText = '';
+                if (ann.target === 'all') {
+                    targetText = 'All Staff';
+                } else {
+                    const targetNames = ann.targetUsers.map(username => {
+                        const user = allUsers.find(u => u.username === username);
+                        return user ? user.name : username;
+                    }).join(', ');
+                    targetText = `For: ${targetNames}`;
+                }
+                
+                announcementDiv.innerHTML = `
+                    <div class="announcement-title">
+                        <span class="announcement-icon">📢</span>
+                        ${ann.title}
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                    <div class="announcement-meta">
+                        <div>
+                            By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                            ${ann.expiry ? `<br>Expires: ${formatDate(ann.expiry)}` : ''}
+                        </div>
+                        <div class="announcement-target">${targetText}</div>
+                    </div>
+                `;
+                
+                container.appendChild(announcementDiv);
+            });
+        }
+
+        function loadAnnouncementsAdmin() {
+            // Setup announcement form
+            setupAnnouncementForm();
+            
+            // Load active announcements
+            loadActiveAnnouncements();
+            
+            // Load expired announcements
+            loadExpiredAnnouncements();
+        }
+
+        function setupAnnouncementForm() {
+            // Populate staff dropdown for specific announcements
+            const staffSelect = document.getElementById('announcementStaff');
+            staffSelect.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.name} (${user.RCNo})`;
+                    staffSelect.appendChild(option);
+                }
+            });
+            
+            // Setup form submission
+            document.getElementById('announcementForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                createAnnouncement();
+            });
+        }
+
+        function selectPriority(priority) {
+            // Update UI
+            document.querySelectorAll('.priority-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.priority-btn[data-priority="${priority}"]`).classList.add('active');
+            
+            // Update hidden input
+            document.getElementById('announcementPriority').value = priority;
+        }
+
+        function updateTargetSelection() {
+            const specificSection = document.getElementById('specificStaffSection');
+            const targetAll = document.querySelector('input[name="target"][value="all"]').checked;
+            
+            if (targetAll) {
+                specificSection.style.display = 'none';
+            } else {
+                specificSection.style.display = 'block';
+            }
+        }
+
+        function createAnnouncement() {
+            const title = document.getElementById('announcementTitle').value.trim();
+            const content = document.getElementById('announcementContent').value.trim();
+            const priority = document.getElementById('announcementPriority').value;
+            const target = document.querySelector('input[name="target"]:checked').value;
+            const expiry = document.getElementById('announcementExpiry').value;
+            let targetUsers = [];
+            
+            if (target === 'specific') {
+                const staffSelect = document.getElementById('announcementStaff');
+                targetUsers = Array.from(staffSelect.selectedOptions).map(option => option.value);
+                
+                if (targetUsers.length === 0) {
+                    alert('Please select at least one staff member for specific announcement');
+                    return;
+                }
+            }
+            
+            if (!title || !content) {
+                alert('Please fill in title and content');
+                return;
+            }
+            
+            const announcement = {
+                id: 'ann_' + Date.now(),
+                title: title,
+                content: content,
+                priority: priority,
+                target: target,
+                targetUsers: targetUsers,
+                createdBy: currentUser.name,
+                createdByUsername: currentUser.username,
+                createdAt: new Date().toISOString(),
+                expiry: expiry || null,
+                status: 'active'
+            };
+            
+            announcements.push(announcement);
+            
+            // Save to Firebase
+            saveAnnouncements().then(() => {
+                alert('Announcement created successfully!');
+                clearAnnouncementForm();
+                
+                // Reload announcements
+                loadActiveAnnouncements();
+                
+                // Show success message
+                showUserNotification('New announcement created successfully!');
+            }).catch(error => {
+                alert('Failed to create announcement. Please try again.');
+            });
+        }
+
+        function clearAnnouncementForm() {
+            document.getElementById('announcementForm').reset();
+            document.getElementById('announcementPriority').value = 'medium';
+            document.querySelector('.priority-btn[data-priority="medium"]').classList.add('active');
+            document.querySelectorAll('.priority-btn').forEach(btn => {
+                if (btn.dataset.priority !== 'medium') {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById('specificStaffSection').style.display = 'none';
+        }
+
+        function loadActiveAnnouncements() {
+            const container = document.getElementById('activeAnnouncementsList');
+            container.innerHTML = '';
+            
+            const now = new Date();
+            const activeAnnouncements = announcements.filter(ann => {
+                if (ann.status === 'expired' || ann.status === 'archived') return false;
+                if (ann.expiry && new Date(ann.expiry) < now) {
+                    ann.status = 'expired';
+                    return false;
+                }
+                return true;
+            });
+            
+            if (activeAnnouncements.length === 0) {
+                container.innerHTML = `
+                    <div class="no-announcements">
+                        <div class="icon">📢</div>
+                        <p>No active announcements</p>
+                        <p style="font-size: 12px;">Create your first announcement above</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by priority and date
+            activeAnnouncements.sort((a, b) => {
+                const priorityOrder = {high: 0, medium: 1, low: 2};
+                if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+                    return priorityOrder[a.priority] - priorityOrder[b.priority];
+                }
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+            
+            activeAnnouncements.forEach(ann => {
+                const announcementDiv = document.createElement('div');
+                announcementDiv.className = `announcement-banner priority-${ann.priority}`;
+                
+                let targetText = '';
+                if (ann.target === 'all') {
+                    targetText = 'All Staff';
+                } else {
+                    const targetNames = ann.targetUsers.map(username => {
+                        const user = allUsers.find(u => u.username === username);
+                        return user ? user.name : username;
+                    }).join(', ');
+                    targetText = `For: ${targetNames}`;
+                }
+                
+                announcementDiv.innerHTML = `
+                    <div class="announcement-actions">
+                        <button class="announcement-btn" onclick="editAnnouncement('${ann.id}')" title="Edit">✏️</button>
+                        <button class="announcement-btn" onclick="archiveAnnouncement('${ann.id}')" title="Archive">📁</button>
+                        <button class="announcement-btn" onclick="deleteAnnouncement('${ann.id}')" title="Delete">🗑️</button>
+                    </div>
+                    <div class="announcement-title">
+                        <span class="announcement-icon">📢</span>
+                        ${ann.title}
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                    <div class="announcement-meta">
+                        <div>
+                            By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                            ${ann.expiry ? `<br>Expires: ${formatDate(ann.expiry)}` : ''}
+                        </div>
+                        <div class="announcement-target">${targetText}</div>
+                    </div>
+                `;
+                
+                container.appendChild(announcementDiv);
+            });
+        }
+
+        function loadExpiredAnnouncements() {
+            const container = document.getElementById('expiredAnnouncementsList');
+            container.innerHTML = '';
+            
+            const now = new Date();
+            const expiredAnnouncements = announcements.filter(ann => {
+                if (ann.status === 'expired') return true;
+                if (ann.expiry && new Date(ann.expiry) < now) {
+                    ann.status = 'expired';
+                    return true;
+                }
+                return false;
+            });
+            
+            if (expiredAnnouncements.length === 0) {
+                container.innerHTML = `
+                    <div class="no-announcements">
+                        <div class="icon">📅</div>
+                        <p>No expired announcements</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by expiry date (newest first)
+            expiredAnnouncements.sort((a, b) => new Date(b.expiry || b.createdAt) - new Date(a.expiry || a.createdAt));
+            
+            expiredAnnouncements.forEach(ann => {
+                const announcementDiv = document.createElement('div');
+                announcementDiv.className = 'announcement-banner';
+                announcementDiv.style.background = 'linear-gradient(135deg, #868f96 0%, #596164 100%)';
+                announcementDiv.style.opacity = '0.8';
+                
+                let targetText = '';
+                if (ann.target === 'all') {
+                    targetText = 'All Staff';
+                } else {
+                    const targetNames = ann.targetUsers.map(username => {
+                        const user = allUsers.find(u => u.username === username);
+                        return user ? user.name : username;
+                    }).join(', ');
+                    targetText = `For: ${targetNames}`;
+                }
+                
+                announcementDiv.innerHTML = `
+                    <div class="announcement-actions">
+                        <button class="announcement-btn" onclick="restoreAnnouncement('${ann.id}')" title="Restore">↻</button>
+                        <button class="announcement-btn" onclick="deleteAnnouncement('${ann.id}')" title="Delete">🗑️</button>
+                    </div>
+                    <div class="announcement-title">
+                        <span class="announcement-icon">📅</span>
+                        ${ann.title}
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                    <div class="announcement-meta">
+                        <div>
+                            By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                            <br>Expired: ${formatDate(ann.expiry || ann.createdAt)}
+                        </div>
+                        <div class="announcement-target">${targetText}</div>
+                    </div>
+                `;
+                
+                container.appendChild(announcementDiv);
+            });
+        }
+
+        function editAnnouncement(announcementId) {
+            const announcement = announcements.find(ann => ann.id === announcementId);
+            if (!announcement) return;
+            
+            // Fill form with announcement data
+            document.getElementById('announcementTitle').value = announcement.title;
+            document.getElementById('announcementContent').value = announcement.content;
+            selectPriority(announcement.priority);
+            
+            // Set target
+            if (announcement.target === 'all') {
+                document.querySelector('input[name="target"][value="all"]').checked = true;
+            } else {
+                document.querySelector('input[name="target"][value="specific"]').checked = true;
+                updateTargetSelection();
+                
+                // Select staff members
+                const staffSelect = document.getElementById('announcementStaff');
+                Array.from(staffSelect.options).forEach(option => {
+                    option.selected = announcement.targetUsers.includes(option.value);
+                });
+            }
+            
+            // Set expiry
+            document.getElementById('announcementExpiry').value = announcement.expiry || '';
+            
+            // Change button text
+            const submitBtn = document.getElementById('createAnnouncementBtn');
+            submitBtn.textContent = 'Update Announcement';
+            submitBtn.onclick = function() {
+                updateAnnouncement(announcementId);
+                return false;
+            };
+            
+            // Scroll to form
+            document.querySelector('.announcement-form-card').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function updateAnnouncement(announcementId) {
+            const index = announcements.findIndex(ann => ann.id === announcementId);
+            if (index === -1) return;
+            
+            const title = document.getElementById('announcementTitle').value.trim();
+            const content = document.getElementById('announcementContent').value.trim();
+            const priority = document.getElementById('announcementPriority').value;
+            const target = document.querySelector('input[name="target"]:checked').value;
+            const expiry = document.getElementById('announcementExpiry').value;
+            let targetUsers = [];
+            
+            if (target === 'specific') {
+                const staffSelect = document.getElementById('announcementStaff');
+                targetUsers = Array.from(staffSelect.selectedOptions).map(option => option.value);
+                
+                if (targetUsers.length === 0) {
+                    alert('Please select at least one staff member for specific announcement');
+                    return;
+                }
+            }
+            
+            if (!title || !content) {
+                alert('Please fill in title and content');
+                return;
+            }
+            
+            // Update announcement
+            announcements[index] = {
+                ...announcements[index],
+                title: title,
+                content: content,
+                priority: priority,
+                target: target,
+                targetUsers: targetUsers,
+                expiry: expiry || null,
+                updatedAt: new Date().toISOString(),
+                updatedBy: currentUser.name
+            };
+            
+            saveAnnouncements();
+            
+            alert('Announcement updated successfully!');
+            clearAnnouncementForm();
+            
+            // Reset button
+            const submitBtn = document.getElementById('createAnnouncementBtn');
+            submitBtn.textContent = 'Create Announcement';
+            submitBtn.onclick = null;
+            
+            // Reload announcements
+            loadActiveAnnouncements();
+            loadExpiredAnnouncements();
+        }
+
+        function archiveAnnouncement(announcementId) {
+            if (confirm('Are you sure you want to archive this announcement?')) {
+                const index = announcements.findIndex(ann => ann.id === announcementId);
+                if (index !== -1) {
+                    announcements[index].status = 'archived';
+                    saveAnnouncements();
+                    loadActiveAnnouncements();
+                    alert('Announcement archived!');
+                }
+            }
+        }
+
+        function deleteAnnouncement(announcementId) {
+            if (confirm('Are you sure you want to delete this announcement? This action cannot be undone.')) {
+                const index = announcements.findIndex(ann => ann.id === announcementId);
+                if (index !== -1) {
+                    announcements.splice(index, 1);
+                    saveAnnouncements();
+                    loadActiveAnnouncements();
+                    loadExpiredAnnouncements();
+                    alert('Announcement deleted!');
+                }
+            }
+        }
+
+        function restoreAnnouncement(announcementId) {
+            const index = announcements.findIndex(ann => ann.id === announcementId);
+            if (index !== -1) {
+                announcements[index].status = 'active';
+                announcements[index].expiry = null; // Remove expiry when restoring
+                saveAnnouncements();
+                loadActiveAnnouncements();
+                loadExpiredAnnouncements();
+                alert('Announcement restored!');
+            }
         }
 
         function setupEventListeners() {
@@ -5697,7 +6198,6 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
                 console.error('Error setting up real-time listeners:', error);
             }
         }
-
 
         // For now, I'll provide a placeholder that shows how to integrate
         console.log('Mobile-responsive Duty Management System loaded');
