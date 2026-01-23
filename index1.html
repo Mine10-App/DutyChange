@@ -1442,25 +1442,26 @@
         </div>
         
         <!-- Bottom Navigation -->
+        <!-- Bottom Navigation -->
         <div class="bottom-nav">
-            <a href="#" class="bottom-nav-item active" onclick="showSection('home')">
+            <a href="#" class="bottom-nav-item active" data-section="home" onclick="showSection('home')">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <a href="#" class="bottom-nav-item" onclick="showSection('dutyChange')">
+            <a href="#" class="bottom-nav-item" data-section="dutyChange" onclick="showSection('dutyChange')">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Change</span>
             </a>
-            <a href="#" class="bottom-nav-item" onclick="showSection('leaveApplication')">
+            <a href="#" class="bottom-nav-item" data-section="leaveApplication" onclick="showSection('leaveApplication')">
                 <i class="fas fa-calendar-minus"></i>
                 <span>Leave</span>
             </a>
-            <a href="#" class="bottom-nav-item" onclick="showSection('myRequests')">
+            <a href="#" class="bottom-nav-item" data-section="myRequests" onclick="showSection('myRequests')">
                 <i class="fas fa-list"></i>
                 <span>Requests</span>
                 <span class="notification-badge" id="bottomRequestCount" style="position: absolute; top: 4px; right: 20px; font-size: 10px; padding: 1px 4px;">0</span>
             </a>
-            <a href="#" class="bottom-nav-item" onclick="showSection('viewMyRoster')">
+            <a href="#" class="bottom-nav-item" data-section="viewMyRoster" onclick="showSection('viewMyRoster')">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Roster</span>
             </a>
@@ -1491,21 +1492,26 @@ let userDisplayNameMap = {};
 let firebaseReady = false;
 
 // Mobile menu toggle
+
 function toggleMobileMenu() {
-    const menuToggle = document.getElementById('mobileMenuToggle');
-    const nav = document.getElementById('dashboardNav');
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('mobileNav');
+    const overlay = document.getElementById('navOverlay');
     
     menuToggle.classList.toggle('active');
-    nav.classList.toggle('mobile-visible');
+    nav.classList.toggle('active');
+    overlay.classList.toggle('active');
 }
 
 // Close mobile menu when clicking outside
 function closeMobileMenu() {
-    const menuToggle = document.getElementById('mobileMenuToggle');
-    const nav = document.getElementById('dashboardNav');
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('mobileNav');
+    const overlay = document.getElementById('navOverlay');
     
     menuToggle.classList.remove('active');
-    nav.classList.remove('mobile-visible');
+    nav.classList.remove('active');
+    overlay.classList.remove('active');
 }
 
 // Wait for Firebase and user data to load
@@ -1587,19 +1593,11 @@ function initApp() {
     
     console.log('Initializing application...');
     
-    // Setup mobile menu toggle
-    document.getElementById('mobileMenuToggle').addEventListener('click', toggleMobileMenu);
+    // Setup mobile menu toggle - FIXED ID
+    document.getElementById('menuToggle').addEventListener('click', toggleMobileMenu);
     
-    // Close menu when clicking outside on mobile
-    document.addEventListener('click', function(event) {
-        const menuToggle = document.getElementById('mobileMenuToggle');
-        const nav = document.getElementById('dashboardNav');
-        const isClickInside = nav.contains(event.target) || menuToggle.contains(event.target);
-        
-        if (window.innerWidth <= 768 && !isClickInside && nav.classList.contains('mobile-visible')) {
-            closeMobileMenu();
-        }
-    });
+    // Close menu when clicking on overlay
+    document.getElementById('navOverlay').addEventListener('click', closeMobileMenu);
     
     // Setup login form
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -1613,7 +1611,54 @@ function initApp() {
     
     // Check session
     checkSession();
+
+     // Close menu when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const menuToggle = document.getElementById('menuToggle');
+        const nav = document.getElementById('mobileNav');
+        const isClickInside = nav.contains(event.target) || menuToggle.contains(event.target);
+        
+        if (window.innerWidth <= 768 && !isClickInside && nav.classList.contains('active')) {
+            closeMobileMenu();
+        }
+    });
+    
+    // Setup navigation items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.getAttribute('data-section');
+            if (section) {
+                showSection(section);
+                closeMobileMenu();
+            }
+        });
+    });
+    
+    // Setup bottom navigation
+    document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.getAttribute('data-section');
+            if (section) {
+                showSection(section);
+            }
+            
+            // Update active state
+            document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Setup logout button
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('dutySystemSession');
+            location.reload();
+        }
+    });
 }
+
 
 function setMinimumDates(today) {
     const dateInputs = [
@@ -1951,6 +1996,14 @@ function showSection(sectionId) {
     const section = document.getElementById(sectionId + 'Section');
     if (section) {
         section.classList.add('active');
+        
+        // Update bottom navigation active state
+        document.querySelectorAll('.bottom-nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-section') === sectionId) {
+                item.classList.add('active');
+            }
+        });
         
         // Load section data
         loadSectionData(sectionId);
