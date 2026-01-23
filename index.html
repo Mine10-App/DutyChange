@@ -11,11 +11,12 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- External files -->
+    <!-- External Firebase and User files -->
     <script src="dcfire.js" defer></script>
     <script src="user.js" defer></script>
     
     <style>
+        /* All CSS styles remain the same as before */
         * {
             margin: 0;
             padding: 0;
@@ -1972,6 +1973,30 @@ Date	Irufan	Hussain	Mohamed
         let allRequests = [];
         let announcements = [];
         let userDisplayNameMap = {};
+        let firebaseReady = false;
+
+        // Wait for Firebase and user data to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Firebase is available
+            if (typeof db === 'undefined') {
+                console.error('Firebase is not initialized. Make sure dcfire.js is loaded.');
+                alert('Firebase initialization failed. Please check your configuration.');
+                return;
+            }
+            
+            // Wait a bit for user data to load
+            setTimeout(() => {
+                if (typeof users === 'undefined') {
+                    console.error('User data not loaded. Make sure user.js is loaded.');
+                    alert('User data not loaded. Please check user.js file.');
+                    return;
+                }
+                
+                firebaseReady = true;
+                console.log('Firebase and user data loaded successfully');
+                initApp();
+            }, 1000);
+        });
 
         // Updated color mapping for different duty times with your specific requirements
         const dutyTimeColorMap = {
@@ -2026,12 +2051,15 @@ Date	Irufan	Hussain	Mohamed
             'leave': 'duty-leave'  // For leave days
         };
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initApp, 100);
-        });
-
         function initApp() {
+            if (!firebaseReady) {
+                console.log('Waiting for Firebase to be ready...');
+                setTimeout(initApp, 500);
+                return;
+            }
+            
+            console.log('Initializing application...');
+            
             // Setup login
             document.getElementById('loginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -2125,6 +2153,8 @@ Date	Irufan	Hussain	Mohamed
             currentUser = userData;
             allUsers = users || [];
             
+            console.log('User logged in:', currentUser);
+            
             // Initialize user display name map
             initializeUserDisplayMap();
             
@@ -2180,114 +2210,159 @@ Date	Irufan	Hussain	Mohamed
                 userDisplayNameMap[nameLower] = user.username;
                 userDisplayNameMap[usernameLower] = user.username;
             });
-        }
-
-        function initializeData() {
-            // Load data from localStorage
-            loadDutyRoster();
-            loadLeaveBalances();
-            loadAllRequests();
-            loadAnnouncements();
             
-            // Update user's balance display
-            updateUserBalance();
+            console.log('User display map initialized:', userDisplayNameMap);
         }
 
+        // FIREBASE FUNCTIONS
         function loadDutyRoster() {
-            const savedRoster = localStorage.getItem('dutyRosterData');
-            if (savedRoster) {
-                dutyRoster = JSON.parse(savedRoster);
-            } else {
-                // Initialize empty roster
-                dutyRoster = {};
-                saveDutyRoster();
-            }
+            console.log('Loading duty roster from Firebase...');
+            return db.collection('dutyRoster').doc('current').get()
+                .then(doc => {
+                    if (doc.exists) {
+                        dutyRoster = doc.data() || {};
+                        console.log('Duty roster loaded from Firebase:', Object.keys(dutyRoster).length, 'dates');
+                    } else {
+                        // Initialize empty roster
+                        dutyRoster = {};
+                        saveDutyRoster();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading duty roster:', error);
+                    dutyRoster = {};
+                });
         }
 
         function saveDutyRoster() {
-            localStorage.setItem('dutyRosterData', JSON.stringify(dutyRoster));
-            
-            // Save to Firebase if available
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('dutyRoster').doc('current').set(dutyRoster);
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
-            }
+            console.log('Saving duty roster to Firebase...');
+            return db.collection('dutyRoster').doc('current').set(dutyRoster)
+                .then(() => {
+                    console.log('Duty roster saved to Firebase');
+                })
+                .catch(error => {
+                    console.error('Error saving duty roster:', error);
+                    alert('Failed to save duty roster. Please try again.');
+                });
         }
 
         function loadLeaveBalances() {
-            const savedBalances = localStorage.getItem('leaveBalancesData');
-            if (savedBalances) {
-                leaveBalances = JSON.parse(savedBalances);
-            } else {
-                // Initialize with default balances (in days)
-                leaveBalances = {};
-                allUsers.forEach(user => {
-                    leaveBalances[user.username] = {
-                        SL: 12,  // 12 days Sick Leave
-                        FRL: 6   // 6 days FRL
-                    };
+            console.log('Loading leave balances from Firebase...');
+            return db.collection('leaveBalances').doc('current').get()
+                .then(doc => {
+                    if (doc.exists) {
+                        leaveBalances = doc.data() || {};
+                        console.log('Leave balances loaded from Firebase:', Object.keys(leaveBalances).length, 'users');
+                    } else {
+                        // Initialize with default balances (in days)
+                        leaveBalances = {};
+                        allUsers.forEach(user => {
+                            leaveBalances[user.username] = {
+                                SL: 12,  // 12 days Sick Leave
+                                FRL: 6   // 6 days FRL
+                            };
+                        });
+                        saveLeaveBalances();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading leave balances:', error);
+                    leaveBalances = {};
                 });
-                saveLeaveBalances();
-            }
         }
 
         function saveLeaveBalances() {
-            localStorage.setItem('leaveBalancesData', JSON.stringify(leaveBalances));
-            
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('leaveBalances').doc('current').set(leaveBalances);
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
-            }
+            console.log('Saving leave balances to Firebase...');
+            return db.collection('leaveBalances').doc('current').set(leaveBalances)
+                .then(() => {
+                    console.log('Leave balances saved to Firebase');
+                })
+                .catch(error => {
+                    console.error('Error saving leave balances:', error);
+                    alert('Failed to save leave balances. Please try again.');
+                });
         }
 
         function loadAllRequests() {
-            const savedRequests = localStorage.getItem('dutyRequestsData');
-            if (savedRequests) {
-                allRequests = JSON.parse(savedRequests);
-            } else {
-                allRequests = [];
-            }
-            
-            updateRequestCounts();
+            console.log('Loading all requests from Firebase...');
+            return db.collection('requests').doc('all').get()
+                .then(doc => {
+                    if (doc.exists && doc.data().requests) {
+                        allRequests = doc.data().requests;
+                        console.log('Requests loaded from Firebase:', allRequests.length, 'requests');
+                    } else {
+                        allRequests = [];
+                    }
+                    updateRequestCounts();
+                })
+                .catch(error => {
+                    console.error('Error loading requests:', error);
+                    allRequests = [];
+                });
         }
 
         function saveAllRequests() {
-            localStorage.setItem('dutyRequestsData', JSON.stringify(allRequests));
-            
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('requests').doc('all').set({requests: allRequests});
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
-            }
+            console.log('Saving all requests to Firebase...');
+            return db.collection('requests').doc('all').set({ requests: allRequests })
+                .then(() => {
+                    console.log('Requests saved to Firebase');
+                })
+                .catch(error => {
+                    console.error('Error saving requests:', error);
+                    alert('Failed to save requests. Please try again.');
+                });
         }
 
         function loadAnnouncements() {
-            const savedAnnouncements = localStorage.getItem('dutyAnnouncementsData');
-            if (savedAnnouncements) {
-                announcements = JSON.parse(savedAnnouncements);
-            } else {
-                announcements = [];
-                saveAnnouncements();
-            }
+            console.log('Loading announcements from Firebase...');
+            return db.collection('announcements').doc('all').get()
+                .then(doc => {
+                    if (doc.exists && doc.data().announcements) {
+                        announcements = doc.data().announcements;
+                        console.log('Announcements loaded from Firebase:', announcements.length, 'announcements');
+                    } else {
+                        announcements = [];
+                        saveAnnouncements();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading announcements:', error);
+                    announcements = [];
+                });
         }
 
         function saveAnnouncements() {
-            localStorage.setItem('dutyAnnouncementsData', JSON.stringify(announcements));
+            console.log('Saving announcements to Firebase...');
+            return db.collection('announcements').doc('all').set({ announcements: announcements })
+                .then(() => {
+                    console.log('Announcements saved to Firebase');
+                })
+                .catch(error => {
+                    console.error('Error saving announcements:', error);
+                    alert('Failed to save announcements. Please try again.');
+                });
+        }
+
+        async function initializeData() {
+            console.log('Initializing all data from Firebase...');
             
-            if (typeof db !== 'undefined') {
-                try {
-                    db.collection('announcements').doc('all').set({announcements: announcements});
-                } catch (error) {
-                    console.log('Firebase save skipped');
-                }
+            try {
+                // Load all data from Firebase
+                await Promise.all([
+                    loadDutyRoster(),
+                    loadLeaveBalances(),
+                    loadAllRequests(),
+                    loadAnnouncements()
+                ]);
+                
+                console.log('All data loaded successfully from Firebase');
+                
+                // Update user's balance display
+                updateUserBalance();
+                
+            } catch (error) {
+                console.error('Error initializing data:', error);
+                alert('Failed to load data from Firebase. Please refresh the page.');
             }
         }
 
@@ -2523,16 +2598,20 @@ Date	Irufan	Hussain	Mohamed
             };
             
             announcements.push(announcement);
-            saveAnnouncements();
             
-            alert('Announcement created successfully!');
-            clearAnnouncementForm();
-            
-            // Reload announcements
-            loadActiveAnnouncements();
-            
-            // Show success message
-            showUserNotification('New announcement created successfully!');
+            // Save to Firebase
+            saveAnnouncements().then(() => {
+                alert('Announcement created successfully!');
+                clearAnnouncementForm();
+                
+                // Reload announcements
+                loadActiveAnnouncements();
+                
+                // Show success message
+                showUserNotification('New announcement created successfully!');
+            }).catch(error => {
+                alert('Failed to create announcement. Please try again.');
+            });
         }
 
         function clearAnnouncementForm() {
@@ -3032,12 +3111,16 @@ Date	Irufan	Hussain	Mohamed
             };
             
             allRequests.push(request);
-            saveAllRequests();
-            updateRequestCounts();
             
-            alert('Duty change request submitted!');
-            showSection('home');
-            document.getElementById('dutyChangeForm').reset();
+            // Save to Firebase
+            saveAllRequests().then(() => {
+                updateRequestCounts();
+                alert('Duty change request submitted!');
+                showSection('home');
+                document.getElementById('dutyChangeForm').reset();
+            }).catch(error => {
+                alert('Failed to submit request. Please try again.');
+            });
         }
 
         function submitLeaveApplication() {
@@ -3096,16 +3179,20 @@ Date	Irufan	Hussain	Mohamed
             };
             
             allRequests.push(request);
-            saveAllRequests();
-            updateRequestCounts();
             
-            alert('Leave application submitted! It will be processed after supervisor approval.');
-            showSection('home');
-            document.getElementById('leaveApplicationForm').reset();
-            
-            // Force dashboard update
-            updateDashboard();
-            updateUserBalance();
+            // Save to Firebase
+            saveAllRequests().then(() => {
+                updateRequestCounts();
+                alert('Leave application submitted! It will be processed after supervisor approval.');
+                showSection('home');
+                document.getElementById('leaveApplicationForm').reset();
+                
+                // Force dashboard update
+                updateDashboard();
+                updateUserBalance();
+            }).catch(error => {
+                alert('Failed to submit leave application. Please try again.');
+            });
         }
 
         function updateRequestCounts() {
@@ -3824,10 +3911,14 @@ Date	Irufan	Hussain	Mohamed
                 }
             }
             
-            saveDutyRoster();
-            alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
-            document.getElementById('excelPreview').style.display = 'none';
-            document.getElementById('excelPasteBox').value = '';
+            // Save to Firebase
+            saveDutyRoster().then(() => {
+                alert(`Roster saved successfully! ${successCount} entries updated. ${errorCount > 0 ? errorCount + ' errors occurred.' : ''}`);
+                document.getElementById('excelPreview').style.display = 'none';
+                document.getElementById('excelPasteBox').value = '';
+            }).catch(error => {
+                alert('Failed to save roster. Please try again.');
+            });
         }
 
         function findUsernameFromDisplayName(displayName) {
@@ -3922,11 +4013,15 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
             }
             
             dutyRoster[date][staff] = dutyTime;
-            saveDutyRoster();
             
-            alert('Entry added successfully!');
-            clearRosterForm();
-            loadTodayRoster();
+            // Save to Firebase
+            saveDutyRoster().then(() => {
+                alert('Entry added successfully!');
+                clearRosterForm();
+                loadTodayRoster();
+            }).catch(error => {
+                alert('Failed to add entry. Please try again.');
+            });
         }
 
         function clearRosterForm() {
@@ -4079,10 +4174,14 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
         }
 
         function saveAllBalances() {
-            saveLeaveBalances();
-            alert('All balances saved successfully!');
-            loadBulkBalanceTable();
-            updateUserBalance();
+            // Save to Firebase
+            saveLeaveBalances().then(() => {
+                alert('All balances saved successfully!');
+                loadBulkBalanceTable();
+                updateUserBalance();
+            }).catch(error => {
+                alert('Failed to save balances. Please try again.');
+            });
         }
 
         function resetAllBalances() {
@@ -4368,10 +4467,9 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
                     userBalance.FRL -= request.duration;
                     userBalance.FRL = Math.max(0, userBalance.FRL);
                 }
-                saveLeaveBalances();
                 
-                // Show updated balance
-                alert(`Request approved! Leave balance deducted. Remaining balance: ${request.leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`);
+                // Save updated balances to Firebase
+                saveLeaveBalances();
             }
             
             request.status = 'approved';
@@ -4382,16 +4480,20 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
                 by: currentUser.name,
                 timestamp: new Date().toISOString()
             });
-            saveAllRequests();
             
-            // Refresh the approvals view
-            showApprovalsTab('approved');
-            updateRequestCounts();
-            
-            // Update dashboard balance display if it's the current user's request
-            if (request.fromUsername === currentUser.username) {
-                updateUserBalance();
-            }
+            // Save updated requests to Firebase
+            saveAllRequests().then(() => {
+                alert('Request approved successfully!');
+                showApprovalsTab('approved');
+                updateRequestCounts();
+                
+                // Update dashboard balance display if it's the current user's request
+                if (request.fromUsername === currentUser.username) {
+                    updateUserBalance();
+                }
+            }).catch(error => {
+                alert('Failed to approve request. Please try again.');
+            });
         }
 
         function adminApplyDutyChange(requestId) {
@@ -5009,6 +5111,53 @@ ${dayAfter.toISOString().split('T')[0]}\tOff\t16:30-00:30\t17:30-01:30\t10:30-18
             const date = new Date(dateString);
             return date.toLocaleDateString();
         }
+
+        // Handle the QUIC protocol error by retrying Firebase operations
+        function handleFirebaseError(error) {
+            console.error('Firebase error:', error);
+            
+            if (error.code === 'failed-precondition' || error.message.includes('QUIC')) {
+                console.log('Retrying Firebase operation...');
+                // Retry the operation after a delay
+                setTimeout(() => {
+                    initializeData();
+                }, 2000);
+            } else {
+                alert('A Firebase error occurred. Please check your connection and try again.');
+            }
+        }
+
+        // Setup real-time listeners with error handling
+        function setupRealtimeListeners() {
+            try {
+                // Listen for announcement updates
+                db.collection('announcements').doc('all')
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            announcements = doc.data().announcements || [];
+                            if (document.getElementById('homeSection').classList.contains('active')) {
+                                loadHomeAnnouncements();
+                            }
+                        }
+                    }, handleFirebaseError);
+
+                // Listen for request updates
+                db.collection('requests').doc('all')
+                    .onSnapshot((doc) => {
+                        if (doc.exists && doc.data().requests) {
+                            allRequests = doc.data().requests;
+                            updateRequestCounts();
+                        }
+                    }, handleFirebaseError);
+                    
+                console.log('Real-time listeners established');
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
+            }
+        }
+
+        // Call this after login
+        setTimeout(setupRealtimeListeners, 2000);
     </script>
 </body>
 </html>
