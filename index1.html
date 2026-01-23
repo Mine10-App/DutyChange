@@ -5008,6 +5008,21 @@ function editAnnouncement(announcementId) {
     }
     
     // Build the staff checkboxes separately
+    let staffCheckboxes = '';function editAnnouncement(announcementId) {
+    const announcement = announcements.find(ann => ann.id === announcementId);
+    if (!announcement) {
+        showToast('Announcement not found', 'error');
+        return;
+    }
+    
+    // Format expiry date correctly for input field
+    let expiryDate = '';
+    if (announcement.expiry) {
+        const expiry = new Date(announcement.expiry);
+        expiryDate = expiry.toISOString().split('T')[0];
+    }
+    
+    // Build the staff checkboxes
     let staffCheckboxes = '';
     allUsers
         .filter(user => user.Level !== 'Inactive')
@@ -5040,12 +5055,12 @@ function editAnnouncement(announcementId) {
             <form id="editAnnouncementForm">
                 <div class="form-group">
                     <label for="editAnnouncementTitle" class="form-label">Title *</label>
-                    <input type="text" id="editAnnouncementTitle" class="form-control" value="${announcement.title}" required>
+                    <input type="text" id="editAnnouncementTitle" class="form-control" value="${announcement.title.replace(/"/g, '&quot;')}" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="editAnnouncementContent" class="form-label">Content *</label>
-                    <textarea id="editAnnouncementContent" class="form-control" rows="4" required>${announcement.content}</textarea>
+                    <textarea id="editAnnouncementContent" class="form-control" rows="4" required>${announcement.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
                 </div>
                 
                 <div class="form-row">
@@ -5087,7 +5102,7 @@ function editAnnouncement(announcementId) {
                 <div class="form-group">
                     <label for="editAnnouncementExpiry" class="form-label">Expiry Date</label>
                     <input type="date" id="editAnnouncementExpiry" class="form-control" 
-                           value="${announcement.expiry ? announcement.expiry.split('T')[0] : ''}">
+                           value="${expiryDate}">
                 </div>
             </form>
         </div>
