@@ -4948,22 +4948,18 @@ async function submitNewAnnouncement() {
     const priority = document.getElementById('announcementPriority').value;
     const status = document.getElementById('announcementStatus').value;
     const target = document.getElementById('announcementTarget').value;
-    const expiry = document.getElementById('announcementExpiry').value;
+    const expiryInput = document.getElementById('announcementExpiry').value;
     
     if (!title || !content) {
         showToast('Please fill all required fields', 'warning');
         return;
     }
     
-    let targetUsers = [];
-    if (target === 'specific') {
-        const checkboxes = document.querySelectorAll('#specificStaffContainer input[type="checkbox"]:checked');
-        targetUsers = Array.from(checkboxes).map(cb => cb.value);
-        
-        if (targetUsers.length === 0) {
-            showToast('Please select at least one staff member', 'warning');
-            return;
-        }
+    const expiryInput = document.getElementById('announcementExpiry').value;
+    let expiry = null;
+    if (expiryInput) {
+        const expiryDate = new Date(expiryInput);
+        expiry = expiryDate.toISOString();
     }
     
     const announcement = {
@@ -4974,7 +4970,7 @@ async function submitNewAnnouncement() {
         status: status,
         target: target,
         targetUsers: targetUsers,
-        expiry: expiry || null,
+        expiry: expiry, // Use ISO string format for storage
         createdAt: new Date().toISOString(),
         createdBy: currentUser.name
     };
