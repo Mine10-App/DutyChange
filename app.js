@@ -990,7 +990,7 @@ class ReservationSystem {
                     <!-- Header Left -->
                     <div class="header-left">
                         <div class="logo-container">
-                            <img src="macl.png" alt="Company Logo" class="company-logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\"width:80px;height:60px;border:1px solid #ccc;text-align:center;line-height:60px;font-size:10px;\">LOGO</div>'">
+                            <img src="macl.png" alt="Company Logo" class="company-logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\"width:80px;height:60px;border:1px solid #ccc;text-align:center;line-height:60px;font-size:10px;\">LOGO</div>
                             <div class="company-info">
                                 <div class="company-name">Hotel Management System</div>
                                 <div class="company-address">123 Hotel Street, City, Country</div>
