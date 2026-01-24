@@ -95,7 +95,7 @@ class ReservationSystem {
                 } else if (target === '#reportTab') {
                     this.loadReportOptions();
                 } else if (target === '#reservationTab') {
-                    this.loadRecentReservations(); // Load recent reservations when switching to reservation tab
+                    this.loadRecentReservations();
                 }
             });
         });
@@ -192,16 +192,13 @@ class ReservationSystem {
             if (field) field.value = today;
         });
         
-        // Show loading state for recent reservations
-        this.showLoadingRecentReservations();
-        
         // Load initial data
         this.loadCheckinData();
         this.loadCheckoutData();
         this.loadFlightOptionsForCheckin();
         this.loadFlightOptionsForCheckout();
         this.loadReportOptions();
-        this.loadRecentReservations(); // Load recent reservations from Firebase
+        this.loadRecentReservations();
     }
 
     logout() {
@@ -361,11 +358,9 @@ class ReservationSystem {
             if (customer) this.customers.add(customer);
             if (flightHotel) this.flightHotels.add(flightHotel);
             
-            // Show success message
-            this.showToast('Reservation saved successfully!', 'success');
+            alert('Reservation saved successfully!');
             
-            // Show loading and reload recent reservations from Firebase
-            this.showLoadingRecentReservations();
+            // Reload recent reservations from Firebase
             this.loadRecentReservations();
             
             document.getElementById('reservationForm').reset();
@@ -380,76 +375,13 @@ class ReservationSystem {
             
         } catch (error) {
             console.error('Error saving reservation:', error);
-            this.showToast('Error saving reservation. Please try again.', 'error');
+            alert('Error saving reservation. Please try again.');
         }
-    }
-
-    showToast(message, type = 'info') {
-        // Create toast container if it doesn't exist
-        let toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toastContainer';
-            toastContainer.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-            `;
-            document.body.appendChild(toastContainer);
-        }
-        
-        // Create toast
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-        toast.style.cssText = `
-            min-width: 300px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
-        
-        const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
-        toast.innerHTML = `
-            <i class="fas fa-${icon} me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            toast.remove();
-        }, 5000);
-    }
-
-    showLoadingRecentReservations() {
-        const container = document.getElementById('recentReservationsContainer');
-        if (!container) return;
-        
-        container.innerHTML = `
-            <div class="card recent-reservations-card">
-                <div class="card-header bg-info text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
-                        <span class="badge bg-light text-dark">0</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="text-center text-muted py-4">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p>Loading recent reservations...</p>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     async loadRecentReservations() {
         try {
-            // Show loading state
+            // Show simple loading text
             this.showLoadingRecentReservations();
             
             // Fetch reservations with status 'reserved' (not checked-in) from Firebase
@@ -474,24 +406,30 @@ class ReservationSystem {
         }
     }
 
+    showLoadingRecentReservations() {
+        const container = document.getElementById('recentReservationsContainer');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">Recent Reservations</h6>
+                    <p class="text-muted mb-0">Loading recent reservations...</p>
+                </div>
+            </div>
+        `;
+    }
+
     displayRecentReservations(recentReservations) {
         const container = document.getElementById('recentReservationsContainer');
         if (!container) return;
         
         if (recentReservations.length === 0) {
             container.innerHTML = `
-                <div class="card recent-reservations-card">
-                    <div class="card-header bg-info text-white">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
-                            <span class="badge bg-light text-dark">0</span>
-                        </div>
-                    </div>
+                <div class="card">
                     <div class="card-body">
-                        <div class="text-center text-muted py-4">
-                            <i class="fas fa-inbox fa-2x mb-3"></i>
-                            <p>No recent reservations found.</p>
-                        </div>
+                        <h6 class="card-title mb-3">Recent Reservations</h6>
+                        <p class="text-muted mb-0">No recent reservations found.</p>
                     </div>
                 </div>
             `;
@@ -499,21 +437,20 @@ class ReservationSystem {
         }
         
         let html = `
-            <div class="card recent-reservations-card">
-                <div class="card-header bg-info text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
-                        <span class="badge bg-light text-dark">${recentReservations.length}</span>
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">Recent Reservations</h6>
+                        <span class="badge bg-primary">${recentReservations.length}</span>
                     </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="recent-reservations-scroll">
-                        <table class="table table-hover recent-reservations-table mb-0">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>Guest</th>
                                     <th>Flight/Hotel</th>
                                     <th>Customer</th>
+                                    <th>Status</th>
                                     <th>Time</th>
                                 </tr>
                             </thead>
@@ -527,23 +464,14 @@ class ReservationSystem {
             });
             
             html += `
-                <tr class="recent-reservation-row" onclick="app.showReservationDetails('${res.id}')">
+                <tr onclick="app.showReservationDetails('${res.id}')" style="cursor: pointer;">
+                    <td>${res.guestName}</td>
+                    <td>${res.flightHotel}</td>
+                    <td>${res.customer}</td>
                     <td>
-                        <div class="fw-medium">${res.guestName}</div>
-                        <small class="text-muted">${res.eta}</small>
+                        <span class="badge bg-warning text-dark">Reserved</span>
                     </td>
-                    <td>
-                        <div>${res.flightHotel}</div>
-                        <small class="text-muted">${res.direction}</small>
-                    </td>
-                    <td>
-                        <div>${res.customer}</div>
-                        <small class="badge bg-warning text-dark">${res.status}</small>
-                    </td>
-                    <td>
-                        <div>${time}</div>
-                        <small class="text-muted">Today</small>
-                    </td>
+                    <td>${time}</td>
                 </tr>
             `;
         });
@@ -552,9 +480,6 @@ class ReservationSystem {
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="card-footer bg-transparent border-top">
-                    <small class="text-muted">Click on any reservation to view details</small>
                 </div>
             </div>
         `;
@@ -566,71 +491,68 @@ class ReservationSystem {
         try {
             const doc = await this.db.collection('reservations').doc(reservationId).get();
             if (!doc.exists) {
-                this.showToast('Reservation not found!', 'error');
+                alert('Reservation not found!');
                 return;
             }
             
             const reservation = doc.data();
-            const createdDate = new Date(reservation.createdAt).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            const createdTime = new Date(reservation.createdAt).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
             
-            // Create modal HTML
+            // Create modal for details
             const modalHtml = `
-                <div class="modal fade reservation-details-modal" id="reservationDetailsModal" tabindex="-1">
+                <div class="modal fade" id="reservationDetailsModal" tabindex="-1">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header bg-info text-white">
-                                <h5 class="modal-title">
-                                    <i class="fas fa-info-circle me-2"></i>Reservation Details
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            <div class="modal-header">
+                                <h5 class="modal-title">Reservation Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><span class="detail-label">Guest Name:</span> ${reservation.guestName}</p>
-                                        <p><span class="detail-label">Customer:</span> ${reservation.customer}</p>
-                                        <p><span class="detail-label">Flight/Hotel:</span> ${reservation.flightHotel}</p>
-                                        <p><span class="detail-label">ETA:</span> ${reservation.eta}</p>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Guest Name:</strong></label>
+                                            <p>${reservation.guestName}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Customer:</strong></label>
+                                            <p>${reservation.customer}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Flight/Hotel:</strong></label>
+                                            <p>${reservation.flightHotel}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>ETA:</strong></label>
+                                            <p>${reservation.eta}</p>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <p><span class="detail-label">Direction:</span> ${reservation.direction}</p>
-                                        <p><span class="detail-label">Nationality:</span> ${reservation.nationality}</p>
-                                        <p><span class="detail-label">Reservation Date:</span> ${reservation.reservationDate}</p>
-                                        <p><span class="detail-label">Status:</span> 
-                                            <span class="badge ${reservation.status === 'reserved' ? 'bg-warning text-dark' : 
-                                                            reservation.status === 'checked-in' ? 'bg-info text-white' : 
-                                                            'bg-success text-white'}">
-                                                ${reservation.status}
-                                            </span>
-                                        </p>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Direction:</strong></label>
+                                            <p>${reservation.direction}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Nationality:</strong></label>
+                                            <p>${reservation.nationality}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Reservation Date:</strong></label>
+                                            <p>${reservation.reservationDate}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Status:</strong></label>
+                                            <span class="badge bg-warning text-dark">${reservation.status}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><span class="detail-label">Created By:</span> ${reservation.createdBy}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><span class="detail-label">Created On:</span> ${createdDate} at ${createdTime}</p>
-                                    </div>
+                                <div class="mt-3">
+                                    <label class="form-label"><strong>Created:</strong></label>
+                                    <p>${new Date(reservation.createdAt).toLocaleString()}</p>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-2"></i>Close
-                                </button>
-                                <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">
-                                    <i class="fas fa-trash me-2"></i>Delete Reservation
-                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -650,14 +572,9 @@ class ReservationSystem {
             const modal = new bootstrap.Modal(document.getElementById('reservationDetailsModal'));
             modal.show();
             
-            // Remove modal from DOM after hiding
-            document.getElementById('reservationDetailsModal').addEventListener('hidden.bs.modal', function() {
-                this.remove();
-            });
-            
         } catch (error) {
             console.error('Error loading reservation details:', error);
-            this.showToast('Error loading reservation details.', 'error');
+            alert('Error loading reservation details.');
         }
     }
 
@@ -669,8 +586,7 @@ class ReservationSystem {
         try {
             await this.db.collection('reservations').doc(reservationId).delete();
             
-            // Show loading and refresh recent reservations from Firebase
-            this.showLoadingRecentReservations();
+            // Refresh recent reservations from Firebase
             this.loadRecentReservations();
             
             // Close modal
@@ -679,7 +595,7 @@ class ReservationSystem {
                 modal.hide();
             }
             
-            this.showToast('Reservation deleted successfully!', 'success');
+            alert('Reservation deleted successfully!');
             
             // Refresh other data
             this.loadCheckinData();
@@ -687,7 +603,7 @@ class ReservationSystem {
             
         } catch (error) {
             console.error('Error deleting reservation:', error);
-            this.showToast('Error deleting reservation. Please try again.', 'error');
+            alert('Error deleting reservation. Please try again.');
         }
     }
 
@@ -772,9 +688,8 @@ class ReservationSystem {
             if (snapshot.empty) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            <i class="fas fa-inbox fa-2x mb-3"></i>
-                            <p>No reservations found for ${date}</p>
+                        <td colspan="7" class="text-center text-muted">
+                            No reservations found for ${date}
                         </td>
                     </tr>
                 `;
@@ -809,9 +724,8 @@ class ReservationSystem {
             if (!hasData) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            <i class="fas fa-filter fa-2x mb-3"></i>
-                            <p>No guests match the selected filter for ${date}</p>
+                        <td colspan="7" class="text-center text-muted">
+                            No guests match the selected filter for ${date}
                         </td>
                     </tr>
                 `;
@@ -820,9 +734,8 @@ class ReservationSystem {
             console.error('Error loading check-in data:', error);
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-danger py-4">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                        <p>Error loading data. Please try again.</p>
+                    <td colspan="7" class="text-center text-danger">
+                        Error loading data. Please try again.
                     </td>
                 </tr>
             `;
@@ -850,20 +763,18 @@ class ReservationSystem {
                 checkinDate: new Date().toISOString().split('T')[0]
             });
             
-            this.showToast('Guest checked in successfully!', 'success');
+            alert('Guest checked in successfully!');
             
             // Refresh all data
             this.loadCheckinData();
             this.loadCheckoutData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
-            // Show loading and reload recent reservations
-            this.showLoadingRecentReservations();
-            this.loadRecentReservations();
+            this.loadRecentReservations(); // Refresh recent reservations
             
         } catch (error) {
             console.error('Error checking in guest:', error);
-            this.showToast('Error checking in guest. Please try again.', 'error');
+            alert('Error checking in guest. Please try again.');
         }
     }
 
@@ -887,9 +798,8 @@ class ReservationSystem {
             if (snapshot.empty) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            <i class="fas fa-inbox fa-2x mb-3"></i>
-                            <p>No checked-in guests available</p>
+                        <td colspan="7" class="text-center text-muted">
+                            No checked-in guests available
                         </td>
                     </tr>
                 `;
@@ -926,9 +836,8 @@ class ReservationSystem {
             if (!hasData) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            <i class="fas fa-filter fa-2x mb-3"></i>
-                            <p>No checked-in guests match the selected filters</p>
+                        <td colspan="7" class="text-center text-muted">
+                            No checked-in guests match the selected filters
                         </td>
                     </tr>
                 `;
@@ -937,9 +846,8 @@ class ReservationSystem {
             console.error('Error loading check-out data:', error);
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-danger py-4">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                        <p>Error loading data. Please try again.</p>
+                    <td colspan="7" class="text-center text-danger">
+                        Error loading data. Please try again.
                     </td>
                 </tr>
             `;
@@ -967,19 +875,17 @@ class ReservationSystem {
                 checkoutDate: new Date().toISOString().split('T')[0]
             });
             
-            this.showToast('Guest checked out successfully!', 'success');
+            alert('Guest checked out successfully!');
             
             // Refresh all data
             this.loadCheckoutData();
             this.loadReportOptions();
             this.loadFlightOptionsForCheckout();
-            // Show loading and reload recent reservations
-            this.showLoadingRecentReservations();
-            this.loadRecentReservations();
+            this.loadRecentReservations(); // Refresh recent reservations
             
         } catch (error) {
             console.error('Error checking out guest:', error);
-            this.showToast('Error checking out guest. Please try again.', 'error');
+            alert('Error checking out guest. Please try again.');
         }
     }
 
@@ -1024,7 +930,7 @@ class ReservationSystem {
         const flightFilter = flightSelect ? flightSelect.value : '';
         
         if (fromDate && toDate && fromDate > toDate) {
-            this.showToast('From date cannot be after To date', 'error');
+            alert('From date cannot be after To date');
             return;
         }
         
@@ -1057,14 +963,14 @@ class ReservationSystem {
             });
             
             if (reservations.length === 0) {
-                this.showToast('No checked-out guests found for the selected criteria.', 'info');
+                alert('No checked-out guests found for the selected criteria.');
                 return;
             }
             
             this.displayReport(reservations, fromDate, toDate);
         } catch (error) {
             console.error('Error generating report:', error);
-            this.showToast('Error generating report. Please try again.', 'error');
+            alert('Error generating report. Please try again.');
         }
     }
 
@@ -1351,7 +1257,7 @@ class ReservationSystem {
                     <!-- Header Left -->
                     <div class="header-left">
                         <div class="logo-container">
-                            <div class="logo-placeholder">VILU LOUNGE</div>
+                            <img src="macl.png" alt="Company Logo" class="company-logo">
                             <div class="company-info">
                                 <div class="company-name">Vilu Business Lounge</div>
                                 <div class="company-address">Seaplane Terminal</div>
