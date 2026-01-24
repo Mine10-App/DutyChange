@@ -736,19 +736,7 @@ class ReservationSystem {
             day: 'numeric'
         });
         
-        let dateRangeText = '';
-        if (fromDate && toDate) {
-            const from = new Date(fromDate).toLocaleDateString();
-            const to = new Date(toDate).toLocaleDateString();
-            dateRangeText = `From ${from} to ${to}`;
-        } else if (fromDate) {
-            const from = new Date(fromDate).toLocaleDateString();
-            dateRangeText = `From ${from}`;
-        } else if (toDate) {
-            const to = new Date(toDate).toLocaleDateString();
-            dateRangeText = `Up to ${to}`;
-        }
-        
+        // Group by customer
         const reservationsByCustomer = {};
         reservations.forEach(res => {
             if (!reservationsByCustomer[res.customer]) {
@@ -766,84 +754,101 @@ class ReservationSystem {
                     @media print {
                         @page {
                             size: A4;
-                            margin: 20mm;
+                            margin: 15mm;
                         }
                         body {
                             font-family: Arial, sans-serif;
-                            font-size: 12px;
+                            font-size: 11px;
                             color: #000;
-                        }
-                        .report-container {
-                            width: 100%;
                             margin: 0;
                             padding: 0;
                         }
-                        .header {
+                        .report-container {
+                            width: 100%;
+                        }
+                        .header-left {
+                            float: left;
+                            width: 100%;
+                            margin-bottom: 15px;
+                        }
+                        .logo-container {
                             display: flex;
-                            justify-content: space-between;
                             align-items: flex-start;
-                            margin-bottom: 20px;
+                            margin-bottom: 10px;
                         }
                         .company-logo {
-                            width: 120px;
+                            width: 80px;
                             height: auto;
+                            margin-right: 15px;
                         }
                         .company-info {
-                            text-align: center;
-                            flex-grow: 1;
+                            line-height: 1.3;
+                            flex: 1;
                         }
-                        .company-info h3 {
-                            margin: 0 0 5px 0;
+                        .company-name {
+                            font-size: 16px;
+                            font-weight: bold;
+                            margin: 0 0 3px 0;
                             color: #2c3e50;
                         }
-                        .company-info p {
-                            margin: 2px 0;
+                        .company-address {
                             font-size: 11px;
+                            margin: 0 0 2px 0;
                         }
-                        .report-title {
-                            text-align: center;
-                            margin: 15px 0;
-                            padding: 10px;
-                            border-top: 2px solid #2c3e50;
-                            border-bottom: 2px solid #2c3e50;
+                        .report-details {
+                            margin-top: 10px;
+                            padding-top: 10px;
+                            border-top: 1px solid #ddd;
+                            clear: both;
                         }
-                        .report-title h4 {
-                            margin: 5px 0;
-                            color: #2c3e50;
+                        .detail-row {
+                            display: flex;
+                            margin-bottom: 4px;
+                        }
+                        .detail-label {
+                            font-weight: bold;
+                            width: 70px;
+                        }
+                        .detail-value {
+                            flex: 1;
                         }
                         table {
                             width: 100%;
                             border-collapse: collapse;
-                            margin: 15px 0;
+                            margin: 10px 0 15px 0;
                             page-break-inside: avoid;
                         }
                         th {
-                            background-color: #2c3e50;
-                            color: white;
-                            padding: 8px;
+                            background-color: #f8f9fa;
+                            color: #000;
+                            padding: 6px 4px;
                             text-align: left;
                             border: 1px solid #ddd;
-                            font-size: 11px;
+                            font-size: 10px;
+                            font-weight: bold;
                         }
                         td {
-                            padding: 6px;
+                            padding: 5px 4px;
                             border: 1px solid #ddd;
-                            font-size: 11px;
+                            font-size: 10px;
                         }
                         .customer-section {
-                            margin-bottom: 25px;
+                            margin-bottom: 20px;
                             page-break-inside: avoid;
                         }
                         .customer-name {
-                            background-color: #f8f9fa;
-                            padding: 8px;
+                            background-color: #e9ecef;
+                            padding: 6px 10px;
                             font-weight: bold;
-                            margin-bottom: 10px;
-                            border-left: 4px solid #3498db;
+                            margin-bottom: 8px;
+                            font-size: 12px;
+                            border-left: 3px solid #3498db;
                         }
                         .footer {
-                            margin-top: 40px;
+                            margin-top: 30px;
                             page-break-inside: avoid;
+                            padding-top: 15px;
+                            border-top: 1px solid #ddd;
                         }
                         .signature-section {
                             width: 45%;
@@ -851,19 +856,23 @@ class ReservationSystem {
                             vertical-align: top;
                         }
                         .signature-line {
-                            margin-top: 40px;
+                            margin-top: 30px;
                             border-top: 1px solid #000;
-                            width: 80%;
-                            padding-top: 5px;
+                            width: 180px;
+                            padding-top: 4px;
+                            font-size: 10px;
                         }
                         .no-print {
                             display: none;
+                        }
+                        .clearfix {
+                            clear: both;
                         }
                     }
                     @media screen {
                         body {
                             font-family: Arial, sans-serif;
-                            font-size: 14px;
+                            font-size: 12px;
                             padding: 20px;
                             background: #f5f5f5;
                         }
@@ -874,58 +883,83 @@ class ReservationSystem {
                             padding: 20px;
                             box-shadow: 0 0 10px rgba(0,0,0,0.1);
                         }
-                        .header {
+                        .header-left {
+                            float: left;
+                            width: 100%;
+                            margin-bottom: 20px;
+                        }
+                        .logo-container {
                             display: flex;
-                            justify-content: space-between;
                             align-items: flex-start;
-                            margin-bottom: 30px;
+                            margin-bottom: 15px;
                         }
                         .company-logo {
-                            width: 120px;
+                            width: 80px;
                             height: auto;
+                            margin-right: 20px;
                         }
                         .company-info {
-                            text-align: center;
-                            flex-grow: 1;
+                            line-height: 1.4;
+                            flex: 1;
                         }
-                        .company-info h3 {
-                            margin: 0 0 10px 0;
+                        .company-name {
+                            font-size: 18px;
+                            font-weight: bold;
+                            margin: 0 0 5px 0;
                             color: #2c3e50;
                         }
-                        .report-title {
-                            text-align: center;
-                            margin: 20px 0;
-                            padding: 15px;
-                            border-top: 2px solid #2c3e50;
-                            border-bottom: 2px solid #2c3e50;
+                        .company-address {
+                            font-size: 12px;
+                            margin: 0 0 3px 0;
+                        }
+                        .report-details {
+                            margin-top: 15px;
+                            padding-top: 12px;
+                            border-top: 1px solid #ddd;
+                            clear: both;
+                        }
+                        .detail-row {
+                            display: flex;
+                            margin-bottom: 5px;
+                        }
+                        .detail-label {
+                            font-weight: bold;
+                            width: 80px;
+                        }
+                        .detail-value {
+                            flex: 1;
                         }
                         table {
                             width: 100%;
                             border-collapse: collapse;
-                            margin: 20px 0;
+                            margin: 15px 0 20px 0;
                         }
                         th {
-                            background-color: #2c3e50;
-                            color: white;
-                            padding: 12px;
+                            background-color: #f8f9fa;
+                            color: #000;
+                            padding: 8px;
                             text-align: left;
+                            border: 1px solid #ddd;
                         }
                         td {
-                            padding: 10px;
+                            padding: 7px;
                             border: 1px solid #ddd;
                         }
                         .customer-section {
-                            margin-bottom: 30px;
+                            margin-bottom: 25px;
                         }
                         .customer-name {
-                            background-color: #f8f9fa;
-                            padding: 12px;
+                            background-color: #e9ecef;
+                            padding: 8px 12px;
                             font-weight: bold;
-                            margin-bottom: 15px;
+                            margin-bottom: 10px;
+                            font-size: 13px;
                             border-left: 4px solid #3498db;
                         }
                         .footer {
-                            margin-top: 50px;
+                            margin-top: 40px;
+                            padding-top: 20px;
+                            border-top: 1px solid #ddd;
                         }
                         .signature-section {
                             width: 45%;
@@ -933,7 +967,7 @@ class ReservationSystem {
                             vertical-align: top;
                         }
                         .signature-line {
-                            margin-top: 60px;
+                            margin-top: 40px;
                             border-top: 1px solid #000;
                             width: 200px;
                             padding-top: 5px;
@@ -945,29 +979,35 @@ class ReservationSystem {
                             background: #f8f9fa;
                             border-radius: 5px;
                         }
+                        .clearfix {
+                            clear: both;
+                        }
                     }
                 </style>
             </head>
             <body>
                 <div class="report-container">
-                    <!-- Header -->
-                    <div class="header">
-                        <div>
-                            <img src="macl.png" alt="Company Logo" class="company-logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\"width:120px;height:100px;border:1px solid #ccc;text-align:center;line-height:100px;\">LOGO</div>'">
+                    <!-- Header Left -->
+                    <div class="header-left">
+                        <div class="logo-container">
+                            <img src="macl.png" alt="Company Logo" class="company-logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\"width:80px;height:60px;border:1px solid #ccc;text-align:center;line-height:60px;font-size:10px;\">LOGO</div>'">
+                            <div class="company-info">
+                                <div class="company-name">Hotel Management System</div>
+                                <div class="company-address">123 Hotel Street, City, Country</div>
+                                <div class="company-address">Phone: +123 456 7890</div>
+                                <div class="company-address">Email: info@hotel.com</div>
+                            </div>
                         </div>
-                        <div class="company-info">
-                            <h3>Hotel Management System</h3>
-                            <p>123 Hotel Street, City, Country</p>
-                            <p>Phone: +123 456 7890 | Email: info@hotel.com</p>
-                            <p>Report Date: ${currentDate}</p>
-                            ${dateRangeText ? `<p>${dateRangeText}</p>` : ''}
+                        
+                        <div class="report-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Date:</div>
+                                <div class="detail-value">${currentDate}</div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Report Title -->
-                    <div class="report-title">
-                        <h4>GUEST CHECK-OUT REPORT</h4>
-                    </div>
+                    <div class="clearfix"></div>
                     
                     <!-- Report Content -->
         `;
@@ -975,9 +1015,8 @@ class ReservationSystem {
         Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
             reportHTML += `
                 <div class="customer-section">
-                    <div class="customer-name">
-                        Customer: ${customer}
-                    </div>
+                    <div class="customer-name">Customer: ${customer}</div>
+                    
                     <table>
                         <thead>
                             <tr>
@@ -1018,19 +1057,29 @@ class ReservationSystem {
                     <!-- Footer Signatures -->
                     <div class="footer">
                         <div class="signature-section">
-                            <p><strong>Prepared by:</strong></p>
-                            <p>Name: ${this.currentUser.name}</p>
-                            <p>RC No: ${this.currentUser.RCNo}</p>
+                            <div class="detail-row">
+                                <div class="detail-label">Prepared by:</div>
+                                <div class="detail-value">${this.currentUser.name}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">RC No:</div>
+                                <div class="detail-value">${this.currentUser.RCNo}</div>
+                            </div>
                             <div class="signature-line">Signature</div>
                         </div>
                         
                         <div class="signature-section" style="float: right;">
-                            <p><strong>Checked by:</strong></p>
-                            <p>Name: _____________________</p>
-                            <p>RC No: _____________________</p>
+                            <div class="detail-row">
+                                <div class="detail-label">Checked by:</div>
+                                <div class="detail-value">_____________________</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">RC No:</div>
+                                <div class="detail-value">_____________________</div>
+                            </div>
                             <div class="signature-line">Signature</div>
                         </div>
-                        <div style="clear: both;"></div>
+                        <div class="clearfix"></div>
                     </div>
                     
                     <!-- Print Buttons (only for screen) -->
