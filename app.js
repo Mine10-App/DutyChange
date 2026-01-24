@@ -20,20 +20,31 @@ class ReservationSystem {
         // Forms
         document.getElementById('reservationForm').addEventListener('submit', (e) => this.saveReservation(e));
         
-        // Filters
+        // Filters - Add change listeners
         document.getElementById('checkinDateFilter').addEventListener('change', () => this.loadCheckinData());
+        document.getElementById('checkinFlightFilter').addEventListener('change', () => this.loadCheckinData());
+        
         document.getElementById('checkoutDateFilter').addEventListener('change', () => this.loadCheckoutData());
+        document.getElementById('checkoutFlightFilter').addEventListener('change', () => this.loadCheckoutData());
+        
+        document.getElementById('reportFromDate').addEventListener('change', () => this.loadReportOptions());
+        document.getElementById('reportToDate').addEventListener('change', () => this.loadReportOptions());
+        document.getElementById('reportFlightFilter').addEventListener('change', () => this.loadReportOptions());
+        
         document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReport());
         
         // Tab change events
         document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
             tab.addEventListener('shown.bs.tab', (e) => {
-                if (e.target.getAttribute('href') === '#checkinTab') {
+                const target = e.target.getAttribute('href');
+                if (target === '#checkinTab') {
                     this.loadCheckinData();
-                } else if (e.target.getAttribute('href') === '#checkoutTab') {
+                    this.loadFlightOptionsForCheckin();
+                } else if (target === '#checkoutTab') {
                     this.loadCheckoutData();
-                } else if (e.target.getAttribute('href') === '#reportTab') {
-                    this.loadFlightOptions('reportFlightFilter');
+                    this.loadFlightOptionsForCheckout();
+                } else if (target === '#reportTab') {
+                    this.loadReportOptions();
                 }
             });
         });
@@ -52,10 +63,10 @@ class ReservationSystem {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
-        // Hash the password (simple SHA-256 simulation - in production use proper hashing)
+        // Hash the password
         const hashedPassword = this.hashPassword(password);
         
-        // Find user in users array (from user.js)
+        // Find user in users array
         const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
         
         if (user) {
@@ -69,18 +80,14 @@ class ReservationSystem {
     }
 
     hashPassword(password) {
-        // Simple SHA-256 hash simulation
-        // In production, use proper hashing with salt
-        const sha256 = str => {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return Math.abs(hash).toString(16);
-        };
-        return sha256(password);
+        // Simple hash function for demo purposes
+        let hash = 0;
+        for (let i = 0; i < password.length; i++) {
+            const char = password.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
     }
 
     showError(message) {
@@ -108,10 +115,9 @@ class ReservationSystem {
         document.getElementById('checkinDateFilter').value = today;
         document.getElementById('checkoutDateFilter').value = today;
         
-        // Load flight options for filters
-        this.loadFlightOptions('checkinFlightFilter');
-        this.loadFlightOptions('checkoutFlightFilter');
-        this.loadFlightOptions('reportFlightFilter');
+        // Load initial data
+        this.loadFlightOptionsForCheckin();
+        this.loadFlightOptionsForCheckout();
     }
 
     logout() {
@@ -136,7 +142,9 @@ class ReservationSystem {
             nationality: document.getElementById('nationality').value,
             status: 'reserved',
             createdAt: new Date().toISOString(),
-            createdBy: this.currentUser.username
+            createdBy: this.currentUser.username,
+            checkinDate: null,
+            checkoutDate: null
         };
         
         try {
@@ -144,9 +152,72 @@ class ReservationSystem {
             alert('Reservation saved successfully!');
             document.getElementById('reservationForm').reset();
             document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
+            
+            // Refresh flight options in all filters
+            this.loadFlightOptionsForCheckin();
+            this.loadFlightOptionsForCheckout();
+            this.loadReportOptions();
         } catch (error) {
             console.error('Error saving reservation:', error);
             alert('Error saving reservation. Please try again.');
+        }
+    }
+
+    async loadFlightOptionsForCheckin() {
+        try {
+            const snapshot = await this.db.collection('reservations')
+                .where('status', '==', 'reserved')
+                .get();
+            
+            const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+            const select = document.getElementById('checkinFlightFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">All</option>';
+            flights.forEach(flight => {
+                if (flight) {
+                    const option = document.createElement('option');
+                    option.value = flight;
+                    option.textContent = flight;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Restore previous selection if possible
+            if (flights.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error loading flight options for check-in:', error);
+        }
+    }
+
+    async loadFlightOptionsForCheckout() {
+        try {
+            const snapshot = await this.db.collection('reservations')
+                .where('status', '==', 'checked-in')
+                .get();
+            
+            const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+            const select = document.getElementById('checkoutFlightFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">All</option>';
+            flights.forEach(flight => {
+                if (flight) {
+                    const option = document.createElement('option');
+                    option.value = flight;
+                    option.textContent = flight;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Restore previous selection if possible
+            if (flights.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error loading flight options for check-out:', error);
         }
     }
 
@@ -155,6 +226,10 @@ class ReservationSystem {
         const flightFilter = document.getElementById('checkinFlightFilter').value;
         
         try {
+            // First, get the start and end of the selected date
+            const startDate = new Date(date + 'T00:00:00');
+            const endDate = new Date(date + 'T23:59:59');
+            
             let query = this.db.collection('reservations')
                 .where('date', '==', date)
                 .where('status', '==', 'reserved');
@@ -162,6 +237,17 @@ class ReservationSystem {
             const snapshot = await query.get();
             const tableBody = document.getElementById('checkinTable');
             tableBody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No guests available for check-in on ${date}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
             
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -185,23 +271,45 @@ class ReservationSystem {
             });
         } catch (error) {
             console.error('Error loading check-in data:', error);
+            const tableBody = document.getElementById('checkinTable');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Error loading data. Please try again.
+                    </td>
+                </tr>
+            `;
         }
     }
 
     async checkinGuest(reservationId) {
-        const checkinTime = new Date().toLocaleTimeString();
+        if (!confirm('Are you sure you want to check in this guest?')) {
+            return;
+        }
+        
+        const now = new Date();
+        const checkinTime = now.toLocaleTimeString('en-US', { 
+            hour12: true, 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
         
         try {
             await this.db.collection('reservations').doc(reservationId).update({
                 status: 'checked-in',
                 checkinTime: checkinTime,
+                checkinDateTime: now.toISOString(),
                 checkinBy: this.currentUser.username,
-                checkinDate: new Date().toISOString()
+                checkinDate: new Date().toISOString().split('T')[0]
             });
             
             alert('Guest checked in successfully!');
+            
+            // Refresh both check-in and check-out data
             this.loadCheckinData();
-            this.loadCheckoutData(); // Refresh checkout tab if open
+            this.loadFlightOptionsForCheckout(); // Update flight options for checkout
+            this.loadCheckoutData();
+            
         } catch (error) {
             console.error('Error checking in guest:', error);
             alert('Error checking in guest. Please try again.');
@@ -213,25 +321,40 @@ class ReservationSystem {
         const flightFilter = document.getElementById('checkoutFlightFilter').value;
         
         try {
+            // Create date range for filtering
+            const startDate = new Date(date + 'T00:00:00');
+            const endDate = new Date(date + 'T23:59:59');
+            
             let query = this.db.collection('reservations')
                 .where('status', '==', 'checked-in');
-            
-            // Filter by date if provided
-            if (date) {
-                const startDate = new Date(date + 'T00:00:00');
-                const endDate = new Date(date + 'T23:59:59');
-                query = query.where('checkinDate', '>=', startDate.toISOString())
-                             .where('checkinDate', '<=', endDate.toISOString());
-            }
             
             const snapshot = await query.get();
             const tableBody = document.getElementById('checkoutTable');
             tableBody.innerHTML = '';
             
+            if (snapshot.empty) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No checked-in guests available for checkout
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let hasData = false;
+            
             snapshot.forEach(doc => {
                 const data = doc.data();
+                
+                // Filter by check-in date
+                if (date && data.checkinDate !== date) return;
+                
+                // Filter by flight/hotel
                 if (flightFilter && data.flightHotel !== flightFilter) return;
                 
+                hasData = true;
                 const row = `
                     <tr>
                         <td>${data.guestName}</td>
@@ -248,54 +371,89 @@ class ReservationSystem {
                 `;
                 tableBody.innerHTML += row;
             });
+            
+            if (!hasData) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No guests available for checkout on ${date}
+                        </td>
+                    </tr>
+                `;
+            }
         } catch (error) {
             console.error('Error loading check-out data:', error);
+            const tableBody = document.getElementById('checkoutTable');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Error loading data. Please try again.
+                    </td>
+                </tr>
+            `;
         }
     }
 
     async checkoutGuest(reservationId) {
-        const checkoutTime = new Date().toLocaleTimeString();
+        if (!confirm('Are you sure you want to check out this guest?')) {
+            return;
+        }
+        
+        const now = new Date();
+        const checkoutTime = now.toLocaleTimeString('en-US', { 
+            hour12: true, 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
         
         try {
             await this.db.collection('reservations').doc(reservationId).update({
                 status: 'checked-out',
                 checkoutTime: checkoutTime,
+                checkoutDateTime: now.toISOString(),
                 checkoutBy: this.currentUser.username,
-                checkoutDate: new Date().toISOString()
+                checkoutDate: new Date().toISOString().split('T')[0]
             });
             
             alert('Guest checked out successfully!');
+            
+            // Refresh data
             this.loadCheckoutData();
+            this.loadFlightOptionsForCheckout(); // Update flight options
+            
         } catch (error) {
             console.error('Error checking out guest:', error);
             alert('Error checking out guest. Please try again.');
         }
     }
 
-    async loadFlightOptions(selectId) {
+    async loadReportOptions() {
         try {
+            // Load flight options for report filter
             const snapshot = await this.db.collection('reservations')
-                .orderBy('flightHotel')
+                .where('status', '==', 'checked-out')
                 .get();
             
             const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-            const select = document.getElementById(selectId);
-            
-            // Keep existing "All" option
+            const select = document.getElementById('reportFlightFilter');
             const currentValue = select.value;
-            select.innerHTML = '<option value="">All</option>';
             
+            select.innerHTML = '<option value="">All</option>';
             flights.forEach(flight => {
-                const option = document.createElement('option');
-                option.value = flight;
-                option.textContent = flight;
-                select.appendChild(option);
+                if (flight) {
+                    const option = document.createElement('option');
+                    option.value = flight;
+                    option.textContent = flight;
+                    select.appendChild(option);
+                }
             });
             
             // Restore previous selection if possible
-            select.value = currentValue;
+            if (flights.includes(currentValue)) {
+                select.value = currentValue;
+            }
         } catch (error) {
-            console.error('Error loading flight options:', error);
+            console.error('Error loading report options:', error);
         }
     }
 
@@ -304,16 +462,23 @@ class ReservationSystem {
         const toDate = document.getElementById('reportToDate').value;
         const flightFilter = document.getElementById('reportFlightFilter').value;
         
+        // Validate dates
+        if (fromDate && toDate && fromDate > toDate) {
+            alert('From date cannot be after To date');
+            return;
+        }
+        
         try {
             let query = this.db.collection('reservations')
                 .where('status', '==', 'checked-out');
             
-            // Apply date filter
+            // Apply date range filter
             if (fromDate && toDate) {
                 const startDate = new Date(fromDate + 'T00:00:00');
                 const endDate = new Date(toDate + 'T23:59:59');
-                query = query.where('checkoutDate', '>=', startDate.toISOString())
-                             .where('checkoutDate', '<=', endDate.toISOString());
+                
+                query = query.where('checkoutDateTime', '>=', startDate.toISOString())
+                             .where('checkoutDateTime', '<=', endDate.toISOString());
             }
             
             const snapshot = await query.get();
@@ -321,57 +486,78 @@ class ReservationSystem {
             
             snapshot.forEach(doc => {
                 const data = doc.data();
+                // Apply flight filter
                 if (flightFilter && data.flightHotel !== flightFilter) return;
                 reservations.push({ id: doc.id, ...data });
             });
             
-            this.displayReport(reservations);
+            if (reservations.length === 0) {
+                alert('No checked-out guests found for the selected criteria.');
+                return;
+            }
+            
+            this.displayReport(reservations, fromDate, toDate);
         } catch (error) {
             console.error('Error generating report:', error);
             alert('Error generating report. Please try again.');
         }
     }
 
-    displayReport(reservations) {
+    displayReport(reservations, fromDate, toDate) {
         const reportDiv = document.getElementById('reportDisplay');
-        const currentDate = new Date().toLocaleDateString();
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Date range text
+        let dateRangeText = '';
+        if (fromDate && toDate) {
+            const from = new Date(fromDate).toLocaleDateString();
+            const to = new Date(toDate).toLocaleDateString();
+            dateRangeText = `From ${from} to ${to}`;
+        } else if (fromDate) {
+            const from = new Date(fromDate).toLocaleDateString();
+            dateRangeText = `From ${from}`;
+        } else if (toDate) {
+            const to = new Date(toDate).toLocaleDateString();
+            dateRangeText = `Up to ${to}`;
+        }
         
         let reportHTML = `
-            <div class="report-container">
+            <div class="report-container" style="font-family: Arial, sans-serif;">
                 <!-- Header -->
                 <div class="row mb-4">
                     <div class="col-2">
-                        <div class="logo-placeholder" style="width: 100px; height: 100px; border: 1px solid #ccc; text-align: center; line-height: 100px;">
-                            LOGO
+                        <div style="width: 100px; height: 100px; border: 1px solid #ccc; text-align: center; line-height: 100px; font-size: 12px;">
+                            COMPANY LOGO
                         </div>
                     </div>
-                    <div class="col-8">
-                        <h4>Hotel Management System</h4>
-                        <p>123 Hotel Street, City, Country</p>
-                        <p>Phone: +123 456 7890 | Email: info@hotel.com</p>
+                    <div class="col-8 text-center">
+                        <h4 style="margin-bottom: 5px;">Hotel Management System</h4>
+                        <p style="margin-bottom: 2px; font-size: 14px;">123 Hotel Street, City, Country</p>
+                        <p style="margin-bottom: 2px; font-size: 14px;">Phone: +123 456 7890 | Email: info@hotel.com</p>
+                        <hr style="margin: 10px 0;">
+                        <h5 style="margin-bottom: 5px;">Guest Check-Out Report</h5>
+                        <p style="font-size: 14px; margin-bottom: 5px;">${dateRangeText}</p>
+                        <p style="font-size: 14px;">Generated on: ${currentDate}</p>
                     </div>
-                    <div class="col-2 text-end">
-                        <p>Date: ${currentDate}</p>
-                    </div>
-                </div>
-                
-                <!-- Customer Info -->
-                <div class="mb-3">
-                    <h5>Guest Check-Out Report</h5>
+                    <div class="col-2"></div>
                 </div>
                 
                 <!-- Table -->
                 <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead class="table-dark">
+                    <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+                        <thead style="background-color: #343a40; color: white;">
                             <tr>
-                                <th>Name</th>
-                                <th>Flight/Hotel</th>
-                                <th>ETA</th>
-                                <th>Direction</th>
-                                <th>Check-In Time</th>
-                                <th>Check-Out Time</th>
-                                <th>Remarks</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">Name</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">Flight/Hotel</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">ETA</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">Direction</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">Check-In Time</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">Check-Out Time</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6;">Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -380,13 +566,13 @@ class ReservationSystem {
         reservations.forEach(reservation => {
             reportHTML += `
                 <tr>
-                    <td>${reservation.guestName}</td>
-                    <td>${reservation.flightHotel}</td>
-                    <td>${reservation.eta}</td>
-                    <td>${reservation.direction}</td>
-                    <td>${reservation.checkinTime || 'N/A'}</td>
-                    <td>${reservation.checkoutTime || 'N/A'}</td>
-                    <td></td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">${reservation.guestName}</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">${reservation.flightHotel}</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">${reservation.eta}</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">${reservation.direction}</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">${reservation.checkinTime || 'N/A'}</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;">${reservation.checkoutTime || 'N/A'}</td>
+                    <td style="padding: 8px; border: 1px solid #dee2e6;"></td>
                 </tr>
             `;
         });
@@ -397,23 +583,21 @@ class ReservationSystem {
                 </div>
                 
                 <!-- Footer -->
-                <div class="row mt-5">
+                <div class="row mt-5" style="margin-top: 50px;">
                     <div class="col-6">
-                        <div class="signature-section">
-                            <p><strong>Prepared by:</strong></p>
-                            <p>Name: ${this.currentUser.name}</p>
-                            <p>RC No: ${this.currentUser.RCNo}</p>
-                            <p class="signature-line">_____________________</p>
-                            <p>Signature</p>
+                        <div style="margin-top: 30px;">
+                            <p style="margin-bottom: 5px;"><strong>Prepared by:</strong></p>
+                            <p style="margin-bottom: 2px;">Name: ${this.currentUser.name}</p>
+                            <p style="margin-bottom: 2px;">RC No: ${this.currentUser.RCNo}</p>
+                            <p style="border-top: 1px solid #000; width: 200px; margin-top: 40px; padding-top: 5px;">Signature</p>
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="signature-section">
-                            <p><strong>Checked by:</strong></p>
-                            <p>Name: _____________________</p>
-                            <p>RC No: _____________________</p>
-                            <p class="signature-line">_____________________</p>
-                            <p>Signature</p>
+                        <div style="margin-top: 30px;">
+                            <p style="margin-bottom: 5px;"><strong>Checked by:</strong></p>
+                            <p style="margin-bottom: 2px;">Name: _____________________</p>
+                            <p style="margin-bottom: 2px;">RC No: _____________________</p>
+                            <p style="border-top: 1px solid #000; width: 200px; margin-top: 40px; padding-top: 5px;">Signature</p>
                         </div>
                     </div>
                 </div>
@@ -424,7 +608,7 @@ class ReservationSystem {
                         <i class="fas fa-print"></i> Print Report
                     </button>
                     <button class="btn btn-secondary" onclick="document.getElementById('reportDisplay').classList.add('d-none')">
-                        <i class="fas fa-times"></i> Close
+                        <i class="fas fa-times"></i> Close Report
                     </button>
                 </div>
             </div>
@@ -432,6 +616,9 @@ class ReservationSystem {
         
         reportDiv.innerHTML = reportHTML;
         reportDiv.classList.remove('d-none');
+        
+        // Scroll to report
+        reportDiv.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
