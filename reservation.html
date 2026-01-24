@@ -10,13 +10,35 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <style>
-        body { background-color: #f8f9fa; }
-        .dashboard-card { transition: transform 0.3s; }
-        .dashboard-card:hover { transform: translateY(-5px); }
-        .login-container { max-width: 400px; margin: 100px auto; }
-        .nav-link.active { font-weight: bold; }
-        .table-responsive { max-height: 500px; overflow-y: auto; }
-        .print-section { background: white; padding: 20px; }
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-card { 
+            transition: transform 0.3s, box-shadow 0.3s; 
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dashboard-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .login-container { 
+            max-width: 400px; 
+            margin: 100px auto; 
+        }
+        .nav-link.active { 
+            font-weight: bold;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .table-responsive { 
+            max-height: 500px; 
+            overflow-y: auto; 
+        }
+        .print-section { 
+            background: white; 
+            padding: 20px; 
+        }
         
         /* Autocomplete Styles */
         .autocomplete-container {
@@ -31,56 +53,99 @@
             max-height: 200px;
             overflow-y: auto;
             z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-top: 2px;
         }
         
         .dropdown-item {
             padding: 8px 12px;
             cursor: pointer;
             transition: background-color 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
         }
         
         .dropdown-item:hover {
             background-color: #f8f9fa;
         }
         
-        .dropdown-item:not(:last-child) {
-            border-bottom: 1px solid #f0f0f0;
+        .dropdown-item.active {
+            background-color: #0d6efd;
+            color: white;
         }
         
         @media print {
             .no-print { display: none !important; }
             .print-section { display: block !important; }
+            body { background: white !important; }
         }
         
         /* Status badges */
         .status-badge {
-            font-size: 0.8em;
-            padding: 3px 8px;
-            border-radius: 10px;
+            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
         }
         
-        .status-reserved { background-color: #ffc107; color: #000; }
-        .status-checkedin { background-color: #0dcaf0; color: #fff; }
-        .status-checkedout { background-color: #198754; color: #fff; }
+        .status-reserved { 
+            background-color: #fff3cd; 
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status-checkedin { 
+            background-color: #d1ecf1; 
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status-checkedout { 
+            background-color: #d4edda; 
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
         
         /* Filter section */
         .filter-section {
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0d6efd;
         }
         
         /* Loading state */
         .loading {
             opacity: 0.7;
             pointer-events: none;
+            position: relative;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
         
         /* Recent Reservations Styles */
         .recent-reservations-card {
             height: 100%;
+            min-height: 400px;
         }
         
         .recent-reservations-table {
@@ -88,77 +153,233 @@
         }
         
         .recent-reservations-table th {
-            font-size: 0.85em;
-            padding: 8px 5px;
+            font-size: 0.8em;
+            font-weight: 600;
+            padding: 10px 8px;
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         .recent-reservations-table td {
-            padding: 8px 5px;
+            padding: 8px;
             vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
         }
         
         .recent-reservation-row {
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
         
         .recent-reservation-row:hover {
-            background-color: rgba(13, 110, 253, 0.1);
+            background-color: rgba(13, 110, 253, 0.05);
+            transform: translateX(2px);
         }
         
-        /* Scrollbar styling for recent reservations */
+        /* Scrollbar styling */
         .recent-reservations-scroll {
             max-height: 400px;
             overflow-y: auto;
         }
         
         .recent-reservations-scroll::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
         
         .recent-reservations-scroll::-webkit-scrollbar-track {
             background: #f1f1f1;
-            border-radius: 3px;
+            border-radius: 4px;
         }
         
         .recent-reservations-scroll::-webkit-scrollbar-thumb {
             background: #c1c1c1;
-            border-radius: 3px;
+            border-radius: 4px;
+        }
+        
+        .recent-reservations-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
         
         /* Modal styles */
-        .reservation-details-modal .modal-body p {
-            margin-bottom: 10px;
+        .reservation-details-modal .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .reservation-details-modal .detail-group {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
         }
         
         .reservation-details-modal .detail-label {
-            font-weight: bold;
+            font-weight: 600;
             color: #495057;
-            min-width: 120px;
-            display: inline-block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9em;
+        }
+        
+        .reservation-details-modal .detail-value {
+            font-size: 1em;
+            color: #212529;
+            padding-left: 1rem;
+        }
+        
+        /* Custom card headers */
+        .card-header-gradient {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            border-bottom: none;
+        }
+        
+        .card-header-success {
+            background: linear-gradient(135deg, #198754 0%, #157347 100%);
+            border-bottom: none;
+        }
+        
+        .card-header-info {
+            background: linear-gradient(135deg, #0dcaf0 0%, #0bb5d4 100%);
+            border-bottom: none;
+        }
+        
+        .card-header-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e6ac00 100%);
+            border-bottom: none;
+        }
+        
+        /* Toast notifications */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast-alert {
+            min-width: 300px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            overflow: hidden;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Form validation */
+        .is-invalid {
+            border-color: #dc3545;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+        
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+        
+        /* Quick stats cards */
+        .stats-card {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .stats-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        /* Search box */
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box .form-control {
+            padding-left: 40px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        /* Action buttons */
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 0.85rem;
+            margin: 2px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar-text {
+                display: none;
+            }
+            
+            .filter-section .row > div {
+                margin-bottom: 10px;
+            }
+            
+            .recent-reservations-card {
+                margin-top: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-hotel"></i> Vilu Business Lounge Login</h4>
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <i class="fas fa-hotel fa-3x mb-3"></i>
+                <h3 class="mb-1">Vilu Business Lounge</h3>
+                <p class="mb-0 opacity-75">Reservation & Check-In System</p>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter username">
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" id="username" class="form-control" placeholder="Enter username" autocomplete="username">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter password">
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="password" class="form-control" placeholder="Enter password" autocomplete="current-password">
+                    </div>
                 </div>
-                <button id="loginBtn" class="btn btn-primary w-100">
-                    <i class="fas fa-sign-in-alt"></i> Login
+                <button id="loginBtn" class="btn btn-primary w-100 py-2">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
                 </button>
-                <div id="loginError" class="alert alert-danger mt-3 d-none"></div>
+                <div id="loginError" class="alert alert-danger mt-3 d-none text-center"></div>
+                <div class="text-center mt-3 text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Use your assigned credentials
+                </div>
             </div>
         </div>
     </div>
@@ -166,43 +387,119 @@
     <!-- Dashboard (Initially Hidden) -->
     <div id="dashboard" class="d-none">
         <!-- Navigation -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">
-                    <i class="fas fa-hotel"></i> Vilu Lounge Reservation System
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                    <i class="fas fa-hotel fa-lg me-2"></i>
+                    <div>
+                        <div class="fw-bold">Vilu Lounge</div>
+                        <small class="opacity-75">Reservation System</small>
+                    </div>
                 </a>
-                <div class="navbar-text text-white">
-                    Welcome, <span id="userName"></span> | 
-                    <span id="userLevel" class="badge bg-light text-dark"></span> | 
-                    RC: <span id="userRC"></span>
+                <div class="navbar-text text-white d-none d-lg-block">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <small>Welcome,</small>
+                            <div class="fw-bold" id="userName"></div>
+                        </div>
+                        <div class="me-3">
+                            <span id="userLevel" class="badge bg-light text-dark"></span>
+                        </div>
+                        <div>
+                            <small>RC:</small>
+                            <div class="fw-bold" id="userRC"></div>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn btn-light" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button class="btn btn-light d-flex align-items-center" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
                 </button>
             </div>
         </nav>
 
+        <!-- Quick Stats -->
+        <div class="container-fluid mt-4 d-none" id="quickStats">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card stats-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 opacity-75">Reservations</h6>
+                                    <h3 class="card-title mb-0" id="statReservations">0</h3>
+                                    <small>Today</small>
+                                </div>
+                                <i class="fas fa-calendar-alt stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 opacity-75">Check-Ins</h6>
+                                    <h3 class="card-title mb-0" id="statCheckins">0</h3>
+                                    <small>Today</small>
+                                </div>
+                                <i class="fas fa-sign-in-alt stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 opacity-75">Check-Outs</h6>
+                                    <h3 class="card-title mb-0" id="statCheckouts">0</h3>
+                                    <small>Today</small>
+                                </div>
+                                <i class="fas fa-sign-out-alt stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 opacity-75">Active</h6>
+                                    <h3 class="card-title mb-0" id="statActive">0</h3>
+                                    <small>Currently</small>
+                                </div>
+                                <i class="fas fa-users stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabs Navigation -->
-        <div class="container-fluid mt-3">
-            <ul class="nav nav-tabs" id="mainTabs">
+        <div class="container-fluid mt-4">
+            <ul class="nav nav-tabs nav-fill" id="mainTabs">
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#reservationTab">
-                        <i class="fas fa-calendar-plus"></i> New Reservation
+                        <i class="fas fa-calendar-plus me-2"></i> New Reservation
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#checkinTab">
-                        <i class="fas fa-sign-in-alt"></i> Check-In
+                        <i class="fas fa-sign-in-alt me-2"></i> Check-In
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#checkoutTab">
-                        <i class="fas fa-sign-out-alt"></i> Check-Out
+                        <i class="fas fa-sign-out-alt me-2"></i> Check-Out
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#reportTab">
-                        <i class="fas fa-file-alt"></i> Reports
+                        <i class="fas fa-file-alt me-2"></i> Reports
                     </a>
                 </li>
             </ul>
@@ -214,48 +511,72 @@
                     <div class="row">
                         <!-- Left Column: Reservation Form -->
                         <div class="col-lg-8">
-                            <div class="card">
-                                <div class="card-header bg-success text-white">
-                                    <h5><i class="fas fa-calendar-plus"></i> New Reservation</h5>
+                            <div class="card dashboard-card">
+                                <div class="card-header card-header-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-calendar-plus me-2"></i> New Reservation</h5>
                                 </div>
                                 <div class="card-body">
-                                    <form id="reservationForm">
+                                    <form id="reservationForm" novalidate>
                                         <div class="row">
                                             <div class="col-md-6 mb-3 autocomplete-container">
-                                                <label class="form-label">Customer</label>
+                                                <label class="form-label fw-bold">Customer</label>
                                                 <input type="text" id="customer" class="form-control" required>
+                                                <div class="invalid-feedback">Please enter a customer name.</div>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Date</label>
+                                                <label class="form-label fw-bold">Date</label>
                                                 <input type="date" id="reservationDate" class="form-control" required>
+                                                <div class="invalid-feedback">Please select a date.</div>
                                             </div>
                                             <div class="col-md-6 mb-3 autocomplete-container">
-                                                <label class="form-label">Flight/Hotel</label>
+                                                <label class="form-label fw-bold">Flight/Hotel</label>
                                                 <input type="text" id="flightHotel" class="form-control" required>
+                                                <div class="invalid-feedback">Please enter flight/hotel details.</div>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">ETA</label>
+                                                <label class="form-label fw-bold">ETA</label>
                                                 <input type="time" id="eta" class="form-control" required>
+                                                <div class="invalid-feedback">Please select ETA.</div>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Direction</label>
-                                                <input type="text" id="direction" class="form-control" placeholder="e.g., Arrival, Departure" required>
+                                                <label class="form-label fw-bold">Direction</label>
+                                                <select id="direction" class="form-select" required>
+                                                    <option value="">Select Direction</option>
+                                                    <option value="Arrival">Arrival</option>
+                                                    <option value="Departure">Departure</option>
+                                                    <option value="Transit">Transit</option>
+                                                    <option value="Local">Local</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select a direction.</div>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Guest Name</label>
+                                                <label class="form-label fw-bold">Guest Name</label>
                                                 <input type="text" id="guestName" class="form-control" required>
+                                                <div class="invalid-feedback">Please enter guest name.</div>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Nationality</label>
+                                                <label class="form-label fw-bold">Nationality</label>
                                                 <input type="text" id="nationality" class="form-control" required>
+                                                <div class="invalid-feedback">Please enter nationality.</div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold">Contact Number</label>
+                                                <input type="tel" id="contactNumber" class="form-control">
+                                                <div class="invalid-feedback">Please enter a valid contact number.</div>
+                                            </div>
+                                            <div class="col-12 mb-3">
+                                                <label class="form-label fw-bold">Remarks</label>
+                                                <textarea id="remarks" class="form-control" rows="2" placeholder="Any special requirements or notes..."></textarea>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-success">
-                                            <i class="fas fa-save"></i> Save Reservation
-                                        </button>
-                                        <button type="reset" class="btn btn-outline-secondary">
-                                            <i class="fas fa-times"></i> Clear
-                                        </button>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-success px-4">
+                                                <i class="fas fa-save me-2"></i> Save Reservation
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary">
+                                                <i class="fas fa-times me-2"></i> Clear Form
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -265,22 +586,23 @@
                         <div class="col-lg-4">
                             <div id="recentReservationsContainer">
                                 <!-- Recent reservations will be loaded here -->
-                                <div class="card recent-reservations-card">
-                                    <div class="card-header bg-info text-white">
+                                <div class="card dashboard-card recent-reservations-card">
+                                    <div class="card-header card-header-info text-white">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
-                                            <span class="badge bg-light text-dark" id="recentCount">0</span>
+                                            <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Reservations</h5>
+                                            <span class="badge bg-light text-dark rounded-pill" id="recentCount">0</span>
                                         </div>
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="recent-reservations-scroll">
-                                            <div class="p-3 text-center text-muted">
-                                                <i class="fas fa-spinner fa-spin"></i> Loading recent reservations...
+                                            <div class="text-center text-muted py-5">
+                                                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                                <p>Loading recent reservations...</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-footer bg-transparent border-top">
-                                        <small class="text-muted">Click on any reservation to view details</small>
+                                        <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i> Click on any reservation to view details</small>
                                     </div>
                                 </div>
                             </div>
@@ -290,46 +612,61 @@
 
                 <!-- Check-In Tab -->
                 <div class="tab-pane fade" id="checkinTab">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h5><i class="fas fa-sign-in-alt"></i> Check-In Guests</h5>
+                    <div class="card dashboard-card">
+                        <div class="card-header card-header-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i> Check-In Guests</h5>
                         </div>
                         <div class="card-body">
                             <div class="filter-section">
-                                <div class="row">
+                                <div class="row g-3">
                                     <div class="col-md-4">
-                                        <label class="form-label">Reservation Date</label>
+                                        <label class="form-label fw-bold">Reservation Date</label>
                                         <input type="date" id="checkinDateFilter" class="form-control">
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Flight/Hotel</label>
-                                        <select id="checkinFlightFilter" class="form-control">
-                                            <option value="">All</option>
+                                        <label class="form-label fw-bold">Flight/Hotel</label>
+                                        <select id="checkinFlightFilter" class="form-select">
+                                            <option value="">All Flights/Hotels</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">&nbsp;</label>
-                                        <button class="btn btn-primary w-100" onclick="app.loadCheckinData()">
-                                            <i class="fas fa-sync"></i> Refresh
-                                        </button>
+                                        <label class="form-label fw-bold">Customer</label>
+                                        <select id="checkinCustomerFilter" class="form-select">
+                                            <option value="">All Customers</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary" onclick="app.loadCheckinData()">
+                                                <i class="fas fa-sync me-2"></i> Refresh
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="app.clearCheckinFilters()">
+                                                <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
+                                <table class="table table-hover">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>Name</th>
+                                            <th>Guest Name</th>
+                                            <th>Customer</th>
                                             <th>Flight/Hotel</th>
                                             <th>ETA</th>
                                             <th>Direction</th>
                                             <th>Nationality</th>
                                             <th>Status</th>
-                                            <th>Action</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="checkinTable">
-                                        <!-- Check-in data will be loaded here -->
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted py-4">
+                                                <i class="fas fa-spinner fa-spin me-2"></i> Loading data...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -339,46 +676,61 @@
 
                 <!-- Check-Out Tab -->
                 <div class="tab-pane fade" id="checkoutTab">
-                    <div class="card">
-                        <div class="card-header bg-warning text-white">
-                            <h5><i class="fas fa-sign-out-alt"></i> Check-Out Guests</h5>
+                    <div class="card dashboard-card">
+                        <div class="card-header card-header-warning text-white">
+                            <h5 class="mb-0"><i class="fas fa-sign-out-alt me-2"></i> Check-Out Guests</h5>
                         </div>
                         <div class="card-body">
                             <div class="filter-section">
-                                <div class="row">
+                                <div class="row g-3">
                                     <div class="col-md-4">
-                                        <label class="form-label">Check-In Date</label>
+                                        <label class="form-label fw-bold">Check-In Date</label>
                                         <input type="date" id="checkoutDateFilter" class="form-control">
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Flight/Hotel</label>
-                                        <select id="checkoutFlightFilter" class="form-control">
-                                            <option value="">All</option>
+                                        <label class="form-label fw-bold">Flight/Hotel</label>
+                                        <select id="checkoutFlightFilter" class="form-select">
+                                            <option value="">All Flights/Hotels</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">&nbsp;</label>
-                                        <button class="btn btn-primary w-100" onclick="app.loadCheckoutData()">
-                                            <i class="fas fa-sync"></i> Refresh
-                                        </button>
+                                        <label class="form-label fw-bold">Customer</label>
+                                        <select id="checkoutCustomerFilter" class="form-select">
+                                            <option value="">All Customers</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary" onclick="app.loadCheckoutData()">
+                                                <i class="fas fa-sync me-2"></i> Refresh
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="app.clearCheckoutFilters()">
+                                                <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
+                                <table class="table table-hover">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>Name</th>
+                                            <th>Guest Name</th>
+                                            <th>Customer</th>
                                             <th>Flight/Hotel</th>
                                             <th>ETA</th>
                                             <th>Direction</th>
                                             <th>Check-In Time</th>
                                             <th>Status</th>
-                                            <th>Action</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="checkoutTable">
-                                        <!-- Check-out data will be loaded here -->
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted py-4">
+                                                <i class="fas fa-spinner fa-spin me-2"></i> Loading data...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -388,39 +740,64 @@
 
                 <!-- Report Tab -->
                 <div class="tab-pane fade" id="reportTab">
-                    <div class="card">
-                        <div class="card-header bg-secondary text-white">
-                            <h5><i class="fas fa-file-alt"></i> Generate Report</h5>
+                    <div class="card dashboard-card">
+                        <div class="card-header card-header-gradient text-white">
+                            <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i> Generate Report</h5>
                         </div>
                         <div class="card-body">
                             <div class="filter-section">
-                                <div class="row">
+                                <div class="row g-3">
                                     <div class="col-md-3">
-                                        <label class="form-label">From Date</label>
+                                        <label class="form-label fw-bold">From Date</label>
                                         <input type="date" id="reportFromDate" class="form-control">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">To Date</label>
+                                        <label class="form-label fw-bold">To Date</label>
                                         <input type="date" id="reportToDate" class="form-control">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Flight/Hotel</label>
-                                        <select id="reportFlightFilter" class="form-control">
-                                            <option value="">All</option>
+                                        <label class="form-label fw-bold">Flight/Hotel</label>
+                                        <select id="reportFlightFilter" class="form-select">
+                                            <option value="">All Flights/Hotels</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">&nbsp;</label>
-                                        <button id="generateReportBtn" class="btn btn-primary w-100">
-                                            <i class="fas fa-file-pdf"></i> Generate Report
-                                        </button>
+                                        <label class="form-label fw-bold">Customer</label>
+                                        <select id="reportCustomerFilter" class="form-select">
+                                            <option value="">All Customers</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="d-flex gap-2">
+                                            <button id="generateReportBtn" class="btn btn-primary">
+                                                <i class="fas fa-file-pdf me-2"></i> Generate PDF Report
+                                            </button>
+                                            <button id="generateExcelBtn" class="btn btn-success">
+                                                <i class="fas fa-file-excel me-2"></i> Export to Excel
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="app.clearReportFilters()">
+                                                <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Report Display Area -->
-                            <div id="reportDisplay" class="print-section d-none">
-                                <!-- Report will be generated here -->
+                            <!-- Report Preview -->
+                            <div id="reportPreview" class="mt-4 d-none">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-eye me-2"></i> Report Preview</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="reportStats" class="row mb-4"></div>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm" id="reportPreviewTable">
+                                                <!-- Preview data will be loaded here -->
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -435,6 +812,8 @@
     <script src="resfire.js"></script>
     <!-- User Data -->
     <script src="user1.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- Main Application Script -->
     <script>
@@ -463,9 +842,41 @@
                         if (data.customer) this.customers.add(data.customer);
                         if (data.flightHotel) this.flightHotels.add(data.flightHotel);
                     });
+                    
+                    // Load into filter dropdowns
+                    this.updateFilterDropdowns();
                 } catch (error) {
                     console.error('Error loading autocomplete data:', error);
                 }
+            }
+
+            updateFilterDropdowns() {
+                // Update customer filters
+                const customerSelects = [
+                    'checkinCustomerFilter',
+                    'checkoutCustomerFilter',
+                    'reportCustomerFilter'
+                ];
+                
+                customerSelects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        const currentValue = select.value;
+                        const options = Array.from(this.customers).sort();
+                        
+                        select.innerHTML = '<option value="">All Customers</option>';
+                        options.forEach(customer => {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            select.appendChild(option);
+                        });
+                        
+                        if (options.includes(currentValue)) {
+                            select.value = currentValue;
+                        }
+                    }
+                });
             }
 
             setupEventListeners() {
@@ -478,17 +889,25 @@
                 // Forms
                 document.getElementById('reservationForm').addEventListener('submit', (e) => this.saveReservation(e));
                 
+                // Form validation
+                document.querySelectorAll('#reservationForm input, #reservationForm select').forEach(input => {
+                    input.addEventListener('blur', () => this.validateField(input));
+                    input.addEventListener('input', () => {
+                        if (input.classList.contains('is-invalid')) {
+                            input.classList.remove('is-invalid');
+                        }
+                    });
+                });
+                
                 // Autocomplete setup
                 const customerInput = document.getElementById('customer');
                 if (customerInput) {
-                    customerInput.addEventListener('focus', () => this.showCustomerDropdown());
-                    customerInput.addEventListener('input', (e) => this.filterCustomerDropdown(e.target.value));
+                    customerInput.addEventListener('input', (e) => this.handleAutocomplete(e, 'customer'));
                 }
                 
                 const flightInput = document.getElementById('flightHotel');
                 if (flightInput) {
-                    flightInput.addEventListener('focus', () => this.showFlightDropdown());
-                    flightInput.addEventListener('input', (e) => this.filterFlightDropdown(e.target.value));
+                    flightInput.addEventListener('input', (e) => this.handleAutocomplete(e, 'flight'));
                 }
                 
                 // Click outside to close dropdowns
@@ -498,31 +917,33 @@
                     }
                 });
                 
+                // Keyboard navigation for autocomplete
+                document.addEventListener('keydown', (e) => this.handleKeyboardNav(e));
+                
                 // Filters
-                const checkinDateFilter = document.getElementById('checkinDateFilter');
-                if (checkinDateFilter) {
-                    checkinDateFilter.addEventListener('change', () => this.loadCheckinData());
-                }
+                const filterInputs = [
+                    'checkinDateFilter',
+                    'checkinFlightFilter',
+                    'checkinCustomerFilter',
+                    'checkoutDateFilter',
+                    'checkoutFlightFilter',
+                    'checkoutCustomerFilter',
+                    'reportFromDate',
+                    'reportToDate',
+                    'reportFlightFilter',
+                    'reportCustomerFilter'
+                ];
                 
-                const checkinFlightFilter = document.getElementById('checkinFlightFilter');
-                if (checkinFlightFilter) {
-                    checkinFlightFilter.addEventListener('change', () => this.loadCheckinData());
-                }
+                filterInputs.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.handleFilterChange(id));
+                    }
+                });
                 
-                const checkoutDateFilter = document.getElementById('checkoutDateFilter');
-                if (checkoutDateFilter) {
-                    checkoutDateFilter.addEventListener('change', () => this.loadCheckoutData());
-                }
-                
-                const checkoutFlightFilter = document.getElementById('checkoutFlightFilter');
-                if (checkoutFlightFilter) {
-                    checkoutFlightFilter.addEventListener('change', () => this.loadCheckoutData());
-                }
-                
-                const generateReportBtn = document.getElementById('generateReportBtn');
-                if (generateReportBtn) {
-                    generateReportBtn.addEventListener('click', () => this.generateReport());
-                }
+                // Report generation
+                document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReport());
+                document.getElementById('generateExcelBtn').addEventListener('click', () => this.generateExcel());
                 
                 // Tab change events
                 document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
@@ -530,12 +951,10 @@
                         const target = e.target.getAttribute('href');
                         if (target === '#checkinTab') {
                             this.loadCheckinData();
-                            this.loadFlightOptionsForCheckin();
                         } else if (target === '#checkoutTab') {
                             this.loadCheckoutData();
-                            this.loadFlightOptionsForCheckout();
                         } else if (target === '#reportTab') {
-                            this.loadReportOptions();
+                            this.loadReportData();
                         }
                     });
                 });
@@ -545,6 +964,177 @@
                     if (e.key === 'Enter') {
                         this.login();
                     }
+                });
+                
+                // Real-time updates
+                this.setupRealtimeListeners();
+            }
+
+            setupRealtimeListeners() {
+                // Listen for new reservations
+                this.db.collection('reservations')
+                    .where('status', '==', 'reserved')
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .onSnapshot((snapshot) => {
+                        this.recentReservations = [];
+                        snapshot.forEach(doc => {
+                            this.recentReservations.push({
+                                id: doc.id,
+                                ...doc.data()
+                            });
+                        });
+                        this.displayRecentReservations();
+                        this.updateQuickStats();
+                    });
+                
+                // Listen for check-in/check-out changes
+                this.db.collection('reservations')
+                    .where('status', 'in', ['checked-in', 'checked-out'])
+                    .onSnapshot(() => {
+                        this.updateQuickStats();
+                    });
+            }
+
+            async updateQuickStats() {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    // Today's reservations
+                    const reservationsQuery = await this.db.collection('reservations')
+                        .where('reservationDate', '==', today)
+                        .get();
+                    
+                    // Today's check-ins
+                    const checkinsQuery = await this.db.collection('reservations')
+                        .where('checkinDate', '==', today)
+                        .get();
+                    
+                    // Today's check-outs
+                    const checkoutsQuery = await this.db.collection('reservations')
+                        .where('checkoutDate', '==', today)
+                        .get();
+                    
+                    // Currently checked-in
+                    const activeQuery = await this.db.collection('reservations')
+                        .where('status', '==', 'checked-in')
+                        .get();
+                    
+                    // Update stats
+                    document.getElementById('statReservations').textContent = reservationsQuery.size;
+                    document.getElementById('statCheckins').textContent = checkinsQuery.size;
+                    document.getElementById('statCheckouts').textContent = checkoutsQuery.size;
+                    document.getElementById('statActive').textContent = activeQuery.size;
+                    
+                    // Show stats section
+                    document.getElementById('quickStats').classList.remove('d-none');
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                }
+            }
+
+            validateField(field) {
+                if (field.required && !field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    return false;
+                }
+                
+                // Special validations
+                if (field.id === 'contactNumber' && field.value) {
+                    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+                    if (!phoneRegex.test(field.value.replace(/[\s\-\(\)]/g, ''))) {
+                        field.classList.add('is-invalid');
+                        field.nextElementSibling.textContent = 'Please enter a valid phone number';
+                        return false;
+                    }
+                }
+                
+                field.classList.remove('is-invalid');
+                return true;
+            }
+
+            handleAutocomplete(event, type) {
+                const input = event.target;
+                const value = input.value.toLowerCase();
+                const container = input.parentElement;
+                
+                // Remove existing dropdown
+                const existingDropdown = container.querySelector('.autocomplete-dropdown');
+                if (existingDropdown) {
+                    existingDropdown.remove();
+                }
+                
+                if (!value.trim()) {
+                    return;
+                }
+                
+                const dataSet = type === 'customer' ? this.customers : this.flightHotels;
+                const filteredItems = Array.from(dataSet)
+                    .filter(item => item.toLowerCase().includes(value))
+                    .slice(0, 10);
+                
+                if (filteredItems.length === 0) {
+                    return;
+                }
+                
+                const dropdown = document.createElement('div');
+                dropdown.className = 'autocomplete-dropdown';
+                
+                filteredItems.forEach(item => {
+                    const option = document.createElement('div');
+                    option.className = 'dropdown-item';
+                    option.textContent = item;
+                    option.onclick = () => {
+                        input.value = item;
+                        dropdown.remove();
+                    };
+                    dropdown.appendChild(option);
+                });
+                
+                container.appendChild(dropdown);
+            }
+
+            handleKeyboardNav(event) {
+                const activeElement = document.activeElement;
+                if (!activeElement.closest('.autocomplete-container')) return;
+                
+                const dropdown = activeElement.parentElement.querySelector('.autocomplete-dropdown');
+                if (!dropdown) return;
+                
+                const items = dropdown.querySelectorAll('.dropdown-item');
+                const activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+                
+                switch (event.key) {
+                    case 'ArrowDown':
+                        event.preventDefault();
+                        const nextIndex = activeIndex < items.length - 1 ? activeIndex + 1 : 0;
+                        items.forEach((item, idx) => item.classList.toggle('active', idx === nextIndex));
+                        break;
+                        
+                    case 'ArrowUp':
+                        event.preventDefault();
+                        const prevIndex = activeIndex > 0 ? activeIndex - 1 : items.length - 1;
+                        items.forEach((item, idx) => item.classList.toggle('active', idx === prevIndex));
+                        break;
+                        
+                    case 'Enter':
+                        event.preventDefault();
+                        const activeItem = dropdown.querySelector('.dropdown-item.active');
+                        if (activeItem) {
+                            activeElement.value = activeItem.textContent;
+                            dropdown.remove();
+                        }
+                        break;
+                        
+                    case 'Escape':
+                        dropdown.remove();
+                        break;
+                }
+            }
+
+            closeAllDropdowns() {
+                document.querySelectorAll('.autocomplete-dropdown').forEach(dropdown => {
+                    dropdown.remove();
                 });
             }
 
@@ -556,11 +1146,23 @@
                 }
             }
 
-            login() {
-                const username = document.getElementById('username').value;
+            async login() {
+                const username = document.getElementById('username').value.trim();
                 const password = document.getElementById('password').value;
                 
-                this.hashPasswordSHA256(password).then(hashedPassword => {
+                if (!username || !password) {
+                    this.showError('Please enter both username and password');
+                    return;
+                }
+                
+                // Show loading state
+                const loginBtn = document.getElementById('loginBtn');
+                const originalText = loginBtn.innerHTML;
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Logging in...';
+                loginBtn.disabled = true;
+                
+                try {
+                    const hashedPassword = await this.hashPasswordSHA256(password);
                     const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
                     
                     if (user) {
@@ -571,10 +1173,13 @@
                     } else {
                         this.showError('Invalid username or password');
                     }
-                }).catch(error => {
-                    console.error('Error hashing password:', error);
+                } catch (error) {
+                    console.error('Login error:', error);
                     this.showError('Login error. Please try again.');
-                });
+                } finally {
+                    loginBtn.innerHTML = originalText;
+                    loginBtn.disabled = false;
+                }
             }
 
             async hashPasswordSHA256(password) {
@@ -582,8 +1187,7 @@
                 const data = encoder.encode(password);
                 const hashBuffer = await crypto.subtle.digest('SHA-256', data);
                 const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                return hashHex;
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             }
 
             showError(message) {
@@ -591,6 +1195,9 @@
                 if (errorDiv) {
                     errorDiv.textContent = message;
                     errorDiv.classList.remove('d-none');
+                    
+                    // Auto-hide error after 5 seconds
+                    setTimeout(() => this.hideError(), 5000);
                 }
             }
 
@@ -602,232 +1209,101 @@
             }
 
             showDashboard() {
-                const loginScreen = document.getElementById('loginScreen');
-                const dashboard = document.getElementById('dashboard');
-                
-                if (loginScreen) loginScreen.classList.add('d-none');
-                if (dashboard) dashboard.classList.remove('d-none');
+                document.getElementById('loginScreen').classList.add('d-none');
+                document.getElementById('dashboard').classList.remove('d-none');
                 
                 // Display user info
-                const userName = document.getElementById('userName');
-                const userLevel = document.getElementById('userLevel');
-                const userRC = document.getElementById('userRC');
-                
-                if (userName) userName.textContent = this.currentUser.name;
-                if (userLevel) userLevel.textContent = this.currentUser.Level;
-                if (userRC) userRC.textContent = this.currentUser.RCNo;
+                document.getElementById('userName').textContent = this.currentUser.name;
+                document.getElementById('userLevel').textContent = this.currentUser.Level;
+                document.getElementById('userRC').textContent = this.currentUser.RCNo;
                 
                 // Set default dates
                 const today = new Date().toISOString().split('T')[0];
-                const dateFields = [
-                    'reservationDate',
-                    'checkinDateFilter',
-                    'checkoutDateFilter',
-                    'reportFromDate',
-                    'reportToDate'
-                ];
-                
-                dateFields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    if (field) field.value = today;
-                });
+                document.getElementById('reservationDate').value = today;
+                document.getElementById('checkinDateFilter').value = today;
+                document.getElementById('checkoutDateFilter').value = today;
+                document.getElementById('reportFromDate').value = today;
+                document.getElementById('reportToDate').value = today;
                 
                 // Load initial data
+                this.updateQuickStats();
                 this.loadCheckinData();
                 this.loadCheckoutData();
-                this.loadFlightOptionsForCheckin();
-                this.loadFlightOptionsForCheckout();
-                this.loadReportOptions();
+                this.loadReportData();
                 this.loadRecentReservations();
             }
 
             logout() {
+                if (!confirm('Are you sure you want to logout?')) return;
+                
                 this.currentUser = null;
                 localStorage.removeItem('currentUser');
                 
-                const dashboard = document.getElementById('dashboard');
-                const loginScreen = document.getElementById('loginScreen');
+                document.getElementById('dashboard').classList.add('d-none');
+                document.getElementById('loginScreen').classList.remove('d-none');
                 
-                if (dashboard) dashboard.classList.add('d-none');
-                if (loginScreen) loginScreen.classList.remove('d-none');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
                 
-                const usernameInput = document.getElementById('username');
-                const passwordInput = document.getElementById('password');
-                
-                if (usernameInput) usernameInput.value = '';
-                if (passwordInput) passwordInput.value = '';
-                
-                // Clear recent reservations
                 this.recentReservations = [];
-            }
-
-            showCustomerDropdown() {
                 this.closeAllDropdowns();
-                const input = document.getElementById('customer');
-                if (!input) return;
-                
-                const container = input.parentElement;
-                const dropdown = document.createElement('div');
-                dropdown.className = 'autocomplete-dropdown';
-                dropdown.style.cssText = `
-                    position: absolute;
-                    background: white;
-                    border: 1px solid #ced4da;
-                    border-radius: 4px;
-                    max-height: 200px;
-                    overflow-y: auto;
-                    z-index: 1000;
-                    width: ${input.offsetWidth}px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                `;
-                
-                // Add "Add new" option
-                const addNewOption = document.createElement('div');
-                addNewOption.className = 'dropdown-item';
-                addNewOption.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;';
-                addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new customer';
-                addNewOption.onclick = () => {
-                    this.closeAllDropdowns();
-                    input.focus();
-                };
-                dropdown.appendChild(addNewOption);
-                
-                // Add existing customers
-                Array.from(this.customers).sort().forEach(customer => {
-                    const option = document.createElement('div');
-                    option.className = 'dropdown-item';
-                    option.style.cssText = 'padding: 8px 12px; cursor: pointer;';
-                    option.textContent = customer;
-                    option.onclick = () => {
-                        input.value = customer;
-                        this.closeAllDropdowns();
-                    };
-                    dropdown.appendChild(option);
-                });
-                
-                container.style.position = 'relative';
-                container.appendChild(dropdown);
-            }
-
-            showFlightDropdown() {
-                this.closeAllDropdowns();
-                const input = document.getElementById('flightHotel');
-                if (!input) return;
-                
-                const container = input.parentElement;
-                const dropdown = document.createElement('div');
-                dropdown.className = 'autocomplete-dropdown';
-                dropdown.style.cssText = `
-                    position: absolute;
-                    background: white;
-                    border: 1px solid #ced4da;
-                    border-radius: 4px;
-                    max-height: 200px;
-                    overflow-y: auto;
-                    z-index: 1000;
-                    width: ${input.offsetWidth}px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                `;
-                
-                // Add "Add new" option
-                const addNewOption = document.createElement('div');
-                addNewOption.className = 'dropdown-item';
-                addNewOption.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;';
-                addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new flight/hotel';
-                addNewOption.onclick = () => {
-                    this.closeAllDropdowns();
-                    input.focus();
-                };
-                dropdown.appendChild(addNewOption);
-                
-                // Add existing flights/hotels
-                Array.from(this.flightHotels).sort().forEach(flightHotel => {
-                    const option = document.createElement('div');
-                    option.className = 'dropdown-item';
-                    option.style.cssText = 'padding: 8px 12px; cursor: pointer;';
-                    option.textContent = flightHotel;
-                    option.onclick = () => {
-                        input.value = flightHotel;
-                        this.closeAllDropdowns();
-                    };
-                    dropdown.appendChild(option);
-                });
-                
-                container.style.position = 'relative';
-                container.appendChild(dropdown);
-            }
-
-            filterCustomerDropdown(searchTerm) {
-                // Filtering logic if needed
-            }
-
-            filterFlightDropdown(searchTerm) {
-                // Filtering logic if needed
-            }
-
-            closeAllDropdowns() {
-                document.querySelectorAll('.autocomplete-dropdown').forEach(dropdown => {
-                    dropdown.remove();
-                });
             }
 
             async saveReservation(e) {
                 e.preventDefault();
                 
-                const customer = document.getElementById('customer').value;
-                const flightHotel = document.getElementById('flightHotel').value;
-                const reservationDate = document.getElementById('reservationDate').value;
-                const eta = document.getElementById('eta').value;
+                // Validate all fields
+                const form = e.target;
+                const inputs = form.querySelectorAll('input, select');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (!this.validateField(input)) {
+                        isValid = false;
+                    }
+                });
+                
+                if (!isValid) {
+                    this.showToast('Please fill all required fields correctly.', 'error');
+                    return;
+                }
                 
                 const reservation = {
-                    customer: customer,
-                    date: reservationDate,
-                    flightHotel: flightHotel,
-                    eta: eta,
+                    customer: document.getElementById('customer').value.trim(),
+                    date: document.getElementById('reservationDate').value,
+                    flightHotel: document.getElementById('flightHotel').value.trim(),
+                    eta: document.getElementById('eta').value,
                     direction: document.getElementById('direction').value,
-                    guestName: document.getElementById('guestName').value,
-                    nationality: document.getElementById('nationality').value,
+                    guestName: document.getElementById('guestName').value.trim(),
+                    nationality: document.getElementById('nationality').value.trim(),
+                    contactNumber: document.getElementById('contactNumber').value.trim(),
+                    remarks: document.getElementById('remarks').value.trim(),
                     status: 'reserved',
                     createdAt: new Date().toISOString(),
                     createdBy: this.currentUser.username,
+                    createdByName: this.currentUser.name,
                     checkinDate: null,
                     checkoutDate: null,
-                    reservationDate: reservationDate
+                    reservationDate: document.getElementById('reservationDate').value
                 };
                 
                 try {
                     const docRef = await this.db.collection('reservations').add(reservation);
                     
                     // Add to autocomplete sets
-                    if (customer) this.customers.add(customer);
-                    if (flightHotel) this.flightHotels.add(flightHotel);
+                    if (reservation.customer) this.customers.add(reservation.customer);
+                    if (reservation.flightHotel) this.flightHotels.add(reservation.flightHotel);
+                    this.updateFilterDropdowns();
                     
                     // Show success message
                     this.showToast('Reservation saved successfully!', 'success');
                     
-                    // Add to recent reservations list
-                    const newReservation = {
-                        id: docRef.id,
-                        ...reservation
-                    };
-                    this.recentReservations.unshift(newReservation);
-                    if (this.recentReservations.length > 10) {
-                        this.recentReservations = this.recentReservations.slice(0, 10);
-                    }
-                    
-                    // Display recent reservations
-                    this.displayRecentReservations();
-                    
                     // Reset form but keep date
-                    document.getElementById('reservationForm').reset();
+                    form.reset();
                     document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
                     
-                    // Refresh all data
-                    this.loadCheckinData();
-                    this.loadCheckoutData();
-                    this.loadFlightOptionsForCheckin();
-                    this.loadFlightOptionsForCheckout();
-                    this.loadReportOptions();
+                    // Close any open dropdowns
+                    this.closeAllDropdowns();
                     
                 } catch (error) {
                     console.error('Error saving reservation:', error);
@@ -841,29 +1317,20 @@
                 if (!toastContainer) {
                     toastContainer = document.createElement('div');
                     toastContainer.id = 'toastContainer';
-                    toastContainer.style.cssText = `
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        z-index: 9999;
-                    `;
                     document.body.appendChild(toastContainer);
                 }
                 
                 // Create toast
                 const toast = document.createElement('div');
-                toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-                toast.style.cssText = `
-                    min-width: 300px;
-                    margin-bottom: 10px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                `;
+                toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show toast-alert`;
                 
                 const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
                 toast.innerHTML = `
-                    <i class="fas fa-${icon} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-${icon} fa-lg me-3"></i>
+                        <div class="flex-grow-1">${message}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 `;
                 
                 toastContainer.appendChild(toast);
@@ -875,25 +1342,7 @@
             }
 
             async loadRecentReservations() {
-                try {
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', '==', 'reserved')
-                        .orderBy('createdAt', 'desc')
-                        .limit(10)
-                        .get();
-                    
-                    this.recentReservations = [];
-                    snapshot.forEach(doc => {
-                        this.recentReservations.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
-                    });
-                    
-                    this.displayRecentReservations();
-                } catch (error) {
-                    console.error('Error loading recent reservations:', error);
-                }
+                // Already handled by real-time listener
             }
 
             displayRecentReservations() {
@@ -902,16 +1351,16 @@
                 
                 if (this.recentReservations.length === 0) {
                     container.innerHTML = `
-                        <div class="card recent-reservations-card">
-                            <div class="card-header bg-info text-white">
+                        <div class="card dashboard-card recent-reservations-card">
+                            <div class="card-header card-header-info text-white">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
-                                    <span class="badge bg-light text-dark">0</span>
+                                    <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Reservations</h5>
+                                    <span class="badge bg-light text-dark rounded-pill">0</span>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <div class="text-center text-muted py-5">
+                                    <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
                                     <p>No recent reservations found.</p>
                                 </div>
                             </div>
@@ -921,11 +1370,11 @@
                 }
                 
                 let html = `
-                    <div class="card recent-reservations-card">
-                        <div class="card-header bg-info text-white">
+                    <div class="card dashboard-card recent-reservations-card">
+                        <div class="card-header card-header-info text-white">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
-                                <span class="badge bg-light text-dark">${this.recentReservations.length}</span>
+                                <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Reservations</h5>
+                                <span class="badge bg-light text-dark rounded-pill" id="recentCount">${this.recentReservations.length}</span>
                             </div>
                         </div>
                         <div class="card-body p-0">
@@ -960,7 +1409,7 @@
                             </td>
                             <td>
                                 <div>${res.customer}</div>
-                                <small class="badge bg-warning text-dark">${res.status}</small>
+                                <small class="badge ${this.getStatusBadgeClass(res.status)}">${res.status}</small>
                             </td>
                             <td>
                                 <div>${time}</div>
@@ -976,17 +1425,20 @@
                             </div>
                         </div>
                         <div class="card-footer bg-transparent border-top">
-                            <small class="text-muted">Click on any reservation to view details</small>
+                            <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i> Click on any reservation to view details</small>
                         </div>
                     </div>
                 `;
                 
                 container.innerHTML = html;
-                
-                // Update count badge
-                const countBadge = document.getElementById('recentCount');
-                if (countBadge) {
-                    countBadge.textContent = this.recentReservations.length;
+            }
+
+            getStatusBadgeClass(status) {
+                switch(status) {
+                    case 'reserved': return 'bg-warning text-dark';
+                    case 'checked-in': return 'bg-info text-white';
+                    case 'checked-out': return 'bg-success text-white';
+                    default: return 'bg-secondary text-white';
                 }
             }
 
@@ -1010,7 +1462,7 @@
                         minute: '2-digit'
                     });
                     
-                    // Create modal HTML
+                    // Create modal
                     const modalHtml = `
                         <div class="modal fade reservation-details-modal" id="reservationDetailsModal" tabindex="-1">
                             <div class="modal-dialog modal-lg">
@@ -1024,41 +1476,117 @@
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <p><span class="detail-label">Guest Name:</span> ${reservation.guestName}</p>
-                                                <p><span class="detail-label">Customer:</span> ${reservation.customer}</p>
-                                                <p><span class="detail-label">Flight/Hotel:</span> ${reservation.flightHotel}</p>
-                                                <p><span class="detail-label">ETA:</span> ${reservation.eta}</p>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Guest Name</div>
+                                                    <div class="detail-value">${reservation.guestName}</div>
+                                                </div>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Customer</div>
+                                                    <div class="detail-value">${reservation.customer}</div>
+                                                </div>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Flight/Hotel</div>
+                                                    <div class="detail-value">${reservation.flightHotel}</div>
+                                                </div>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">ETA</div>
+                                                    <div class="detail-value">${reservation.eta}</div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <p><span class="detail-label">Direction:</span> ${reservation.direction}</p>
-                                                <p><span class="detail-label">Nationality:</span> ${reservation.nationality}</p>
-                                                <p><span class="detail-label">Reservation Date:</span> ${reservation.reservationDate}</p>
-                                                <p><span class="detail-label">Status:</span> 
-                                                    <span class="badge ${reservation.status === 'reserved' ? 'bg-warning text-dark' : 
-                                                                    reservation.status === 'checked-in' ? 'bg-info text-white' : 
-                                                                    'bg-success text-white'}">
-                                                        ${reservation.status}
-                                                    </span>
-                                                </p>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Direction</div>
+                                                    <div class="detail-value">${reservation.direction}</div>
+                                                </div>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Nationality</div>
+                                                    <div class="detail-value">${reservation.nationality}</div>
+                                                </div>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Reservation Date</div>
+                                                    <div class="detail-value">${reservation.reservationDate}</div>
+                                                </div>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Status</div>
+                                                    <div class="detail-value">
+                                                        <span class="badge ${this.getStatusBadgeClass(reservation.status)}">
+                                                            ${reservation.status}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <hr>
+                                        ${reservation.contactNumber ? `
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Contact Number</div>
+                                                    <div class="detail-value">${reservation.contactNumber}</div>
+                                                </div>
+                                            </div>
+                                        </div>` : ''}
+                                        ${reservation.remarks ? `
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Remarks</div>
+                                                    <div class="detail-value">${reservation.remarks}</div>
+                                                </div>
+                                            </div>
+                                        </div>` : ''}
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Created By</div>
+                                                    <div class="detail-value">${reservation.createdByName || reservation.createdBy}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Created On</div>
+                                                    <div class="detail-value">${createdDate} at ${createdTime}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        ${reservation.checkinTime ? `
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <p><span class="detail-label">Created By:</span> ${reservation.createdBy}</p>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Check-In Time</div>
+                                                    <div class="detail-value">${reservation.checkinTime}</div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <p><span class="detail-label">Created On:</span> ${createdDate} at ${createdTime}</p>
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Check-In By</div>
+                                                    <div class="detail-value">${reservation.checkinBy || 'N/A'}</div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </div>` : ''}
+                                        ${reservation.checkoutTime ? `
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Check-Out Time</div>
+                                                    <div class="detail-value">${reservation.checkoutTime}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="detail-group">
+                                                    <div class="detail-label">Check-Out By</div>
+                                                    <div class="detail-value">${reservation.checkoutBy || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>` : ''}
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                             <i class="fas fa-times me-2"></i>Close
                                         </button>
+                                        ${reservation.status === 'reserved' ? `
                                         <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">
                                             <i class="fas fa-trash me-2"></i>Delete Reservation
-                                        </button>
+                                        </button>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -1067,9 +1595,7 @@
                     
                     // Remove existing modal if any
                     const existingModal = document.getElementById('reservationDetailsModal');
-                    if (existingModal) {
-                        existingModal.remove();
-                    }
+                    if (existingModal) existingModal.remove();
                     
                     // Add modal to body
                     document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -1100,20 +1626,11 @@
                     // Remove from recent reservations
                     this.recentReservations = this.recentReservations.filter(res => res.id !== reservationId);
                     
-                    // Refresh display
-                    this.displayRecentReservations();
-                    
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('reservationDetailsModal'));
-                    if (modal) {
-                        modal.hide();
-                    }
+                    if (modal) modal.hide();
                     
                     this.showToast('Reservation deleted successfully!', 'success');
-                    
-                    // Refresh other data
-                    this.loadCheckinData();
-                    this.loadCheckoutData();
                     
                 } catch (error) {
                     console.error('Error deleting reservation:', error);
@@ -1121,75 +1638,59 @@
                 }
             }
 
-            async loadFlightOptionsForCheckin() {
-                try {
-                    const date = document.getElementById('checkinDateFilter').value;
-                    const snapshot = await this.db.collection('reservations')
-                        .where('reservationDate', '==', date)
-                        .where('status', '==', 'reserved')
-                        .get();
-                    
-                    const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                    const select = document.getElementById('checkinFlightFilter');
-                    if (!select) return;
-                    
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">All</option>';
-                    flights.forEach(flight => {
-                        if (flight) {
-                            const option = document.createElement('option');
-                            option.value = flight;
-                            option.textContent = flight;
-                            select.appendChild(option);
-                        }
-                    });
-                    
-                    if (flights.includes(currentValue)) {
-                        select.value = currentValue;
-                    }
-                } catch (error) {
-                    console.error('Error loading flight options for check-in:', error);
+            handleFilterChange(filterId) {
+                switch(filterId) {
+                    case 'checkinDateFilter':
+                    case 'checkinFlightFilter':
+                    case 'checkinCustomerFilter':
+                        this.loadCheckinData();
+                        break;
+                    case 'checkoutDateFilter':
+                    case 'checkoutFlightFilter':
+                    case 'checkoutCustomerFilter':
+                        this.loadCheckoutData();
+                        break;
+                    case 'reportFromDate':
+                    case 'reportToDate':
+                    case 'reportFlightFilter':
+                    case 'reportCustomerFilter':
+                        this.loadReportData();
+                        break;
                 }
             }
 
-            async loadFlightOptionsForCheckout() {
-                try {
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', '==', 'checked-in')
-                        .get();
-                    
-                    const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                    const select = document.getElementById('checkoutFlightFilter');
-                    if (!select) return;
-                    
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">All</option>';
-                    flights.forEach(flight => {
-                        if (flight) {
-                            const option = document.createElement('option');
-                            option.value = flight;
-                            option.textContent = flight;
-                            select.appendChild(option);
-                        }
-                    });
-                    
-                    if (flights.includes(currentValue)) {
-                        select.value = currentValue;
-                    }
-                } catch (error) {
-                    console.error('Error loading flight options for check-out:', error);
-                }
+            clearCheckinFilters() {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('checkinDateFilter').value = today;
+                document.getElementById('checkinFlightFilter').value = '';
+                document.getElementById('checkinCustomerFilter').value = '';
+                this.loadCheckinData();
+            }
+
+            clearCheckoutFilters() {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('checkoutDateFilter').value = today;
+                document.getElementById('checkoutFlightFilter').value = '';
+                document.getElementById('checkoutCustomerFilter').value = '';
+                this.loadCheckoutData();
+            }
+
+            clearReportFilters() {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('reportFromDate').value = today;
+                document.getElementById('reportToDate').value = today;
+                document.getElementById('reportFlightFilter').value = '';
+                document.getElementById('reportCustomerFilter').value = '';
+                this.loadReportData();
             }
 
             async loadCheckinData() {
-                const dateInput = document.getElementById('checkinDateFilter');
-                const flightSelect = document.getElementById('checkinFlightFilter');
+                const date = document.getElementById('checkinDateFilter').value;
+                const flightFilter = document.getElementById('checkinFlightFilter').value;
+                const customerFilter = document.getElementById('checkinCustomerFilter').value;
                 const tableBody = document.getElementById('checkinTable');
                 
-                if (!dateInput || !tableBody) return;
-                
-                const date = dateInput.value;
-                const flightFilter = flightSelect ? flightSelect.value : '';
+                if (!tableBody) return;
                 
                 try {
                     let query = this.db.collection('reservations')
@@ -1202,8 +1703,8 @@
                     if (snapshot.empty) {
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="fas fa-inbox fa-2x mb-3 opacity-50"></i>
                                     <p>No reservations found for ${date}</p>
                                 </td>
                             </tr>
@@ -1216,20 +1717,27 @@
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         if (flightFilter && data.flightHotel !== flightFilter) return;
+                        if (customerFilter && data.customer !== customerFilter) return;
                         
                         hasData = true;
                         const row = `
                             <tr>
-                                <td>${data.guestName}</td>
+                                <td class="fw-medium">${data.guestName}</td>
+                                <td>${data.customer}</td>
                                 <td>${data.flightHotel}</td>
                                 <td>${data.eta}</td>
-                                <td>${data.direction}</td>
+                                <td><span class="badge bg-secondary">${data.direction}</span></td>
                                 <td>${data.nationality}</td>
                                 <td><span class="status-badge status-reserved">Reserved</span></td>
                                 <td>
-                                    <button class="btn btn-sm btn-success" onclick="app.checkinGuest('${doc.id}')">
-                                        <i class="fas fa-sign-in-alt"></i> Check-In
-                                    </button>
+                                    <div class="d-flex">
+                                        <button class="btn btn-sm btn-success btn-action" onclick="app.checkinGuest('${doc.id}')">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-info btn-action" onclick="app.showReservationDetails('${doc.id}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -1239,9 +1747,9 @@
                     if (!hasData) {
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="fas fa-filter fa-2x mb-3"></i>
-                                    <p>No guests match the selected filter for ${date}</p>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="fas fa-filter fa-2x mb-3 opacity-50"></i>
+                                    <p>No guests match the selected filters</p>
                                 </td>
                             </tr>
                         `;
@@ -1250,7 +1758,7 @@
                     console.error('Error loading check-in data:', error);
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="7" class="text-center text-danger py-4">
+                            <td colspan="8" class="text-center text-danger py-5">
                                 <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
                                 <p>Error loading data. Please try again.</p>
                             </td>
@@ -1277,17 +1785,11 @@
                         checkinTime: checkinTime,
                         checkinDateTime: now.toISOString(),
                         checkinBy: this.currentUser.username,
+                        checkinByName: this.currentUser.name,
                         checkinDate: new Date().toISOString().split('T')[0]
                     });
                     
                     this.showToast('Guest checked in successfully!', 'success');
-                    
-                    // Refresh all data
-                    this.loadCheckinData();
-                    this.loadCheckoutData();
-                    this.loadFlightOptionsForCheckin();
-                    this.loadFlightOptionsForCheckout();
-                    this.loadRecentReservations();
                     
                 } catch (error) {
                     console.error('Error checking in guest:', error);
@@ -1296,14 +1798,10 @@
             }
 
             async loadCheckoutData() {
-                const dateInput = document.getElementById('checkoutDateFilter');
-                const flightSelect = document.getElementById('checkoutFlightFilter');
+                const date = document.getElementById('checkoutDateFilter').value;
+                const flightFilter = document.getElementById('checkoutFlightFilter').value;
+                const customerFilter = document.getElementById('checkoutCustomerFilter').value;
                 const tableBody = document.getElementById('checkoutTable');
-                
-                if (!tableBody) return;
-                
-                const date = dateInput ? dateInput.value : '';
-                const flightFilter = flightSelect ? flightSelect.value : '';
                 
                 try {
                     let query = this.db.collection('reservations')
@@ -1315,8 +1813,8 @@
                     if (snapshot.empty) {
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="fas fa-inbox fa-2x mb-3 opacity-50"></i>
                                     <p>No checked-in guests available</p>
                                 </td>
                             </tr>
@@ -1331,20 +1829,27 @@
                         
                         if (date && data.checkinDate !== date) return;
                         if (flightFilter && data.flightHotel !== flightFilter) return;
+                        if (customerFilter && data.customer !== customerFilter) return;
                         
                         hasData = true;
                         const row = `
                             <tr>
-                                <td>${data.guestName}</td>
+                                <td class="fw-medium">${data.guestName}</td>
+                                <td>${data.customer}</td>
                                 <td>${data.flightHotel}</td>
                                 <td>${data.eta}</td>
-                                <td>${data.direction}</td>
+                                <td><span class="badge bg-secondary">${data.direction}</span></td>
                                 <td>${data.checkinTime || 'N/A'}</td>
                                 <td><span class="status-badge status-checkedin">Checked-In</span></td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
-                                        <i class="fas fa-sign-out-alt"></i> Check-Out
-                                    </button>
+                                    <div class="d-flex">
+                                        <button class="btn btn-sm btn-warning btn-action" onclick="app.checkoutGuest('${doc.id}')">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-info btn-action" onclick="app.showReservationDetails('${doc.id}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -1354,8 +1859,8 @@
                     if (!hasData) {
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    <i class="fas fa-filter fa-2x mb-3"></i>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="fas fa-filter fa-2x mb-3 opacity-50"></i>
                                     <p>No checked-in guests match the selected filters</p>
                                 </td>
                             </tr>
@@ -1365,7 +1870,7 @@
                     console.error('Error loading check-out data:', error);
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="7" class="text-center text-danger py-4">
+                            <td colspan="8" class="text-center text-danger py-5">
                                 <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
                                 <p>Error loading data. Please try again.</p>
                             </td>
@@ -1392,16 +1897,11 @@
                         checkoutTime: checkoutTime,
                         checkoutDateTime: now.toISOString(),
                         checkoutBy: this.currentUser.username,
+                        checkoutByName: this.currentUser.name,
                         checkoutDate: new Date().toISOString().split('T')[0]
                     });
                     
                     this.showToast('Guest checked out successfully!', 'success');
-                    
-                    // Refresh all data
-                    this.loadCheckoutData();
-                    this.loadReportOptions();
-                    this.loadFlightOptionsForCheckout();
-                    this.loadRecentReservations();
                     
                 } catch (error) {
                     console.error('Error checking out guest:', error);
@@ -1409,45 +1909,150 @@
                 }
             }
 
-            async loadReportOptions() {
+            async loadReportData() {
+                // This method loads data for the report preview
+                const fromDate = document.getElementById('reportFromDate').value;
+                const toDate = document.getElementById('reportToDate').value;
+                const flightFilter = document.getElementById('reportFlightFilter').value;
+                const customerFilter = document.getElementById('reportCustomerFilter').value;
+                
                 try {
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', '==', 'checked-out')
-                        .get();
+                    let query = this.db.collection('reservations')
+                        .where('status', '==', 'checked-out');
                     
-                    const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                    const select = document.getElementById('reportFlightFilter');
-                    if (!select) return;
+                    const snapshot = await query.get();
+                    const reservations = [];
                     
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">All</option>';
-                    flights.forEach(flight => {
-                        if (flight) {
-                            const option = document.createElement('option');
-                            option.value = flight;
-                            option.textContent = flight;
-                            select.appendChild(option);
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const reservationDate = data.checkoutDate || data.checkoutDateTime?.split('T')[0];
+                        
+                        if (fromDate && toDate) {
+                            if (!reservationDate) return;
+                            if (reservationDate < fromDate || reservationDate > toDate) return;
                         }
+                        
+                        if (flightFilter && data.flightHotel !== flightFilter) return;
+                        if (customerFilter && data.customer !== customerFilter) return;
+                        
+                        reservations.push({ id: doc.id, ...data });
                     });
                     
-                    if (flights.includes(currentValue)) {
-                        select.value = currentValue;
-                    }
+                    this.displayReportPreview(reservations, fromDate, toDate);
                 } catch (error) {
-                    console.error('Error loading report options:', error);
+                    console.error('Error loading report data:', error);
+                    this.showToast('Error loading report data.', 'error');
                 }
             }
 
+            displayReportPreview(reservations, fromDate, toDate) {
+                const preview = document.getElementById('reportPreview');
+                const statsDiv = document.getElementById('reportStats');
+                const table = document.getElementById('reportPreviewTable');
+                
+                if (reservations.length === 0) {
+                    preview.classList.add('d-none');
+                    return;
+                }
+                
+                preview.classList.remove('d-none');
+                
+                // Update stats
+                const totalGuests = reservations.length;
+                const uniqueCustomers = new Set(reservations.map(r => r.customer)).size;
+                const uniqueFlights = new Set(reservations.map(r => r.flightHotel)).size;
+                
+                statsDiv.innerHTML = `
+                    <div class="col-md-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <h3 class="text-primary">${totalGuests}</h3>
+                                <small class="text-muted">Total Guests</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h3 class="text-success">${uniqueCustomers}</h3>
+                                <small class="text-muted">Customers</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h3 class="text-warning">${uniqueFlights}</h3>
+                                <small class="text-muted">Flights/Hotels</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h3 class="text-info">${fromDate} to ${toDate}</h3>
+                                <small class="text-muted">Date Range</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Update table
+                let tableHtml = `
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Guest Name</th>
+                            <th>Customer</th>
+                            <th>Flight/Hotel</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+                
+                reservations.forEach(res => {
+                    const date = res.checkoutDate || res.checkoutDateTime?.split('T')[0];
+                    const checkinTime = res.checkinTime || 'N/A';
+                    const checkoutTime = res.checkoutTime || 'N/A';
+                    
+                    // Calculate duration
+                    let duration = 'N/A';
+                    if (res.checkinDateTime && res.checkoutDateTime) {
+                        const checkin = new Date(res.checkinDateTime);
+                        const checkout = new Date(res.checkoutDateTime);
+                        const diffMs = checkout - checkin;
+                        const diffMins = Math.floor(diffMs / 60000);
+                        const diffHours = Math.floor(diffMins / 60);
+                        const remainingMins = diffMins % 60;
+                        duration = `${diffHours}h ${remainingMins}m`;
+                    }
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${res.guestName}</td>
+                            <td>${res.customer}</td>
+                            <td>${res.flightHotel}</td>
+                            <td>${checkinTime}</td>
+                            <td>${checkoutTime}</td>
+                            <td>${duration}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += '</tbody>';
+                table.innerHTML = tableHtml;
+            }
+
             async generateReport() {
-                const fromDateInput = document.getElementById('reportFromDate');
-                const toDateInput = document.getElementById('reportToDate');
-                const flightSelect = document.getElementById('reportFlightFilter');
-                
-                if (!fromDateInput || !toDateInput) return;
-                
-                const fromDate = fromDateInput.value;
-                const toDate = toDateInput.value;
-                const flightFilter = flightSelect ? flightSelect.value : '';
+                // This method generates a detailed PDF report
+                const fromDate = document.getElementById('reportFromDate').value;
+                const toDate = document.getElementById('reportToDate').value;
+                const flightFilter = document.getElementById('reportFlightFilter').value;
+                const customerFilter = document.getElementById('reportCustomerFilter').value;
                 
                 if (fromDate && toDate && fromDate > toDate) {
                     this.showToast('From date cannot be after To date', 'error');
@@ -1463,21 +2068,15 @@
                     
                     snapshot.forEach(doc => {
                         const data = doc.data();
+                        const reservationDate = data.checkoutDate || data.checkoutDateTime?.split('T')[0];
                         
                         if (fromDate && toDate) {
-                            const checkoutDate = data.checkoutDate || data.checkoutDateTime;
-                            if (!checkoutDate) return;
-                            
-                            const checkoutDateObj = new Date(checkoutDate);
-                            const startDate = new Date(fromDate + 'T00:00:00');
-                            const endDate = new Date(toDate + 'T23:59:59');
-                            
-                            if (checkoutDateObj < startDate || checkoutDateObj > endDate) {
-                                return;
-                            }
+                            if (!reservationDate) return;
+                            if (reservationDate < fromDate || reservationDate > toDate) return;
                         }
                         
                         if (flightFilter && data.flightHotel !== flightFilter) return;
+                        if (customerFilter && data.customer !== customerFilter) return;
                         
                         reservations.push({ id: doc.id, ...data });
                     });
@@ -1491,6 +2090,74 @@
                 } catch (error) {
                     console.error('Error generating report:', error);
                     this.showToast('Error generating report. Please try again.', 'error');
+                }
+            }
+
+            async generateExcel() {
+                const fromDate = document.getElementById('reportFromDate').value;
+                const toDate = document.getElementById('reportToDate').value;
+                const flightFilter = document.getElementById('reportFlightFilter').value;
+                const customerFilter = document.getElementById('reportCustomerFilter').value;
+                
+                try {
+                    let query = this.db.collection('reservations')
+                        .where('status', '==', 'checked-out');
+                    
+                    const snapshot = await query.get();
+                    const reservations = [];
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const reservationDate = data.checkoutDate || data.checkoutDateTime?.split('T')[0];
+                        
+                        if (fromDate && toDate) {
+                            if (!reservationDate) return;
+                            if (reservationDate < fromDate || reservationDate > toDate) return;
+                        }
+                        
+                        if (flightFilter && data.flightHotel !== flightFilter) return;
+                        if (customerFilter && data.customer !== customerFilter) return;
+                        
+                        reservations.push({ id: doc.id, ...data });
+                    });
+                    
+                    if (reservations.length === 0) {
+                        this.showToast('No data to export.', 'info');
+                        return;
+                    }
+                    
+                    // Prepare data for Excel
+                    const excelData = reservations.map(res => ({
+                        'Date': res.checkoutDate || '',
+                        'Guest Name': res.guestName,
+                        'Customer': res.customer,
+                        'Flight/Hotel': res.flightHotel,
+                        'ETA': res.eta,
+                        'Direction': res.direction,
+                        'Nationality': res.nationality,
+                        'Check-In Time': res.checkinTime || '',
+                        'Check-Out Time': res.checkoutTime || '',
+                        'Contact': res.contactNumber || '',
+                        'Remarks': res.remarks || ''
+                    }));
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+                    
+                    // Generate filename
+                    const filename = `Vilu_Report_${fromDate}_to_${toDate}.xlsx`;
+                    
+                    // Download file
+                    XLSX.writeFile(wb, filename);
+                    
+                    this.showToast('Excel file generated successfully!', 'success');
+                } catch (error) {
+                    console.error('Error generating Excel:', error);
+                    this.showToast('Error generating Excel file.', 'error');
                 }
             }
 
@@ -1516,270 +2183,170 @@
                     <!DOCTYPE html>
                     <html>
                     <head>
-                        <title>Guest Check-Out Report</title>
+                        <title>Vilu Lounge - Guest Report</title>
                         <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 11px;
+                                color: #000;
+                                margin: 0;
+                                padding: 20px;
+                                background: white;
+                            }
+                            .report-header {
+                                text-align: center;
+                                margin-bottom: 30px;
+                                border-bottom: 2px solid #ccc;
+                                padding-bottom: 20px;
+                            }
+                            .company-name {
+                                font-size: 24px;
+                                font-weight: bold;
+                                color: #2c3e50;
+                                margin-bottom: 5px;
+                            }
+                            .company-address {
+                                font-size: 11px;
+                                color: #666;
+                                line-height: 1.4;
+                            }
+                            .report-title {
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin: 20px 0;
+                                text-align: center;
+                            }
+                            .report-details {
+                                margin: 20px 0;
+                                padding: 10px;
+                                background: #f8f9fa;
+                                border-radius: 5px;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 5px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 150px;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 20px 0;
+                            }
+                            th {
+                                background-color: #2c3e50;
+                                color: white;
+                                padding: 8px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                            }
+                            td {
+                                padding: 8px;
+                                border: 1px solid #ddd;
+                            }
+                            .customer-section {
+                                margin-bottom: 30px;
+                                page-break-inside: avoid;
+                            }
+                            .customer-name {
+                                background-color: #e9ecef;
+                                padding: 10px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                border-left: 4px solid #3498db;
+                            }
+                            .summary {
+                                margin: 30px 0;
+                                padding: 20px;
+                                background: #f8f9fa;
+                                border-radius: 5px;
+                            }
+                            .summary-row {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 10px;
+                            }
+                            .summary-label {
+                                font-weight: bold;
+                            }
+                            .signature-section {
+                                margin-top: 50px;
+                                padding-top: 20px;
+                                border-top: 1px solid #ccc;
+                            }
+                            .signature {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 40px;
+                                border-top: 1px solid #000;
+                                width: 200px;
+                            }
+                            .print-footer {
+                                text-align: center;
+                                margin-top: 30px;
+                                font-size: 10px;
+                                color: #666;
+                            }
                             @media print {
                                 @page {
-                                    size: A4;
-                                    margin: 15mm;
+                                    margin: 20mm;
                                 }
                                 body {
-                                    font-family: Arial, sans-serif;
-                                    font-size: 11px;
-                                    color: #000;
-                                    margin: 0;
                                     padding: 0;
-                                }
-                                .report-container {
-                                    width: 100%;
-                                }
-                                .header-left {
-                                    float: left;
-                                    width: 100%;
-                                    margin-bottom: 15px;
-                                }
-                                .logo-container {
-                                    display: flex;
-                                    align-items: flex-start;
-                                    margin-bottom: 10px;
-                                }
-                                .company-logo {
-                                    width: 80px;
-                                    height: auto;
-                                    margin-right: 15px;
-                                }
-                                .company-info {
-                                    line-height: 1.3;
-                                    flex: 1;
-                                }
-                                .company-name {
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    margin: 0 0 3px 0;
-                                    color: #2c3e50;
-                                }
-                                .company-address {
-                                    font-size: 11px;
-                                    margin: 0 0 2px 0;
-                                }
-                                .report-details {
-                                    margin-top: 10px;
-                                    padding-top: 10px;
-                                    border-top: 1px solid #ddd;
-                                    clear: both;
-                                }
-                                .detail-row {
-                                    display: flex;
-                                    margin-bottom: 4px;
-                                }
-                                .detail-label {
-                                    font-weight: bold;
-                                    width: 70px;
-                                }
-                                .detail-value {
-                                    flex: 1;
-                                }
-                                table {
-                                    width: 100%;
-                                    border-collapse: collapse;
-                                    margin: 10px 0 15px 0;
-                                    page-break-inside: avoid;
-                                }
-                                th {
-                                    background-color: #f8f9fa;
-                                    color: #000;
-                                    padding: 6px 4px;
-                                    text-align: left;
-                                    border: 1px solid #ddd;
-                                    font-size: 10px;
-                                    font-weight: bold;
-                                }
-                                td {
-                                    padding: 5px 4px;
-                                    border: 1px solid #ddd;
-                                    font-size: 10px;
-                                }
-                                .customer-section {
-                                    margin-bottom: 20px;
-                                    page-break-inside: avoid;
-                                }
-                                .customer-name {
-                                    background-color: #e9ecef;
-                                    padding: 6px 10px;
-                                    font-weight: bold;
-                                    margin-bottom: 8px;
-                                    font-size: 12px;
-                                    border-left: 3px solid #3498db;
-                                }
-                                .footer {
-                                    margin-top: 30px;
-                                    page-break-inside: avoid;
-                                    padding-top: 15px;
-                                    border-top: 1px solid #ddd;
-                                }
-                                .signature-section {
-                                    width: 45%;
-                                    display: inline-block;
-                                    vertical-align: top;
-                                }
-                                .signature-line {
-                                    margin-top: 30px;
-                                    border-top: 1px solid #000;
-                                    width: 180px;
-                                    padding-top: 4px;
-                                    font-size: 10px;
                                 }
                                 .no-print {
                                     display: none;
-                                }
-                                .clearfix {
-                                    clear: both;
-                                }
-                            }
-                            @media screen {
-                                body {
-                                    font-family: Arial, sans-serif;
-                                    font-size: 12px;
-                                    padding: 20px;
-                                    background: #f5f5f5;
-                                }
-                                .report-container {
-                                    max-width: 210mm;
-                                    margin: 0 auto;
-                                    background: white;
-                                    padding: 20px;
-                                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                                }
-                                .header-left {
-                                    float: left;
-                                    width: 100%;
-                                    margin-bottom: 20px;
-                                }
-                                .logo-container {
-                                    display: flex;
-                                    align-items: flex-start;
-                                    margin-bottom: 15px;
-                                }
-                                .company-logo {
-                                    width: 80px;
-                                    height: auto;
-                                    margin-right: 20px;
-                                }
-                                .company-info {
-                                    line-height: 1.4;
-                                    flex: 1;
-                                }
-                                .company-name {
-                                    font-size: 18px;
-                                    font-weight: bold;
-                                    margin: 0 0 5px 0;
-                                    color: #2c3e50;
-                                }
-                                .company-address {
-                                    font-size: 12px;
-                                    margin: 0 0 3px 0;
-                                }
-                                .report-details {
-                                    margin-top: 15px;
-                                    padding-top: 12px;
-                                    border-top: 1px solid #ddd;
-                                    clear: both;
-                                }
-                                .detail-row {
-                                    display: flex;
-                                    margin-bottom: 5px;
-                                }
-                                .detail-label {
-                                    font-weight: bold;
-                                    width: 80px;
-                                }
-                                .detail-value {
-                                    flex: 1;
-                                }
-                                table {
-                                    width: 100%;
-                                    border-collapse: collapse;
-                                    margin: 15px 0 20px 0;
-                                }
-                                th {
-                                    background-color: #f8f9fa;
-                                    color: #000;
-                                    padding: 8px;
-                                    text-align: left;
-                                    border: 1px solid #ddd;
-                                }
-                                td {
-                                    padding: 7px;
-                                    border: 1px solid #ddd;
-                                }
-                                .customer-section {
-                                    margin-bottom: 25px;
-                                }
-                                .customer-name {
-                                    background-color: #e9ecef;
-                                    padding: 8px 12px;
-                                    font-weight: bold;
-                                    margin-bottom: 10px;
-                                    font-size: 13px;
-                                    border-left: 4px solid #3498db;
-                                }
-                                .footer {
-                                    margin-top: 40px;
-                                    padding-top: 20px;
-                                    border-top: 1px solid #ddd;
-                                }
-                                .signature-section {
-                                    width: 45%;
-                                    display: inline-block;
-                                    vertical-align: top;
-                                }
-                                .signature-line {
-                                    margin-top: 40px;
-                                    border-top: 1px solid #000;
-                                    width: 200px;
-                                    padding-top: 5px;
-                                }
-                                .print-buttons {
-                                    text-align: center;
-                                    margin-top: 20px;
-                                    padding: 20px;
-                                    background: #f8f9fa;
-                                    border-radius: 5px;
-                                }
-                                .clearfix {
-                                    clear: both;
                                 }
                             }
                         </style>
                     </head>
                     <body>
-                        <div class="report-container">
-                            <!-- Header Left -->
-                            <div class="header-left">
-                                <div class="logo-container">
-                                    <div style="width:80px;height:60px;border:1px solid #ccc;text-align:center;line-height:60px;font-size:10px;">Logo</div>
-                                    <div class="company-info">
-                                        <div class="company-name">Vilu Business Lounge</div>
-                                        <div class="company-address">Seaplane Terminal</div>
-                                        <div class="company-address">Velana International Airport</div>
-                                        <div class="company-address">Hulhule: 22000</div>
-                                        <div class="company-address">Rep of Maldives</div>
-                                        <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
-                                        <div class="company-address">W: www.macl.aero / E : vilu.lounge@macl.aero</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="report-details">
-                                    <div class="detail-row">
-                                        <div class="detail-label">Date:</div>
-                                        <div class="detail-value">${currentDate}</div>
-                                    </div>
-                                </div>
+                        <div class="report-header">
+                            <div class="company-name">Vilu Business Lounge</div>
+                            <div class="company-address">
+                                Seaplane Terminal | Velana International Airport<br>
+                                Hulhule: 22000 | Republic of Maldives<br>
+                                T: 3337117 / 3331773 | M: 7288007<br>
+                                W: www.macl.aero | E: vilu.lounge@macl.aero
                             </div>
-                            
-                            <div class="clearfix"></div>
-                            
-                            <!-- Report Content -->
+                        </div>
+                        
+                        <div class="report-title">Guest Check-Out Report</div>
+                        
+                        <div class="report-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Report Date:</div>
+                                <div>${currentDate}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Period:</div>
+                                <div>${fromDate} to ${toDate}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Generated By:</div>
+                                <div>${this.currentUser.name} (RC: ${this.currentUser.RCNo})</div>
+                            </div>
+                        </div>
+                        
+                        <div class="summary">
+                            <div class="summary-row">
+                                <span class="summary-label">Total Guests:</span>
+                                <span>${reservations.length}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Total Customers:</span>
+                                <span>${Object.keys(reservationsByCustomer).length}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Report Period:</span>
+                                <span>${fromDate} to ${toDate}</span>
+                            </div>
+                        </div>
                 `;
                 
                 Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
@@ -1790,12 +2357,12 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th>Date</th>
+                                        <th>Guest Name</th>
                                         <th>Flight/Hotel</th>
                                         <th>ETA</th>
-                                        <th>Direction</th>
-                                        <th>Check-In Time</th>
-                                        <th>Check-Out Time</th>
+                                        <th>Check-In</th>
+                                        <th>Check-Out</th>
                                         <th>Remarks</th>
                                     </tr>
                                 </thead>
@@ -1803,15 +2370,16 @@
                     `;
                     
                     customerReservations.forEach(res => {
+                        const date = res.checkoutDate || res.checkoutDateTime?.split('T')[0];
                         reportHTML += `
                             <tr>
+                                <td>${date}</td>
                                 <td>${res.guestName}</td>
                                 <td>${res.flightHotel}</td>
                                 <td>${res.eta}</td>
-                                <td>${res.direction}</td>
-                                <td>${res.checkinTime || 'N/A'}</td>
-                                <td>${res.checkoutTime || 'N/A'}</td>
-                                <td></td>
+                                <td>${res.checkinTime || ''}</td>
+                                <td>${res.checkoutTime || ''}</td>
+                                <td>${res.remarks || ''}</td>
                             </tr>
                         `;
                     });
@@ -1824,43 +2392,34 @@
                 });
                 
                 reportHTML += `
-                            <!-- Footer Signatures -->
-                            <div class="footer">
-                                <div class="signature-section">
-                                    <div class="detail-row">
-                                        <div class="detail-label">Prepared by:</div>
-                                        <div class="detail-value">${this.currentUser.name}</div>
-                                    </div>
-                                    <div class="detail-row">
-                                        <div class="detail-label">RC No:</div>
-                                        <div class="detail-value">${this.currentUser.RCNo}</div>
-                                    </div>
-                                    <div class="signature-line">Signature</div>
-                                </div>
-                                
-                                <div class="signature-section" style="float: right;">
-                                    <div class="detail-row">
-                                        <div class="detail-label">Checked by:</div>
-                                        <div class="detail-value">_____________________</div>
-                                    </div>
-                                    <div class="detail-row">
-                                        <div class="detail-label">RC No:</div>
-                                        <div class="detail-value">_____________________</div>
-                                    </div>
-                                    <div class="signature-line">Signature</div>
-                                </div>
-                                <div class="clearfix"></div>
+                        <div class="signature-section">
+                            <div class="signature">
+                                <div class="signature-label">Prepared By:</div>
+                                <div class="signature-name">${this.currentUser.name}</div>
+                                <div class="signature-details">RC No: ${this.currentUser.RCNo}</div>
+                                <div class="signature-line"></div>
                             </div>
                             
-                            <!-- Print Buttons (only for screen) -->
-                            <div class="print-buttons no-print">
-                                <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                                    Print Report
-                                </button>
-                                <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                    Close Window
-                                </button>
+                            <div class="signature" style="float: right;">
+                                <div class="signature-label">Verified By:</div>
+                                <div class="signature-name">_____________________</div>
+                                <div class="signature-details">RC No: _____________________</div>
+                                <div class="signature-line"></div>
                             </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        
+                        <div class="print-footer">
+                            Generated by Vilu Lounge Reservation System | ${currentDate}
+                        </div>
+                        
+                        <div class="no-print" style="text-align: center; margin-top: 30px; padding: 20px;">
+                            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                Print Report
+                            </button>
+                            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Close Window
+                            </button>
                         </div>
                     </body>
                     </html>
@@ -1880,8 +2439,6 @@
         // Set default dates for all date inputs when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
-            
-            // Set today's date for all date inputs that exist
             const dateInputs = [
                 'reservationDate',
                 'checkinDateFilter', 
@@ -1896,6 +2453,12 @@
                     element.value = today;
                 }
             });
+            
+            // Set default time for ETA to current time
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('eta').value = `${hours}:${minutes}`;
         });
     </script>
 </body>
