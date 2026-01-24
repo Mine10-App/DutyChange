@@ -192,6 +192,9 @@ class ReservationSystem {
             if (field) field.value = today;
         });
         
+        // Show initial state for recent reservations
+        this.showInitialRecentReservations();
+        
         // Load initial data
         this.loadCheckinData();
         this.loadCheckoutData();
@@ -379,11 +382,22 @@ class ReservationSystem {
         }
     }
 
+    showInitialRecentReservations() {
+        const container = document.getElementById('recentReservationsContainer');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">Recent Reservations</h6>
+                    <p class="text-muted mb-0">Reservations will appear here.</p>
+                </div>
+            </div>
+        `;
+    }
+
     async loadRecentReservations() {
         try {
-            // Show simple loading text
-            this.showLoadingRecentReservations();
-            
             // Fetch reservations with status 'reserved' (not checked-in) from Firebase
             const snapshot = await this.db.collection('reservations')
                 .where('status', '==', 'reserved')  // Only get non-checked-in reservations
@@ -404,20 +418,6 @@ class ReservationSystem {
             console.error('Error loading recent reservations from Firebase:', error);
             this.displayRecentReservations([]);
         }
-    }
-
-    showLoadingRecentReservations() {
-        const container = document.getElementById('recentReservationsContainer');
-        if (!container) return;
-        
-        container.innerHTML = `
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title mb-3">Recent Reservations</h6>
-                    <p class="text-muted mb-0">Loading recent reservations...</p>
-                </div>
-            </div>
-        `;
     }
 
     displayRecentReservations(recentReservations) {
@@ -1034,7 +1034,8 @@ class ReservationSystem {
                             border: 1px solid #ccc;
                             text-align: center;
                             line-height: 60px;
-                            font-size: 10px;
+                            font-size: 12px;
+                            font-weight: bold;
                             margin-right: 15px;
                             background: #f8f9fa;
                         }
@@ -1161,9 +1162,11 @@ class ReservationSystem {
                             border: 1px solid #ccc;
                             text-align: center;
                             line-height: 60px;
-                            font-size: 10px;
+                            font-size: 14px;
+                            font-weight: bold;
                             margin-right: 20px;
                             background: #f8f9fa;
+                            color: #2c3e50;
                         }
                         .company-info {
                             line-height: 1.4;
@@ -1257,7 +1260,7 @@ class ReservationSystem {
                     <!-- Header Left -->
                     <div class="header-left">
                         <div class="logo-container">
-                            <img src="macl.png" alt="Company Logo" class="company-logo">
+                            <div class="logo-placeholder">VILU<br>LOUNGE</div>
                             <div class="company-info">
                                 <div class="company-name">Vilu Business Lounge</div>
                                 <div class="company-address">Seaplane Terminal</div>
