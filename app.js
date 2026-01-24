@@ -992,10 +992,13 @@ class ReservationSystem {
                         <div class="logo-container">
                             <img src="macl.png" alt="Company Logo" class="company-logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\"width:80px;height:60px;border:1px solid #ccc;text-align:center;line-height:60px;font-size:10px;\"></div>
                             <div class="company-info">
-                                <div class="company-name">Hotel Management System</div>
-                                <div class="company-address">123 Hotel Street, City, Country</div>
-                                <div class="company-address">Phone: +123 456 7890</div>
-                                <div class="company-address">Email: info@hotel.com</div>
+                                <div class="company-name">Vilu Business Lounge</div>
+                                <div class="company-address">Seaplane Terminal</div>
+                                <div class="company-address">Velana International Airport</div>
+                                <div class="company-address">Hulhule: 22000</div>
+                                <div class="company-address">Rep of Maldives</div>
+                                <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
+                                <div class="company-address">W: www.macl.aero / E : vilu.lounge@macl.aero</div>
                             </div>
                         </div>
                         
