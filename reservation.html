@@ -52,6 +52,31 @@
             .no-print { display: none !important; }
             .print-section { display: block !important; }
         }
+        
+        /* Status badges */
+        .status-badge {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        .status-reserved { background-color: #ffc107; color: #000; }
+        .status-checkedin { background-color: #0dcaf0; color: #fff; }
+        .status-checkedout { background-color: #198754; color: #fff; }
+        
+        /* Filter section */
+        .filter-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        /* Loading state */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -151,10 +176,10 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Direction</label>
-                                        <input type="text" id="direction" class="form-control" required>
+                                        <input type="text" id="direction" class="form-control" placeholder="e.g., Arrival, Departure" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Name</label>
+                                        <label class="form-label">Guest Name</label>
                                         <input type="text" id="guestName" class="form-control" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
@@ -177,22 +202,24 @@
                             <h5><i class="fas fa-sign-in-alt"></i> Check-In Guests</h5>
                         </div>
                         <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Date</label>
-                                    <input type="date" id="checkinDateFilter" class="form-control">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Flight/Hotel</label>
-                                    <select id="checkinFlightFilter" class="form-control">
-                                        <option value="">All</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">&nbsp;</label>
-                                    <button class="btn btn-primary w-100" onclick="app.loadCheckinData()">
-                                        <i class="fas fa-sync"></i> Refresh
-                                    </button>
+                            <div class="filter-section">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Reservation Date</label>
+                                        <input type="date" id="checkinDateFilter" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Flight/Hotel</label>
+                                        <select id="checkinFlightFilter" class="form-control">
+                                            <option value="">All</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button class="btn btn-primary w-100" onclick="app.loadCheckinData()">
+                                            <i class="fas fa-sync"></i> Refresh
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -204,6 +231,7 @@
                                             <th>ETA</th>
                                             <th>Direction</th>
                                             <th>Nationality</th>
+                                            <th>Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -223,22 +251,24 @@
                             <h5><i class="fas fa-sign-out-alt"></i> Check-Out Guests</h5>
                         </div>
                         <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Date</label>
-                                    <input type="date" id="checkoutDateFilter" class="form-control">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Flight/Hotel</label>
-                                    <select id="checkoutFlightFilter" class="form-control">
-                                        <option value="">All</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">&nbsp;</label>
-                                    <button class="btn btn-primary w-100" onclick="app.loadCheckoutData()">
-                                        <i class="fas fa-sync"></i> Refresh
-                                    </button>
+                            <div class="filter-section">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Check-In Date</label>
+                                        <input type="date" id="checkoutDateFilter" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Flight/Hotel</label>
+                                        <select id="checkoutFlightFilter" class="form-control">
+                                            <option value="">All</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button class="btn btn-primary w-100" onclick="app.loadCheckoutData()">
+                                            <i class="fas fa-sync"></i> Refresh
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -250,6 +280,7 @@
                                             <th>ETA</th>
                                             <th>Direction</th>
                                             <th>Check-In Time</th>
+                                            <th>Status</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -269,26 +300,28 @@
                             <h5><i class="fas fa-file-alt"></i> Generate Report</h5>
                         </div>
                         <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">From Date</label>
-                                    <input type="date" id="reportFromDate" class="form-control">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">To Date</label>
-                                    <input type="date" id="reportToDate" class="form-control">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Flight/Hotel</label>
-                                    <select id="reportFlightFilter" class="form-control">
-                                        <option value="">All</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">&nbsp;</label>
-                                    <button id="generateReportBtn" class="btn btn-primary w-100">
-                                        <i class="fas fa-file-pdf"></i> Generate Report
-                                    </button>
+                            <div class="filter-section">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="form-label">From Date</label>
+                                        <input type="date" id="reportFromDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">To Date</label>
+                                        <input type="date" id="reportToDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Flight/Hotel</label>
+                                        <select id="reportFlightFilter" class="form-control">
+                                            <option value="">All</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button id="generateReportBtn" class="btn btn-primary w-100">
+                                            <i class="fas fa-file-pdf"></i> Generate Report
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -313,20 +346,26 @@
     <script src="app.js"></script>
     
     <script>
-        // Set default dates for all date inputs
-        function setDefaultDates() {
+        // Set default dates for all date inputs when page loads
+        document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
             
-            // Set today's date for all date inputs
-            document.getElementById('reservationDate').value = today;
-            document.getElementById('checkinDateFilter').value = today;
-            document.getElementById('checkoutDateFilter').value = today;
-            document.getElementById('reportFromDate').value = today;
-            document.getElementById('reportToDate').value = today;
-        }
-        
-        // Set default dates when page loads
-        document.addEventListener('DOMContentLoaded', setDefaultDates);
+            // Set today's date for all date inputs that exist
+            const dateInputs = [
+                'reservationDate',
+                'checkinDateFilter', 
+                'checkoutDateFilter',
+                'reportFromDate',
+                'reportToDate'
+            ];
+            
+            dateInputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = today;
+                }
+            });
+        });
     </script>
 </body>
 </html>
