@@ -107,11 +107,12 @@ class ReservationSystem {
         }
     }
 
-    login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        
-        const hashedPassword = this.hashPassword(password);
+   login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    // Hash the password using SHA-256
+    this.hashPasswordSHA256(password).then(hashedPassword => {
         const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
         
         if (user) {
@@ -122,17 +123,26 @@ class ReservationSystem {
         } else {
             this.showError('Invalid username or password');
         }
-    }
+    }).catch(error => {
+        console.error('Error hashing password:', error);
+        this.showError('Login error. Please try again.');
+    });
+}
 
-    hashPassword(password) {
-        let hash = 0;
-        for (let i = 0; i < password.length; i++) {
-            const char = password.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        return Math.abs(hash).toString(16);
-    }
+async hashPasswordSHA256(password) {
+    // Convert password to Uint8Array
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    
+    // Hash with SHA-256
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    
+    // Convert to hex string
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    return hashHex;
+}
 
     showError(message) {
         const errorDiv = document.getElementById('loginError');
