@@ -4,7 +4,6 @@ class ReservationSystem {
         this.db = firebase.firestore();
         this.customers = new Set();
         this.flightHotels = new Set();
-        // Remove localStorage for recent reservations
         this.init();
     }
 
@@ -12,7 +11,6 @@ class ReservationSystem {
         this.setupEventListeners();
         this.checkAuth();
         this.loadAutocompleteData();
-        // Don't load recent reservations here - will load after login
     }
 
     async loadAutocompleteData() {
@@ -96,6 +94,8 @@ class ReservationSystem {
                     this.loadFlightOptionsForCheckout();
                 } else if (target === '#reportTab') {
                     this.loadReportOptions();
+                } else if (target === '#reservationTab') {
+                    this.loadRecentReservations(); // Load recent reservations when switching to reservation tab
                 }
             });
         });
@@ -191,6 +191,9 @@ class ReservationSystem {
             const field = document.getElementById(fieldId);
             if (field) field.value = today;
         });
+        
+        // Show loading state for recent reservations
+        this.showLoadingRecentReservations();
         
         // Load initial data
         this.loadCheckinData();
@@ -358,9 +361,11 @@ class ReservationSystem {
             if (customer) this.customers.add(customer);
             if (flightHotel) this.flightHotels.add(flightHotel);
             
-            alert('Reservation saved successfully!');
+            // Show success message
+            this.showToast('Reservation saved successfully!', 'success');
             
-            // Don't store in local array - reload from Firebase
+            // Show loading and reload recent reservations from Firebase
+            this.showLoadingRecentReservations();
             this.loadRecentReservations();
             
             document.getElementById('reservationForm').reset();
@@ -375,14 +380,81 @@ class ReservationSystem {
             
         } catch (error) {
             console.error('Error saving reservation:', error);
-            alert('Error saving reservation. Please try again.');
+            this.showToast('Error saving reservation. Please try again.', 'error');
         }
+    }
+
+    showToast(message, type = 'info') {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+            `;
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        toast.style.cssText = `
+            min-width: 300px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
+        toast.innerHTML = `
+            <i class="fas fa-${icon} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+
+    showLoadingRecentReservations() {
+        const container = document.getElementById('recentReservationsContainer');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="card recent-reservations-card">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
+                        <span class="badge bg-light text-dark">0</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center text-muted py-4">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading recent reservations...</p>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     async loadRecentReservations() {
         try {
+            // Show loading state
+            this.showLoadingRecentReservations();
+            
+            // Fetch reservations with status 'reserved' (not checked-in) from Firebase
             const snapshot = await this.db.collection('reservations')
-                .where('status', '==', 'reserved')
+                .where('status', '==', 'reserved')  // Only get non-checked-in reservations
                 .orderBy('createdAt', 'desc')
                 .limit(10)
                 .get();
@@ -408,10 +480,18 @@ class ReservationSystem {
         
         if (recentReservations.length === 0) {
             container.innerHTML = `
-                <div class="card">
+                <div class="card recent-reservations-card">
+                    <div class="card-header bg-info text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
+                            <span class="badge bg-light text-dark">0</span>
+                        </div>
+                    </div>
                     <div class="card-body">
-                        <h6 class="card-title mb-3">Recent Reservations</h6>
-                        <p class="text-muted mb-0">No recent reservations found.</p>
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-3"></i>
+                            <p>No recent reservations found.</p>
+                        </div>
                     </div>
                 </div>
             `;
@@ -419,20 +499,21 @@ class ReservationSystem {
         }
         
         let html = `
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">Recent Reservations</h6>
-                        <span class="badge bg-primary">${recentReservations.length}</span>
+            <div class="card recent-reservations-card">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-history"></i> Recent Reservations</h5>
+                        <span class="badge bg-light text-dark">${recentReservations.length}</span>
                     </div>
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-sm table-hover mb-0">
+                </div>
+                <div class="card-body p-0">
+                    <div class="recent-reservations-scroll">
+                        <table class="table table-hover recent-reservations-table mb-0">
                             <thead>
                                 <tr>
                                     <th>Guest</th>
                                     <th>Flight/Hotel</th>
                                     <th>Customer</th>
-                                    <th>Status</th>
                                     <th>Time</th>
                                 </tr>
                             </thead>
@@ -446,14 +527,23 @@ class ReservationSystem {
             });
             
             html += `
-                <tr onclick="app.showReservationDetails('${res.id}')" style="cursor: pointer;">
-                    <td>${res.guestName}</td>
-                    <td>${res.flightHotel}</td>
-                    <td>${res.customer}</td>
+                <tr class="recent-reservation-row" onclick="app.showReservationDetails('${res.id}')">
                     <td>
-                        <span class="badge bg-warning text-dark">Reserved</span>
+                        <div class="fw-medium">${res.guestName}</div>
+                        <small class="text-muted">${res.eta}</small>
                     </td>
-                    <td>${time}</td>
+                    <td>
+                        <div>${res.flightHotel}</div>
+                        <small class="text-muted">${res.direction}</small>
+                    </td>
+                    <td>
+                        <div>${res.customer}</div>
+                        <small class="badge bg-warning text-dark">${res.status}</small>
+                    </td>
+                    <td>
+                        <div>${time}</div>
+                        <small class="text-muted">Today</small>
+                    </td>
                 </tr>
             `;
         });
@@ -462,6 +552,9 @@ class ReservationSystem {
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="card-footer bg-transparent border-top">
+                    <small class="text-muted">Click on any reservation to view details</small>
                 </div>
             </div>
         `;
@@ -473,68 +566,71 @@ class ReservationSystem {
         try {
             const doc = await this.db.collection('reservations').doc(reservationId).get();
             if (!doc.exists) {
-                alert('Reservation not found!');
+                this.showToast('Reservation not found!', 'error');
                 return;
             }
             
             const reservation = doc.data();
+            const createdDate = new Date(reservation.createdAt).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const createdTime = new Date(reservation.createdAt).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             
-            // Create modal for details
+            // Create modal HTML
             const modalHtml = `
-                <div class="modal fade" id="reservationDetailsModal" tabindex="-1">
+                <div class="modal fade reservation-details-modal" id="reservationDetailsModal" tabindex="-1">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Reservation Details</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <div class="modal-header bg-info text-white">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-info-circle me-2"></i>Reservation Details
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Guest Name:</strong></label>
-                                            <p>${reservation.guestName}</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Customer:</strong></label>
-                                            <p>${reservation.customer}</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Flight/Hotel:</strong></label>
-                                            <p>${reservation.flightHotel}</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>ETA:</strong></label>
-                                            <p>${reservation.eta}</p>
-                                        </div>
+                                        <p><span class="detail-label">Guest Name:</span> ${reservation.guestName}</p>
+                                        <p><span class="detail-label">Customer:</span> ${reservation.customer}</p>
+                                        <p><span class="detail-label">Flight/Hotel:</span> ${reservation.flightHotel}</p>
+                                        <p><span class="detail-label">ETA:</span> ${reservation.eta}</p>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Direction:</strong></label>
-                                            <p>${reservation.direction}</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Nationality:</strong></label>
-                                            <p>${reservation.nationality}</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Reservation Date:</strong></label>
-                                            <p>${reservation.reservationDate}</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Status:</strong></label>
-                                            <span class="badge bg-warning text-dark">${reservation.status}</span>
-                                        </div>
+                                        <p><span class="detail-label">Direction:</span> ${reservation.direction}</p>
+                                        <p><span class="detail-label">Nationality:</span> ${reservation.nationality}</p>
+                                        <p><span class="detail-label">Reservation Date:</span> ${reservation.reservationDate}</p>
+                                        <p><span class="detail-label">Status:</span> 
+                                            <span class="badge ${reservation.status === 'reserved' ? 'bg-warning text-dark' : 
+                                                            reservation.status === 'checked-in' ? 'bg-info text-white' : 
+                                                            'bg-success text-white'}">
+                                                ${reservation.status}
+                                            </span>
+                                        </p>
                                     </div>
                                 </div>
-                                <div class="mt-3">
-                                    <label class="form-label"><strong>Created:</strong></label>
-                                    <p>${new Date(reservation.createdAt).toLocaleString()}</p>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><span class="detail-label">Created By:</span> ${reservation.createdBy}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><span class="detail-label">Created On:</span> ${createdDate} at ${createdTime}</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">Delete</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Close
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">
+                                    <i class="fas fa-trash me-2"></i>Delete Reservation
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -554,9 +650,14 @@ class ReservationSystem {
             const modal = new bootstrap.Modal(document.getElementById('reservationDetailsModal'));
             modal.show();
             
+            // Remove modal from DOM after hiding
+            document.getElementById('reservationDetailsModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+            
         } catch (error) {
             console.error('Error loading reservation details:', error);
-            alert('Error loading reservation details.');
+            this.showToast('Error loading reservation details.', 'error');
         }
     }
 
@@ -568,7 +669,8 @@ class ReservationSystem {
         try {
             await this.db.collection('reservations').doc(reservationId).delete();
             
-            // Refresh recent reservations from Firebase
+            // Show loading and refresh recent reservations from Firebase
+            this.showLoadingRecentReservations();
             this.loadRecentReservations();
             
             // Close modal
@@ -577,7 +679,7 @@ class ReservationSystem {
                 modal.hide();
             }
             
-            alert('Reservation deleted successfully!');
+            this.showToast('Reservation deleted successfully!', 'success');
             
             // Refresh other data
             this.loadCheckinData();
@@ -585,7 +687,7 @@ class ReservationSystem {
             
         } catch (error) {
             console.error('Error deleting reservation:', error);
-            alert('Error deleting reservation. Please try again.');
+            this.showToast('Error deleting reservation. Please try again.', 'error');
         }
     }
 
@@ -670,8 +772,9 @@ class ReservationSystem {
             if (snapshot.empty) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            No reservations found for ${date}
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-3"></i>
+                            <p>No reservations found for ${date}</p>
                         </td>
                     </tr>
                 `;
@@ -706,8 +809,9 @@ class ReservationSystem {
             if (!hasData) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            No guests match the selected filter for ${date}
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-filter fa-2x mb-3"></i>
+                            <p>No guests match the selected filter for ${date}</p>
                         </td>
                     </tr>
                 `;
@@ -716,8 +820,9 @@ class ReservationSystem {
             console.error('Error loading check-in data:', error);
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-danger">
-                        Error loading data. Please try again.
+                    <td colspan="7" class="text-center text-danger py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <p>Error loading data. Please try again.</p>
                     </td>
                 </tr>
             `;
@@ -745,18 +850,20 @@ class ReservationSystem {
                 checkinDate: new Date().toISOString().split('T')[0]
             });
             
-            alert('Guest checked in successfully!');
+            this.showToast('Guest checked in successfully!', 'success');
             
             // Refresh all data
             this.loadCheckinData();
             this.loadCheckoutData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
-            this.loadRecentReservations(); // Refresh recent reservations from Firebase
+            // Show loading and reload recent reservations
+            this.showLoadingRecentReservations();
+            this.loadRecentReservations();
             
         } catch (error) {
             console.error('Error checking in guest:', error);
-            alert('Error checking in guest. Please try again.');
+            this.showToast('Error checking in guest. Please try again.', 'error');
         }
     }
 
@@ -780,8 +887,9 @@ class ReservationSystem {
             if (snapshot.empty) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            No checked-in guests available
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-3"></i>
+                            <p>No checked-in guests available</p>
                         </td>
                     </tr>
                 `;
@@ -818,8 +926,9 @@ class ReservationSystem {
             if (!hasData) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            No checked-in guests match the selected filters
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-filter fa-2x mb-3"></i>
+                            <p>No checked-in guests match the selected filters</p>
                         </td>
                     </tr>
                 `;
@@ -828,8 +937,9 @@ class ReservationSystem {
             console.error('Error loading check-out data:', error);
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-danger">
-                        Error loading data. Please try again.
+                    <td colspan="7" class="text-center text-danger py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <p>Error loading data. Please try again.</p>
                     </td>
                 </tr>
             `;
@@ -857,17 +967,19 @@ class ReservationSystem {
                 checkoutDate: new Date().toISOString().split('T')[0]
             });
             
-            alert('Guest checked out successfully!');
+            this.showToast('Guest checked out successfully!', 'success');
             
             // Refresh all data
             this.loadCheckoutData();
             this.loadReportOptions();
             this.loadFlightOptionsForCheckout();
-            this.loadRecentReservations(); // Refresh recent reservations from Firebase
+            // Show loading and reload recent reservations
+            this.showLoadingRecentReservations();
+            this.loadRecentReservations();
             
         } catch (error) {
             console.error('Error checking out guest:', error);
-            alert('Error checking out guest. Please try again.');
+            this.showToast('Error checking out guest. Please try again.', 'error');
         }
     }
 
@@ -912,7 +1024,7 @@ class ReservationSystem {
         const flightFilter = flightSelect ? flightSelect.value : '';
         
         if (fromDate && toDate && fromDate > toDate) {
-            alert('From date cannot be after To date');
+            this.showToast('From date cannot be after To date', 'error');
             return;
         }
         
@@ -945,417 +1057,419 @@ class ReservationSystem {
             });
             
             if (reservations.length === 0) {
-                alert('No checked-out guests found for the selected criteria.');
+                this.showToast('No checked-out guests found for the selected criteria.', 'info');
                 return;
             }
             
             this.displayReport(reservations, fromDate, toDate);
         } catch (error) {
             console.error('Error generating report:', error);
-            alert('Error generating report. Please try again.');
+            this.showToast('Error generating report. Please try again.', 'error');
         }
     }
 
-   displayReport(reservations, fromDate, toDate) {
-    const printWindow = window.open('', '_blank');
-    
-    const currentDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    
-    // Group by customer
-    const reservationsByCustomer = {};
-    reservations.forEach(res => {
-        if (!reservationsByCustomer[res.customer]) {
-            reservationsByCustomer[res.customer] = [];
-        }
-        reservationsByCustomer[res.customer].push(res);
-    });
-    
-    let reportHTML = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Guest Check-Out Report</title>
-            <style>
-                @media print {
-                    @page {
-                        size: A4;
-                        margin: 15mm;
+    displayReport(reservations, fromDate, toDate) {
+        const printWindow = window.open('', '_blank');
+        
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Group by customer
+        const reservationsByCustomer = {};
+        reservations.forEach(res => {
+            if (!reservationsByCustomer[res.customer]) {
+                reservationsByCustomer[res.customer] = [];
+            }
+            reservationsByCustomer[res.customer].push(res);
+        });
+        
+        let reportHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Guest Check-Out Report</title>
+                <style>
+                    @media print {
+                        @page {
+                            size: A4;
+                            margin: 15mm;
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            font-size: 11px;
+                            color: #000;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .report-container {
+                            width: 100%;
+                        }
+                        .header-left {
+                            float: left;
+                            width: 100%;
+                            margin-bottom: 15px;
+                        }
+                        .logo-container {
+                            display: flex;
+                            align-items: flex-start;
+                            margin-bottom: 10px;
+                        }
+                        .company-logo {
+                            width: 80px;
+                            height: auto;
+                            margin-right: 15px;
+                        }
+                        .logo-placeholder {
+                            width: 80px;
+                            height: 60px;
+                            border: 1px solid #ccc;
+                            text-align: center;
+                            line-height: 60px;
+                            font-size: 10px;
+                            margin-right: 15px;
+                            background: #f8f9fa;
+                        }
+                        .company-info {
+                            line-height: 1.3;
+                            flex: 1;
+                        }
+                        .company-name {
+                            font-size: 16px;
+                            font-weight: bold;
+                            margin: 0 0 3px 0;
+                            color: #2c3e50;
+                        }
+                        .company-address {
+                            font-size: 11px;
+                            margin: 0 0 2px 0;
+                        }
+                        .report-details {
+                            margin-top: 10px;
+                            padding-top: 10px;
+                            border-top: 1px solid #ddd;
+                            clear: both;
+                        }
+                        .detail-row {
+                            display: flex;
+                            margin-bottom: 4px;
+                        }
+                        .detail-label {
+                            font-weight: bold;
+                            width: 70px;
+                        }
+                        .detail-value {
+                            flex: 1;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 10px 0 15px 0;
+                            page-break-inside: avoid;
+                        }
+                        th {
+                            background-color: #f8f9fa;
+                            color: #000;
+                            padding: 6px 4px;
+                            text-align: left;
+                            border: 1px solid #ddd;
+                            font-size: 10px;
+                            font-weight: bold;
+                        }
+                        td {
+                            padding: 5px 4px;
+                            border: 1px solid #ddd;
+                            font-size: 10px;
+                        }
+                        .customer-section {
+                            margin-bottom: 20px;
+                            page-break-inside: avoid;
+                        }
+                        .customer-name {
+                            background-color: #e9ecef;
+                            padding: 6px 10px;
+                            font-weight: bold;
+                            margin-bottom: 8px;
+                            font-size: 12px;
+                            border-left: 3px solid #3498db;
+                        }
+                        .footer {
+                            margin-top: 30px;
+                            page-break-inside: avoid;
+                            padding-top: 15px;
+                            border-top: 1px solid #ddd;
+                        }
+                        .signature-section {
+                            width: 45%;
+                            display: inline-block;
+                            vertical-align: top;
+                        }
+                        .signature-line {
+                            margin-top: 30px;
+                            border-top: 1px solid #000;
+                            width: 180px;
+                            padding-top: 4px;
+                            font-size: 10px;
+                        }
+                        .no-print {
+                            display: none;
+                        }
+                        .clearfix {
+                            clear: both;
+                        }
                     }
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 11px;
-                        color: #000;
-                        margin: 0;
-                        padding: 0;
+                    @media screen {
+                        body {
+                            font-family: Arial, sans-serif;
+                            font-size: 12px;
+                            padding: 20px;
+                            background: #f5f5f5;
+                        }
+                        .report-container {
+                            max-width: 210mm;
+                            margin: 0 auto;
+                            background: white;
+                            padding: 20px;
+                            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                        }
+                        .header-left {
+                            float: left;
+                            width: 100%;
+                            margin-bottom: 20px;
+                        }
+                        .logo-container {
+                            display: flex;
+                            align-items: flex-start;
+                            margin-bottom: 15px;
+                        }
+                        .company-logo {
+                            width: 80px;
+                            height: auto;
+                            margin-right: 20px;
+                        }
+                        .logo-placeholder {
+                            width: 80px;
+                            height: 60px;
+                            border: 1px solid #ccc;
+                            text-align: center;
+                            line-height: 60px;
+                            font-size: 10px;
+                            margin-right: 20px;
+                            background: #f8f9fa;
+                        }
+                        .company-info {
+                            line-height: 1.4;
+                            flex: 1;
+                        }
+                        .company-name {
+                            font-size: 18px;
+                            font-weight: bold;
+                            margin: 0 0 5px 0;
+                            color: #2c3e50;
+                        }
+                        .company-address {
+                            font-size: 12px;
+                            margin: 0 0 3px 0;
+                        }
+                        .report-details {
+                            margin-top: 15px;
+                            padding-top: 12px;
+                            border-top: 1px solid #ddd;
+                            clear: both;
+                        }
+                        .detail-row {
+                            display: flex;
+                            margin-bottom: 5px;
+                        }
+                        .detail-label {
+                            font-weight: bold;
+                            width: 80px;
+                        }
+                        .detail-value {
+                            flex: 1;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 15px 0 20px 0;
+                        }
+                        th {
+                            background-color: #f8f9fa;
+                            color: #000;
+                            padding: 8px;
+                            text-align: left;
+                            border: 1px solid #ddd;
+                        }
+                        td {
+                            padding: 7px;
+                            border: 1px solid #ddd;
+                        }
+                        .customer-section {
+                            margin-bottom: 25px;
+                        }
+                        .customer-name {
+                            background-color: #e9ecef;
+                            padding: 8px 12px;
+                            font-weight: bold;
+                            margin-bottom: 10px;
+                            font-size: 13px;
+                            border-left: 4px solid #3498db;
+                        }
+                        .footer {
+                            margin-top: 40px;
+                            padding-top: 20px;
+                            border-top: 1px solid #ddd;
+                        }
+                        .signature-section {
+                            width: 45%;
+                            display: inline-block;
+                            vertical-align: top;
+                        }
+                        .signature-line {
+                            margin-top: 40px;
+                            border-top: 1px solid #000;
+                            width: 200px;
+                            padding-top: 5px;
+                        }
+                        .print-buttons {
+                            text-align: center;
+                            margin-top: 20px;
+                            padding: 20px;
+                            background: #f8f9fa;
+                            border-radius: 5px;
+                        }
+                        .clearfix {
+                            clear: both;
+                        }
                     }
-                    .report-container {
-                        width: 100%;
-                    }
-                    .header-left {
-                        float: left;
-                        width: 100%;
-                        margin-bottom: 15px;
-                    }
-                    .logo-container {
-                        display: flex;
-                        align-items: flex-start;
-                        margin-bottom: 10px;
-                    }
-                    .company-logo {
-                        width: 80px;
-                        height: auto;
-                        margin-right: 15px;
-                    }
-                    .logo-placeholder {
-                        width: 80px;
-                        height: 60px;
-                        border: 1px solid #ccc;
-                        text-align: center;
-                        line-height: 60px;
-                        font-size: 10px;
-                        margin-right: 15px;
-                    }
-                    .company-info {
-                        line-height: 1.3;
-                        flex: 1;
-                    }
-                    .company-name {
-                        font-size: 16px;
-                        font-weight: bold;
-                        margin: 0 0 3px 0;
-                        color: #2c3e50;
-                    }
-                    .company-address {
-                        font-size: 11px;
-                        margin: 0 0 2px 0;
-                    }
-                    .report-details {
-                        margin-top: 10px;
-                        padding-top: 10px;
-                        border-top: 1px solid #ddd;
-                        clear: both;
-                    }
-                    .detail-row {
-                        display: flex;
-                        margin-bottom: 4px;
-                    }
-                    .detail-label {
-                        font-weight: bold;
-                        width: 70px;
-                    }
-                    .detail-value {
-                        flex: 1;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 10px 0 15px 0;
-                        page-break-inside: avoid;
-                    }
-                    th {
-                        background-color: #f8f9fa;
-                        color: #000;
-                        padding: 6px 4px;
-                        text-align: left;
-                        border: 1px solid #ddd;
-                        font-size: 10px;
-                        font-weight: bold;
-                    }
-                    td {
-                        padding: 5px 4px;
-                        border: 1px solid #ddd;
-                        font-size: 10px;
-                    }
-                    .customer-section {
-                        margin-bottom: 20px;
-                        page-break-inside: avoid;
-                    }
-                    .customer-name {
-                        background-color: #e9ecef;
-                        padding: 6px 10px;
-                        font-weight: bold;
-                        margin-bottom: 8px;
-                        font-size: 12px;
-                        border-left: 3px solid #3498db;
-                    }
-                    .footer {
-                        margin-top: 30px;
-                        page-break-inside: avoid;
-                        padding-top: 15px;
-                        border-top: 1px solid #ddd;
-                    }
-                    .signature-section {
-                        width: 45%;
-                        display: inline-block;
-                        vertical-align: top;
-                    }
-                    .signature-line {
-                        margin-top: 30px;
-                        border-top: 1px solid #000;
-                        width: 180px;
-                        padding-top: 4px;
-                        font-size: 10px;
-                    }
-                    .no-print {
-                        display: none;
-                    }
-                    .clearfix {
-                        clear: both;
-                    }
-                }
-                @media screen {
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 12px;
-                        padding: 20px;
-                        background: #f5f5f5;
-                    }
-                    .report-container {
-                        max-width: 210mm;
-                        margin: 0 auto;
-                        background: white;
-                        padding: 20px;
-                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                    }
-                    .header-left {
-                        float: left;
-                        width: 100%;
-                        margin-bottom: 20px;
-                    }
-                    .logo-container {
-                        display: flex;
-                        align-items: flex-start;
-                        margin-bottom: 15px;
-                    }
-                    .company-logo {
-                        width: 80px;
-                        height: auto;
-                        margin-right: 20px;
-                    }
-                    .logo-placeholder {
-                        width: 80px;
-                        height: 60px;
-                        border: 1px solid #ccc;
-                        text-align: center;
-                        line-height: 60px;
-                        font-size: 10px;
-                        margin-right: 20px;
-                    }
-                    .company-info {
-                        line-height: 1.4;
-                        flex: 1;
-                    }
-                    .company-name {
-                        font-size: 18px;
-                        font-weight: bold;
-                        margin: 0 0 5px 0;
-                        color: #2c3e50;
-                    }
-                    .company-address {
-                        font-size: 12px;
-                        margin: 0 0 3px 0;
-                    }
-                    .report-details {
-                        margin-top: 15px;
-                        padding-top: 12px;
-                        border-top: 1px solid #ddd;
-                        clear: both;
-                    }
-                    .detail-row {
-                        display: flex;
-                        margin-bottom: 5px;
-                    }
-                    .detail-label {
-                        font-weight: bold;
-                        width: 80px;
-                    }
-                    .detail-value {
-                        flex: 1;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 15px 0 20px 0;
-                    }
-                    th {
-                        background-color: #f8f9fa;
-                        color: #000;
-                        padding: 8px;
-                        text-align: left;
-                        border: 1px solid #ddd;
-                    }
-                    td {
-                        padding: 7px;
-                        border: 1px solid #ddd;
-                    }
-                    .customer-section {
-                        margin-bottom: 25px;
-                    }
-                    .customer-name {
-                        background-color: #e9ecef;
-                        padding: 8px 12px;
-                        font-weight: bold;
-                        margin-bottom: 10px;
-                        font-size: 13px;
-                        border-left: 4px solid #3498db;
-                    }
-                    .footer {
-                        margin-top: 40px;
-                        padding-top: 20px;
-                        border-top: 1px solid #ddd;
-                    }
-                    .signature-section {
-                        width: 45%;
-                        display: inline-block;
-                        vertical-align: top;
-                    }
-                    .signature-line {
-                        margin-top: 40px;
-                        border-top: 1px solid #000;
-                        width: 200px;
-                        padding-top: 5px;
-                    }
-                    .print-buttons {
-                        text-align: center;
-                        margin-top: 20px;
-                        padding: 20px;
-                        background: #f8f9fa;
-                        border-radius: 5px;
-                    }
-                    .clearfix {
-                        clear: both;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="report-container">
-                <!-- Header Left -->
-                <div class="header-left">
-                    <div class="logo-container">
-                        <div class="logo-placeholder">LOGO</div>
-                        <div class="company-info">
-                            <div class="company-name">Vilu Business Lounge</div>
-                            <div class="company-address">Seaplane Terminal</div>
-                            <div class="company-address">Velana International Airport</div>
-                            <div class="company-address">Hulhule: 22000</div>
-                            <div class="company-address">Republic of Maldives</div>
-                            <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
-                            <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
+                </style>
+            </head>
+            <body>
+                <div class="report-container">
+                    <!-- Header Left -->
+                    <div class="header-left">
+                        <div class="logo-container">
+                            <div class="logo-placeholder">VILU LOUNGE</div>
+                            <div class="company-info">
+                                <div class="company-name">Vilu Business Lounge</div>
+                                <div class="company-address">Seaplane Terminal</div>
+                                <div class="company-address">Velana International Airport</div>
+                                <div class="company-address">Hulhule: 22000</div>
+                                <div class="company-address">Republic of Maldives</div>
+                                <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
+                                <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
+                            </div>
+                        </div>
+                        
+                        <div class="report-details">
+                            <div class="detail-row">
+                                <div class="detail-label">Date:</div>
+                                <div class="detail-value">${currentDate}</div>
+                            </div>
+                            ${fromDate && toDate ? `
+                            <div class="detail-row">
+                                <div class="detail-label">Period:</div>
+                                <div class="detail-value">${fromDate} to ${toDate}</div>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                     
-                    <div class="report-details">
-                        <div class="detail-row">
-                            <div class="detail-label">Date:</div>
-                            <div class="detail-value">${currentDate}</div>
-                        </div>
-                        ${fromDate && toDate ? `
-                        <div class="detail-row">
-                            <div class="detail-label">Period:</div>
-                            <div class="detail-value">${fromDate} to ${toDate}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                
-                <div class="clearfix"></div>
-                
-                <!-- Report Content -->
-    `;
-    
-    Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
-        reportHTML += `
-            <div class="customer-section">
-                <div class="customer-name">Customer: ${customer}</div>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Flight/Hotel</th>
-                            <th>ETA</th>
-                            <th>Direction</th>
-                            <th>Check-In Time</th>
-                            <th>Check-Out Time</th>
-                            <th>Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <div class="clearfix"></div>
+                    
+                    <!-- Report Content -->
         `;
         
-        customerReservations.forEach(res => {
+        Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
             reportHTML += `
-                <tr>
-                    <td>${res.guestName}</td>
-                    <td>${res.flightHotel}</td>
-                    <td>${res.eta}</td>
-                    <td>${res.direction}</td>
-                    <td>${res.checkinTime || 'N/A'}</td>
-                    <td>${res.checkoutTime || 'N/A'}</td>
-                    <td></td>
-                </tr>
+                <div class="customer-section">
+                    <div class="customer-name">Customer: ${customer}</div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Flight/Hotel</th>
+                                <th>ETA</th>
+                                <th>Direction</th>
+                                <th>Check-In Time</th>
+                                <th>Check-Out Time</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            customerReservations.forEach(res => {
+                reportHTML += `
+                    <tr>
+                        <td>${res.guestName}</td>
+                        <td>${res.flightHotel}</td>
+                        <td>${res.eta}</td>
+                        <td>${res.direction}</td>
+                        <td>${res.checkinTime || 'N/A'}</td>
+                        <td>${res.checkoutTime || 'N/A'}</td>
+                        <td></td>
+                    </tr>
+                `;
+            });
+            
+            reportHTML += `
+                        </tbody>
+                    </table>
+                </div>
             `;
         });
         
         reportHTML += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-    });
-    
-    reportHTML += `
-                <!-- Footer Signatures -->
-                <div class="footer">
-                    <div class="signature-section">
-                        <div class="detail-row">
-                            <div class="detail-label">Prepared by:</div>
-                            <div class="detail-value">${this.currentUser.name}</div>
+                    <!-- Footer Signatures -->
+                    <div class="footer">
+                        <div class="signature-section">
+                            <div class="detail-row">
+                                <div class="detail-label">Prepared by:</div>
+                                <div class="detail-value">${this.currentUser.name}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">RC No:</div>
+                                <div class="detail-value">${this.currentUser.RCNo}</div>
+                            </div>
+                            <div class="signature-line">Signature</div>
                         </div>
-                        <div class="detail-row">
-                            <div class="detail-label">RC No:</div>
-                            <div class="detail-value">${this.currentUser.RCNo}</div>
+                        
+                        <div class="signature-section" style="float: right;">
+                            <div class="detail-row">
+                                <div class="detail-label">Checked by:</div>
+                                <div class="detail-value">_____________________</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">RC No:</div>
+                                <div class="detail-value">_____________________</div>
+                            </div>
+                            <div class="signature-line">Signature</div>
                         </div>
-                        <div class="signature-line">Signature</div>
+                        <div class="clearfix"></div>
                     </div>
                     
-                    <div class="signature-section" style="float: right;">
-                        <div class="detail-row">
-                            <div class="detail-label">Checked by:</div>
-                            <div class="detail-value">_____________________</div>
-                        </div>
-                        <div class="detail-row">
-                            <div class="detail-label">RC No:</div>
-                            <div class="detail-value">_____________________</div>
-                        </div>
-                        <div class="signature-line">Signature</div>
+                    <!-- Print Buttons (only for screen) -->
+                    <div class="print-buttons no-print">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                            Print Report
+                        </button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Close Window
+                        </button>
                     </div>
-                    <div class="clearfix"></div>
                 </div>
-                
-                <!-- Print Buttons (only for screen) -->
-                <div class="print-buttons no-print">
-                    <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                        Print Report
-                    </button>
-                    <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Close Window
-                    </button>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
-    
-    printWindow.document.write(reportHTML);
-    printWindow.document.close();
-    printWindow.focus();
-}
+            </body>
+            </html>
+        `;
+        
+        printWindow.document.write(reportHTML);
+        printWindow.document.close();
+        printWindow.focus();
+    }
 }
 
 // Initialize application
