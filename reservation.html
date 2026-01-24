@@ -17,89 +17,41 @@
         .nav-link.active { font-weight: bold; }
         .table-responsive { max-height: 500px; overflow-y: auto; }
         .print-section { background: white; padding: 20px; }
+        
+        /* Autocomplete Styles */
+        .autocomplete-container {
+            position: relative;
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .dropdown-item:not(:last-child) {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
         @media print {
             .no-print { display: none !important; }
             .print-section { display: block !important; }
         }
-
-        /* Autocomplete Styles */
-.autocomplete-container {
-    position: relative;
-}
-
-.autocomplete-dropdown {
-    position: absolute;
-    background: white;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.dropdown-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-}
-
-.dropdown-item:not(:last-child) {
-    border-bottom: 1px solid #f0f0f0;
-}
-
-/* Form field improvements */
-.form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-/* Make reservation form fields more visible */
-#reservationForm .form-control {
-    border: 1px solid #ced4da;
-}
-
-#reservationForm .form-label {
-    font-weight: 500;
-    color: #495057;
-}
-
-/* Print-specific styles */
-@media print {
-    body * {
-        visibility: hidden;
-    }
-    
-    .report-container,
-    .report-container * {
-        visibility: visible;
-    }
-    
-    .report-container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-    
-    .no-print,
-    .no-print * {
-        display: none !important;
-    }
-}
-
-/* Report display area */
-#printPreview {
-    background: white;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-top: 20px;
-}
     </style>
 </head>
 <body>
@@ -181,7 +133,7 @@
                         <div class="card-body">
                             <form id="reservationForm">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-3 autocomplete-container">
                                         <label class="form-label">Customer</label>
                                         <input type="text" id="customer" class="form-control" required>
                                     </div>
@@ -189,7 +141,7 @@
                                         <label class="form-label">Date</label>
                                         <input type="date" id="reservationDate" class="form-control" required>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-3 autocomplete-container">
                                         <label class="form-label">Flight/Hotel</label>
                                         <input type="text" id="flightHotel" class="form-control" required>
                                     </div>
@@ -228,13 +180,19 @@
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Date</label>
-                                    <input type="date" id="checkinDateFilter" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                                    <input type="date" id="checkinDateFilter" class="form-control">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Flight/Hotel</label>
                                     <select id="checkinFlightFilter" class="form-control">
                                         <option value="">All</option>
                                     </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-primary w-100" onclick="app.loadCheckinData()">
+                                        <i class="fas fa-sync"></i> Refresh
+                                    </button>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -268,13 +226,19 @@
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Date</label>
-                                    <input type="date" id="checkoutDateFilter" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                                    <input type="date" id="checkoutDateFilter" class="form-control">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Flight/Hotel</label>
                                     <select id="checkoutFlightFilter" class="form-control">
                                         <option value="">All</option>
                                     </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-primary w-100" onclick="app.loadCheckoutData()">
+                                        <i class="fas fa-sync"></i> Refresh
+                                    </button>
                                 </div>
                             </div>
                             <div class="table-responsive">
@@ -347,5 +311,22 @@
     <script src="user.js"></script>
     <!-- Main Application -->
     <script src="app.js"></script>
+    
+    <script>
+        // Set default dates for all date inputs
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Set today's date for all date inputs
+            document.getElementById('reservationDate').value = today;
+            document.getElementById('checkinDateFilter').value = today;
+            document.getElementById('checkoutDateFilter').value = today;
+            document.getElementById('reportFromDate').value = today;
+            document.getElementById('reportToDate').value = today;
+        }
+        
+        // Set default dates when page loads
+        document.addEventListener('DOMContentLoaded', setDefaultDates);
+    </script>
 </body>
 </html>
