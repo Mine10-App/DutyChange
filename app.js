@@ -4,7 +4,7 @@ class ReservationSystem {
         this.db = firebase.firestore();
         this.customers = new Set();
         this.flightHotels = new Set();
-        this.recentReservations = []; // Store recent reservations
+        // Remove localStorage for recent reservations
         this.init();
     }
 
@@ -12,7 +12,7 @@ class ReservationSystem {
         this.setupEventListeners();
         this.checkAuth();
         this.loadAutocompleteData();
-        this.loadRecentReservations(); // Load recent reservations on init
+        // Don't load recent reservations here - will load after login
     }
 
     async loadAutocompleteData() {
@@ -198,7 +198,7 @@ class ReservationSystem {
         this.loadFlightOptionsForCheckin();
         this.loadFlightOptionsForCheckout();
         this.loadReportOptions();
-        this.loadRecentReservations(); // Load recent reservations
+        this.loadRecentReservations(); // Load recent reservations from Firebase
     }
 
     logout() {
@@ -216,9 +216,6 @@ class ReservationSystem {
         
         if (usernameInput) usernameInput.value = '';
         if (passwordInput) passwordInput.value = '';
-        
-        // Clear recent reservations
-        this.recentReservations = [];
     }
 
     showCustomerDropdown() {
@@ -363,18 +360,8 @@ class ReservationSystem {
             
             alert('Reservation saved successfully!');
             
-            // Add to recent reservations list
-            const newReservation = {
-                id: docRef.id,
-                ...reservation
-            };
-            this.recentReservations.unshift(newReservation); // Add to beginning
-            if (this.recentReservations.length > 10) {
-                this.recentReservations = this.recentReservations.slice(0, 10); // Keep only last 10
-            }
-            
-            // Display recent reservations
-            this.displayRecentReservations();
+            // Don't store in local array - reload from Firebase
+            this.loadRecentReservations();
             
             document.getElementById('reservationForm').reset();
             document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
@@ -400,25 +387,26 @@ class ReservationSystem {
                 .limit(10)
                 .get();
             
-            this.recentReservations = [];
+            const recentReservations = [];
             snapshot.forEach(doc => {
-                this.recentReservations.push({
+                recentReservations.push({
                     id: doc.id,
                     ...doc.data()
                 });
             });
             
-            this.displayRecentReservations();
+            this.displayRecentReservations(recentReservations);
         } catch (error) {
-            console.error('Error loading recent reservations:', error);
+            console.error('Error loading recent reservations from Firebase:', error);
+            this.displayRecentReservations([]);
         }
     }
 
-    displayRecentReservations() {
+    displayRecentReservations(recentReservations) {
         const container = document.getElementById('recentReservationsContainer');
         if (!container) return;
         
-        if (this.recentReservations.length === 0) {
+        if (recentReservations.length === 0) {
             container.innerHTML = `
                 <div class="card">
                     <div class="card-body">
@@ -435,7 +423,7 @@ class ReservationSystem {
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="card-title mb-0">Recent Reservations</h6>
-                        <span class="badge bg-primary">${this.recentReservations.length}</span>
+                        <span class="badge bg-primary">${recentReservations.length}</span>
                     </div>
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-sm table-hover mb-0">
@@ -451,7 +439,7 @@ class ReservationSystem {
                             <tbody>
         `;
         
-        this.recentReservations.forEach(res => {
+        recentReservations.forEach(res => {
             const time = new Date(res.createdAt).toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -580,11 +568,8 @@ class ReservationSystem {
         try {
             await this.db.collection('reservations').doc(reservationId).delete();
             
-            // Remove from recent reservations
-            this.recentReservations = this.recentReservations.filter(res => res.id !== reservationId);
-            
-            // Refresh display
-            this.displayRecentReservations();
+            // Refresh recent reservations from Firebase
+            this.loadRecentReservations();
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('reservationDetailsModal'));
@@ -767,7 +752,7 @@ class ReservationSystem {
             this.loadCheckoutData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
-            this.loadRecentReservations(); // Refresh recent reservations
+            this.loadRecentReservations(); // Refresh recent reservations from Firebase
             
         } catch (error) {
             console.error('Error checking in guest:', error);
@@ -878,7 +863,7 @@ class ReservationSystem {
             this.loadCheckoutData();
             this.loadReportOptions();
             this.loadFlightOptionsForCheckout();
-            this.loadRecentReservations(); // Refresh recent reservations
+            this.loadRecentReservations(); // Refresh recent reservations from Firebase
             
         } catch (error) {
             console.error('Error checking out guest:', error);
