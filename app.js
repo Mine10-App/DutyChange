@@ -61,12 +61,109 @@ class ReservationSystem {
         document.getElementById('checkoutFlightFilter').addEventListener('change', () => this.loadCheckoutData());
         
         document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReport());
+        
+        // Tab change events
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (e) => {
+                const target = e.target.getAttribute('href');
+                if (target === '#checkinTab') {
+                    this.loadCheckinData();
+                    this.loadFlightOptionsForCheckin();
+                } else if (target === '#checkoutTab') {
+                    this.loadCheckoutData();
+                    this.loadFlightOptionsForCheckout();
+                } else if (target === '#reportTab') {
+                    this.loadReportOptions();
+                }
+            });
+        });
+    }
+
+    checkAuth() {
+        // Check if user is already logged in (from localStorage)
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            this.currentUser = JSON.parse(savedUser);
+            this.showDashboard();
+        }
+    }
+
+    login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        // Hash the password
+        const hashedPassword = this.hashPassword(password);
+        
+        // Find user in users array
+        const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
+        
+        if (user) {
+            this.currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            this.showDashboard();
+            this.hideError();
+        } else {
+            this.showError('Invalid username or password');
+        }
+    }
+
+    hashPassword(password) {
+        // Simple hash function for demo purposes
+        let hash = 0;
+        for (let i = 0; i < password.length; i++) {
+            const char = password.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
+    }
+
+    showError(message) {
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('d-none');
+    }
+
+    hideError() {
+        document.getElementById('loginError').classList.add('d-none');
+    }
+
+    showDashboard() {
+        document.getElementById('loginScreen').classList.add('d-none');
+        document.getElementById('dashboard').classList.remove('d-none');
+        
+        // Display user info
+        document.getElementById('userName').textContent = this.currentUser.name;
+        document.getElementById('userLevel').textContent = this.currentUser.Level;
+        document.getElementById('userRC').textContent = this.currentUser.RCNo;
+        
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('reservationDate').value = today;
+        document.getElementById('checkinDateFilter').value = today;
+        document.getElementById('checkoutDateFilter').value = today;
+        document.getElementById('reportFromDate').value = today;
+        document.getElementById('reportToDate').value = today;
+        
+        // Load initial data
+        this.loadFlightOptionsForCheckin();
+        this.loadFlightOptionsForCheckout();
+    }
+
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('currentUser');
+        document.getElementById('dashboard').classList.add('d-none');
+        document.getElementById('loginScreen').classList.remove('d-none');
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
     }
 
     showCustomerDropdown() {
         this.closeAllDropdowns();
         const input = document.getElementById('customer');
-        const container = input.closest('.col-md-6') || input.parentElement;
+        const container = input.parentElement;
         
         const dropdown = document.createElement('div');
         dropdown.className = 'autocomplete-dropdown';
@@ -88,7 +185,6 @@ class ReservationSystem {
         addNewOption.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;';
         addNewOption.innerHTML = `<i class="fas fa-plus"></i> Add new customer`;
         addNewOption.onclick = () => {
-            // Just allow typing, dropdown will close
             this.closeAllDropdowns();
         };
         dropdown.appendChild(addNewOption);
@@ -113,7 +209,7 @@ class ReservationSystem {
     showFlightDropdown() {
         this.closeAllDropdowns();
         const input = document.getElementById('flightHotel');
-        const container = input.closest('.col-md-6') || input.parentElement;
+        const container = input.parentElement;
         
         const dropdown = document.createElement('div');
         dropdown.className = 'autocomplete-dropdown';
@@ -135,7 +231,6 @@ class ReservationSystem {
         addNewOption.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;';
         addNewOption.innerHTML = `<i class="fas fa-plus"></i> Add new flight/hotel`;
         addNewOption.onclick = () => {
-            // Just allow typing, dropdown will close
             this.closeAllDropdowns();
         };
         dropdown.appendChild(addNewOption);
@@ -172,8 +267,6 @@ class ReservationSystem {
             dropdown.remove();
         });
     }
-
-    // ... (keep all other methods from previous version until saveReservation)
 
     async saveReservation(e) {
         e.preventDefault();
@@ -217,7 +310,291 @@ class ReservationSystem {
         }
     }
 
-    // ... (keep all other methods as they were until generateReport)
+    async loadFlightOptionsForCheckin() {
+        try {
+            const snapshot = await this.db.collection('reservations')
+                .where('status', '==', 'reserved')
+                .get();
+            
+            const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+            const select = document.getElementById('checkinFlightFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">All</option>';
+            flights.forEach(flight => {
+                if (flight) {
+                    const option = document.createElement('option');
+                    option.value = flight;
+                    option.textContent = flight;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Restore previous selection if possible
+            if (flights.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error loading flight options for check-in:', error);
+        }
+    }
+
+    async loadFlightOptionsForCheckout() {
+        try {
+            const snapshot = await this.db.collection('reservations')
+                .where('status', '==', 'checked-in')
+                .get();
+            
+            const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+            const select = document.getElementById('checkoutFlightFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">All</option>';
+            flights.forEach(flight => {
+                if (flight) {
+                    const option = document.createElement('option');
+                    option.value = flight;
+                    option.textContent = flight;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Restore previous selection if possible
+            if (flights.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error loading flight options for check-out:', error);
+        }
+    }
+
+    async loadCheckinData() {
+        const date = document.getElementById('checkinDateFilter').value;
+        const flightFilter = document.getElementById('checkinFlightFilter').value;
+        
+        try {
+            let query = this.db.collection('reservations')
+                .where('date', '==', date)
+                .where('status', '==', 'reserved');
+            
+            const snapshot = await query.get();
+            const tableBody = document.getElementById('checkinTable');
+            tableBody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No guests available for check-in on ${date}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (flightFilter && data.flightHotel !== flightFilter) return;
+                
+                const row = `
+                    <tr>
+                        <td>${data.guestName}</td>
+                        <td>${data.flightHotel}</td>
+                        <td>${data.eta}</td>
+                        <td>${data.direction}</td>
+                        <td>${data.nationality}</td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="app.checkinGuest('${doc.id}')">
+                                <i class="fas fa-sign-in-alt"></i> Check-In
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        } catch (error) {
+            console.error('Error loading check-in data:', error);
+            const tableBody = document.getElementById('checkinTable');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Error loading data. Please try again.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async checkinGuest(reservationId) {
+        if (!confirm('Are you sure you want to check in this guest?')) {
+            return;
+        }
+        
+        const now = new Date();
+        const checkinTime = now.toLocaleTimeString('en-US', { 
+            hour12: true, 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        try {
+            await this.db.collection('reservations').doc(reservationId).update({
+                status: 'checked-in',
+                checkinTime: checkinTime,
+                checkinDateTime: now.toISOString(),
+                checkinBy: this.currentUser.username,
+                checkinDate: new Date().toISOString().split('T')[0]
+            });
+            
+            alert('Guest checked in successfully!');
+            
+            // Refresh both check-in and check-out data
+            this.loadCheckinData();
+            this.loadFlightOptionsForCheckout();
+            this.loadCheckoutData();
+            
+        } catch (error) {
+            console.error('Error checking in guest:', error);
+            alert('Error checking in guest. Please try again.');
+        }
+    }
+
+    async loadCheckoutData() {
+        const date = document.getElementById('checkoutDateFilter').value;
+        const flightFilter = document.getElementById('checkoutFlightFilter').value;
+        
+        try {
+            let query = this.db.collection('reservations')
+                .where('status', '==', 'checked-in');
+            
+            const snapshot = await query.get();
+            const tableBody = document.getElementById('checkoutTable');
+            tableBody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No checked-in guests available for checkout
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let hasData = false;
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                
+                // Filter by check-in date
+                if (date && data.checkinDate !== date) return;
+                
+                // Filter by flight/hotel
+                if (flightFilter && data.flightHotel !== flightFilter) return;
+                
+                hasData = true;
+                const row = `
+                    <tr>
+                        <td>${data.guestName}</td>
+                        <td>${data.flightHotel}</td>
+                        <td>${data.eta}</td>
+                        <td>${data.direction}</td>
+                        <td>${data.checkinTime || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
+                                <i class="fas fa-sign-out-alt"></i> Check-Out
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+            
+            if (!hasData) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No guests available for checkout on ${date}
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading check-out data:', error);
+            const tableBody = document.getElementById('checkoutTable');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Error loading data. Please try again.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async checkoutGuest(reservationId) {
+        if (!confirm('Are you sure you want to check out this guest?')) {
+            return;
+        }
+        
+        const now = new Date();
+        const checkoutTime = now.toLocaleTimeString('en-US', { 
+            hour12: true, 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        try {
+            await this.db.collection('reservations').doc(reservationId).update({
+                status: 'checked-out',
+                checkoutTime: checkoutTime,
+                checkoutDateTime: now.toISOString(),
+                checkoutBy: this.currentUser.username,
+                checkoutDate: new Date().toISOString().split('T')[0]
+            });
+            
+            alert('Guest checked out successfully!');
+            
+            // Refresh data
+            this.loadCheckoutData();
+            this.loadFlightOptionsForCheckout();
+            
+        } catch (error) {
+            console.error('Error checking out guest:', error);
+            alert('Error checking out guest. Please try again.');
+        }
+    }
+
+    async loadReportOptions() {
+        try {
+            // Load flight options for report filter
+            const snapshot = await this.db.collection('reservations')
+                .where('status', '==', 'checked-out')
+                .get();
+            
+            const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+            const select = document.getElementById('reportFlightFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">All</option>';
+            flights.forEach(flight => {
+                if (flight) {
+                    const option = document.createElement('option');
+                    option.value = flight;
+                    option.textContent = flight;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Restore previous selection if possible
+            if (flights.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error loading report options:', error);
+        }
+    }
 
     async generateReport() {
         const fromDate = document.getElementById('reportFromDate').value;
@@ -566,26 +943,13 @@ class ReservationSystem {
                     <!-- Print Buttons (only for screen) -->
                     <div class="print-buttons no-print">
                         <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                            <i class="fas fa-print"></i> Print Report
+                            Print Report
                         </button>
                         <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            <i class="fas fa-times"></i> Close Window
+                            Close Window
                         </button>
                     </div>
                 </div>
-                
-                <script>
-                    // Auto-print option (commented out - uncomment if you want auto-print)
-                    // window.onload = function() {
-                    //     window.print();
-                    // }
-                    
-                    // Close window after print (optional)
-                    window.onafterprint = function() {
-                        // Optional: Close window after printing
-                        // window.close();
-                    };
-                </script>
             </body>
             </html>
         `;
@@ -596,8 +960,6 @@ class ReservationSystem {
         // Focus the print window
         printWindow.focus();
     }
-
-    // ... (keep all other methods as they were)
 }
 
 // Initialize application
