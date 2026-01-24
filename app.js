@@ -53,12 +53,16 @@ class ReservationSystem {
             }
         });
         
-        // Filters
+        // Filters - Add event listeners for all filters
         document.getElementById('checkinDateFilter').addEventListener('change', () => this.loadCheckinData());
         document.getElementById('checkinFlightFilter').addEventListener('change', () => this.loadCheckinData());
         
         document.getElementById('checkoutDateFilter').addEventListener('change', () => this.loadCheckoutData());
         document.getElementById('checkoutFlightFilter').addEventListener('change', () => this.loadCheckoutData());
+        
+        document.getElementById('reportFromDate').addEventListener('change', () => this.loadReportOptions());
+        document.getElementById('reportToDate').addEventListener('change', () => this.loadReportOptions());
+        document.getElementById('reportFlightFilter').addEventListener('change', () => this.loadReportOptions());
         
         document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReport());
         
@@ -286,7 +290,8 @@ class ReservationSystem {
             createdAt: new Date().toISOString(),
             createdBy: this.currentUser.username,
             checkinDate: null,
-            checkoutDate: null
+            checkoutDate: null,
+            reservationDate: document.getElementById('reservationDate').value // Store reservation date separately
         };
         
         try {
@@ -300,10 +305,13 @@ class ReservationSystem {
             document.getElementById('reservationForm').reset();
             document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
             
-            // Refresh flight options in all filters
+            // Refresh all data
+            this.loadCheckinData();
+            this.loadCheckoutData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
             this.loadReportOptions();
+            
         } catch (error) {
             console.error('Error saving reservation:', error);
             alert('Error saving reservation. Please try again.');
@@ -312,7 +320,9 @@ class ReservationSystem {
 
     async loadFlightOptionsForCheckin() {
         try {
+            const today = document.getElementById('checkinDateFilter').value;
             const snapshot = await this.db.collection('reservations')
+                .where('reservationDate', '==', today)
                 .where('status', '==', 'reserved')
                 .get();
             
@@ -341,6 +351,7 @@ class ReservationSystem {
 
     async loadFlightOptionsForCheckout() {
         try {
+            const today = document.getElementById('checkoutDateFilter').value;
             const snapshot = await this.db.collection('reservations')
                 .where('status', '==', 'checked-in')
                 .get();
@@ -373,8 +384,9 @@ class ReservationSystem {
         const flightFilter = document.getElementById('checkinFlightFilter').value;
         
         try {
+            // Get ALL reserved guests for the selected reservation date
             let query = this.db.collection('reservations')
-                .where('date', '==', date)
+                .where('reservationDate', '==', date)
                 .where('status', '==', 'reserved');
             
             const snapshot = await query.get();
@@ -385,17 +397,21 @@ class ReservationSystem {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center text-muted">
-                            No guests available for check-in on ${date}
+                            No reservations found for ${date}
                         </td>
                     </tr>
                 `;
                 return;
             }
             
+            let hasData = false;
+            
             snapshot.forEach(doc => {
                 const data = doc.data();
+                // Apply flight filter if selected
                 if (flightFilter && data.flightHotel !== flightFilter) return;
                 
+                hasData = true;
                 const row = `
                     <tr>
                         <td>${data.guestName}</td>
@@ -412,6 +428,16 @@ class ReservationSystem {
                 `;
                 tableBody.innerHTML += row;
             });
+            
+            if (!hasData) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No guests match the selected filter for ${date}
+                        </td>
+                    </tr>
+                `;
+            }
         } catch (error) {
             console.error('Error loading check-in data:', error);
             const tableBody = document.getElementById('checkinTable');
@@ -448,10 +474,11 @@ class ReservationSystem {
             
             alert('Guest checked in successfully!');
             
-            // Refresh both check-in and check-out data
+            // Refresh all data
             this.loadCheckinData();
-            this.loadFlightOptionsForCheckout();
             this.loadCheckoutData();
+            this.loadFlightOptionsForCheckin();
+            this.loadFlightOptionsForCheckout();
             
         } catch (error) {
             console.error('Error checking in guest:', error);
@@ -464,6 +491,7 @@ class ReservationSystem {
         const flightFilter = document.getElementById('checkoutFlightFilter').value;
         
         try {
+            // Get ALL checked-in guests (regardless of date)
             let query = this.db.collection('reservations')
                 .where('status', '==', 'checked-in');
             
@@ -475,7 +503,7 @@ class ReservationSystem {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center text-muted">
-                            No checked-in guests available for checkout
+                            No checked-in guests available
                         </td>
                     </tr>
                 `;
@@ -487,10 +515,10 @@ class ReservationSystem {
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
-                // Filter by check-in date
+                // Filter by check-in date if specified
                 if (date && data.checkinDate !== date) return;
                 
-                // Filter by flight/hotel
+                // Filter by flight/hotel if specified
                 if (flightFilter && data.flightHotel !== flightFilter) return;
                 
                 hasData = true;
@@ -515,7 +543,7 @@ class ReservationSystem {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center text-muted">
-                            No guests available for checkout on ${date}
+                            No checked-in guests match the selected filters
                         </td>
                     </tr>
                 `;
@@ -556,8 +584,9 @@ class ReservationSystem {
             
             alert('Guest checked out successfully!');
             
-            // Refresh data
+            // Refresh all data
             this.loadCheckoutData();
+            this.loadReportOptions();
             this.loadFlightOptionsForCheckout();
             
         } catch (error) {
@@ -568,7 +597,7 @@ class ReservationSystem {
 
     async loadReportOptions() {
         try {
-            // Load flight options for report filter
+            // Load flight options for report filter - from ALL checked-out guests
             const snapshot = await this.db.collection('reservations')
                 .where('status', '==', 'checked-out')
                 .get();
@@ -601,32 +630,34 @@ class ReservationSystem {
         const toDate = document.getElementById('reportToDate').value;
         const flightFilter = document.getElementById('reportFlightFilter').value;
         
-        // Validate dates
-        if (fromDate && toDate && fromDate > toDate) {
-            alert('From date cannot be after To date');
-            return;
-        }
-        
         try {
+            // Get ALL checked-out guests first
             let query = this.db.collection('reservations')
                 .where('status', '==', 'checked-out');
-            
-            // Apply date range filter
-            if (fromDate && toDate) {
-                const startDate = new Date(fromDate + 'T00:00:00');
-                const endDate = new Date(toDate + 'T23:59:59');
-                
-                query = query.where('checkoutDateTime', '>=', startDate.toISOString())
-                             .where('checkoutDateTime', '<=', endDate.toISOString());
-            }
             
             const snapshot = await query.get();
             const reservations = [];
             
             snapshot.forEach(doc => {
                 const data = doc.data();
-                // Apply flight filter
+                
+                // Apply date range filter if specified
+                if (fromDate && toDate) {
+                    const checkoutDate = data.checkoutDate || data.checkoutDateTime;
+                    if (!checkoutDate) return;
+                    
+                    const checkoutDateObj = new Date(checkoutDate);
+                    const startDate = new Date(fromDate + 'T00:00:00');
+                    const endDate = new Date(toDate + 'T23:59:59');
+                    
+                    if (checkoutDateObj < startDate || checkoutDateObj > endDate) {
+                        return;
+                    }
+                }
+                
+                // Apply flight filter if specified
                 if (flightFilter && data.flightHotel !== flightFilter) return;
+                
                 reservations.push({ id: doc.id, ...data });
             });
             
