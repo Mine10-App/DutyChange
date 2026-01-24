@@ -4,6 +4,7 @@ class ReservationSystem {
         this.db = firebase.firestore();
         this.customers = new Set();
         this.flightHotels = new Set();
+        this.recentReservations = []; // Store recent reservations
         this.init();
     }
 
@@ -11,6 +12,7 @@ class ReservationSystem {
         this.setupEventListeners();
         this.checkAuth();
         this.loadAutocompleteData();
+        this.loadRecentReservations(); // Load recent reservations on init
     }
 
     async loadAutocompleteData() {
@@ -107,42 +109,42 @@ class ReservationSystem {
         }
     }
 
-   login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    // Hash the password using SHA-256
-    this.hashPasswordSHA256(password).then(hashedPassword => {
-        const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
+    login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
         
-        if (user) {
-            this.currentUser = user;
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            this.showDashboard();
-            this.hideError();
-        } else {
-            this.showError('Invalid username or password');
-        }
-    }).catch(error => {
-        console.error('Error hashing password:', error);
-        this.showError('Login error. Please try again.');
-    });
-}
+        // Hash the password using SHA-256
+        this.hashPasswordSHA256(password).then(hashedPassword => {
+            const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
+            
+            if (user) {
+                this.currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                this.showDashboard();
+                this.hideError();
+            } else {
+                this.showError('Invalid username or password');
+            }
+        }).catch(error => {
+            console.error('Error hashing password:', error);
+            this.showError('Login error. Please try again.');
+        });
+    }
 
-async hashPasswordSHA256(password) {
-    // Convert password to Uint8Array
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    
-    // Hash with SHA-256
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    
-    // Convert to hex string
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    return hashHex;
-}
+    async hashPasswordSHA256(password) {
+        // Convert password to Uint8Array
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        
+        // Hash with SHA-256
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        
+        // Convert to hex string
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        return hashHex;
+    }
 
     showError(message) {
         const errorDiv = document.getElementById('loginError');
@@ -196,6 +198,7 @@ async hashPasswordSHA256(password) {
         this.loadFlightOptionsForCheckin();
         this.loadFlightOptionsForCheckout();
         this.loadReportOptions();
+        this.loadRecentReservations(); // Load recent reservations
     }
 
     logout() {
@@ -213,6 +216,9 @@ async hashPasswordSHA256(password) {
         
         if (usernameInput) usernameInput.value = '';
         if (passwordInput) passwordInput.value = '';
+        
+        // Clear recent reservations
+        this.recentReservations = [];
     }
 
     showCustomerDropdown() {
@@ -349,13 +355,27 @@ async hashPasswordSHA256(password) {
         };
         
         try {
-            await this.db.collection('reservations').add(reservation);
+            const docRef = await this.db.collection('reservations').add(reservation);
             
             // Add to autocomplete sets
             if (customer) this.customers.add(customer);
             if (flightHotel) this.flightHotels.add(flightHotel);
             
             alert('Reservation saved successfully!');
+            
+            // Add to recent reservations list
+            const newReservation = {
+                id: docRef.id,
+                ...reservation
+            };
+            this.recentReservations.unshift(newReservation); // Add to beginning
+            if (this.recentReservations.length > 10) {
+                this.recentReservations = this.recentReservations.slice(0, 10); // Keep only last 10
+            }
+            
+            // Display recent reservations
+            this.displayRecentReservations();
+            
             document.getElementById('reservationForm').reset();
             document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
             
@@ -369,6 +389,218 @@ async hashPasswordSHA256(password) {
         } catch (error) {
             console.error('Error saving reservation:', error);
             alert('Error saving reservation. Please try again.');
+        }
+    }
+
+    async loadRecentReservations() {
+        try {
+            const snapshot = await this.db.collection('reservations')
+                .where('status', '==', 'reserved')
+                .orderBy('createdAt', 'desc')
+                .limit(10)
+                .get();
+            
+            this.recentReservations = [];
+            snapshot.forEach(doc => {
+                this.recentReservations.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            this.displayRecentReservations();
+        } catch (error) {
+            console.error('Error loading recent reservations:', error);
+        }
+    }
+
+    displayRecentReservations() {
+        const container = document.getElementById('recentReservationsContainer');
+        if (!container) return;
+        
+        if (this.recentReservations.length === 0) {
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Recent Reservations</h6>
+                        <p class="text-muted mb-0">No recent reservations found.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">Recent Reservations</h6>
+                        <span class="badge bg-primary">${this.recentReservations.length}</span>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Guest</th>
+                                    <th>Flight/Hotel</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+        `;
+        
+        this.recentReservations.forEach(res => {
+            const time = new Date(res.createdAt).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            html += `
+                <tr onclick="app.showReservationDetails('${res.id}')" style="cursor: pointer;">
+                    <td>${res.guestName}</td>
+                    <td>${res.flightHotel}</td>
+                    <td>${res.customer}</td>
+                    <td>
+                        <span class="badge bg-warning text-dark">Reserved</span>
+                    </td>
+                    <td>${time}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+
+    async showReservationDetails(reservationId) {
+        try {
+            const doc = await this.db.collection('reservations').doc(reservationId).get();
+            if (!doc.exists) {
+                alert('Reservation not found!');
+                return;
+            }
+            
+            const reservation = doc.data();
+            
+            // Create modal for details
+            const modalHtml = `
+                <div class="modal fade" id="reservationDetailsModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Reservation Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Guest Name:</strong></label>
+                                            <p>${reservation.guestName}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Customer:</strong></label>
+                                            <p>${reservation.customer}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Flight/Hotel:</strong></label>
+                                            <p>${reservation.flightHotel}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>ETA:</strong></label>
+                                            <p>${reservation.eta}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Direction:</strong></label>
+                                            <p>${reservation.direction}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Nationality:</strong></label>
+                                            <p>${reservation.nationality}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Reservation Date:</strong></label>
+                                            <p>${reservation.reservationDate}</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Status:</strong></label>
+                                            <span class="badge bg-warning text-dark">${reservation.status}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label"><strong>Created:</strong></label>
+                                    <p>${new Date(reservation.createdAt).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('reservationDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('reservationDetailsModal'));
+            modal.show();
+            
+        } catch (error) {
+            console.error('Error loading reservation details:', error);
+            alert('Error loading reservation details.');
+        }
+    }
+
+    async deleteReservation(reservationId) {
+        if (!confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            await this.db.collection('reservations').doc(reservationId).delete();
+            
+            // Remove from recent reservations
+            this.recentReservations = this.recentReservations.filter(res => res.id !== reservationId);
+            
+            // Refresh display
+            this.displayRecentReservations();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reservationDetailsModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            alert('Reservation deleted successfully!');
+            
+            // Refresh other data
+            this.loadCheckinData();
+            this.loadCheckoutData();
+            
+        } catch (error) {
+            console.error('Error deleting reservation:', error);
+            alert('Error deleting reservation. Please try again.');
         }
     }
 
@@ -535,6 +767,7 @@ async hashPasswordSHA256(password) {
             this.loadCheckoutData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
+            this.loadRecentReservations(); // Refresh recent reservations
             
         } catch (error) {
             console.error('Error checking in guest:', error);
@@ -645,6 +878,7 @@ async hashPasswordSHA256(password) {
             this.loadCheckoutData();
             this.loadReportOptions();
             this.loadFlightOptionsForCheckout();
+            this.loadRecentReservations(); // Refresh recent reservations
             
         } catch (error) {
             console.error('Error checking out guest:', error);
