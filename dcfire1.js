@@ -21,9 +21,20 @@ let messaging = null;
 if (firebase.messaging.isSupported()) {
     messaging = firebase.messaging();
     
-    // Use your own generated VAPID key
-    // Get this from Firebase Console -> Project Settings -> Cloud Messaging
-    messaging.usePublicVapidKey('BLxqOa9X4sGjKpLmNzQwErTyUiOpAsDfGhJkLzXcVbNqWeRtYuIoPaSdFgHjKlMn');
+    // For FCM V1 - Get VAPID key from Firebase Console
+    // Go to: Project Settings -> Cloud Messaging -> Web Configuration
+    messaging.getToken({
+        vapidKey: "BNld9EIubEB5i3S9IpuJmSgmJcw-u0z1ZEEtqSi3YGAoo8Y3FH0vm94GrqNKCcW2Kptv9wV76V4zzLSNDdSeoYo" // Your VAPID key here
+    }).then((currentToken) => {
+        if (currentToken) {
+            console.log('FCM Token:', currentToken);
+            // Token will be saved when user logs in
+        } else {
+            console.log('No registration token available.');
+        }
+    }).catch((err) => {
+        console.log('An error occurred while retrieving token:', err);
+    });
 }
 
 // Enable offline persistence
