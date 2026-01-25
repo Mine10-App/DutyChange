@@ -23,6 +23,10 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
     <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <!-- Manifest for PWA -->
     <link rel="manifest" href="data:application/manifest+json,{
@@ -1479,713 +1483,703 @@
     <script>
         // Mobile Duty Management System
         let currentUser = null;
-        let allUsers = [];
-        let dutyRoster = {};
-        let leaveBalances = {};
-        let allRequests = [];
-        let announcements = [];
-        let isMobile = false;
-        let currentToastId = 0;
-        let lastCheckTime = new Date();
-        let rosterViewMode = 'grid'; // 'grid' or 'calendar'
+    let allUsers = [];
+    let dutyRoster = {};
+    let leaveBalances = {};
+    let allRequests = [];
+    let announcements = [];
+    let isMobile = false;
+    let currentToastId = 0;
+    let messaging = null;
+    let fcmToken = null;
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', function() {
-            detectMobile();
-            initApp();
-            registerServiceWorker();
-            checkPWAInstall();
-        });
+    // Firebase Configuration - GET THESE FROM FIREBASE CONSOLE
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-        function detectMobile() {
-            isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                document.body.classList.add('mobile');
-            }
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', async function() {
+        detectMobile();
+        await initializeFirebase();
+        initApp();
+    });
+
+    function detectMobile() {
+        isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            document.body.classList.add('mobile');
         }
+    }
 
-        // PWA Service Worker Registration
-        async function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered successfully:', registration);
-                    
-                    // Check for updates
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        console.log('New service worker found:', newWorker);
-                        
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                showToast('New version available! Refresh to update.', 'info');
-                            }
-                        });
-                    });
-                    
-                    return registration;
-                } catch (error) {
-                    console.error('Service Worker registration failed:', error);
-                    showToast('Offline mode not available', 'warning');
-                }
-            }
-            return null;
-        }
-
-        // PWA Install Prompt
-        let deferredPrompt;
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showInstallButton();
-        });
-        
-        function showInstallButton() {
-            // Only show install prompt if not already installed
-            if (!isRunningStandalone() && deferredPrompt) {
-                setTimeout(() => {
-                    const installBtn = document.createElement('button');
-                    installBtn.innerHTML = '📱 Install App';
-                    installBtn.style.cssText = `
-                        position: fixed;
-                        bottom: 90px;
-                        right: 15px;
-                        z-index: 1000;
-                        background: linear-gradient(135deg, #2c3e50, #3498db);
-                        color: white;
-                        border: none;
-                        padding: 12px 20px;
-                        border-radius: 50px;
-                        font-weight: bold;
-                        font-size: 14px;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        cursor: pointer;
-                        animation: pulse 2s infinite;
-                    `;
-                    
-                    installBtn.onclick = async () => {
-                        installBtn.style.display = 'none';
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        console.log(`User response to install prompt: ${outcome}`);
-                        deferredPrompt = null;
-                    };
-                    
-                    document.body.appendChild(installBtn);
-                    
-                    // Auto-remove after 30 seconds
-                    setTimeout(() => {
-                        if (installBtn.parentNode) {
-                            installBtn.style.opacity = '0';
-                            installBtn.style.transform = 'translateY(20px)';
-                            setTimeout(() => {
-                                if (installBtn.parentNode) {
-                                    document.body.removeChild(installBtn);
-                                }
-                            }, 300);
-                        }
-                    }, 30000);
-                }, 5000);
-            }
-        }
-        
-        function isRunningStandalone() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
-                   window.navigator.standalone ||
-                   document.referrer.includes('android-app://');
-        }
-        
-        function checkPWAInstall() {
-            if (isRunningStandalone()) {
-                console.log('Running as installed PWA');
-                document.body.classList.add('pwa-installed');
-                showToast('Running in app mode', 'success', 2000);
-            }
-        }
-
-        // Add CSS for install button animation
-        const installStyle = document.createElement('style');
-        installStyle.textContent = `
-            @keyframes pulse {
-                0% { transform: scale(1); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-                50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-                100% { transform: scale(1); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-            }
-        `;
-        document.head.appendChild(installStyle);
-
-        function showLoading(show, text = 'Loading...') {
-            const overlay = document.getElementById('loadingOverlay');
-            const textEl = document.getElementById('loadingText');
-            if (overlay) {
-                if (show) {
-                    overlay.classList.add('active');
-                    if (textEl) textEl.textContent = text;
-                } else {
-                    overlay.classList.remove('active');
-                }
-            }
-        }
-
-        function showToast(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
+    // Initialize Firebase
+    async function initializeFirebase() {
+        try {
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
             
-            const toastId = 'toast-' + (++currentToastId);
-            const toast = document.createElement('div');
-            toast.id = toastId;
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <span class="toast-icon">
-                    ${type === 'success' ? '✅' : 
-                      type === 'error' ? '❌' : 
-                      type === 'warning' ? '⚠️' : 'ℹ️'}
-                </span>
-                <span>${message}</span>
-            `;
+            // Initialize Firestore
+            window.db = firebase.firestore();
             
-            container.appendChild(toast);
+            // Initialize Firebase Cloud Messaging
+            if (firebase.messaging.isSupported()) {
+                messaging = firebase.messaging();
+                
+                // Request notification permission
+                await requestNotificationPermission();
+                
+                // Get FCM token
+                await getFCMToken();
+                
+                // Listen for messages
+                setupMessageHandlers();
+            }
             
-            // Remove after duration
-            setTimeout(() => {
-                const toastElem = document.getElementById(toastId);
-                if (toastElem) {
-                    toastElem.style.opacity = '0';
-                    toastElem.style.transform = 'translateX(100%)';
-                    setTimeout(() => {
-                        if (toastElem.parentNode) {
-                            toastElem.parentNode.removeChild(toastElem);
-                        }
-                    }, 300);
-                }
-            }, duration);
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            showToast('Push notifications not available', 'warning');
         }
+    }
 
-        // PWA NOTIFICATION SYSTEM
-        async function requestNotificationPermission() {
-            if ("Notification" in window) {
-                try {
-                    const permission = await Notification.requestPermission();
-                    
-                    if (permission === "granted") {
-                        console.log("Notification permission granted");
-                        showToast("Notifications enabled!", "success");
-                        
-                        // Start checking for new notifications
-                        startNotificationPolling();
-                        
-                        // Register with service worker for background notifications
-                        await registerForBackgroundNotifications();
-                        
-                        return true;
-                    } else if (permission === "denied") {
-                        console.log("Notification permission denied");
-                        showToast("Notifications disabled. You won't receive alerts.", "warning");
-                        return false;
-                    }
-                } catch (error) {
-                    console.error("Error requesting notification permission:", error);
-                    return false;
-                }
+    // Request Notification Permission
+    async function requestNotificationPermission() {
+        try {
+            // Request permission for notifications
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                console.log('Notification permission granted');
+                showToast('Notifications enabled!', 'success');
+                return true;
             } else {
-                console.log("This browser does not support notifications");
-                showToast("Your browser doesn't support notifications", "warning");
+                console.log('Notification permission denied');
+                showToast('Notifications disabled. You won\'t receive alerts.', 'warning');
                 return false;
             }
-        }
-
-        async function registerForBackgroundNotifications() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    const registration = await navigator.serviceWorker.ready;
-                    
-                    // Store user info in service worker for background sync
-                    if (currentUser) {
-                        localStorage.setItem('currentUser', JSON.stringify({
-                            username: currentUser.username,
-                            name: currentUser.name,
-                            rcNo: currentUser.rcNo
-                        }));
-                    }
-                    
-                    console.log("Registered for background notifications");
-                    
-                    // Set up message listener for service worker
-                    navigator.serviceWorker.addEventListener('message', event => {
-                        console.log('Message from service worker:', event.data);
-                        
-                        if (event.data.type === 'NEW_ANNOUNCEMENT') {
-                            showPWAAnnouncementNotification(event.data.announcement);
-                        } else if (event.data.type === 'NEW_REQUEST') {
-                            showPWARequestNotification(event.data.request);
-                        } else if (event.data.type === 'NETWORK_STATUS') {
-                            if (!event.data.online) {
-                                showToast('You are offline. Some features may not work.', 'warning');
-                            }
-                        }
-                    });
-                    
-                    return true;
-                } catch (error) {
-                    console.error("Error registering for background notifications:", error);
-                    return false;
-                }
-            }
+        } catch (error) {
+            console.error('Error requesting notification permission:', error);
             return false;
         }
+    }
 
-        function showPWAAnnouncementNotification(announcement) {
-            if (!currentUser) return;
+    // Get FCM Token
+    async function getFCMToken() {
+        try {
+            if (!messaging) return;
             
-            // Check if announcement is for current user
-            const isForMe = announcement.target === 'all' || 
-                           (announcement.target === 'specific' && announcement.targetUsers && 
-                            announcement.targetUsers.includes(currentUser.username));
-            
-            if (isForMe) {
-                showBrowserNotification(
-                    '📢 New Announcement',
-                    announcement.title,
-                    { 
-                        type: 'announcement', 
-                        id: announcement.id,
-                        body: announcement.content,
-                        timestamp: announcement.createdAt
-                    }
-                );
-                
-                // Show in-app toast
-                showToast(`📢 ${announcement.title}`, 'info');
-            }
-        }
-
-        function showPWARequestNotification(request) {
-            if (!currentUser) return;
-            
-            // Check if request is for current user
-            if (request.toUsername === currentUser.username && request.status === 'pending') {
-                showBrowserNotification(
-                    '🔄 Duty Change Request',
-                    `${request.fromName} wants to swap duty on ${request.date}`,
-                    { 
-                        type: 'request', 
-                        id: request.id,
-                        fromName: request.fromName,
-                        date: request.date,
-                        dutyTime: request.dutyTime,
-                        toDutyTime: request.toDutyTime
-                    }
-                );
-                
-                // Show in-app toast
-                showToast(`🔄 New duty change request from ${request.fromName}`, 'info');
-            }
-        }
-
-        function showBrowserNotification(title, message, data = {}) {
-            // Check if browser supports notifications
-            if (!("Notification" in window)) {
-                console.log("This browser does not support desktop notification");
-                return null;
-            }
-            
-            // Check if permission is granted
-            if (Notification.permission === "granted") {
-                return createBrowserNotification(title, message, data);
-            } else if (Notification.permission !== "denied") {
-                // Request permission
-                requestNotificationPermission().then(hasPermission => {
-                    if (hasPermission) {
-                        createBrowserNotification(title, message, data);
-                    }
-                });
-            }
-            
-            return null;
-        }
-
-        function createBrowserNotification(title, message, data) {
-            const icon = data.type === 'announcement' ? '📢' : 
-                        data.type === 'request' ? '🔄' : 
-                        data.type === 'leave' ? '📅' : 'ℹ️';
-            
-            const notification = new Notification(`${icon} ${title}`, {
-                body: message,
-                icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%233498db"/%3E%3C/svg%3E',
-                badge: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%23e74c3c"/%3E%3C/svg%3E',
-                requireInteraction: true,
-                tag: 'duty-manager-' + data.type,
-                silent: false,
-                data: data
+            // Request permission and get token
+            fcmToken = await messaging.getToken({ 
+                vapidKey: 'YOUR_VAPID_KEY_HERE' // Get from Firebase Console -> Cloud Messaging
             });
             
+            if (fcmToken) {
+                console.log('FCM Token:', fcmToken);
+                
+                // Save token to Firestore for current user
+                await saveUserFCMToken(fcmToken);
+                
+                return fcmToken;
+            } else {
+                console.log('No FCM token available');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error getting FCM token:', error);
+            return null;
+        }
+    }
+
+    // Save FCM Token to Firestore
+    async function saveUserFCMToken(token) {
+        try {
+            if (!currentUser) return;
+            
+            await db.collection('userTokens').doc(currentUser.username).set({
+                fcmToken: token,
+                username: currentUser.username,
+                name: currentUser.name,
+                lastUpdated: new Date().toISOString(),
+                deviceInfo: {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language
+                }
+            }, { merge: true });
+            
+            console.log('FCM token saved for user:', currentUser.username);
+        } catch (error) {
+            console.error('Error saving FCM token:', error);
+        }
+    }
+
+    // Setup Firebase Message Handlers
+    function setupMessageHandlers() {
+        if (!messaging) return;
+        
+        // Handle messages when app is in foreground
+        messaging.onMessage((payload) => {
+            console.log('Message received in foreground:', payload);
+            showPushNotification(payload);
+        });
+        
+        // Handle token refresh
+        messaging.onTokenRefresh(async () => {
+            console.log('FCM token refreshed');
+            fcmToken = await getFCMToken();
+        });
+    }
+
+    // Show Push Notification
+    function showPushNotification(payload) {
+        const { notification, data } = payload;
+        
+        // Check if notification is for current user
+        const isForCurrentUser = !data || !data.targetUser || data.targetUser === currentUser?.username;
+        
+        if (!isForCurrentUser) return;
+        
+        // Show browser notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+            const notificationOptions = {
+                body: notification?.body || 'New notification',
+                icon: notification?.icon || '/icon.png',
+                badge: '/badge.png',
+                tag: 'duty-manager-notification',
+                requireInteraction: true,
+                silent: false,
+                vibrate: [200, 100, 200],
+                data: data || {}
+            };
+            
+            const title = notification?.title || 'Duty Manager';
+            
+            const pushNotification = new Notification(title, notificationOptions);
+            
             // Handle notification click
-            notification.onclick = function() {
+            pushNotification.onclick = function() {
                 window.focus();
                 this.close();
                 
-                // Navigate to relevant section based on notification type
-                if (data.type === 'announcement') {
+                // Navigate based on notification type
+                if (data?.type === 'announcement') {
                     showSection('home');
-                } else if (data.type === 'request') {
+                } else if (data?.type === 'duty_change_request') {
                     showSection('pendingRequests');
-                } else if (data.type === 'leave') {
+                } else if (data?.type === 'leave_request') {
+                    if (currentUser?.level === 'Supervisor') {
+                        showSection('adminApprovals');
+                    }
+                } else if (data?.type === 'request_response') {
                     showSection('myRequests');
                 }
             };
             
-            // Handle notification close
-            notification.onclose = function() {
-                console.log('Notification closed');
+            // Show toast notification
+            showToast(notification?.body || title, 'info');
+            
+            return pushNotification;
+        }
+    }
+
+    // Send Push Notification to User
+    async function sendPushNotificationToUser(username, title, body, data = {}) {
+        try {
+            // This requires a Cloud Function. Here's the structure:
+            const notificationData = {
+                title: title,
+                body: body,
+                data: {
+                    ...data,
+                    targetUser: username,
+                    timestamp: new Date().toISOString()
+                },
+                icon: '/icon.png'
             };
             
-            // Auto-close notification after 15 seconds
-            setTimeout(() => {
-                notification.close();
-            }, 15000);
+            // For now, we'll save to Firestore and a Cloud Function will send it
+            await db.collection('notificationsQueue').add({
+                targetUser: username,
+                notification: notificationData,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
             
-            return notification;
+            console.log('Notification queued for user:', username);
+            
+            // Also show immediate notification if user is online
+            if (currentUser && currentUser.username === username) {
+                showPushNotification({
+                    notification: { title, body },
+                    data: data
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error sending push notification:', error);
         }
+    }
 
-        // Check for new announcements and requests
-        function startNotificationPolling() {
-            // Check every 30 seconds for new items
-            const pollInterval = setInterval(() => {
-                if (!currentUser) {
-                    clearInterval(pollInterval);
+    // Send Bulk Notifications
+    async function sendBulkNotifications(userIds, title, body, data = {}) {
+        try {
+            for (const userId of userIds) {
+                await sendPushNotificationToUser(userId, title, body, data);
+            }
+        } catch (error) {
+            console.error('Error sending bulk notifications:', error);
+        }
+    }
+
+    // Check for pending notifications periodically
+    function startNotificationChecker() {
+        if (!currentUser) return;
+        
+        // Check every 60 seconds
+        setInterval(async () => {
+            await checkForNewNotifications();
+        }, 60000);
+    }
+
+    async function checkForNewNotifications() {
+        try {
+            if (!currentUser) return;
+            
+            const now = new Date();
+            const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
+            
+            // Check for new announcements
+            const newAnnouncements = announcements.filter(ann => {
+                if (!ann.createdAt) return false;
+                const createdTime = new Date(ann.createdAt);
+                return createdTime > fiveMinutesAgo && 
+                       (ann.target === 'all' || 
+                       (ann.target === 'specific' && ann.targetUsers && 
+                        ann.targetUsers.includes(currentUser.username)));
+            });
+            
+            // Check for new duty change requests
+            const newRequests = allRequests.filter(req => {
+                if (!req.timestamp) return false;
+                const requestTime = new Date(req.timestamp);
+                return requestTime > fiveMinutesAgo &&
+                       req.type === 'dutyChange' &&
+                       req.toUsername === currentUser.username &&
+                       req.status === 'pending';
+            });
+            
+            // Send notifications for new items
+            newAnnouncements.forEach(ann => {
+                sendPushNotificationToUser(
+                    currentUser.username,
+                    '📢 New Announcement',
+                    ann.title,
+                    { type: 'announcement', id: ann.id }
+                );
+            });
+            
+            newRequests.forEach(req => {
+                sendPushNotificationToUser(
+                    currentUser.username,
+                    '🔄 Duty Change Request',
+                    `${req.fromName} wants to swap duty on ${req.date}`,
+                    { 
+                        type: 'duty_change_request', 
+                        id: req.id,
+                        fromName: req.fromName,
+                        date: req.date 
+                    }
+                );
+            });
+            
+        } catch (error) {
+            console.error('Error checking notifications:', error);
+        }
+    }
+
+    // ==================== CLOUD FUNCTION (Required) ====================
+    // You need to deploy this Cloud Function to Firebase
+    
+    /*
+    // functions/index.js
+    const functions = require('firebase-functions');
+    const admin = require('firebase-admin');
+    admin.initializeApp();
+    
+    exports.sendPushNotification = functions.firestore
+        .document('notificationsQueue/{notificationId}')
+        .onCreate(async (snap, context) => {
+            const notificationData = snap.data();
+            
+            try {
+                // Get user's FCM token
+                const userTokenDoc = await admin.firestore()
+                    .collection('userTokens')
+                    .doc(notificationData.targetUser)
+                    .get();
+                
+                if (!userTokenDoc.exists) {
+                    console.log('User token not found:', notificationData.targetUser);
                     return;
                 }
                 
-                checkForNewNotifications();
+                const userToken = userTokenDoc.data().fcmToken;
                 
-            }, 30000); // Check every 30 seconds
-            
-            // Initial check
-            setTimeout(checkForNewNotifications, 5000);
-        }
-
-        async function checkForNewNotifications() {
-            if (!currentUser) return;
-            
-            try {
-                // Get current time
-                const now = new Date();
-                
-                // Check for new announcements
-                const newAnnouncements = announcements.filter(ann => {
-                    if (!ann.createdAt) return false;
-                    const createdTime = new Date(ann.createdAt);
-                    return createdTime > lastCheckTime && 
-                           (ann.target === 'all' || 
-                           (ann.target === 'specific' && ann.targetUsers && 
-                            ann.targetUsers.includes(currentUser.username)));
-                });
-                
-                // Check for new duty change requests
-                const newRequests = allRequests.filter(req => {
-                    if (!req.timestamp) return false;
-                    const requestTime = new Date(req.timestamp);
-                    return requestTime > lastCheckTime &&
-                           req.type === 'dutyChange' &&
-                           req.toUsername === currentUser.username &&
-                           req.status === 'pending';
-                });
-                
-                // Check for new leave applications (for supervisors)
-                const newLeaveRequests = allRequests.filter(req => {
-                    if (!req.timestamp) return false;
-                    const requestTime = new Date(req.timestamp);
-                    return requestTime > lastCheckTime &&
-                           req.type === 'leave' &&
-                           req.status === 'pending' &&
-                           currentUser.level === 'Supervisor';
-                });
-                
-                // Check for request responses
-                const newResponses = allRequests.filter(req => {
-                    if (!req.respondedAt) return false;
-                    const responseTime = new Date(req.respondedAt);
-                    return responseTime > lastCheckTime &&
-                           req.fromUsername === currentUser.username &&
-                           req.status !== 'pending';
-                });
-                
-                // Show notifications
-                newAnnouncements.forEach(ann => {
-                    showBrowserNotification(
-                        'New Announcement',
-                        ann.title,
-                        { type: 'announcement', id: ann.id }
-                    );
-                    showToast(`📢 ${ann.title}`, 'info');
-                });
-                
-                newRequests.forEach(req => {
-                    showBrowserNotification(
-                        'Duty Change Request',
-                        `${req.fromName} wants to swap duty on ${req.date}`,
-                        { type: 'request', id: req.id }
-                    );
-                    showToast(`🔄 New duty change request from ${req.fromName}`, 'info');
-                });
-                
-                newLeaveRequests.forEach(req => {
-                    showBrowserNotification(
-                        'Leave Application',
-                        `${req.fromName} applied for ${req.leaveType} on ${req.date}`,
-                        { type: 'leave', id: req.id }
-                    );
-                    showToast(`📅 New leave application from ${req.fromName}`, 'info');
-                });
-                
-                newResponses.forEach(req => {
-                    showBrowserNotification(
-                        'Request ' + (req.status === 'approved' ? 'Approved' : 'Rejected'),
-                        `${req.respondedBy || 'Supervisor'} ${req.status} your request`,
-                        { type: 'request_response', id: req.id }
-                    );
-                    showToast(`✅ Your request was ${req.status}`, req.status === 'approved' ? 'success' : 'warning');
-                });
-                
-                // Update last check time
-                lastCheckTime = now;
-                
-            } catch (error) {
-                console.error('Error checking notifications:', error);
-            }
-        }
-
-        // Offline Functionality
-        function setupOfflineSupport() {
-            // Listen for online/offline events
-            window.addEventListener('online', () => {
-                showToast('Back online! Syncing data...', 'success');
-                setTimeout(syncOfflineData, 1000);
-            });
-            
-            window.addEventListener('offline', () => {
-                showToast('You are offline. Working in offline mode.', 'warning');
-            });
-            
-            // Check initial status
-            if (!navigator.onLine) {
-                showToast('You are offline. Some features may not work.', 'warning');
-            }
-        }
-
-        async function syncOfflineData() {
-            try {
-                showLoading(true, 'Syncing data...');
-                
-                // Reload all data from Firebase
-                await Promise.all([
-                    loadDutyRoster(),
-                    loadLeaveBalances(),
-                    loadAllRequests(),
-                    loadAnnouncements()
-                ]);
-                
-                // Update UI
-                updateUserBalance();
-                updateRequestCounts();
-                loadHomeAnnouncements();
-                
-                showLoading(false);
-                showToast('Data synced successfully!', 'success');
-            } catch (error) {
-                console.error('Error syncing data:', error);
-                showLoading(false);
-                showToast('Sync failed. Please check your connection.', 'error');
-            }
-        }
-
-        function initApp() {
-            // Setup login form
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    handleLogin();
-                });
-            }
-            
-            // Setup mobile navigation
-            setupMobileNavigation();
-            
-            // Set minimum dates
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('changeDate').min = today;
-            document.getElementById('leaveDate').min = today;
-            
-            // Set default dates
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
-            document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
-            
-            // Set default roster dates (next 7 days)
-            const nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            document.getElementById('myRosterStartDate').value = today;
-            document.getElementById('myRosterEndDate').value = nextWeek.toISOString().split('T')[0];
-            document.getElementById('allRosterStartDate').value = today;
-            document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
-            
-            // Setup offline support
-            setupOfflineSupport();
-            
-            // Check session
-            checkSession();
-        }
-
-        function setupMobileNavigation() {
-            const menuToggle = document.getElementById('menuToggle');
-            const mobileNav = document.getElementById('mobileNav');
-            const mobileNavOverlay = document.getElementById('mobileNavOverlay');
-            
-            if (menuToggle && mobileNav && mobileNavOverlay) {
-                menuToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    mobileNav.classList.add('active');
-                    mobileNavOverlay.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-                
-                mobileNavOverlay.addEventListener('click', function() {
-                    mobileNav.classList.remove('active');
-                    mobileNavOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                // Close menu when clicking a nav item
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        mobileNav.classList.remove('active');
-                        mobileNavOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                        
-                        const sectionId = this.getAttribute('data-section');
-                        showSection(sectionId);
-                    });
-                });
-            }
-        }
-
-        function checkSession() {
-            const session = localStorage.getItem('dutySystemSession');
-            if (session) {
-                try {
-                    const user = JSON.parse(session);
-                    if (user.expiry > Date.now()) {
-                        loginUser(user);
-                    } else {
-                        localStorage.removeItem('dutySystemSession');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('dutySystemSession');
+                if (!userToken) {
+                    console.log('No FCM token for user:', notificationData.targetUser);
+                    return;
                 }
-            }
-        }
-
-        async function handleLogin() {
-            showLoading(true, 'Authenticating...');
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            if (!username || !password) {
-                showToast('Please enter both username and password', 'warning');
-                showLoading(false);
-                return;
-            }
-            
-            if (!users || !Array.isArray(users)) {
-                showToast('System error. Please try again.', 'error');
-                showLoading(false);
-                return;
-            }
-            
-            const user = users.find(u => u.username === username);
-            
-            if (!user) {
-                showToast('Invalid username or password', 'error');
-                showLoading(false);
-                return;
-            }
-            
-            // Hash and check password
-            const hashedPassword = sha256(password);
-            
-            if (hashedPassword === user.passwordHash) {
-                const sessionData = {
-                    username: user.username,
-                    name: user.name,
-                    rcNo: user.RCNo,
-                    level: user.Level,
-                    expiry: Date.now() + (8 * 60 * 60 * 1000)
+                
+                // Prepare notification payload
+                const message = {
+                    token: userToken,
+                    notification: notificationData.notification,
+                    data: notificationData.notification.data || {},
+                    android: {
+                        priority: 'high',
+                        notification: {
+                            sound: 'default',
+                            channelId: 'duty_manager_channel'
+                        }
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                sound: 'default',
+                                badge: 1
+                            }
+                        }
+                    }
                 };
                 
-                localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
-                await loginUser(sessionData);
-                showLoading(false);
-            } else {
-                showToast('Invalid username or password', 'error');
-                showLoading(false);
+                // Send notification
+                const response = await admin.messaging().send(message);
+                console.log('Push notification sent:', response);
+                
+                // Update status
+                await snap.ref.update({
+                    status: 'sent',
+                    sentAt: new Date().toISOString()
+                });
+                
+            } catch (error) {
+                console.error('Error sending push notification:', error);
+                await snap.ref.update({
+                    status: 'failed',
+                    error: error.message,
+                    failedAt: new Date().toISOString()
+                });
+            }
+        });
+    */
+
+    // Update your existing functions to send notifications
+
+    async function submitDutyChange() {
+        // Your existing code...
+        
+        const request = {
+            id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'dutyChange',
+            fromUsername: currentUser.username,
+            fromName: currentUser.name,
+            fromRcNo: currentUser.rcNo,
+            date: date,
+            dutyTime: dutyTime,
+            toUsername: toStaff,
+            toName: toUser.name,
+            toRcNo: toUser.RCNo,
+            toDutyTime: toDutyTime,
+            reason: reason,
+            status: 'pending',
+            timestamp: new Date().toISOString(),
+            history: [{
+                action: 'created',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            }]
+        };
+        
+        allRequests.push(request);
+        
+        const success = await saveAllRequests();
+        if (success) {
+            // SEND PUSH NOTIFICATION TO THE RECIPIENT
+            await sendPushNotificationToUser(
+                toStaff,
+                '🔄 Duty Change Request',
+                `${currentUser.name} wants to swap duty on ${date}`,
+                { 
+                    type: 'duty_change_request', 
+                    id: request.id,
+                    fromName: currentUser.name,
+                    date: date
+                }
+            );
+            
+            updateRequestCounts();
+            showToast('Duty change request submitted!', 'success');
+            showSection('home');
+            document.getElementById('dutyChangeForm').reset();
+        }
+    }
+
+    async function createAnnouncement() {
+        // Your existing code...
+        
+        const announcement = {
+            id: 'ann_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            title: title,
+            content: content,
+            priority: priority,
+            target: 'all',
+            createdBy: currentUser.name,
+            createdByUsername: currentUser.username,
+            createdAt: new Date().toISOString(),
+            status: 'active'
+        };
+        
+        announcements.push(announcement);
+        
+        const success = await saveAnnouncements();
+        if (success) {
+            showToast('Announcement created!', 'success');
+            document.getElementById('announcementForm').reset();
+            loadAnnouncementsAdmin();
+            loadHomeAnnouncements();
+            
+            // SEND PUSH NOTIFICATIONS TO ALL USERS
+            const regularUsers = allUsers.filter(user => user.Level === 'User');
+            const userIds = regularUsers.map(user => user.username);
+            
+            await sendBulkNotifications(
+                userIds,
+                '📢 New Announcement',
+                title,
+                { type: 'announcement', id: announcement.id }
+            );
+        }
+    }
+
+    async function respondToRequest(requestId, response) {
+        // Your existing code...
+        
+        if (response === 'approved') {
+            // Swap duty times
+            const date = request.date;
+            if (dutyRoster[date]) {
+                const fromDuty = dutyRoster[date][request.fromUsername];
+                const toDuty = dutyRoster[date][request.toUsername];
+                
+                dutyRoster[date][request.fromUsername] = toDuty;
+                dutyRoster[date][request.toUsername] = fromDuty;
+                
+                await saveDutyRoster();
             }
         }
-
-        async function loginUser(userData) {
-            currentUser = userData;
-            allUsers = users || [];
-            
-            // Update UI
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('dashboardContainer').style.display = 'block';
-            
-            // Update user info
-            document.getElementById('mobileTitle').textContent = 'Dashboard';
-            document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
-            document.getElementById('navUserName').textContent = userData.name;
-            document.getElementById('navUserRC').textContent = userData.rcNo;
-            document.getElementById('navUserLevel').textContent = userData.level;
-            document.getElementById('welcomeName').textContent = userData.name;
-            
-            // Show/hide admin sections
-            const isAdmin = userData.level === 'Supervisor';
-            document.querySelectorAll('.admin-nav').forEach(el => {
-                el.style.display = isAdmin ? 'flex' : 'none';
-            });
-            
-            // Load data
-            await initializeData();
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Request notification permission
-            requestNotificationPermission();
-            
-            // Show welcome
-            showToast(`Welcome back, ${userData.name}!`, 'success');
-            
-            // Show immediate notification if there are pending requests
-            setTimeout(() => {
-                const pendingRequests = allRequests.filter(req => 
-                    req.status === 'pending' && 
-                    req.type === 'dutyChange' && 
-                    req.toUsername === currentUser.username
-                );
-                
-                if (pendingRequests.length > 0) {
-                    showBrowserNotification(
-                        'Pending Requests',
-                        `You have ${pendingRequests.length} pending duty change request(s)`,
-                        { type: 'request' }
-                    );
+        
+        request.status = response;
+        request.respondedAt = new Date().toISOString();
+        request.respondedBy = currentUser.name;
+        request.history.push({
+            action: response,
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            // SEND PUSH NOTIFICATION TO REQUESTER
+            await sendPushNotificationToUser(
+                request.fromUsername,
+                response === 'approved' ? '✅ Request Approved' : '❌ Request Rejected',
+                `${currentUser.name} ${response} your duty change request`,
+                { 
+                    type: 'request_response', 
+                    id: request.id,
+                    status: response,
+                    responder: currentUser.name
                 }
-            }, 2000);
+            );
+            
+            showToast(`Request ${response} successfully!`, 'success');
+            showSection('home');
+            updateRequestCounts();
         }
+    }
+
+    // Service Worker Registration for Background Notifications
+    async function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                // Register the service worker
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('Service Worker registered for push notifications:', registration);
+                
+                // Pass the Firebase config to the service worker
+                navigator.serviceWorker.ready.then((registration) => {
+                    registration.active.postMessage({
+                        type: 'FIREBASE_CONFIG',
+                        config: firebaseConfig
+                    });
+                });
+                
+                return registration;
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    // Initialize the app
+    async function initApp() {
+        // Register service worker first
+        await registerServiceWorker();
+        
+        // Setup login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+        }
+        
+        // Setup mobile navigation
+        setupMobileNavigation();
+        
+        // Set minimum dates
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('changeDate').min = today;
+        document.getElementById('leaveDate').min = today;
+        
+        // Set default dates
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+        
+        // Set default roster dates
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        document.getElementById('myRosterStartDate').value = today;
+        document.getElementById('myRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+        document.getElementById('allRosterStartDate').value = today;
+        document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+        
+        // Check session
+        checkSession();
+    }
+
+    async function loginUser(userData) {
+        currentUser = userData;
+        allUsers = users || [];
+        
+        // Update UI
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'block';
+        
+        // Update user info
+        document.getElementById('mobileTitle').textContent = 'Dashboard';
+        document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
+        document.getElementById('navUserName').textContent = userData.name;
+        document.getElementById('navUserRC').textContent = userData.rcNo;
+        document.getElementById('navUserLevel').textContent = userData.level;
+        document.getElementById('welcomeName').textContent = userData.name;
+        
+        // Show/hide admin sections
+        const isAdmin = userData.level === 'Supervisor';
+        document.querySelectorAll('.admin-nav').forEach(el => {
+            el.style.display = isAdmin ? 'flex' : 'none';
+        });
+        
+        // Load data
+        await initializeData();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Start notification checker
+        startNotificationChecker();
+        
+        // Show welcome
+        showToast(`Welcome back, ${userData.name}!`, 'success');
+        
+        // Check for pending requests and send notification
+        setTimeout(() => {
+            const pendingRequests = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            );
+            
+            if (pendingRequests.length > 0) {
+                sendPushNotificationToUser(
+                    currentUser.username,
+                    '📋 Pending Requests',
+                    `You have ${pendingRequests.length} pending duty change request(s)`,
+                    { type: 'pending_requests' }
+                );
+            }
+        }, 3000);
+    }
+
+    // Add this to your existing Firebase functions
+    async function loadAllRequests() {
+        try {
+            const doc = await db.collection('requests').doc('all').get();
+            if (doc.exists && doc.data().requests) {
+                allRequests = doc.data().requests;
+                
+                // Setup real-time listener for new requests
+                db.collection('requests').doc('all')
+                    .onSnapshot((doc) => {
+                        if (doc.exists && doc.data().requests) {
+                            const newRequests = doc.data().requests;
+                            const oldRequestIds = allRequests.map(r => r.id);
+                            const newlyAdded = newRequests.filter(r => !oldRequestIds.includes(r.id));
+                            
+                            allRequests = newRequests;
+                            
+                            // Send notifications for new requests
+                            newlyAdded.forEach(req => {
+                                if (req.status === 'pending' && 
+                                    req.type === 'dutyChange' && 
+                                    req.toUsername === currentUser?.username) {
+                                    sendPushNotificationToUser(
+                                        currentUser.username,
+                                        '🔄 New Duty Change Request',
+                                        `${req.fromName} wants to swap duty on ${req.date}`,
+                                        { 
+                                            type: 'duty_change_request', 
+                                            id: req.id,
+                                            fromName: req.fromName,
+                                            date: req.date 
+                                        }
+                                    );
+                                }
+                            });
+                            
+                            updateRequestCounts();
+                        }
+                    });
+            } else {
+                allRequests = [];
+            }
+            return allRequests;
+        } catch (error) {
+            console.error('Error loading requests:', error);
+            allRequests = [];
+            return allRequests;
+        }
+    }
 
         
 
