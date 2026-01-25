@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notification Test</title>
+</head>
+<body>
+    <h1>Notification Test Page</h1>
+    <button onclick="requestPermission()">1. Request Permission</button>
+    <button onclick="sendNotification()">2. Send Test Notification</button>
+    
+    <script>
+        function requestPermission() {
+            Notification.requestPermission().then(permission => {
+                alert('Permission: ' + permission);
+            });
+        }
+        
+        function sendNotification() {
+            if (Notification.permission === 'granted') {
+                new Notification('Test', {
+                    body: 'Hello World!',
+                    icon: 'https://via.placeholder.com/192'
+                });
+                alert('Notification sent!');
+            } else {
+                alert('Please grant permission first');
+            }
+        }
+        
+        // Check on load
+        console.log('Notification supported:', 'Notification' in window);
+        console.log('Current permission:', Notification.permission);
+    </script>
+</body>
+</html>
