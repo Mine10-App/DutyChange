@@ -1,55 +1,325 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Offline - Duty Manager</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
         body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            text-align: center;
             padding: 20px;
-            background: #f5f7fa;
-            color: #2c3e50;
         }
-        .icon {
-            font-size: 72px;
+        
+        .offline-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .offline-icon {
+            font-size: 80px;
             margin-bottom: 20px;
             color: #7f8c8d;
+            animation: bounce 2s infinite;
         }
+        
         h1 {
-            font-size: 24px;
+            color: #2c3e50;
+            font-size: 28px;
             margin-bottom: 10px;
+            font-weight: 700;
         }
-        p {
+        
+        .subtitle {
             color: #7f8c8d;
+            font-size: 16px;
             margin-bottom: 30px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
-        button {
+        
+        .features {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .features h3 {
+            color: #3498db;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            color: #2c3e50;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .features li:before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .offline-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .btn-primary {
             background: #3498db;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
         }
-        button:hover {
+        
+        .btn-primary:hover {
             background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 2px solid #e0e6ed;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 10px;
+            color: #856404;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+        }
+        
+        .connection-status.online {
+            background: #d4edda;
+            color: #155724;
+            animation: none;
+        }
+        
+        .app-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e6ed;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+            
+            .offline-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="icon">📡</div>
-    <h1>You're Offline</h1>
-    <p>Please check your internet connection and try again. Some features may be limited while offline.</p>
-    <button onclick="location.reload()">Retry Connection</button>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        
+        <h1>You're Offline</h1>
+        <p class="subtitle">Don't worry! You can still use some features of Duty Manager.</p>
+        
+        <div id="connectionStatus" class="connection-status">
+            <span id="statusIcon">⚠️</span>
+            <span id="statusText">No internet connection</span>
+        </div>
+        
+        <div class="features">
+            <h3>📱 Available Offline</h3>
+            <ul>
+                <li>View your duty roster</li>
+                <li>Check leave balances</li>
+                <li>Review pending requests</li>
+                <li>Read announcements</li>
+                <li>Fill forms (will sync later)</li>
+            </ul>
+        </div>
+        
+        <div class="offline-actions">
+            <button class="btn btn-primary" id="retryBtn">
+                🔄 Retry Connection
+            </button>
+            <button class="btn btn-secondary" id="continueBtn">
+                🚀 Continue Offline
+            </button>
+        </div>
+        
+        <div class="app-info">
+            <p>Duty Manager v2.0 • Last synced: <span id="lastSynced">Just now</span></p>
+            <p>Changes made offline will sync automatically when you reconnect.</p>
+        </div>
+    </div>
+
+    <script>
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connectionStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            
+            if (navigator.onLine) {
+                statusEl.classList.add('online');
+                statusIcon.textContent = '✅';
+                statusText.textContent = 'Connection restored!';
+                
+                // Auto-redirect after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+            } else {
+                statusEl.classList.remove('online');
+                statusIcon.textContent = '⚠️';
+                statusText.textContent = 'No internet connection';
+            }
+        }
+        
+        // Update last synced time
+        function updateLastSynced() {
+            const lastSynced = localStorage.getItem('lastSynced');
+            const syncedEl = document.getElementById('lastSynced');
+            
+            if (lastSynced) {
+                const date = new Date(lastSynced);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                
+                if (diffMins < 1) {
+                    syncedEl.textContent = 'Just now';
+                } else if (diffMins < 60) {
+                    syncedEl.textContent = `${diffMins} minutes ago`;
+                } else {
+                    syncedEl.textContent = date.toLocaleTimeString();
+                }
+            } else {
+                syncedEl.textContent = 'Never';
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            location.reload();
+        });
+        
+        document.getElementById('continueBtn').addEventListener('click', () => {
+            // Try to load cached version of main app
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'GET_CACHED_PAGE',
+                    url: '/'
+                });
+            }
+            window.location.href = '/';
+        });
+        
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initialize
+        updateConnectionStatus();
+        updateLastSynced();
+        
+        // Check for updates every 30 seconds
+        setInterval(() => {
+            if (navigator.onLine) {
+                fetch('/api/health').catch(() => {});
+            }
+        }, 30000);
+        
+        // Show notification if there are pending offline actions
+        window.addEventListener('load', () => {
+            const pendingActions = localStorage.getItem('pendingOfflineActions');
+            if (pendingActions) {
+                const actions = JSON.parse(pendingActions);
+                if (actions.length > 0) {
+                    const notification = document.createElement('div');
+                    notification.className = 'connection-status';
+                    notification.innerHTML = `
+                        <span>📋</span>
+                        <span>You have ${actions.length} pending offline action(s)</span>
+                    `;
+                    document.querySelector('.offline-container').prepend(notification);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
