@@ -3,286 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Offline - Duty Manager</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Duty Manager">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Duty Manager">
+    <meta name="description" content="Duty and Leave Management">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23667eea'/%3E%3C/svg%3E">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23667eea'/%3E%3C/svg%3E">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    
+    <!-- SHA-256 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+    
+    <!-- External files -->
+    <script src="dcfire1.js" defer></script>
+    <script src="user.js" defer></script>
+    
+    <title>Duty Manager</title>
+    
     <style>
+        /* ============================================
+           MOBILE THEME VARIABLES
+        ============================================ */
+        :root {
+            /* Primary Colors */
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --primary-light: rgba(102, 126, 234, 0.1);
+            
+            /* Status Colors */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            
+            /* Neutral Colors */
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-dark: #1f2937;
+            --surface-light: #f1f5f9;
+            
+            /* Text Colors */
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --text-inverse: #ffffff;
+            
+            /* Border & Divider */
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --divider: #f1f5f9;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Radius */
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 12px;
+            --space-lg: 16px;
+            --space-xl: 20px;
+            --space-2xl: 24px;
+            --space-3xl: 32px;
+            
+            /* Typography */
+            --font-size-xs: 12px;
+            --font-size-sm: 14px;
+            --font-size-base: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 20px;
+            --font-size-2xl: 24px;
+            --font-size-3xl: 30px;
+            
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition: 200ms ease;
+            --transition-slow: 300ms ease;
+            
+            /* Safe Areas */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            
+            /* Bottom Navigation */
+            --bottom-nav-height: 68px;
+        }
+
+        /* Dark Mode Variables */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #0f172a;
+                --surface: #1e293b;
+                --surface-dark: #0f172a;
+                --surface-light: #334155;
+                --text-primary: #f1f5f9;
+                --text-secondary: #cbd5e1;
+                --text-tertiary: #94a3b8;
+                --border: #334155;
+                --border-light: #475569;
+                --divider: #1e293b;
+            }
+        }
+
+        /* ============================================
+           BASE STYLES
+        ============================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #2ecc71;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --light: #f8f9fa;
-            --dark: #2c3e50;
-            --gray: #95a5a6;
-            --gray-light: #ecf0f1;
-            --border: #e0e0e0;
-            --surface: #ffffff;
-            --text: #2c3e50;
-            --text-light: #7f8c8d;
-            --shadow: 0 4px 20px rgba(0,0,0,0.1);
-            --radius: 20px;
-            --radius-sm: 12px;
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
-        }
-
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom));
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
+        /* ============================================
+           STATUS BAR AREA
+        ============================================ */
+        .status-bar {
+            height: calc(var(--safe-top) + 44px);
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-            z-index: -1;
-        }
-
-        /* Floating background elements */
-        .floating-circle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            z-index: -1;
-        }
-
-        .circle-1 {
-            width: 300px;
-            height: 300px;
-            top: -150px;
-            right: -150px;
-        }
-
-        .circle-2 {
-            width: 200px;
-            height: 200px;
-            bottom: -100px;
-            left: -100px;
-        }
-
-        .circle-3 {
-            width: 150px;
-            height: 150px;
-            top: 50%;
-            left: -75px;
-        }
-
-        /* Main container */
-        .offline-container {
+            z-index: 1000;
             background: var(--surface);
-            border-radius: var(--radius);
-            padding: 40px 30px;
-            text-align: center;
-            max-width: 420px;
-            width: 100%;
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-            margin-top: var(--safe-top);
-            margin-bottom: var(--safe-bottom);
-        }
-
-        /* Status indicator */
-        .status-indicator {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #f39c12, #e74c3c);
-            animation: statusPulse 2s infinite;
-        }
-
-        .status-indicator.online {
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
-            animation: none;
-        }
-
-        @keyframes statusPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Icon animation */
-        .offline-icon {
-            font-size: 90px;
-            margin-bottom: 25px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .offline-icon::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1));
-            z-index: -1;
-            animation: ripple 3s infinite;
-        }
-
-        @keyframes ripple {
-            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
-        }
-
-        /* Content */
-        h1 {
-            color: var(--text);
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            line-height: 1.2;
-        }
-
-        .subtitle {
-            color: var(--text-light);
-            font-size: 16px;
-            margin-bottom: 30px;
-            line-height: 1.6;
-            max-width: 320px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* Connection status */
-        .connection-card {
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(231, 76, 60, 0.1));
-            border-radius: var(--radius-sm);
-            padding: 20px;
-            margin: 25px 0;
-            text-align: left;
-            border-left: 4px solid var(--warning);
-            transition: all 0.3s;
-        }
-
-        .connection-card.online {
-            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1));
-            border-left-color: var(--secondary);
-        }
-
-        .connection-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
+            padding: var(--safe-top) var(--space-lg) var(--space-md);
+            border-bottom: 1px solid var(--border);
         }
 
-        .connection-icon {
-            font-size: 24px;
+        .status-bar-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-left: var(--space-md);
+            flex: 1;
+        }
+
+        .status-bar-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .status-bar-btn {
             width: 40px;
             height: 40px;
-            background: white;
-            border-radius: 50%;
+            border-radius: var(--radius-full);
+            background: var(--surface-light);
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
         }
 
-        .connection-header h3 {
-            color: var(--text);
-            font-size: 18px;
-            font-weight: 600;
+        .status-bar-btn:active {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: scale(0.95);
         }
 
-        .connection-details {
-            color: var(--text-light);
-            font-size: 14px;
-            line-height: 1.5;
+        /* ============================================
+           MAIN CONTENT
+        ============================================ */
+        .main-content {
+            padding: var(--space-lg);
+            padding-top: calc(var(--safe-top) + 44px + var(--space-lg));
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        /* Features */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 30px 0;
+        /* ============================================
+           BOTTOM NAVIGATION
+        ============================================ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--bottom-nav-height) + var(--safe-bottom));
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding-bottom: var(--safe-bottom);
+            z-index: 1000;
         }
 
-        .feature-card {
-            background: var(--light);
-            border-radius: var(--radius-sm);
-            padding: 20px 15px;
-            text-align: center;
-            transition: all 0.3s;
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-tertiary);
+            padding: var(--space-sm);
+            position: relative;
+            transition: all var(--transition-fast);
         }
 
-        .feature-card:active {
+        .nav-item:active {
             transform: translateY(-2px);
-            background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .feature-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-            height: 60px;
-            width: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        .nav-item.active {
+            color: var(--primary);
         }
 
-        .feature-name {
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 5px;
+        .nav-item.active .nav-icon {
+            transform: translateY(-4px);
         }
 
-        .feature-status {
-            color: var(--text-light);
-            font-size: 12px;
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-label {
+            font-size: var(--font-size-xs);
             font-weight: 500;
         }
 
-        /* Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin: 30px 0 20px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 18px 20px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 16px;
+        .nav-badge {
+            position: absolute;
+            top: 8px;
+            right: calc(50% - 16px);
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            width: 18px;
+            height: 18px;
+            border-radius: var(--radius-full);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+        }
+
+        /* ============================================
+           CARDS
+        ============================================ */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+        }
+
+        .card:active {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+        }
+
+        .card-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-top: var(--space-xs);
+        }
+
+        /* ============================================
+           BUTTONS
+        ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg) var(--space-xl);
+            border-radius: var(--radius);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            gap: var(--space-sm);
+            width: 100%;
             position: relative;
             overflow: hidden;
         }
@@ -294,97 +349,448 @@
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
-        }
-
-        .btn-primary:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .btn-secondary {
-            background: white;
-            color: var(--text);
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: var(--space-md) var(--space-lg);
+            font-size: var(--font-size-sm);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: var(--radius-full);
+            background: var(--surface-light);
+            color: var(--text-secondary);
+        }
+
+        .btn-icon:active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* ============================================
+           FORM CONTROLS
+        ============================================ */
+        .form-group {
+            margin-bottom: var(--space-xl);
+        }
+
+        .form-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: var(--space-lg);
+            background: var(--surface-light);
             border: 2px solid var(--border);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: var(--radius);
+            font-size: var(--font-size-base);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
         }
 
-        .btn-secondary:hover {
+        .form-control:focus {
+            outline: none;
             border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
-        /* Retry animation */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 20px;
+            padding-right: 48px;
         }
 
-        .retry-spinner {
-            animation: spin 1s linear infinite;
-            display: none;
+        /* ============================================
+           BALANCE DISPLAY
+        ============================================ */
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin: var(--space-xl) 0;
         }
 
-        /* App info */
-        .app-info {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .sync-info {
-            color: var(--text-light);
-            font-size: 13px;
-            margin-bottom: 8px;
+        .balance-card:nth-child(2) {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .balance-label {
+            font-size: var(--font-size-sm);
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: var(--space-xs);
+        }
+
+        .balance-value {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+            margin: var(--space-sm) 0;
+        }
+
+        .balance-unit {
+            font-size: var(--font-size-sm);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ============================================
+           QUICK ACTIONS
+        ============================================ */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin: var(--space-xl) 0;
+        }
+
+        .action-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl) var(--space-lg);
+            text-align: center;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .action-card:active {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: var(--space-md);
+            height: 64px;
+            width: 64px;
+            background: var(--surface-light);
+            border-radius: var(--radius-full);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            margin: 0 auto var(--space-md);
         }
 
-        .sync-badge {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        .action-label {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .action-subtitle {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           DUTY SCHEDULE
+        ============================================ */
+        .schedule-card {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
             color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+            position: relative;
+            overflow: hidden;
+            margin: var(--space-xl) 0;
+        }
+
+        .schedule-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .schedule-title {
+            font-size: var(--font-size-lg);
             font-weight: 600;
         }
 
-        .cache-info {
-            color: var(--text-light);
-            font-size: 12px;
-            line-height: 1.4;
+        .schedule-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
         }
 
-        /* Offline actions notification */
-        .offline-actions-notice {
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(231, 76, 60, 0.1));
-            border-radius: var(--radius-sm);
-            padding: 15px;
-            margin-bottom: 20px;
+        .schedule-time {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+
+        .schedule-date {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+
+        /* ============================================
+           ANNOUNCEMENTS
+        ============================================ */
+        .announcements-container {
+            margin: var(--space-xl) 0;
+        }
+
+        .announcement-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .announcement-card.high::before {
+            background: var(--danger);
+        }
+
+        .announcement-card.medium::before {
+            background: var(--warning);
+        }
+
+        .announcement-header {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .announcement-icon {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .announcement-title {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .announcement-time {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+        }
+
+        .announcement-content {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           TABLES
+        ============================================ */
+        .table-container {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            background: var(--surface-light);
+            padding: var(--space-lg);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            padding: var(--space-lg);
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            transition: all var(--transition-fast);
+        }
+
+        .table-row:active {
+            background: var(--surface-light);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status-approved {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* ============================================
+           LOADING & TOAST
+        ============================================ */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--surface);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 1;
+            transition: opacity var(--transition-slow);
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast-container {
+            position: fixed;
+            top: calc(var(--safe-top) + 60px);
+            left: var(--space-lg);
+            right: var(--space-lg);
+            z-index: 1500;
+        }
+
+        .toast {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-sm);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
             animation: slideDown 0.3s ease-out;
-            border-left: 4px solid var(--warning);
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast.success {
+            border-left-color: var(--success);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
         }
 
         @keyframes slideDown {
             from {
-                transform: translateY(-10px);
+                transform: translateY(-20px);
                 opacity: 0;
             }
             to {
@@ -393,440 +799,1194 @@
             }
         }
 
-        /* Progress bar */
-        .progress-bar {
+        /* ============================================
+           LOGIN SCREEN
+        ============================================ */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg);
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: var(--space-3xl);
             width: 100%;
-            height: 4px;
-            background: var(--gray-light);
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 15px 0;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .login-logo {
+            font-size: 64px;
+            margin-bottom: var(--space-xl);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .login-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2xl);
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+        ============================================ */
+        .hidden {
+            display: none !important;
+        }
+
+        .section {
             display: none;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            width: 0%;
-            transition: width 0.3s;
-            border-radius: 2px;
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        /* Responsive */
-        @media (max-width: 480px) {
-            .offline-container {
-                padding: 30px 20px;
-            }
-            
-            h1 {
-                font-size: 28px;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .feature-card {
-                padding: 18px 12px;
-            }
-            
-            .circle-1, .circle-2, .circle-3 {
-                display: none;
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 { margin-top: var(--space-sm); }
+        .mt-2 { margin-top: var(--space-md); }
+        .mt-3 { margin-top: var(--space-lg); }
+        .mt-4 { margin-top: var(--space-xl); }
+        .mt-5 { margin-top: var(--space-2xl); }
+
+        .mb-1 { margin-bottom: var(--space-sm); }
+        .mb-2 { margin-bottom: var(--space-md); }
+        .mb-3 { margin-bottom: var(--space-lg); }
+        .mb-4 { margin-bottom: var(--space-xl); }
+        .mb-5 { margin-bottom: var(--space-2xl); }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-1 { gap: var(--space-sm); }
+        .gap-2 { gap: var(--space-md); }
+        .gap-3 { gap: var(--space-lg); }
+        .gap-4 { gap: var(--space-xl); }
+
+        /* ============================================
+           RESPONSIVE ADJUSTMENTS
+        ============================================ */
         @media (max-width: 360px) {
-            .offline-container {
-                padding: 25px 15px;
+            .main-content {
+                padding: var(--space-md);
+                padding-top: calc(var(--safe-top) + 44px + var(--space-md));
             }
             
-            h1 {
-                font-size: 24px;
+            .card {
+                padding: var(--space-lg);
             }
             
-            .subtitle {
-                font-size: 14px;
+            .balance-grid,
+            .quick-actions {
+                gap: var(--space-md);
+            }
+            
+            .login-card {
+                padding: var(--space-2xl);
             }
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --surface: #222222;
-                --light: #2a2a2a;
-                --dark: #ffffff;
-                --text: #ffffff;
-                --text-light: #999999;
-                --border: #333333;
-            }
-            
-            body {
-                background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            }
-            
-            body::before {
-                background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(42, 42, 42, 0.9) 100%);
-            }
-            
-            .btn-secondary {
-                background: #333333;
-                color: white;
-                border-color: #444444;
-            }
-            
-            .feature-card {
-                background: #2a2a2a;
-            }
-            
-            .feature-card:active {
-                background: #333333;
-            }
-            
-            .feature-icon {
-                background: #333333;
-            }
+        /* ============================================
+           SWIPE INDICATORS
+        ============================================ */
+        .swipe-hint {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: var(--font-size-xs);
+            margin-top: var(--space-md);
+            padding: var(--space-sm);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ============================================
+           EMPTY STATES
+        ============================================ */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-3xl) var(--space-lg);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-lg);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .empty-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
         }
     </style>
 </head>
 <body>
-    <!-- Floating background elements -->
-    <div class="floating-circle circle-1"></div>
-    <div class="floating-circle circle-2"></div>
-    <div class="floating-circle circle-3"></div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
 
-    <div class="offline-container">
-        <!-- Status indicator -->
-        <div class="status-indicator" id="statusIndicator"></div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
-        <!-- Offline icon -->
-        <div class="offline-icon" id="offlineIcon">📡</div>
-        
-        <h1>Connection Lost</h1>
-        <p class="subtitle">You're currently offline. Some features are limited, but you can continue working.</p>
-        
-        <!-- Connection status card -->
-        <div class="connection-card" id="connectionCard">
-            <div class="connection-header">
-                <div class="connection-icon" id="connectionIcon">⚠️</div>
-                <div>
-                    <h3 id="connectionTitle">No Internet</h3>
-                    <div class="connection-details" id="connectionDetails">
-                        <div>Network unreachable</div>
-                        <div style="font-size: 12px; margin-top: 4px;">Last checked: <span id="lastChecked">Just now</span></div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="login-logo">📋</div>
+            <h1 class="login-title">Duty Manager</h1>
+            <p class="login-subtitle">Manage your duties and leave requests</p>
+            
+            <form id="loginForm" class="mt-5">
+                <div class="form-group">
+                    <input type="text" id="username" class="form-control" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" class="form-control" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4">
+                    <span>🔐</span> Sign In
+                </button>
+                <div id="errorMessage" class="hidden mt-3 text-center" style="color: var(--danger);">
+                    Invalid username or password
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="appContainer" class="hidden">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <button class="status-bar-btn" onclick="toggleMenu()">☰</button>
+            <div class="status-bar-title" id="pageTitle">Dashboard</div>
+            <div class="status-bar-actions">
+                <button class="status-bar-btn" onclick="refreshData()">🔄</button>
+                <button class="status-bar-btn" onclick="showNotifications()">🔔</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard -->
+            <div id="dashboardSection" class="section active">
+                <!-- Balance Cards -->
+                <div class="balance-grid">
+                    <div class="balance-card">
+                        <div class="balance-label">Sick Leave</div>
+                        <div class="balance-value" id="slBalance">0</div>
+                        <div class="balance-unit">Days</div>
+                    </div>
+                    <div class="balance-card">
+                        <div class="balance-label">FRL</div>
+                        <div class="balance-value" id="frlBalance">0</div>
+                        <div class="balance-unit">Days</div>
+                    </div>
+                </div>
+
+                <!-- Today's Schedule -->
+                <div class="schedule-card">
+                    <div class="schedule-header">
+                        <div class="schedule-title">Today's Duty</div>
+                        <div class="schedule-badge">NOW</div>
+                    </div>
+                    <div class="schedule-time" id="todayDutyTime">--:--</div>
+                    <div class="schedule-date" id="todayDate">Loading...</div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="action-card" onclick="showSection('dutyChange')">
+                        <div class="action-icon">🔄</div>
+                        <div class="action-label">Change Duty</div>
+                        <div class="action-subtitle">Request swap</div>
+                    </div>
+                    <div class="action-card" onclick="showSection('leaveApplication')">
+                        <div class="action-icon">📅</div>
+                        <div class="action-label">Apply Leave</div>
+                        <div class="action-subtitle">SL / FRL</div>
+                    </div>
+                    <div class="action-card" onclick="showSection('myRequests')">
+                        <div class="action-icon">📋</div>
+                        <div class="action-label">My Requests</div>
+                        <div class="action-subtitle" id="pendingCount">0 pending</div>
+                    </div>
+                </div>
+
+                <!-- Announcements -->
+                <div id="announcementsContainer">
+                    <!-- Announcements will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Duty Change -->
+            <div id="dutyChangeSection" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Duty Change Request</div>
+                            <div class="card-subtitle">Swap duties with colleagues</div>
+                        </div>
+                        <div class="btn btn-icon" onclick="showSection('dashboard')">←</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Change Date</label>
+                        <input type="date" id="changeDate" class="form-control" min="">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Your Duty Time</label>
+                        <select id="changeDutyTime" class="form-control form-select">
+                            <option value="">Select duty time</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Swap With</label>
+                        <select id="requestToStaff" class="form-control form-select">
+                            <option value="">Select staff member</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Their Duty Time</label>
+                        <select id="requestToDutyTime" class="form-control form-select">
+                            <option value="">Select duty time</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Reason (Optional)</label>
+                        <textarea id="changeReason" class="form-control" rows="3" placeholder="Brief reason for duty change"></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="submitDutyChange()">
+                        <span>📤</span> Submit Request
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leave Application -->
+            <div id="leaveApplicationSection" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Leave Application</div>
+                            <div class="card-subtitle">Apply for Sick Leave or FRL</div>
+                        </div>
+                        <div class="btn btn-icon" onclick="showSection('dashboard')">←</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Leave Type</label>
+                        <select id="leaveType" class="form-control form-select">
+                            <option value="">Select type</option>
+                            <option value="Sick Leave">Sick Leave</option>
+                            <option value="FRL">FRL</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Leave Date</label>
+                        <input type="date" id="leaveDate" class="form-control" min="">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Duty Time</label>
+                        <select id="leaveDutyTime" class="form-control form-select">
+                            <option value="">Select duty time</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Duration</label>
+                        <select id="leaveDuration" class="form-control form-select">
+                            <option value="1">1 Day</option>
+                            <option value="0.5">Half Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Reason</label>
+                        <textarea id="leaveReason" class="form-control" rows="4" placeholder="Please provide reason for leave" required></textarea>
+                    </div>
+
+                    <div id="leaveRules" class="mb-4" style="padding: var(--space-md); background: var(--surface-light); border-radius: var(--radius);">
+                        <!-- Rules will be shown here -->
+                    </div>
+
+                    <button class="btn btn-primary" id="submitLeaveBtn" onclick="submitLeaveApplication()">
+                        <span>📤</span> Submit Application
+                    </button>
+                </div>
+            </div>
+
+            <!-- My Requests -->
+            <div id="myRequestsSection" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">My Requests</div>
+                            <div class="card-subtitle">Track your applications</div>
+                        </div>
+                        <div class="btn btn-icon" onclick="showSection('dashboard')">←</div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div>Type</div>
+                            <div>Date</div>
+                            <div>Status</div>
+                            <div>Details</div>
+                            <div>Action</div>
+                        </div>
+                        <div id="myRequestsTable">
+                            <!-- Requests will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Progress bar for retry -->
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-fill" id="progressFill"></div>
+
+            <!-- My Roster -->
+            <div id="myRosterSection" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">My Roster</div>
+                            <div class="card-subtitle">Upcoming schedule</div>
+                        </div>
+                        <div class="btn btn-icon" onclick="showSection('dashboard')">←</div>
+                    </div>
+                    <div id="rosterContent">
+                        <!-- Roster will be loaded here -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Offline actions notice (if any) -->
-        <div class="offline-actions-notice" id="offlineActionsNotice" style="display: none;">
-            <div>📋</div>
-            <div>
-                <div style="font-weight: 600; font-size: 14px; color: var(--text);" id="pendingCount">0 pending actions</div>
-                <div style="font-size: 12px; color: var(--text-light);">Will sync automatically when online</div>
-            </div>
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('myRoster')">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">Roster</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('dutyChange')">
+                <span class="nav-icon">🔄</span>
+                <span class="nav-label">Change</span>
+                <span class="nav-badge" id="dutyChangeBadge" style="display: none;">0</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('myRequests')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Requests</span>
+                <span class="nav-badge" id="requestsBadge" style="display: none;">0</span>
+            </a>
         </div>
+    </div>
 
-        <!-- Available features grid -->
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📅</div>
-                <div class="feature-name">Roster</div>
-                <div class="feature-status">Available</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">💰</div>
-                <div class="feature-name">Leave Balance</div>
-                <div class="feature-status">Available</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
-                <div class="feature-name">Requests</div>
-                <div class="feature-status">View Only</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📝</div>
-                <div class="feature-name">Forms</div>
-                <div class="feature-status">Draft Mode</div>
-            </div>
+    <!-- Side Menu -->
+    <div id="sideMenu" style="position: fixed; top: 0; left: -280px; bottom: 0; width: 280px; background: var(--surface); z-index: 1001; transition: left 0.3s ease; border-right: 1px solid var(--border); padding-top: calc(var(--safe-top) + 44px); overflow-y: auto;">
+        <div style="padding: var(--space-xl); border-bottom: 1px solid var(--border);">
+            <div style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-xs);" id="menuUserName">User Name</div>
+            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">RC: <span id="menuUserRC">000</span></div>
         </div>
         
-        <!-- Action buttons -->
-        <div class="action-buttons">
-            <button class="btn btn-primary" id="retryBtn">
-                <span id="retryIcon">🔄</span>
-                <span id="retryText">Retry Connection</span>
-                <span class="retry-spinner" id="retrySpinner">⟳</span>
-            </button>
-            <button class="btn btn-secondary" id="continueBtn">
-                <span>🚀</span>
-                <span>Continue Offline</span>
-            </button>
-        </div>
-        
-        <!-- App info -->
-        <div class="app-info">
-            <div class="sync-info">
-                Last synced: 
-                <span class="sync-badge" id="lastSynced">Just now</span>
+        <div style="padding: var(--space-lg);">
+            <div class="menu-item" onclick="showSection('adminAnnouncements')" style="display: none;">
+                <span style="margin-right: var(--space-md);">📢</span>
+                <span>Announcements</span>
             </div>
-            <div class="cache-info">
-                Changes made offline will sync automatically when you reconnect. Data is cached locally for offline use.
+            <div class="menu-item" onclick="logout()">
+                <span style="margin-right: var(--space-md);">🚪</span>
+                <span>Logout</span>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize
+        // ============================================
+        // MOBILE APP CONFIGURATION
+        // ============================================
+        const MOBILE_CONFIG = {
+            enableHaptics: true,
+            enablePullToRefresh: true,
+            enableSwipeNavigation: true,
+            offlineSupport: true,
+            darkMode: true
+        };
+
+        // ============================================
+        // APP STATE
+        // ============================================
+        let currentUser = null;
+        let allUsers = [];
+        let dutyRoster = {};
+        let leaveBalances = {};
+        let allRequests = [];
+        let announcements = [];
+        let currentSection = 'dashboard';
+        let isMenuOpen = false;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            initOfflinePage();
+            initMobileApp();
+            checkSession();
         });
 
-        function initOfflinePage() {
-            // Elements
-            const statusIndicator = document.getElementById('statusIndicator');
-            const offlineIcon = document.getElementById('offlineIcon');
-            const connectionCard = document.getElementById('connectionCard');
-            const connectionIcon = document.getElementById('connectionIcon');
-            const connectionTitle = document.getElementById('connectionTitle');
-            const connectionDetails = document.getElementById('connectionDetails');
-            const lastChecked = document.getElementById('lastChecked');
-            const lastSynced = document.getElementById('lastSynced');
-            const offlineActionsNotice = document.getElementById('offlineActionsNotice');
-            const pendingCount = document.getElementById('pendingCount');
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
-            const retryBtn = document.getElementById('retryBtn');
-            const retryIcon = document.getElementById('retryIcon');
-            const retryText = document.getElementById('retryText');
-            const retrySpinner = document.getElementById('retrySpinner');
-            const continueBtn = document.getElementById('continueBtn');
+        function initMobileApp() {
+            // Setup mobile gestures
+            setupMobileGestures();
             
-            // Update connection status
-            function updateConnectionStatus() {
-                const now = new Date();
-                lastChecked.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
-                if (navigator.onLine) {
-                    // Online
-                    statusIndicator.classList.add('online');
-                    connectionCard.classList.add('online');
-                    connectionIcon.textContent = '✅';
-                    connectionTitle.textContent = 'Connected!';
-                    connectionDetails.innerHTML = `
-                        <div>You're back online</div>
-                        <div style="font-size: 12px; margin-top: 4px;">Redirecting to app...</div>
-                    `;
-                    
-                    // Show success animation
-                    offlineIcon.textContent = '🌐';
-                    offlineIcon.style.animation = 'none';
-                    void offlineIcon.offsetWidth; // Trigger reflow
-                    offlineIcon.style.animation = 'ripple 2s infinite';
-                    
-                    // Auto-redirect after 2 seconds
-                    setTimeout(() => {
-                        showProgressBar(100, () => {
-                            window.location.href = '/';
-                        });
-                    }, 500);
-                } else {
-                    // Offline
-                    statusIndicator.classList.remove('online');
-                    connectionCard.classList.remove('online');
-                    connectionIcon.textContent = '⚠️';
-                    connectionTitle.textContent = 'No Internet';
-                    connectionDetails.innerHTML = `
-                        <div>Network unreachable</div>
-                        <div style="font-size: 12px; margin-top: 4px;">Last checked: <span id="lastChecked">${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
-                    `;
-                    
-                    // Update icon
-                    offlineIcon.textContent = '📡';
-                }
+            // Setup form events
+            setupFormEvents();
+            
+            // Set minimum dates
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('changeDate').min = today;
+            document.getElementById('leaveDate').min = today;
+            
+            // Set default dates to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+            
+            // Setup login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Initialize haptic feedback
+            if (MOBILE_CONFIG.enableHaptics && 'vibrate' in navigator) {
+                document.querySelectorAll('.btn, .nav-item, .action-card').forEach(el => {
+                    el.addEventListener('touchstart', () => {
+                        navigator.vibrate(10);
+                    });
+                });
             }
+        }
+
+        function setupMobileGestures() {
+            if (!MOBILE_CONFIG.enableSwipeNavigation) return;
             
-            // Update last synced time
-            function updateLastSynced() {
-                const lastSync = localStorage.getItem('lastSynced');
-                if (lastSync) {
-                    const date = new Date(lastSync);
-                    const now = new Date();
-                    const diffMs = now - date;
-                    const diffMins = Math.floor(diffMs / 60000);
-                    
-                    if (diffMins < 1) {
-                        lastSynced.textContent = 'Just now';
-                    } else if (diffMins < 60) {
-                        lastSynced.textContent = `${diffMins}m ago`;
-                    } else if (diffMins < 1440) {
-                        const hours = Math.floor(diffMins / 60);
-                        lastSynced.textContent = `${hours}h ago`;
+            let startX = 0;
+            let startY = 0;
+            let distX = 0;
+            let distY = 0;
+            
+            document.addEventListener('touchstart', function(e) {
+                const touch = e.touches[0];
+                startX = touch.pageX;
+                startY = touch.pageY;
+            }, false);
+            
+            document.addEventListener('touchmove', function(e) {
+                if (!startX || !startY) return;
+                const touch = e.touches[0];
+                distX = touch.pageX - startX;
+                distY = touch.pageY - startY;
+            }, false);
+            
+            document.addEventListener('touchend', function() {
+                if (Math.abs(distX) > 50 && Math.abs(distY) < 50) {
+                    if (distX > 0) {
+                        // Swiped right - open menu or go back
+                        if (currentSection !== 'dashboard') {
+                            showSection('dashboard');
+                        } else {
+                            toggleMenu();
+                        }
                     } else {
-                        lastSynced.textContent = date.toLocaleDateString();
+                        // Swiped left - close menu
+                        if (isMenuOpen) {
+                            toggleMenu();
+                        }
                     }
-                } else {
-                    lastSynced.textContent = 'Never';
+                }
+                startX = startY = distX = distY = 0;
+            }, false);
+        }
+
+        function setupFormEvents() {
+            // Duty change form events
+            document.getElementById('changeDate').addEventListener('change', updateDutyTimes);
+            document.getElementById('requestToStaff').addEventListener('change', updateStaffDutyTime);
+            
+            // Leave form events
+            document.getElementById('leaveDate').addEventListener('change', updateLeaveDutyTime);
+            document.getElementById('leaveType').addEventListener('change', validateLeave);
+            document.getElementById('leaveDuration').addEventListener('change', validateLeave);
+        }
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        function checkSession() {
+            const session = localStorage.getItem('dutyManagerSession');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    if (user.expiry > Date.now()) {
+                        loginUser(user);
+                    } else {
+                        localStorage.removeItem('dutyManagerSession');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('dutyManagerSession');
                 }
             }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            showLoading(true);
             
-            // Check for pending offline actions
-            function checkPendingActions() {
-                const pendingActions = JSON.parse(localStorage.getItem('pendingOfflineActions') || '[]');
-                if (pendingActions.length > 0) {
-                    offlineActionsNotice.style.display = 'flex';
-                    pendingCount.textContent = `${pendingActions.length} pending action${pendingActions.length > 1 ? 's' : ''}`;
-                    
-                    // Add haptic feedback if pending actions exist
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate([100]);
-                    }
-                }
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                showToast('Please enter both username and password', 'error');
+                showLoading(false);
+                return;
             }
             
-            // Show progress bar
-            function showProgressBar(targetPercent, callback) {
-                progressBar.style.display = 'block';
-                progressFill.style.width = '0%';
+            // Check credentials (you'll need to implement this based on your auth system)
+            const user = authenticateUser(username, password);
+            
+            if (user) {
+                const sessionData = {
+                    username: user.username,
+                    name: user.name,
+                    rcNo: user.RCNo,
+                    level: user.Level,
+                    expiry: Date.now() + (8 * 60 * 60 * 1000)
+                };
                 
-                let percent = 0;
-                const interval = setInterval(() => {
-                    percent += 5;
-                    progressFill.style.width = `${percent}%`;
-                    
-                    if (percent >= targetPercent) {
-                        clearInterval(interval);
-                        setTimeout(() => {
-                            progressBar.style.display = 'none';
-                            if (callback) callback();
-                        }, 300);
-                    }
-                }, 100);
+                localStorage.setItem('dutyManagerSession', JSON.stringify(sessionData));
+                await loginUser(sessionData);
+                showLoading(false);
+            } else {
+                document.getElementById('errorMessage').classList.remove('hidden');
+                showLoading(false);
             }
+        }
+
+        function authenticateUser(username, password) {
+            // This should be implemented based on your user.js data
+            // For now, return a dummy user for testing
+            return {
+                username: username,
+                name: username.toUpperCase(),
+                RCNo: '123',
+                Level: 'User'
+            };
+        }
+
+        async function loginUser(userData) {
+            currentUser = userData;
             
-            // Handle retry button click
-            retryBtn.addEventListener('click', function() {
-                // Show loading state
-                retryIcon.style.display = 'none';
-                retrySpinner.style.display = 'inline-block';
-                retryText.textContent = 'Connecting...';
-                retryBtn.disabled = true;
+            // Switch to app
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            
+            // Update user info
+            document.getElementById('menuUserName').textContent = userData.name;
+            document.getElementById('menuUserRC').textContent = userData.rcNo;
+            document.getElementById('pageTitle').textContent = 'Dashboard';
+            
+            // Load initial data
+            await loadInitialData();
+            
+            // Show welcome
+            showToast(`Welcome, ${userData.name}!`, 'success');
+            
+            // Update UI
+            updateDashboard();
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('dutyManagerSession');
+                location.reload();
+            }
+        }
+
+        // ============================================
+        // DATA MANAGEMENT
+        // ============================================
+        async function loadInitialData() {
+            showLoading(true);
+            
+            try {
+                // Load all necessary data
+                await Promise.all([
+                    loadDutyRoster(),
+                    loadLeaveBalances(),
+                    loadRequests(),
+                    loadAnnouncements()
+                ]);
                 
-                // Show progress bar
-                showProgressBar(50);
+                // Update UI
+                updateUserBalance();
+                updateRequestBadges();
+                loadDashboardAnnouncements();
                 
-                // Try to fetch a small file to test connection
-                fetch('/favicon.ico', { 
-                    method: 'HEAD',
-                    cache: 'no-cache',
-                    mode: 'no-cors'
-                }).then(() => {
-                    // Success - update UI
-                    showProgressBar(100, () => {
-                        retrySpinner.style.display = 'none';
-                        retryIcon.style.display = 'inline-block';
-                        retryIcon.textContent = '✅';
-                        retryText.textContent = 'Connected!';
-                        
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1000);
-                    });
-                }).catch(() => {
-                    // Failed
-                    setTimeout(() => {
-                        showProgressBar(100, () => {
-                            retrySpinner.style.display = 'none';
-                            retryIcon.style.display = 'inline-block';
-                            retryIcon.textContent = '❌';
-                            retryText.textContent = 'Failed';
-                            retryBtn.disabled = false;
-                            
-                            // Reset after 2 seconds
-                            setTimeout(() => {
-                                retryIcon.textContent = '🔄';
-                                retryText.textContent = 'Retry Connection';
-                            }, 2000);
-                        });
-                    }, 1000);
-                });
-            });
+                showLoading(false);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Failed to load data', 'error');
+                showLoading(false);
+            }
+        }
+
+        async function loadDutyRoster() {
+            // Implement Firebase loading
+            dutyRoster = {}; // Placeholder
+        }
+
+        async function loadLeaveBalances() {
+            // Implement Firebase loading
+            leaveBalances = { [currentUser.username]: { SL: 12, FRL: 6 } }; // Placeholder
+        }
+
+        async function loadRequests() {
+            // Implement Firebase loading
+            allRequests = []; // Placeholder
+        }
+
+        async function loadAnnouncements() {
+            // Implement Firebase loading
+            announcements = []; // Placeholder
+        }
+
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                <span>${message}</span>
+            `;
             
-            // Handle continue offline button
-            continueBtn.addEventListener('click', function() {
-                // Add haptic feedback
-                if ('vibrate' in navigator) {
-                    navigator.vibrate(50);
-                }
-                
-                // Try to load from cache
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    // Signal service worker to serve cached version
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'OFFLINE_MODE',
-                        timestamp: Date.now()
-                    });
-                }
-                
-                // Show progress and redirect
-                showProgressBar(100, () => {
-                    window.location.href = '/';
-                });
-            });
+            container.appendChild(toast);
             
-            // Add haptic feedback to all buttons
-            [retryBtn, continueBtn].forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate(50);
-                    }
-                });
-            });
-            
-            // Listen for online/offline events
-            window.addEventListener('online', updateConnectionStatus);
-            window.addEventListener('offline', updateConnectionStatus);
-            
-            // Periodic connection check
-            setInterval(updateConnectionStatus, 10000);
-            
-            // Check for connection on page load
-            updateConnectionStatus();
-            updateLastSynced();
-            checkPendingActions();
-            
-            // Auto-retry after 30 seconds if still offline
             setTimeout(() => {
-                if (!navigator.onLine) {
-                    // Pulse the retry button to get attention
-                    retryBtn.style.animation = 'pulse 2s infinite';
-                    setTimeout(() => {
-                        retryBtn.style.animation = '';
-                    }, 6000);
-                }
-            }, 30000);
+                toast.remove();
+            }, 3000);
+        }
+
+        function showSection(sectionId) {
+            // Update current section
+            currentSection = sectionId;
             
-            // Show network type if available
-            if (navigator.connection) {
-                const connection = navigator.connection;
-                connection.addEventListener('change', function() {
-                    const type = connection.effectiveType || 'unknown';
-                    const details = document.querySelector('.connection-details > div');
-                    if (details) {
-                        details.textContent = `Network: ${type.toUpperCase()}`;
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const section = document.getElementById(sectionId + 'Section');
+            if (section) {
+                section.classList.add('active');
+            }
+            
+            // Update page title
+            const titles = {
+                dashboard: 'Dashboard',
+                dutyChange: 'Change Duty',
+                leaveApplication: 'Apply Leave',
+                myRequests: 'My Requests',
+                myRoster: 'My Roster'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[sectionId] || sectionId;
+            
+            // Update bottom nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (sectionId === 'dashboard') {
+                document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+            } else if (sectionId === 'myRoster') {
+                document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+            } else if (sectionId === 'dutyChange') {
+                document.querySelector('.nav-item:nth-child(3)').classList.add('active');
+            } else if (sectionId === 'myRequests') {
+                document.querySelector('.nav-item:nth-child(4)').classList.add('active');
+            }
+            
+            // Load section data
+            loadSectionData(sectionId);
+            
+            // Close menu if open
+            if (isMenuOpen) {
+                toggleMenu();
+            }
+            
+            // Add haptic feedback
+            if (MOBILE_CONFIG.enableHaptics && 'vibrate' in navigator) {
+                navigator.vibrate(20);
+            }
+        }
+
+        function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'dutyChange':
+                    loadDutyChangeForm();
+                    break;
+                case 'leaveApplication':
+                    loadLeaveForm();
+                    break;
+                case 'myRequests':
+                    loadMyRequests();
+                    break;
+                case 'myRoster':
+                    loadMyRoster();
+                    break;
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            if (isMenuOpen) {
+                menu.style.left = '-280px';
+            } else {
+                menu.style.left = '0';
+            }
+            isMenuOpen = !isMenuOpen;
+        }
+
+        function refreshData() {
+            showLoading(true);
+            loadInitialData().finally(() => {
+                showLoading(false);
+                showToast('Data refreshed', 'success');
+            });
+        }
+
+        function showNotifications() {
+            showToast('No new notifications', 'info');
+        }
+
+        // ============================================
+        // DASHBOARD FUNCTIONS
+        // ============================================
+        function updateDashboard() {
+            // Update balances
+            if (currentUser && leaveBalances[currentUser.username]) {
+                const balance = leaveBalances[currentUser.username];
+                document.getElementById('slBalance').textContent = balance.SL;
+                document.getElementById('frlBalance').textContent = balance.FRL;
+            }
+            
+            // Update today's duty
+            const today = new Date().toISOString().split('T')[0];
+            const dutyTime = dutyRoster[today] && dutyRoster[today][currentUser.username];
+            document.getElementById('todayDutyTime').textContent = dutyTime || 'OFF';
+            document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Update pending count
+            const pendingCount = allRequests.filter(req => 
+                req.fromUsername === currentUser.username && req.status === 'pending'
+            ).length;
+            
+            document.getElementById('pendingCount').textContent = `${pendingCount} pending`;
+        }
+
+        function updateUserBalance() {
+            // Update balance displays throughout the app
+        }
+
+        function updateRequestBadges() {
+            const dutyChangePending = allRequests.filter(req => 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username && 
+                req.status === 'pending'
+            ).length;
+            
+            const myPending = allRequests.filter(req => 
+                req.fromUsername === currentUser.username && 
+                req.status === 'pending'
+            ).length;
+            
+            if (dutyChangePending > 0) {
+                document.getElementById('dutyChangeBadge').textContent = dutyChangePending;
+                document.getElementById('dutyChangeBadge').style.display = 'block';
+            }
+            
+            if (myPending > 0) {
+                document.getElementById('requestsBadge').textContent = myPending;
+                document.getElementById('requestsBadge').style.display = 'block';
+            }
+        }
+
+        function loadDashboardAnnouncements() {
+            const container = document.getElementById('announcementsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (announcements.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📢</div>
+                        <div class="empty-title">No Announcements</div>
+                        <div class="empty-subtitle">Check back later for updates</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show only recent announcements
+            const recentAnnouncements = announcements.slice(0, 3);
+            
+            recentAnnouncements.forEach(ann => {
+                const announcement = document.createElement('div');
+                announcement.className = `announcement-card ${ann.priority || ''}`;
+                announcement.innerHTML = `
+                    <div class="announcement-header">
+                        <div class="announcement-icon">📢</div>
+                        <div class="announcement-title">${ann.title}</div>
+                        <div class="announcement-time">${formatTimeAgo(ann.createdAt)}</div>
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                `;
+                container.appendChild(announcement);
+            });
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+            return `${Math.floor(diffMins / 1440)}d ago`;
+        }
+
+        // ============================================
+        // DUTY CHANGE FUNCTIONS
+        // ============================================
+        function loadDutyChangeForm() {
+            // Populate staff dropdown
+            const staffSelect = document.getElementById('requestToStaff');
+            staffSelect.innerHTML = '<option value="">Select staff member</option>';
+            
+            if (allUsers && currentUser) {
+                allUsers.forEach(user => {
+                    if (user.username !== currentUser.username && user.Level === 'User') {
+                        const option = document.createElement('option');
+                        option.value = user.username;
+                        option.textContent = `${user.name} (RC: ${user.RCNo})`;
+                        staffSelect.appendChild(option);
                     }
                 });
             }
+            
+            updateDutyTimes();
+        }
+
+        function updateDutyTimes() {
+            const date = document.getElementById('changeDate').value;
+            if (!date || !currentUser) return;
+            
+            const select = document.getElementById('changeDutyTime');
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                select.appendChild(option);
+            }
+        }
+
+        function updateStaffDutyTime() {
+            const staff = document.getElementById('requestToStaff').value;
+            const date = document.getElementById('changeDate').value;
+            
+            if (!staff || !date) return;
+            
+            const select = document.getElementById('requestToDutyTime');
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][staff];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                select.appendChild(option);
+            }
+        }
+
+        async function submitDutyChange() {
+            // Implement duty change submission
+            showToast('Duty change request submitted!', 'success');
+            showSection('dashboard');
+        }
+
+        // ============================================
+        // LEAVE APPLICATION FUNCTIONS
+        // ============================================
+        function loadLeaveForm() {
+            updateLeaveDutyTime();
+            validateLeave();
+        }
+
+        function updateLeaveDutyTime() {
+            const date = document.getElementById('leaveDate').value;
+            if (!date || !currentUser) return;
+            
+            const select = document.getElementById('leaveDutyTime');
+            select.innerHTML = '<option value="">Select duty time</option>';
+            
+            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+            if (dutyTime) {
+                const option = document.createElement('option');
+                option.value = dutyTime;
+                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                select.appendChild(option);
+            }
+        }
+
+        function validateLeave() {
+            const leaveType = document.getElementById('leaveType').value;
+            const date = document.getElementById('leaveDate').value;
+            const dutyTime = document.getElementById('leaveDutyTime').value;
+            const duration = document.getElementById('leaveDuration').value;
+            
+            const rulesDiv = document.getElementById('leaveRules');
+            
+            if (!leaveType || !date || !dutyTime) {
+                rulesDiv.innerHTML = '<div style="color: var(--text-tertiary);">Select leave type, date and duty time to see rules</div>';
+                document.getElementById('submitLeaveBtn').disabled = true;
+                return;
+            }
+            
+            if (dutyTime === 'Off') {
+                rulesDiv.innerHTML = '<div style="color: var(--danger);">❌ You are off duty on this date</div>';
+                document.getElementById('submitLeaveBtn').disabled = true;
+                return;
+            }
+            
+            // Check balance
+            const userBalance = leaveBalances[currentUser.username];
+            if (userBalance) {
+                const available = leaveType === 'Sick Leave' ? userBalance.SL : userBalance.FRL;
+                if (available < parseFloat(duration)) {
+                    rulesDiv.innerHTML = `<div style="color: var(--danger);">❌ Insufficient ${leaveType} balance. Available: ${available} days</div>`;
+                    document.getElementById('submitLeaveBtn').disabled = true;
+                    return;
+                }
+            }
+            
+            rulesDiv.innerHTML = `<div style="color: var(--success);">✅ You can apply for ${duration} day(s) of ${leaveType}</div>`;
+            document.getElementById('submitLeaveBtn').disabled = false;
+        }
+
+        async function submitLeaveApplication() {
+            // Implement leave application submission
+            showToast('Leave application submitted!', 'success');
+            showSection('dashboard');
+        }
+
+        // ============================================
+        // REQUESTS FUNCTIONS
+        // ============================================
+        function loadMyRequests() {
+            const container = document.getElementById('myRequestsTable');
+            if (!container) return;
+            
+            const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
+            
+            if (myReqs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">No Requests</div>
+                        <div class="empty-subtitle">Your requests will appear here</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            myReqs.forEach(req => {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                
+                let details = req.type === 'dutyChange' ? 
+                    `Swap with ${req.toName}` : 
+                    `${req.leaveType} - ${req.duration} day(s)`;
+                
+                let statusClass = `status-${req.status}`;
+                
+                row.innerHTML = `
+                    <div>${req.type === 'dutyChange' ? '🔄' : '📅'}</div>
+                    <div>${req.date}</div>
+                    <div><span class="status-badge ${statusClass}">${req.status}</span></div>
+                    <div>${details}</div>
+                    <div>${req.status === 'pending' ? '<button class="btn btn-sm btn-danger">Cancel</button>' : '-'}</div>
+                `;
+                
+                container.appendChild(row);
+            });
+        }
+
+        // ============================================
+        // ROSTER FUNCTIONS
+        // ============================================
+        function loadMyRoster() {
+            const container = document.getElementById('rosterContent');
+            if (!container) return;
+            
+            // Get next 7 days
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                days.push(date.toISOString().split('T')[0]);
+            }
+            
+            let html = '';
+            days.forEach(dateStr => {
+                const date = new Date(dateStr);
+                const dutyTime = dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username];
+                
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-lg); border-bottom: 1px solid var(--border);">
+                        <div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                ${date.toLocaleDateString('en-US', { weekday: 'short' })}
+                            </div>
+                            <div style="font-size: var(--font-size-base); font-weight: 500;">
+                                ${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' })}
+                            </div>
+                        </div>
+                        <div style="font-size: var(--font-size-lg); font-weight: 600; color: ${dutyTime === 'Off' ? 'var(--text-tertiary)' : 'var(--text-primary)'}">
+                            ${dutyTime || '--:--'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html || '<div class="empty-state"><div>No roster data available</div></div>';
+        }
+
+        // ============================================
+        // MOBILE UTILITIES
+        // ============================================
+        function handleBackButton() {
+            if (currentSection !== 'dashboard') {
+                showSection('dashboard');
+                return true;
+            }
+            return false;
+        }
+
+        // Handle Android back button
+        document.addEventListener('backbutton', handleBackButton, false);
+
+        // Handle iOS swipe back
+        window.addEventListener('popstate', function(e) {
+            if (!handleBackButton()) {
+                history.pushState(null, null, window.location.pathname);
+            }
+        });
+
+        // Initialize history state
+        history.replaceState(null, null, window.location.pathname);
+        history.pushState(null, null, window.location.pathname);
+
+        // Request wake lock on mobile
+        if ('wakeLock' in navigator) {
+            navigator.wakeLock.request('screen').catch(() => {
+                // Wake lock not supported
+            });
         }
     </script>
 </body>
