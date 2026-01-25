@@ -12,12 +12,12 @@
     <meta name="description" content="Duty and Leave Management System">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="msapplication-TileColor" content="#3498db">
+    <meta name="msapplication-TileColor" content="#5E72E4">
     <meta name="msapplication-tap-highlight" content="no">
-    <meta name="theme-color" content="#3498db">
+    <meta name="theme-color" content="#5E72E4">
     
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%235E72E4'/%3E%3Cpath d='M30 35 Q50 25 70 35 L70 65 Q50 75 30 65 Z' fill='white'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%235E72E4'/%3E%3C/svg%3E">
     
     <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -37,77 +37,197 @@
     <title>Duty Manager</title>
     
     <style>
+        /* ============================================
+           MODERN MOBILE THEME - CLEAN & PROFESSIONAL
+        ============================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #2ecc71;
-            --secondary-dark: #27ae60;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --success: #2ecc71;
-            --light: #f8f9fa;
-            --dark: #2c3e50;
-            --gray: #95a5a6;
-            --gray-light: #ecf0f1;
-            --border: #e0e0e0;
-            --card-bg: #ffffff;
-            --surface: #ffffff;
-            --text: #2c3e50;
-            --text-light: #7f8c8d;
-            --shadow: 0 2px 10px rgba(0,0,0,0.08);
-            --shadow-heavy: 0 4px 20px rgba(0,0,0,0.12);
-            --radius: 16px;
-            --radius-sm: 12px;
+            /* Primary Colors - Professional Blue Theme */
+            --primary: #5E72E4;
+            --primary-dark: #4C63D4;
+            --primary-light: rgba(94, 114, 228, 0.1);
+            
+            /* Secondary Colors */
+            --secondary: #11CDEF;
+            --success: #2DCE89;
+            --warning: #FB6340;
+            --danger: #F5365C;
+            --info: #5E72E4;
+            
+            /* Neutral Colors */
+            --background: #F8F9FE;
+            --surface: #FFFFFF;
+            --surface-dark: #172B4D;
+            --surface-light: #F6F9FC;
+            
+            /* Text Colors */
+            --text-primary: #32325D;
+            --text-secondary: #6B7A99;
+            --text-tertiary: #8898AA;
+            --text-light: #ADB5BD;
+            --text-inverse: #FFFFFF;
+            
+            /* Border & Shadows */
+            --border: #E9ECEF;
+            --border-light: #F1F3F9;
+            --border-dark: #DFE3E8;
+            --shadow: 0 4px 6px rgba(50, 50, 93, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 7px 14px rgba(50, 50, 93, 0.08), 0 3px 6px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 15px 35px rgba(50, 50, 93, 0.08), 0 5px 15px rgba(0, 0, 0, 0.04);
+            
+            /* Radius */
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-md: 16px;
             --radius-lg: 20px;
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 12px;
+            --space-lg: 16px;
+            --space-xl: 20px;
+            --space-2xl: 24px;
+            --space-3xl: 32px;
+            
+            /* Typography */
+            --font-size-xs: 12px;
+            --font-size-sm: 14px;
+            --font-size-base: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 20px;
+            --font-size-2xl: 24px;
+            --font-size-3xl: 28px;
+            
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Safe Areas */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            
+            /* Bottom Navigation */
+            --bottom-nav-height: 64px;
         }
 
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #0F172A;
+                --surface: #1E293B;
+                --surface-dark: #0F172A;
+                --surface-light: #334155;
+                --text-primary: #F1F5F9;
+                --text-secondary: #CBD5E1;
+                --text-tertiary: #94A3B8;
+                --text-light: #64748B;
+                --border: #334155;
+                --border-light: #475569;
+                --border-dark: #1E293B;
+                --shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                --shadow-md: 0 7px 14px rgba(0, 0, 0, 0.25);
+                --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* ============================================
+           BASE STYLES
+        ============================================ */
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--background);
+            color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
             padding: 0;
             margin: 0;
-            padding-top: var(--safe-top);
-            padding-bottom: var(--safe-bottom);
             position: relative;
         }
 
-        body::before {
-            content: '';
+        /* Status Bar Area */
+        .status-bar {
+            height: calc(var(--safe-top) + 56px);
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: -2;
+            z-index: 1000;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: var(--safe-top) var(--space-xl) var(--space-lg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        /* Loading Overlay */
+        .status-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .status-bar-title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .status-bar-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .status-bar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: var(--surface-light);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .status-bar-btn:active {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: scale(0.95);
+        }
+
+        /* ============================================
+           LOADING OVERLAY
+        ============================================ */
         #loadingOverlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--surface);
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             z-index: 9999;
-            opacity: 1;
             transition: opacity 0.3s;
         }
 
@@ -117,13 +237,13 @@
         }
 
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255,255,255,0.3);
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
             border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
+            animation: spin 1s linear infinite;
+            margin-bottom: var(--space-lg);
         }
 
         @keyframes spin {
@@ -131,65 +251,60 @@
         }
 
         #loadingText {
-            color: white;
-            font-size: 16px;
+            color: var(--text-secondary);
+            font-size: var(--font-size-base);
             font-weight: 500;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* Toast Container */
+        /* ============================================
+           TOAST NOTIFICATIONS
+        ============================================ */
         #toastContainer {
             position: fixed;
-            top: calc(var(--safe-top) + 20px);
-            left: 0;
-            right: 0;
+            top: calc(var(--safe-top) + 70px);
+            left: var(--space-xl);
+            right: var(--space-xl);
             z-index: 10000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: var(--space-sm);
             pointer-events: none;
         }
 
         .toast {
             background: var(--surface);
-            color: var(--text);
-            padding: 16px 20px;
+            color: var(--text-primary);
+            padding: var(--space-lg) var(--space-xl);
             border-radius: var(--radius);
-            box-shadow: var(--shadow-heavy);
+            box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
-            gap: 12px;
-            max-width: 90%;
-            min-width: 280px;
-            animation: slideIn 0.3s ease-out;
-            transform: translateY(0);
-            opacity: 1;
-            transition: all 0.3s ease;
+            gap: var(--space-md);
+            width: 100%;
+            max-width: 400px;
+            animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid var(--primary);
             pointer-events: auto;
         }
 
         .toast.success {
-            background: var(--success);
-            color: white;
+            border-left-color: var(--success);
         }
 
         .toast.error {
-            background: var(--danger);
-            color: white;
+            border-left-color: var(--danger);
         }
 
         .toast.warning {
-            background: var(--warning);
-            color: white;
+            border-left-color: var(--warning);
         }
 
         .toast.info {
-            background: var(--primary);
-            color: white;
+            border-left-color: var(--info);
         }
 
-        @keyframes slideIn {
+        @keyframes toastSlideIn {
             from {
                 transform: translateY(-20px);
                 opacity: 0;
@@ -200,54 +315,69 @@
             }
         }
 
-        /* Login Container */
-        .login-container {
+        /* ============================================
+           LOGIN SCREEN
+        ============================================ */
+        .login-screen {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, #825EE4 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            padding: var(--space-xl);
             z-index: 1000;
         }
 
-        .logo {
+        .login-header {
             text-align: center;
-            margin-bottom: 50px;
-            color: white;
+            margin-bottom: var(--space-3xl);
         }
 
-        .logo h1 {
-            font-size: 32px;
+        .login-logo {
+            font-size: 64px;
+            margin-bottom: var(--space-lg);
+            background: rgba(255, 255, 255, 0.2);
+            width: 96px;
+            height: 96px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .login-title {
+            font-size: var(--font-size-2xl);
             font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            color: white;
+            margin-bottom: var(--space-sm);
+            letter-spacing: -0.5px;
         }
 
-        .logo p {
-            font-size: 16px;
-            opacity: 0.9;
-            font-weight: 400;
+        .login-subtitle {
+            font-size: var(--font-size-base);
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
         }
 
         .login-card {
             background: var(--surface);
             border-radius: var(--radius-lg);
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: var(--shadow-heavy);
-            animation: slideUp 0.5s ease-out;
+            padding: var(--space-2xl);
+            box-shadow: var(--shadow-lg);
+            animation: cardSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @keyframes slideUp {
+        @keyframes cardSlideUp {
             from {
-                transform: translateY(20px);
+                transform: translateY(30px);
                 opacity: 0;
             }
             to {
@@ -256,260 +386,260 @@
             }
         }
 
+        /* ============================================
+           FORM CONTROLS
+        ============================================ */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--space-xl);
         }
 
-        .form-group label {
+        .form-label {
             display: block;
-            margin-bottom: 8px;
-            color: var(--text);
-            font-weight: 500;
-            font-size: 14px;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
         }
 
         .form-control {
             width: 100%;
-            padding: 16px;
+            padding: var(--space-lg) var(--space-xl);
+            background: var(--surface-light);
             border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            transition: all 0.3s;
-            background: var(--light);
+            border-radius: var(--radius);
+            font-size: var(--font-size-base);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            font-weight: 500;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px var(--primary-light);
         }
 
+        .form-control::placeholder {
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        /* ============================================
+           BUTTONS
+        ============================================ */
         .btn {
-            padding: 16px 24px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            transition: all 0.3s;
-            text-decoration: none;
+            padding: var(--space-lg) var(--space-xl);
+            border-radius: var(--radius);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            gap: var(--space-sm);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn:active {
-            transform: scale(0.98);
+            transform: translateY(2px);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 4px 12px rgba(94, 114, 228, 0.3);
         }
 
-        .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        .btn-primary:active {
+            box-shadow: 0 2px 8px rgba(94, 114, 228, 0.3);
         }
 
-        .btn-block {
+        .btn-secondary {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:active {
+            background: var(--border-light);
+        }
+
+        .btn-sm {
+            padding: var(--space-md) var(--space-lg);
+            font-size: var(--font-size-sm);
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: var(--radius-full);
+            background: var(--surface-light);
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           MAIN CONTENT
+        ============================================ */
+        .main-content {
+            padding: var(--space-xl);
+            padding-top: calc(var(--safe-top) + 56px + var(--space-xl));
+            padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-xl));
+            max-width: 500px;
+            margin: 0 auto;
             width: 100%;
+            min-height: 100vh;
         }
 
-        .error-message {
-            color: var(--danger);
-            font-size: 14px;
-            text-align: center;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            background: rgba(231, 76, 60, 0.1);
+        /* ============================================
+           CARDS
+        ============================================ */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
         }
 
-        /* Dashboard Container */
-        .dashboard-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--light);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            border-radius: 0;
+        .card:active {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: calc(12px + var(--safe-top)) 20px 12px 20px;
-            position: relative;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .header-content {
+        .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: var(--space-lg);
         }
 
-        .header-left {
+        .card-title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: var(--space-sm);
         }
 
-        .header-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
+        .card-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+            margin-top: var(--space-xs);
         }
 
-        .header-info h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .header-info p {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .header-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .header-btn:active {
-            transform: scale(0.9);
-            background: rgba(255,255,255,0.3);
-        }
-
-        /* Bottom Navigation */
+        /* ============================================
+           BOTTOM NAVIGATION
+        ============================================ */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
+            height: calc(var(--bottom-nav-height) + var(--safe-bottom));
             background: var(--surface);
+            border-top: 1px solid var(--border);
             display: flex;
-            padding: 8px 0 calc(8px + var(--safe-bottom)) 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
+            padding-bottom: var(--safe-bottom);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        .bottom-nav-btn {
+        .nav-item {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: none;
-            border: none;
-            color: var(--gray);
-            padding: 8px 0;
-            font-size: 12px;
-            gap: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--text-tertiary);
+            padding: var(--space-sm);
+            position: relative;
+            transition: all var(--transition-fast);
         }
 
-        .bottom-nav-btn.active {
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+
+        .nav-item.active {
             color: var(--primary);
         }
 
-        .bottom-nav-icon {
-            font-size: 24px;
-            margin-bottom: 2px;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            padding-bottom: calc(80px + var(--safe-bottom));
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* Cards */
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s;
-        }
-
-        .card:active {
-            transform: translateY(-2px);
-        }
-
-        .card h3 {
-            color: var(--text);
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 20px;
+        .nav-icon {
+            font-size: 22px;
+            margin-bottom: var(--space-xs);
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
         }
 
-        /* Balance Display */
-        .balance-display {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 20px 0;
+        .nav-label {
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
 
-        .balance-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 20%);
-            border-radius: var(--radius);
-            padding: 20px;
+        .nav-badge {
+            position: absolute;
+            top: 8px;
+            right: calc(50% - 20px);
+            background: var(--danger);
             color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        /* ============================================
+           BALANCE CARDS
+        ============================================ */
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin: var(--space-xl) 0;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
             text-align: center;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 8px 20px rgba(94, 114, 228, 0.2);
         }
 
-        .balance-box::before {
+        .balance-card:nth-child(2) {
+            background: linear-gradient(135deg, var(--success), #24B47E);
+        }
+
+        .balance-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
             animation: shine 3s infinite;
         }
 
@@ -518,207 +648,282 @@
             100% { transform: translateX(100%); }
         }
 
-        .balance-box:nth-child(2) {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 20%);
-        }
-
         .balance-label {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 5px;
+            font-size: var(--font-size-sm);
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: var(--space-xs);
+            font-weight: 500;
         }
 
         .balance-value {
-            font-size: 32px;
-            font-weight: 700;
+            font-size: var(--font-size-3xl);
+            font-weight: 800;
+            color: white;
             line-height: 1;
-            margin: 10px 0;
+            margin: var(--space-sm) 0;
+            letter-spacing: -0.5px;
         }
 
-        /* Alerts */
-        .alert {
-            padding: 16px;
-            border-radius: var(--radius-sm);
-            margin: 20px 0;
-            font-size: 14px;
-            line-height: 1.5;
+        .balance-unit {
+            font-size: var(--font-size-sm);
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
         }
 
-        .alert-info {
-            background: rgba(52, 152, 219, 0.1);
-            border-left: 4px solid var(--primary);
-            color: var(--text);
-        }
-
-        .alert-warning {
-            background: rgba(243, 156, 18, 0.1);
-            border-left: 4px solid var(--warning);
-            color: var(--text);
-        }
-
-        .alert-success {
-            background: rgba(46, 204, 113, 0.1);
-            border-left: 4px solid var(--success);
-            color: var(--text);
-        }
-
-        .alert-danger {
-            background: rgba(231, 76, 60, 0.1);
-            border-left: 4px solid var(--danger);
-            color: var(--text);
-        }
-
-        /* Quick Actions */
+        /* ============================================
+           QUICK ACTIONS
+        ============================================ */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 25px 0;
+            gap: var(--space-lg);
+            margin: var(--space-xl) 0;
         }
 
-        .action-btn {
+        .action-card {
             background: var(--surface);
-            border: none;
-            border-radius: var(--radius);
-            padding: 20px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            border: 1px solid var(--border);
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow);
+            transition: all var(--transition);
         }
 
-        .action-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .action-card:active {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
         }
 
         .action-icon {
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
-
-        .action-text {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        /* Form Rows */
-        .form-row {
+            font-size: 28px;
+            margin-bottom: var(--space-md);
+            height: 56px;
+            width: 56px;
+            background: var(--surface-light);
+            border-radius: var(--radius-full);
             display: flex;
-            gap: 12px;
-            margin-top: 25px;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-md);
         }
 
-        .form-row .btn {
-            flex: 1;
-        }
-
-        /* Table */
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 0 -20px;
-            padding: 0 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 500px;
-        }
-
-        th {
-            background: var(--light);
-            color: var(--text-light);
+        .action-label {
+            font-size: var(--font-size-sm);
             font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            padding: 12px 15px;
-            text-align: left;
+            color: var(--text-primary);
+        }
+
+        .action-subtitle {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            margin-top: var(--space-xs);
+        }
+
+        /* ============================================
+           TODAY'S SCHEDULE
+        ============================================ */
+        .schedule-card {
+            background: linear-gradient(135deg, #11CDEF, #1171EF);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin: var(--space-xl) 0;
+            box-shadow: 0 8px 20px rgba(17, 205, 239, 0.2);
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+
+        .schedule-title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+        }
+
+        .schedule-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .schedule-time {
+            font-size: var(--font-size-2xl);
+            font-weight: 800;
+            margin-bottom: var(--space-xs);
+            letter-spacing: -0.5px;
+        }
+
+        .schedule-date {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* ============================================
+           ANNOUNCEMENTS
+        ============================================ */
+        .announcements-container {
+            margin: var(--space-xl) 0;
+        }
+
+        .announcement-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .announcement-card.high::before {
+            background: var(--danger);
+        }
+
+        .announcement-card.medium::before {
+            background: var(--warning);
+        }
+
+        .announcement-header {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .announcement-icon {
+            font-size: 20px;
+            color: var(--primary);
+            background: var(--primary-light);
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .announcement-title {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .announcement-time {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
             white-space: nowrap;
         }
 
-        td {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text);
-            font-size: 14px;
+        .announcement-content {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
         }
 
-        tr:last-child td {
+        /* ============================================
+           TABLES
+        ============================================ */
+        .table-container {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            background: var(--surface-light);
+            padding: var(--space-lg);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            padding: var(--space-lg);
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            transition: all var(--transition-fast);
+        }
+
+        .table-row:active {
+            background: var(--surface-light);
+        }
+
+        .table-row:last-child {
             border-bottom: none;
         }
 
-        /* Status Badges */
+        .status-badge {
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            text-align: center;
+        }
+
         .status-pending {
+            background: rgba(251, 99, 64, 0.1);
             color: var(--warning);
-            font-weight: 600;
-            background: rgba(243, 156, 18, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: inline-block;
         }
 
         .status-approved {
+            background: rgba(45, 206, 137, 0.1);
             color: var(--success);
-            font-weight: 600;
-            background: rgba(46, 204, 113, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: inline-block;
         }
 
-        .status-rejected, .status-cancelled {
+        .status-rejected {
+            background: rgba(245, 54, 92, 0.1);
             color: var(--danger);
-            font-weight: 600;
-            background: rgba(231, 76, 60, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: inline-block;
         }
 
-        /* Action Buttons */
-        .action-btn.small {
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: var(--radius-sm);
-            background: var(--light);
-            color: var(--text);
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .action-btn.small.reject {
-            background: var(--danger);
-            color: white;
-        }
-
-        .action-btn.small:active {
-            transform: scale(0.95);
-        }
-
-        /* Install Prompt */
+        /* ============================================
+           INSTALL PROMPT
+        ============================================ */
         .install-prompt {
             position: fixed;
-            bottom: calc(80px + var(--safe-bottom));
-            left: 20px;
-            right: 20px;
+            bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 20px);
+            left: var(--space-xl);
+            right: var(--space-xl);
             background: var(--surface);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow-heavy);
-            transform: translateY(100%);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
             opacity: 0;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
+            border: 1px solid var(--border);
         }
 
         .install-prompt.show {
@@ -729,35 +934,59 @@
         .install-header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
         }
 
         .install-icon {
             font-size: 32px;
+            background: var(--primary-light);
+            color: var(--primary);
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .install-title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .install-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
         }
 
         .install-buttons {
             display: flex;
-            gap: 10px;
+            gap: var(--space-md);
         }
 
-        /* Notification Permission */
+        /* ============================================
+           NOTIFICATION PERMISSION
+        ============================================ */
         .notification-permission {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: var(--space-xl);
             z-index: 1000;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
         .notification-permission.show {
@@ -768,16 +997,16 @@
         .notification-box {
             background: var(--surface);
             border-radius: var(--radius-lg);
-            padding: 30px;
+            padding: var(--space-2xl);
             max-width: 400px;
             width: 100%;
-            text-align: center;
-            animation: scaleIn 0.3s ease-out;
+            box-shadow: var(--shadow-lg);
+            animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes scaleIn {
             from {
-                transform: scale(0.9);
+                transform: scale(0.95);
                 opacity: 0;
             }
             to {
@@ -788,10 +1017,25 @@
 
         .notification-icon {
             font-size: 48px;
-            margin-bottom: 20px;
+            margin-bottom: var(--space-lg);
+            color: var(--primary);
+            background: var(--primary-light);
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-lg);
         }
 
-        /* Sections */
+        /* ============================================
+           UTILITY CLASSES
+        ============================================ */
+        .hidden {
+            display: none !important;
+        }
+
         .section {
             display: none;
         }
@@ -806,110 +1050,162 @@
             to { opacity: 1; }
         }
 
-        /* Empty States */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 { margin-top: var(--space-sm); }
+        .mt-2 { margin-top: var(--space-md); }
+        .mt-3 { margin-top: var(--space-lg); }
+        .mt-4 { margin-top: var(--space-xl); }
+        .mt-5 { margin-top: var(--space-2xl); }
+
+        .mb-1 { margin-bottom: var(--space-sm); }
+        .mb-2 { margin-bottom: var(--space-md); }
+        .mb-3 { margin-bottom: var(--space-lg); }
+        .mb-4 { margin-bottom: var(--space-xl); }
+        .mb-5 { margin-bottom: var(--space-2xl); }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 { gap: var(--space-md); }
+        .gap-3 { gap: var(--space-lg); }
+        .gap-4 { gap: var(--space-xl); }
+
+        /* ============================================
+           EMPTY STATES
+        ============================================ */
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
-            color: var(--text-light);
+            padding: var(--space-3xl) var(--space-xl);
         }
 
-        .empty-state-icon {
+        .empty-icon {
             font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.3;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-lg);
+            opacity: 0.4;
         }
 
-        /* Swipe Indicators */
-        .swipe-indicator {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 12px;
-            margin-top: 10px;
-            opacity: 0.7;
+        .empty-title {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+            font-weight: 600;
         }
 
-        /* Pull to Refresh */
-        .pull-to-refresh {
-            position: absolute;
-            top: -50px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: var(--text-light);
-            font-size: 14px;
+        .empty-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+            line-height: 1.6;
         }
 
-        /* Responsive Design */
+        /* ============================================
+           RESPONSIVE ADJUSTMENTS
+        ============================================ */
         @media (max-width: 480px) {
-            .card {
-                padding: 15px;
-                margin-bottom: 15px;
-            }
-            
             .main-content {
-                padding: 15px;
+                padding: var(--space-lg);
+                padding-top: calc(var(--safe-top) + 56px + var(--space-lg));
+                padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-lg));
             }
             
+            .card {
+                padding: var(--space-lg);
+            }
+            
+            .balance-grid,
             .quick-actions {
-                gap: 10px;
+                gap: var(--space-md);
             }
             
-            .action-btn {
-                padding: 15px 5px;
+            .balance-card,
+            .action-card {
+                padding: var(--space-lg);
             }
             
-            .balance-box {
-                padding: 15px;
+            .login-card {
+                padding: var(--space-xl);
             }
         }
 
         @media (max-width: 360px) {
-            .logo h1 {
-                font-size: 24px;
+            :root {
+                --font-size-xl: 18px;
+                --font-size-lg: 16px;
+                --font-size-base: 14px;
+                --font-size-sm: 12px;
             }
             
-            .card h3 {
-                font-size: 18px;
+            .main-content {
+                padding: var(--space-md);
+                padding-top: calc(var(--safe-top) + 56px + var(--space-md));
+                padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-md));
             }
             
-            .form-control {
-                padding: 14px;
+            .card {
+                padding: var(--space-md);
             }
             
-            .btn {
-                padding: 14px 20px;
+            .balance-value {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(3, 1fr);
+                gap: var(--space-sm);
             }
         }
 
-        /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --light: #1a1a1a;
-                --dark: #ffffff;
-                --gray: #666666;
-                --gray-light: #2a2a2a;
-                --border: #333333;
-                --card-bg: #222222;
-                --surface: #222222;
-                --text: #ffffff;
-                --text-light: #999999;
-                --shadow: 0 2px 10px rgba(0,0,0,0.3);
-                --shadow-heavy: 0 4px 20px rgba(0,0,0,0.4);
-            }
-            
-            body {
-                background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            }
-            
-            .form-control {
-                background: #333333;
-                color: white;
-                border-color: #444444;
-            }
-            
-            .form-control:focus {
-                background: #3a3a3a;
-            }
+        /* ============================================
+           PULL TO REFRESH
+        ============================================ */
+        .pull-to-refresh {
+            position: absolute;
+            top: -60px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: var(--font-size-sm);
+            padding: var(--space-md);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pull-to-refresh.active {
+            opacity: 1;
+        }
+
+        /* ============================================
+           SWIPE INDICATORS
+        ============================================ */
+        .swipe-indicator {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: var(--font-size-xs);
+            margin-top: var(--space-md);
+            padding: var(--space-sm);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -917,7 +1213,7 @@
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="active">
         <div class="spinner"></div>
-        <div id="loadingText">Loading Duty Manager...</div>
+        <div id="loadingText">Loading Duty Manager</div>
     </div>
 
     <!-- Toast Container -->
@@ -928,15 +1224,15 @@
         <div class="install-header">
             <div class="install-icon">📱</div>
             <div>
-                <div style="font-weight: bold; font-size: 16px;">Install Duty Manager</div>
-                <div style="font-size: 14px; color: var(--text-light);">Add to home screen for quick access</div>
+                <div class="install-title">Install Duty Manager</div>
+                <div class="install-subtitle">Add to home screen for quick access</div>
             </div>
         </div>
         <div class="install-buttons">
             <button id="installNowBtn" class="btn btn-primary" style="flex: 1;">
-                <span>⬇️</span> Install App
+                <span>⬇️</span> Install
             </button>
-            <button id="installLaterBtn" class="btn" style="background: var(--light); color: var(--text);">
+            <button id="installLaterBtn" class="btn btn-secondary">
                 Later
             </button>
         </div>
@@ -946,72 +1242,69 @@
     <div id="notificationPermission" class="notification-permission">
         <div class="notification-box">
             <div class="notification-icon">🔔</div>
-            <h3 style="margin-bottom: 15px; color: var(--text);">Enable Notifications</h3>
-            <p style="margin-bottom: 25px; color: var(--text-light); line-height: 1.5;">
+            <h3 style="text-align: center; margin-bottom: var(--space-md); color: var(--text-primary);">
+                Enable Notifications
+            </h3>
+            <p style="text-align: center; margin-bottom: var(--space-xl); color: var(--text-secondary); line-height: 1.6;">
                 Get real-time alerts for duty changes, leave approvals, and important announcements.
             </p>
-            <div style="display: flex; gap: 12px;">
+            <div style="display: flex; gap: var(--space-md);">
                 <button id="allowNotificationsBtn" class="btn btn-primary" style="flex: 1;">
                     Allow
                 </button>
-                <button id="skipNotificationsBtn" class="btn" style="background: var(--light); color: var(--text);">
+                <button id="skipNotificationsBtn" class="btn btn-secondary">
                     Skip
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Login Container -->
-    <div class="login-container" id="loginContainer">
-        <div class="logo">
-            <h1>Duty Manager</h1>
-            <p>Staff Management System</p>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-header">
+            <div class="login-logo">📋</div>
+            <h1 class="login-title">Duty Manager</h1>
+            <p class="login-subtitle">Professional duty and leave management</p>
         </div>
         
         <div class="login-card">
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required autofocus>
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
                 </div>
                 
-                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                <button type="submit" class="btn btn-primary">
                     <span>🔐</span> Sign In
                 </button>
                 
-                <div class="error-message" id="errorMessage" style="display: none;">
+                <div id="errorMessage" class="hidden mt-3 text-center" style="color: var(--danger); font-size: var(--font-size-sm);">
                     Invalid username or password
                 </div>
             </form>
         </div>
         
-        <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 30px; text-align: center;">
-            Secure login • Version 1.0
+        <div style="color: rgba(255, 255, 255, 0.6); font-size: var(--font-size-xs); margin-top: var(--space-2xl); text-align: center;">
+            Secure login • Version 2.0
         </div>
     </div>
-    
-    <!-- Dashboard Container -->
-    <div class="dashboard-container" id="dashboardContainer">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="header-avatar" id="headerAvatar">U</div>
-                    <div class="header-info">
-                        <h1 id="headerName">User Name</h1>
-                        <p id="headerRole">RC: 000 • User Level</p>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button class="header-btn" onclick="updateDashboard()" title="Refresh">
+
+    <!-- Main App -->
+    <div id="appContainer" class="hidden">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-bar-content">
+                <div class="status-bar-title" id="pageTitle">Dashboard</div>
+                <div class="status-bar-actions">
+                    <button class="status-bar-btn" onclick="refreshData()" title="Refresh">
                         🔄
                     </button>
-                    <button class="header-btn" onclick="showNotifications()" title="Notifications">
+                    <button class="status-bar-btn" onclick="showNotifications()" title="Notifications">
                         🔔
                     </button>
                 </div>
@@ -1021,111 +1314,108 @@
         <!-- Main Content -->
         <div class="main-content" id="mainContent">
             <!-- Dashboard -->
-            <div class="section active" id="homeSection">
-                <!-- Announcements Carousel -->
-                <div id="announcementsCarousel" class="card" style="margin-bottom: 15px; padding: 0; overflow: hidden;">
-                    <div id="announcementsContent" style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
-                        <div style="text-align: center; padding: 30px;">
-                            <div style="font-size: 48px; opacity: 0.3; margin-bottom: 10px;">📢</div>
-                            <div style="color: var(--text-light);">No announcements</div>
-                        </div>
-                    </div>
-                    <div class="swipe-indicator">Swipe for more</div>
+            <div id="dashboardSection" class="section active">
+                <!-- Announcements -->
+                <div id="announcementsContainer">
+                    <!-- Will be populated by JavaScript -->
                 </div>
 
                 <!-- Balance Cards -->
-                <div class="balance-display">
-                    <div class="balance-box">
+                <div class="balance-grid">
+                    <div class="balance-card">
                         <div class="balance-label">Sick Leave</div>
                         <div class="balance-value" id="slBalance">0</div>
-                        <div class="balance-label">Days Available</div>
+                        <div class="balance-unit">Days Available</div>
                     </div>
-                    <div class="balance-box">
+                    <div class="balance-card">
                         <div class="balance-label">FRL</div>
                         <div class="balance-value" id="frlBalance">0</div>
-                        <div class="balance-label">Days Available</div>
+                        <div class="balance-unit">Days Available</div>
                     </div>
                 </div>
 
-                <!-- Today's Duty -->
-                <div class="card">
-                    <h3>📅 Today's Schedule</h3>
-                    <div class="alert alert-info">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Current Duty</div>
-                                <div style="font-size: 18px; font-weight: 600;" id="todayDutyTime">Not Scheduled</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Next Duty</div>
-                                <div style="font-size: 16px; font-weight: 600;" id="nextDutyTime">No upcoming</div>
-                            </div>
-                        </div>
+                <!-- Today's Schedule -->
+                <div class="schedule-card">
+                    <div class="schedule-header">
+                        <div class="schedule-title">Today's Duty</div>
+                        <div class="schedule-badge">LIVE</div>
                     </div>
+                    <div class="schedule-time" id="todayDutyTime">--:--</div>
+                    <div class="schedule-date" id="todayDate">Loading...</div>
                 </div>
 
                 <!-- Quick Actions -->
                 <div class="card">
-                    <h3>⚡ Quick Actions</h3>
+                    <div class="card-header">
+                        <div class="card-title">⚡ Quick Actions</div>
+                    </div>
                     <div class="quick-actions">
-                        <button class="action-btn" onclick="showSection('dutyChange')">
+                        <div class="action-card" onclick="showSection('dutyChange')">
                             <div class="action-icon">🔄</div>
-                            <div class="action-text">Duty Change</div>
-                        </button>
-                        <button class="action-btn" onclick="showSection('leaveApplication')">
+                            <div class="action-label">Change Duty</div>
+                            <div class="action-subtitle">Request swap</div>
+                        </div>
+                        <div class="action-card" onclick="showSection('leaveApplication')">
                             <div class="action-icon">📅</div>
-                            <div class="action-text">Apply Leave</div>
-                        </button>
-                        <button class="action-btn" onclick="showSection('myRequests')">
+                            <div class="action-label">Apply Leave</div>
+                            <div class="action-subtitle">SL / FRL</div>
+                        </div>
+                        <div class="action-card" onclick="showSection('myRequests')">
                             <div class="action-icon">📋</div>
-                            <div class="action-text">My Requests</div>
-                            <span id="myRequestsBadge" style="display: none; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 10px; right: 10px;">0</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Pending Approvals (for supervisors) -->
-                <div class="card" id="pendingApprovalsCard" style="display: none;">
-                    <h3>⏳ Pending Approval</h3>
-                    <div id="pendingApprovalsList">
-                        <!-- Will be populated by JavaScript -->
+                            <div class="action-label">My Requests</div>
+                            <div class="action-subtitle" id="pendingCount">0 pending</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Other sections will follow the same structure -->
-            <div class="section" id="dutyChangeSection">
+            <!-- Other Sections -->
+            <div id="dutyChangeSection" class="section">
                 <div class="card">
-                    <h3>🔄 Duty Change</h3>
-                    <!-- Form content here -->
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">🔄 Duty Change</div>
+                            <div class="card-subtitle">Swap duties with colleagues</div>
+                        </div>
+                        <button class="btn-icon" onclick="showSection('dashboard')">←</button>
+                    </div>
+                    <!-- Form content will go here -->
                 </div>
             </div>
 
-            <div class="section" id="leaveApplicationSection">
+            <div id="leaveApplicationSection" class="section">
                 <div class="card">
-                    <h3>📅 Apply Leave</h3>
-                    <!-- Form content here -->
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">📅 Apply Leave</div>
+                            <div class="card-subtitle">Sick Leave or FRL application</div>
+                        </div>
+                        <button class="btn-icon" onclick="showSection('dashboard')">←</button>
+                    </div>
+                    <!-- Form content will go here -->
                 </div>
             </div>
 
-            <div class="section" id="myRequestsSection">
+            <div id="myRequestsSection" class="section">
                 <div class="card">
-                    <h3>📋 My Requests</h3>
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">📋 My Requests</div>
+                            <div class="card-subtitle">Track your applications</div>
+                        </div>
+                        <button class="btn-icon" onclick="showSection('dashboard')">←</button>
+                    </div>
                     <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Date</th>
-                                    <th>Details</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="myRequestsTable">
-                                <!-- Will be populated by JavaScript -->
-                            </tbody>
-                        </table>
+                        <div class="table-header">
+                            <div>Type</div>
+                            <div>Date</div>
+                            <div>Status</div>
+                            <div>Details</div>
+                            <div>Action</div>
+                        </div>
+                        <div id="myRequestsTable">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1133,175 +1423,590 @@
 
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
-            <button class="bottom-nav-btn active" onclick="showSection('home')">
-                <span class="bottom-nav-icon">🏠</span>
-                <span>Home</span>
-            </button>
-            <button class="bottom-nav-btn" onclick="showSection('dutyChange')">
-                <span class="bottom-nav-icon">🔄</span>
-                <span>Change</span>
-            </button>
-            <button class="bottom-nav-btn" onclick="showSection('leaveApplication')">
-                <span class="bottom-nav-icon">📅</span>
-                <span>Leave</span>
-            </button>
-            <button class="bottom-nav-btn" onclick="showSection('myRequests')">
-                <span class="bottom-nav-icon">📋</span>
-                <span>Requests</span>
-            </button>
+            <a href="#" class="nav-item active" onclick="showSection('dashboard')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('dutyChange')">
+                <span class="nav-icon">🔄</span>
+                <span class="nav-label">Change</span>
+                <span class="nav-badge" id="dutyChangeBadge" style="display: none;">0</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('leaveApplication')">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">Leave</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showSection('myRequests')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Requests</span>
+                <span class="nav-badge" id="requestsBadge" style="display: none;">0</span>
+            </a>
         </div>
     </div>
 
     <script>
-        // Mobile App Functionality
+        // Mobile App Configuration
+        const MOBILE_CONFIG = {
+            enableHaptics: true,
+            enablePullToRefresh: true,
+            enableSwipeNavigation: true,
+            enableAnimations: true
+        };
+
+        // App State
+        let currentUser = null;
+        let currentSection = 'dashboard';
+        let isRefreshing = false;
+
+        // Initialize Mobile App
         document.addEventListener('DOMContentLoaded', function() {
             initMobileApp();
+            checkSession();
         });
 
         function initMobileApp() {
-            // Setup pull to refresh
+            setupMobileGestures();
+            setupPullToRefresh();
+            setupEventListeners();
+            setupFormDefaults();
+        }
+
+        function setupMobileGestures() {
+            if (!MOBILE_CONFIG.enableSwipeNavigation) return;
+
+            let startX = 0;
             let startY = 0;
-            let pullDelta = 0;
+            let isSwiping = false;
+
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 1) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    isSwiping = true;
+                }
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isSwiping || e.touches.length !== 1) return;
+                
+                const currentX = e.touches[0].clientX;
+                const currentY = e.touches[0].clientY;
+                const diffX = currentX - startX;
+                const diffY = currentY - startY;
+
+                // Only process horizontal swipes
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('touchend', function(e) {
+                if (!isSwiping) return;
+                
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const diffX = endX - startX;
+                const diffY = endY - startY;
+
+                // Check if it's a horizontal swipe
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                    if (diffX > 0) {
+                        // Swiped right - go back or show menu
+                        handleSwipeRight();
+                    } else {
+                        // Swiped left - next action
+                        handleSwipeLeft();
+                    }
+                }
+                
+                isSwiping = false;
+                startX = startY = 0;
+            });
+        }
+
+        function setupPullToRefresh() {
+            if (!MOBILE_CONFIG.enablePullToRefresh) return;
+
             const mainContent = document.getElementById('mainContent');
             const pullToRefresh = document.createElement('div');
             pullToRefresh.className = 'pull-to-refresh';
-            pullToRefresh.textContent = 'Pull to refresh';
+            pullToRefresh.innerHTML = '⬇️ Pull to refresh';
             mainContent.insertBefore(pullToRefresh, mainContent.firstChild);
 
-            mainContent.addEventListener('touchstart', e => {
+            let startY = 0;
+            let pullDistance = 0;
+
+            mainContent.addEventListener('touchstart', function(e) {
                 if (mainContent.scrollTop === 0) {
                     startY = e.touches[0].pageY;
-                    pullDelta = 0;
+                    pullToRefresh.classList.remove('active');
                 }
             });
 
-            mainContent.addEventListener('touchmove', e => {
-                if (mainContent.scrollTop === 0) {
-                    pullDelta = e.touches[0].pageY - startY;
-                    if (pullDelta > 0) {
-                        e.preventDefault();
-                        pullToRefresh.style.transform = `translateY(${Math.min(pullDelta, 50)}px)`;
-                        pullToRefresh.textContent = pullDelta > 50 ? 'Release to refresh' : 'Pull to refresh';
-                    }
-                }
-            });
-
-            mainContent.addEventListener('touchend', e => {
-                if (pullDelta > 50) {
-                    pullToRefresh.textContent = 'Refreshing...';
-                    setTimeout(() => {
-                        pullToRefresh.style.transform = 'translateY(0)';
-                        pullToRefresh.textContent = 'Pull to refresh';
-                        updateDashboard();
-                        showToast('Refreshed!', 'success');
-                    }, 1000);
-                } else {
-                    pullToRefresh.style.transform = 'translateY(0)';
-                }
-                pullDelta = 0;
-            });
-
-            // Setup swipe gestures for announcements
-            let announcementStartX = 0;
-            const announcementsCarousel = document.getElementById('announcementsCarousel');
-            
-            if (announcementsCarousel) {
-                announcementsCarousel.addEventListener('touchstart', e => {
-                    announcementStartX = e.touches[0].clientX;
-                });
-
-                announcementsCarousel.addEventListener('touchend', e => {
-                    const endX = e.changedTouches[0].clientX;
-                    const diff = endX - announcementStartX;
+            mainContent.addEventListener('touchmove', function(e) {
+                if (mainContent.scrollTop === 0 && startY > 0) {
+                    const currentY = e.touches[0].pageY;
+                    pullDistance = currentY - startY;
                     
-                    if (Math.abs(diff) > 50) {
-                        if (diff > 0) {
-                            // Swiped right
-                            showToast('Previous announcement', 'info');
+                    if (pullDistance > 0) {
+                        e.preventDefault();
+                        pullToRefresh.style.transform = `translateY(${Math.min(pullDistance, 60)}px)`;
+                        pullToRefresh.classList.add('active');
+                        
+                        if (pullDistance > 60) {
+                            pullToRefresh.innerHTML = '↻ Release to refresh';
                         } else {
-                            // Swiped left
-                            showToast('Next announcement', 'info');
+                            pullToRefresh.innerHTML = '⬇️ Pull to refresh';
                         }
                     }
-                });
-            }
-
-            // Add haptic feedback for buttons
-            document.querySelectorAll('.btn, .action-btn, .header-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate(10);
-                    }
-                });
+                }
             });
 
-            // Handle back button
-            let currentSection = 'home';
-            window.addEventListener('popstate', function(e) {
-                const section = e.state ? e.state.section : 'home';
-                showSection(section);
+            mainContent.addEventListener('touchend', function() {
+                if (pullDistance > 60) {
+                    pullToRefresh.innerHTML = '↻ Refreshing...';
+                    refreshData();
+                }
+                
+                setTimeout(() => {
+                    pullToRefresh.style.transform = 'translateY(0)';
+                    pullToRefresh.classList.remove('active');
+                    pullToRefresh.innerHTML = '⬇️ Pull to refresh';
+                }, 300);
+                
+                startY = pullDistance = 0;
             });
-
-            // Update all showSection calls to use history
-            const originalShowSection = window.showSection;
-            window.showSection = function(sectionId) {
-                currentSection = sectionId;
-                history.pushState({ section: sectionId }, '', `#${sectionId}`);
-                originalShowSection(sectionId);
-            };
         }
 
-        // Add this to your existing showSection function
+        function setupEventListeners() {
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Install prompt
+            document.getElementById('installNowBtn')?.addEventListener('click', installApp);
+            document.getElementById('installLaterBtn')?.addEventListener('click', hideInstallPrompt);
+            
+            // Notifications
+            document.getElementById('allowNotificationsBtn')?.addEventListener('click', requestNotificationPermission);
+            document.getElementById('skipNotificationsBtn')?.addEventListener('click', hideNotificationPermission);
+        }
+
+        function setupFormDefaults() {
+            // Set minimum dates to today
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Set tomorrow as default for date inputs
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            // This will be used when forms are implemented
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            showLoading(true, 'Signing in...');
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                showToast('Please enter username and password', 'warning');
+                showLoading(false);
+                return;
+            }
+            
+            // Simulate login - Replace with actual authentication
+            setTimeout(() => {
+                const sessionData = {
+                    username: username,
+                    name: username.charAt(0).toUpperCase() + username.slice(1),
+                    rcNo: '123',
+                    level: 'User',
+                    expiry: Date.now() + (8 * 60 * 60 * 1000)
+                };
+                
+                localStorage.setItem('dutyManagerSession', JSON.stringify(sessionData));
+                loginUser(sessionData);
+                showLoading(false);
+            }, 1000);
+        }
+
+        function checkSession() {
+            const session = localStorage.getItem('dutyManagerSession');
+            if (session) {
+                try {
+                    const user = JSON.parse(session);
+                    if (user.expiry > Date.now()) {
+                        loginUser(user);
+                    } else {
+                        localStorage.removeItem('dutyManagerSession');
+                        showLoginScreen();
+                    }
+                } catch (e) {
+                    localStorage.removeItem('dutyManagerSession');
+                    showLoginScreen();
+                }
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+        }
+
+        function loginUser(userData) {
+            currentUser = userData;
+            
+            // Show app, hide login
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            
+            // Update user info
+            document.getElementById('pageTitle').textContent = 'Dashboard';
+            
+            // Initialize app data
+            initializeAppData();
+            
+            // Show welcome
+            showToast(`Welcome back, ${userData.name}!`, 'success');
+            
+            // Show notification permission after delay
+            setTimeout(showNotificationPermission, 2000);
+        }
+
+        function initializeAppData() {
+            // Load initial data
+            updateDashboard();
+        }
+
+        function showLoading(show, text = 'Loading...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const textEl = document.getElementById('loadingText');
+            
+            if (overlay) {
+                if (show) {
+                    overlay.classList.add('active');
+                    if (textEl) textEl.textContent = text;
+                } else {
+                    overlay.classList.remove('active');
+                }
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Haptic feedback on mobile
+            if (MOBILE_CONFIG.enableHaptics && 'vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         function showSection(sectionId) {
+            // Update current section
+            currentSection = sectionId;
+            
             // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
             
             // Show selected section
-            const sectionElement = document.getElementById(sectionId + 'Section');
-            if (sectionElement) {
-                sectionElement.classList.add('active');
+            const section = document.getElementById(sectionId + 'Section');
+            if (section) {
+                section.classList.add('active');
             }
             
+            // Update page title
+            const titles = {
+                dashboard: 'Dashboard',
+                dutyChange: 'Change Duty',
+                leaveApplication: 'Apply Leave',
+                myRequests: 'My Requests'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[sectionId] || sectionId;
+            
             // Update bottom nav
-            document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                const btnText = btn.querySelector('span:last-child').textContent.toLowerCase();
-                if (sectionId === 'home' && btnText === 'home') btn.classList.add('active');
-                if (sectionId === 'dutyChange' && btnText === 'change') btn.classList.add('active');
-                if (sectionId === 'leaveApplication' && btnText === 'leave') btn.classList.add('active');
-                if (sectionId === 'myRequests' && btnText === 'requests') btn.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
             });
+            
+            const navIndex = {
+                dashboard: 0,
+                dutyChange: 1,
+                leaveApplication: 2,
+                myRequests: 3
+            };
+            
+            const navItems = document.querySelectorAll('.nav-item');
+            if (navIndex[sectionId] !== undefined) {
+                navItems[navIndex[sectionId]].classList.add('active');
+            }
             
             // Scroll to top
             document.getElementById('mainContent').scrollTop = 0;
+            
+            // Load section data
+            loadSectionData(sectionId);
+            
+            // Haptic feedback
+            if (MOBILE_CONFIG.enableHaptics && 'vibrate' in navigator) {
+                navigator.vibrate(30);
+            }
         }
 
-        // Add these mobile-optimized functions
+        function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'dutyChange':
+                    loadDutyChangeForm();
+                    break;
+                case 'leaveApplication':
+                    loadLeaveForm();
+                    break;
+                case 'myRequests':
+                    loadMyRequests();
+                    break;
+            }
+        }
+
+        function updateDashboard() {
+            // Update balance cards
+            document.getElementById('slBalance').textContent = '12';
+            document.getElementById('frlBalance').textContent = '6';
+            
+            // Update today's schedule
+            document.getElementById('todayDutyTime').textContent = '09:00-17:00';
+            document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Update pending count
+            document.getElementById('pendingCount').textContent = '0 pending';
+            
+            // Load announcements
+            loadAnnouncements();
+        }
+
+        function loadAnnouncements() {
+            const container = document.getElementById('announcementsContainer');
+            if (!container) return;
+            
+            // Sample announcements - replace with real data
+            const announcements = [
+                {
+                    title: 'System Maintenance',
+                    content: 'System will be down for maintenance tomorrow from 2 AM to 4 AM.',
+                    time: '2 hours ago',
+                    priority: 'medium'
+                },
+                {
+                    title: 'Holiday Notice',
+                    content: 'Office will be closed on Friday for public holiday.',
+                    time: '1 day ago',
+                    priority: 'high'
+                }
+            ];
+            
+            container.innerHTML = '';
+            
+            if (announcements.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="empty-state">
+                            <div class="empty-icon">📢</div>
+                            <div class="empty-title">No Announcements</div>
+                            <div class="empty-subtitle">Check back later for updates</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            announcements.forEach(ann => {
+                const announcement = document.createElement('div');
+                announcement.className = `announcement-card ${ann.priority || ''}`;
+                announcement.innerHTML = `
+                    <div class="announcement-header">
+                        <div class="announcement-icon">📢</div>
+                        <div class="announcement-title">${ann.title}</div>
+                        <div class="announcement-time">${ann.time}</div>
+                    </div>
+                    <div class="announcement-content">${ann.content}</div>
+                `;
+                container.appendChild(announcement);
+            });
+        }
+
+        function refreshData() {
+            if (isRefreshing) return;
+            
+            isRefreshing = true;
+            showLoading(true, 'Refreshing...');
+            
+            // Simulate data refresh
+            setTimeout(() => {
+                updateDashboard();
+                showToast('Data refreshed successfully', 'success');
+                showLoading(false);
+                isRefreshing = false;
+            }, 1000);
+        }
+
         function showNotifications() {
             showToast('No new notifications', 'info');
         }
 
-        // Mobile-optimized updateDashboard function
-        function updateDashboard() {
-            // Add shimmer effect to balance cards
-            const balanceCards = document.querySelectorAll('.balance-box');
-            balanceCards.forEach(card => {
-                card.style.opacity = '0.7';
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                }, 300);
-            });
-            
-            // Show loading state
-            showLoading(true, 'Updating...');
-            
-            // Your existing update logic here
-            setTimeout(() => {
-                showLoading(false);
-            }, 1000);
+        function handleSwipeRight() {
+            // Go back to dashboard if not already there
+            if (currentSection !== 'dashboard') {
+                showSection('dashboard');
+            }
         }
+
+        function handleSwipeLeft() {
+            // Could be used for next announcement or other actions
+        }
+
+        // PWA Installation
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install prompt after delay
+            setTimeout(showInstallPrompt, 5000);
+        });
+
+        function showInstallPrompt() {
+            if (deferredPrompt && !isRunningStandalone()) {
+                document.getElementById('installPrompt').classList.add('show');
+            }
+        }
+
+        function hideInstallPrompt() {
+            document.getElementById('installPrompt').classList.remove('show');
+            localStorage.setItem('installPromptShown', 'true');
+        }
+
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    showToast('App installed successfully!', 'success');
+                }
+                
+                deferredPrompt = null;
+                hideInstallPrompt();
+            }
+        }
+
+        function isRunningStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone ||
+                   document.referrer.includes('android-app://');
+        }
+
+        // Notifications
+        function showNotificationPermission() {
+            if (Notification.permission === 'default') {
+                document.getElementById('notificationPermission').classList.add('show');
+            }
+        }
+
+        function hideNotificationPermission() {
+            document.getElementById('notificationPermission').classList.remove('show');
+            localStorage.setItem('notificationPermissionSkipped', 'true');
+        }
+
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    showToast('Notifications enabled!', 'success');
+                    
+                    // Get FCM token if using Firebase
+                    if (firebase.messaging.isSupported()) {
+                        const token = await firebase.messaging().getToken({
+                            vapidKey: 'YOUR_VAPID_KEY'
+                        });
+                        console.log('FCM Token:', token);
+                    }
+                }
+            } catch (error) {
+                console.error('Error requesting notification permission:', error);
+                showToast('Failed to enable notifications', 'error');
+            }
+            
+            hideNotificationPermission();
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('dutyManagerSession');
+                location.reload();
+            }
+        }
+
+        // Handle back button on Android
+        document.addEventListener('backbutton', function(e) {
+            if (currentSection !== 'dashboard') {
+                showSection('dashboard');
+                e.preventDefault();
+            }
+        }, false);
+
+        // Initialize
+        function initializeApp() {
+            // Check if running as PWA
+            if (isRunningStandalone()) {
+                document.body.classList.add('standalone');
+            }
+            
+            // Setup service worker for offline support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            }
+        }
+
+        // Call initialize when DOM is loaded
+        initializeApp();
     </script>
 </body>
 </html>
