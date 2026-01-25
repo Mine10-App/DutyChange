@@ -1,0 +1,4583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Duty Manager">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Duty Manager">
+    <meta name="description" content="Duty and Leave Management System for staff">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#3498db">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#3498db">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icon-192x192.png">
+    <link rel="apple-touch-startup-image" href="/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <!-- Replace the icon links in your <head> section with these data URLs -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    
+    <title>Duty Management System</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    
+    <!-- SHA-256 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+    
+    <!-- External files -->
+    <script src="dcfire.js" defer></script>
+    <script src="user.js" defer></script>
+    
+    <style>
+        /* Mobile-First CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        #loadingOverlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        /* Toast Container */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: calc(100% - 40px);
+        }
+
+        .toast {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease;
+            max-width: 350px;
+        }
+
+        .toast.success {
+            border-left: 4px solid #27ae60;
+        }
+
+        .toast.error {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f39c12;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3498db;
+        }
+
+        /* Login Page */
+        .login-container {
+            background: white;
+            width: 100%;
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .logo p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219653;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d68910;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Dashboard */
+        .dashboard-container {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 60px;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .mobile-title {
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+
+        .mobile-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mobile-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .mobile-nav-overlay.active {
+            display: block;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: white;
+            z-index: 1001;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-nav.active {
+            transform: translateX(0);
+        }
+
+        .nav-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-user-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .nav-user-details {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-items {
+            flex: 1;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 15px;
+        }
+
+        .nav-item.active {
+            background: #e8f4fc;
+            color: #3498db;
+            border-left: 4px solid #3498db;
+        }
+
+        .nav-item-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item-badge {
+            margin-left: auto;
+            background: #e74c3c;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 12px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-footer {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e0e6ed;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 99;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .bottom-nav-btn {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #7f8c8d;
+            font-size: 12px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .bottom-nav-btn.active {
+            color: #3498db;
+        }
+
+        .bottom-nav-icon {
+            font-size: 20px;
+        }
+
+        /* Content Area */
+        .dashboard-content {
+            padding: 20px;
+            padding-bottom: 80px; /* Space for bottom nav */
+            min-height: calc(100vh - 60px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e6ed;
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* Balance Display */
+        .balance-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .balance-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e0e6ed;
+        }
+
+        .balance-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 5px 0;
+        }
+
+        .balance-label {
+            font-size: 13px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* Form Rows */
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .alert-info {
+            background: #e8f4fc;
+            border-color: #3498db;
+            color: #2c3e50;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #27ae60;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #f39c12;
+            color: #856404;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border-color: #e74c3c;
+            color: #721c24;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e6ed;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .action-btn.approve {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .action-btn.reject {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn.view {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Announcement Banner */
+        .announcement-banner {
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .announcement-banner.priority-high {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .announcement-banner.priority-medium {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .announcement-banner.priority-low {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .announcement-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Duty Time Colors */
+        .duty-0730-1530 {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+            color: #856404 !important;
+            border: 1px solid #ffeaa7 !important;
+        }
+
+        .duty-0830-1630 {
+            background: linear-gradient(135deg, #e2d9f3 0%, #d6c6f7 100%) !important;
+            color: #563d7c !important;
+            border: 1px solid #d6c6f7 !important;
+        }
+
+        .duty-1030-1830 {
+            background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%) !important;
+            color: #827717 !important;
+            border: 1px solid #fff9c4 !important;
+        }
+
+        .duty-1530-2330 {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+            color: #0d47a1 !important;
+            border: 1px solid #bbdefb !important;
+        }
+
+        .duty-1630-0030 {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%) !important;
+            color: #424242 !important;
+            border: 1px solid #e0e0e0 !important;
+        }
+
+        .duty-leave {
+            background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%) !important;
+            color: #e8590c !important;
+            border: 1px dashed #fd7e14 !important;
+        }
+
+        .off-day-cell {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+            color: #155724 !important;
+            font-weight: 500;
+            border: 1px solid #c3e6cb !important;
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        /* Mobile Optimized Form Elements */
+        select.form-control {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237f8c8d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+            padding-right: 40px;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.4;
+        }
+
+        /* Touch-friendly Date Inputs */
+        input[type="date"] {
+            min-height: 48px;
+        }
+
+        /* Roster Styles */
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .roster-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e0e6ed;
+        }
+
+        .roster-date {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .roster-staff-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .roster-staff-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .roster-staff-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .roster-staff-duty {
+            font-weight: 600;
+        }
+
+        /* Calendar View */
+        .calendar-view {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .calendar-header {
+            display: flex;
+            background: #3498db;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .calendar-day {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            min-width: 100px;
+        }
+
+        .calendar-body {
+            display: flex;
+        }
+
+        .calendar-staff {
+            min-width: 120px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-right: 1px solid #e0e6ed;
+        }
+
+        .calendar-staff-name {
+            font-weight: 500;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .calendar-staff-rc {
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .calendar-duties {
+            display: flex;
+            flex: 1;
+        }
+
+        .calendar-duty-day {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px;
+            border-right: 1px solid #e0e6ed;
+            border-bottom: 1px solid #e0e6ed;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Responsive Grids */
+        @media (min-width: 768px) {
+            .balance-display {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .form-row {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .form-group {
+                flex: 1;
+                min-width: 200px;
+            }
+            
+            .roster-grid {
+                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            }
+        }
+
+        /* Animations */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Mobile Specific */
+        @media (max-width: 767px) {
+            .dashboard-content {
+                padding: 15px;
+                padding-bottom: 70px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 13px;
+            }
+            
+            .action-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            
+            .roster-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-day {
+                min-width: 70px;
+                padding: 8px 4px;
+                font-size: 12px;
+            }
+            
+            .calendar-staff {
+                min-width: 80px;
+                padding: 8px 4px;
+            }
+            
+            .calendar-duty-day {
+                min-width: 70px;
+                padding: 8px 4px;
+                font-size: 12px;
+            }
+        }
+        /* PWA Install Prompt Styles */
+        .install-prompt {
+            position: fixed;
+            bottom: 80px;
+            right: 15px;
+            z-index: 1000;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-width: 300px;
+            animation: slideInUp 0.3s ease;
+            border: 2px solid #3498db;
+        }
+        
+        .install-prompt.hidden {
+            display: none;
+        }
+        
+        .install-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .install-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .install-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .install-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .install-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .install-btn {
+            flex: 1;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .install-btn:hover {
+            background: #2980b9;
+        }
+        
+        .install-btn.secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        /* Online/Offline Indicator */
+        .network-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: #e74c3c;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            animation: fadeIn 0.3s;
+        }
+        
+        .network-status.online {
+            background: #27ae60;
+        }
+        
+        .network-status.offline {
+            background: #e74c3c;
+            display: flex;
+        }
+        
+        /* Refresh Button for updates */
+        .update-available {
+            position: fixed;
+            bottom: 80px;
+            left: 15px;
+            z-index: 1000;
+            background: #f39c12;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Notification Permission Prompt */
+        .notification-permission {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .notification-permission.show {
+            display: flex;
+        }
+        
+        .notification-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .notification-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .notification-btn.allow {
+            background: white;
+            color: #3498db;
+        }
+        
+        .notification-btn.later {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">Loading...</div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <div class="logo">
+            <h1>Duty Management</h1>
+            <p>Secure Login System</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                <span>🔐</span> Login
+            </button>
+            
+            <div class="error-message" id="errorMessage">
+                Invalid username or password
+            </div>
+        </form>
+    </div>
+     <!-- Network Status Indicator -->
+    <div class="network-status" id="networkStatus">
+        <span id="networkIcon">⚠️</span>
+        <span id="networkText">Offline</span>
+    </div>
+    
+    <!-- Notification Permission Prompt -->
+    <div class="notification-permission" id="notificationPrompt">
+        <div>
+            <strong>🔔 Enable Notifications</strong>
+            <p style="font-size: 14px; margin-top: 5px; opacity: 0.9;">
+                Get real-time updates for duty changes, announcements, and leave requests.
+            </p>
+        </div>
+        <div class="notification-buttons">
+            <button class="notification-btn allow" onclick="enableNotifications()">Allow</button>
+            <button class="notification-btn later" onclick="hideNotificationPrompt()">Later</button>
+        </div>
+    </div>
+    
+    <!-- PWA Install Prompt -->
+    <div class="install-prompt hidden" id="installPrompt">
+        <div class="install-header">
+            <div class="install-icon">👤</div>
+            <div>
+                <div class="install-title">Install Duty Manager</div>
+                <div class="install-subtitle">Quick access on home screen</div>
+            </div>
+        </div>
+        <div class="install-buttons">
+            <button class="install-btn" id="installNowBtn">Install</button>
+            <button class="install-btn secondary" id="installLaterBtn">Later</button>
+        </div>
+    </div>
+    
+    <!-- Update Available Prompt -->
+    <div class="update-available hidden" id="updatePrompt">
+        <span>🔄</span>
+        <span>Update Available</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">Loading...</div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <!-- ... (keep existing login HTML) ... -->
+    </div>
+    <!-- Dashboard Container -->
+    <div class="dashboard-container" id="dashboardContainer">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="menu-toggle" id="menuToggle">
+                ☰
+            </button>
+            <div class="mobile-title" id="mobileTitle">Dashboard</div>
+            <div class="mobile-user">
+                <div class="mobile-avatar" id="mobileAvatar">U</div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+        <div class="mobile-nav" id="mobileNav">
+            <div class="nav-header">
+                <div class="nav-user-name" id="navUserName">User Name</div>
+                <div class="nav-user-details">
+                    <span>RC: <span id="navUserRC">000</span></span>
+                    <span>Level: <span id="navUserLevel">User</span></span>
+                </div>
+            </div>
+            
+            <div class="nav-items">
+                <a href="#" class="nav-item active" data-section="home">
+                    <span class="nav-item-icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="dutyChange">
+                    <span class="nav-item-icon">🔄</span>
+                    <span>Duty Change</span>
+                </a>
+                <a href="#" class="nav-item" data-section="leaveApplication">
+                    <span class="nav-item-icon">📅</span>
+                    <span>Apply Leave</span>
+                </a>
+                <a href="#" class="nav-item" data-section="myRequests">
+                    <span class="nav-item-icon">📋</span>
+                    <span>My Requests</span>
+                    <span class="nav-item-badge" id="myRequestsBadge" style="display: none;">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="viewMyRoster">
+                    <span class="nav-item-icon">📊</span>
+                    <span>My Roster</span>
+                </a>
+                <a href="#" class="nav-item" data-section="viewAllRoster">
+                    <span class="nav-item-icon">👥</span>
+                    <span>All Roster</span>
+                </a>
+                <a href="#" class="nav-item" data-section="pendingRequests" id="pendingRequestsNav" style="display: none;">
+                    <span class="nav-item-icon">⏳</span>
+                    <span>Pending</span>
+                    <span class="nav-item-badge" id="pendingRequestsBadge">0</span>
+                </a>
+                
+                <!-- Admin Sections -->
+                <a href="#" class="nav-item admin-nav" data-section="adminAnnouncements" style="display: none;">
+                    <span class="nav-item-icon">📢</span>
+                    <span>Announcements</span>
+                </a>
+                <a href="#" class="nav-item admin-nav" data-section="adminDutyRoster" style="display: none;">
+                    <span class="nav-item-icon">📝</span>
+                    <span>Duty Roster</span>
+                </a>
+                <a href="#" class="nav-item admin-nav" data-section="adminLeaveBalance" style="display: none;">
+                    <span class="nav-item-icon">💰</span>
+                    <span>Leave Balance</span>
+                </a>
+                <a href="#" class="nav-item admin-nav" data-section="adminApprovals" style="display: none;">
+                    <span class="nav-item-icon">✅</span>
+                    <span>Approvals</span>
+                </a>
+                <a href="#" class="nav-item admin-nav" data-section="adminRequestHistory" style="display: none;">
+                    <span class="nav-item-icon">📜</span>
+                    <span>History</span>
+                    <span class="nav-item-badge" id="historyNotificationBadge" style="display: none;">!</span>
+                </a>
+            </div>
+            
+            <div class="nav-footer">
+                <button class="btn btn-danger btn-block" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="dashboard-content" id="dashboardContent">
+            <!-- Dashboard -->
+            <div class="section active" id="homeSection">
+                <div id="homeAnnouncements">
+                    <!-- Announcements will be loaded here -->
+                </div>
+                
+                <div class="card">
+                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
+                    
+                    <div class="balance-display">
+                        <div class="balance-box">
+                            <div class="balance-label">Sick Leave</div>
+                            <div class="balance-value" id="slBalance">0</div>
+                            <div class="balance-label">Days</div>
+                        </div>
+                        <div class="balance-box">
+                            <div class="balance-label">FRL</div>
+                            <div class="balance-value" id="frlBalance">0</div>
+                            <div class="balance-label">Days</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Today's Duty:</strong> <span id="todayDutyTime">Not Scheduled</span></p>
+                        <p><strong>Next Duty:</strong> <span id="nextDutyTime">No upcoming duty</span></p>
+                        <div id="homeNotifications" style="margin-top: 10px; display: none;"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="updateDashboard()">
+                            <span>🔄</span> Refresh
+                        </button>
+                        <button class="btn btn-warning" onclick="showSection('dutyChange')">
+                            <span>🔄</span> Change Duty
+                        </button>
+                        <button class="btn btn-success" onclick="showSection('leaveApplication')">
+                            <span>📅</span> Apply Leave
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Duty Change Request -->
+            <div class="section" id="dutyChangeSection">
+                <div class="card">
+                    <h3>Duty Change Request</h3>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> Requests must be made at least 24 hours in advance.
+                    </div>
+                    
+                    <form id="dutyChangeForm">
+                        <div class="form-group">
+                            <label for="changeDate">Change Date *</label>
+                            <input type="date" id="changeDate" class="form-control" required min="">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="changeDutyTime">Your Duty Time *</label>
+                            <select id="changeDutyTime" class="form-control" required>
+                                <option value="">Select duty time</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="requestToStaff">Request To Staff *</label>
+                            <select id="requestToStaff" class="form-control" required>
+                                <option value="">Select staff member</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="requestToRcNo">Staff RC No</label>
+                            <input type="text" id="requestToRcNo" class="form-control" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="requestToDutyTime">Staff's Duty Time *</label>
+                            <select id="requestToDutyTime" class="form-control" required>
+                                <option value="">Select duty time</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="changeReason">Reason (Optional)</label>
+                            <textarea id="changeReason" class="form-control" rows="2" placeholder="Brief reason for duty change"></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-success">
+                                <span>📤</span> Submit Request
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="showSection('home')">
+                                <span>❌</span> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Leave Application -->
+            <div class="section" id="leaveApplicationSection">
+                <div class="card">
+                    <h3>Leave Application</h3>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Application Rules:</strong></p>
+                        <p>• Sick Leave: Minimum 2 hours before duty time</p>
+                        <p>• FRL: Minimum 1 hour before duty time</p>
+                        <p><strong>Note:</strong> Leave balance will be deducted immediately upon submission</p>
+                    </div>
+                    
+                    <form id="leaveApplicationForm">
+                        <div class="form-group">
+                            <label for="leaveType">Leave Type *</label>
+                            <select id="leaveType" class="form-control" required>
+                                <option value="">Select leave type</option>
+                                <option value="Sick Leave">Sick Leave</option>
+                                <option value="FRL">FRL</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="leaveDate">Leave Date *</label>
+                            <input type="date" id="leaveDate" class="form-control" required min="">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="leaveDutyTime">Duty Time *</label>
+                            <select id="leaveDutyTime" class="form-control" required>
+                                <option value="">Select duty time</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="leaveDuration">Duration *</label>
+                            <select id="leaveDuration" class="form-control" required>
+                                <option value="1">1 Day</option>
+                                <option value="0.5">Half Day</option>
+                                <option value="2">2 Days</option>
+                                <option value="3">3 Days</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="leaveReason">Reason *</label>
+                            <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required></textarea>
+                        </div>
+                        
+                        <div id="leaveRulesAlert" class="alert">
+                            Select leave type, date and duty time to see rules
+                        </div>
+                        
+                        <div class="form-row">
+                            <button type="submit" class="btn btn-success" id="submitLeaveBtn">
+                                <span>📤</span> Submit Application
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="showSection('home')">
+                                <span>❌</span> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- My Requests -->
+            <div class="section" id="myRequestsSection">
+                <div class="card">
+                    <h3>My Requests</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myRequestsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Requests -->
+            <div class="section" id="pendingRequestsSection">
+                <div class="card">
+                    <h3>Pending Requests For You</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingRequestsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- View My Roster -->
+            <div class="section" id="viewMyRosterSection">
+                <div class="card">
+                    <h3>My Duty Roster</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="myRosterStartDate">From Date</label>
+                            <input type="date" id="myRosterStartDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="myRosterEndDate">To Date</label>
+                            <input type="date" id="myRosterEndDate" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="loadMyRoster()">
+                            <span>📊</span> Load My Roster
+                        </button>
+                    </div>
+                    
+                    <div id="myRosterContainer" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+            
+            <!-- View All Roster -->
+            <div class="section" id="viewAllRosterSection">
+                <div class="card">
+                    <h3>Complete Duty Roster</h3>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Color Coding:</strong></p>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">
+                            <div><span class="duty-0730-1530" style="padding: 4px 8px; border-radius: 4px;">07:30-15:30</span></div>
+                            <div><span class="duty-0830-1630" style="padding: 4px 8px; border-radius: 4px;">08:30-16:30</span></div>
+                            <div><span class="duty-1030-1830" style="padding: 4px 8px; border-radius: 4px;">10:30-18:30</span></div>
+                            <div><span class="duty-1530-2330" style="padding: 4px 8px; border-radius: 4px;">15:30-23:30</span></div>
+                            <div><span class="duty-1630-0030" style="padding: 4px 8px; border-radius: 4px;">16:30-00:30</span></div>
+                            <div><span class="off-day-cell" style="padding: 4px 8px; border-radius: 4px;">Off Duty</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="allRosterStartDate">From Date</label>
+                            <input type="date" id="allRosterStartDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="allRosterEndDate">To Date</label>
+                            <input type="date" id="allRosterEndDate" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button class="btn btn-primary" onclick="loadAllRoster()">
+                            <span>📊</span> Load Roster
+                        </button>
+                        <button class="btn btn-warning" onclick="showRosterView('grid')">
+                            <span>📋</span> Grid View
+                        </button>
+                        <button class="btn btn-warning" onclick="showRosterView('calendar')">
+                            <span>📅</span> Calendar View
+                        </button>
+                    </div>
+                    
+                    <div id="allRosterContainer" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+            
+            <!-- Admin Announcements -->
+            <div class="section" id="adminAnnouncementsSection">
+                <div class="card">
+                    <h3>Create Announcement</h3>
+                    <form id="announcementForm">
+                        <div class="form-group">
+                            <label for="announcementTitle">Title *</label>
+                            <input type="text" id="announcementTitle" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="announcementContent">Content *</label>
+                            <textarea id="announcementContent" class="form-control" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="announcementPriority">Priority</label>
+                            <select id="announcementPriority" class="form-control">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <span>📢</span> Create Announcement
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h3>Active Announcements</h3>
+                    <div id="activeAnnouncementsList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="bottom-nav-btn active" onclick="showSection('home')">
+                <span class="bottom-nav-icon">🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="showSection('dutyChange')">
+                <span class="bottom-nav-icon">🔄</span>
+                <span>Change</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="showSection('leaveApplication')">
+                <span class="bottom-nav-icon">📅</span>
+                <span>Leave</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="showSection('myRequests')">
+                <span class="bottom-nav-icon">📋</span>
+                <span>Requests</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="showSection('viewAllRoster')">
+                <span class="bottom-nav-icon">👥</span>
+                <span>Roster</span>
+            </button>
+        </div>
+    </div>
+
+  
+
+<script>
+    // PWA and Notifications Manager
+    class PWAManager {
+        constructor() {
+            this.deferredPrompt = null;
+            this.isStandalone = false;
+            this.serviceWorkerRegistration = null;
+            this.notificationPermission = 'default';
+            this.isOnline = navigator.onLine;
+            this.messaging = null;
+            
+            this.init();
+        }
+        
+        async init() {
+            this.checkStandalone();
+            this.setupNetworkListener();
+            this.setupInstallPrompt();
+            this.registerServiceWorker();
+            this.checkNotificationPermission();
+        }
+        
+        checkStandalone() {
+            this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                              window.navigator.standalone ||
+                              document.referrer.includes('android-app://');
+            
+            if (this.isStandalone) {
+                document.body.classList.add('standalone-app');
+                console.log('Running as installed PWA');
+            }
+        }
+        
+        setupNetworkListener() {
+            window.addEventListener('online', () => {
+                this.isOnline = true;
+                this.updateNetworkStatus();
+                this.showToast('You are back online', 'success');
+            });
+            
+            window.addEventListener('offline', () => {
+                this.isOnline = false;
+                this.updateNetworkStatus();
+                this.showToast('You are offline', 'warning');
+            });
+            
+            this.updateNetworkStatus();
+        }
+        
+        updateNetworkStatus() {
+            const statusEl = document.getElementById('networkStatus');
+            if (!statusEl) return;
+            
+            if (this.isOnline) {
+                statusEl.classList.remove('offline');
+                statusEl.classList.add('online');
+                statusEl.querySelector('#networkIcon').textContent = '✅';
+                statusEl.querySelector('#networkText').textContent = 'Online';
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            } else {
+                statusEl.classList.remove('online');
+                statusEl.classList.add('offline');
+                statusEl.querySelector('#networkIcon').textContent = '⚠️';
+                statusEl.querySelector('#networkText').textContent = 'Offline';
+                statusEl.style.display = 'flex';
+            }
+        }
+        
+        setupInstallPrompt() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                
+                // Don't show immediately on standalone
+                if (!this.isStandalone && !localStorage.getItem('installPromptShown')) {
+                    setTimeout(() => this.showInstallPrompt(), 3000);
+                }
+            });
+            
+            // Listen for app installed
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA installed successfully');
+                localStorage.setItem('installPromptShown', 'true');
+                this.hideInstallPrompt();
+                this.showToast('App installed successfully!', 'success');
+            });
+        }
+        
+        showInstallPrompt() {
+            if (this.deferredPrompt && !localStorage.getItem('installPromptShown')) {
+                const prompt = document.getElementById('installPrompt');
+                prompt.classList.remove('hidden');
+                
+                document.getElementById('installNowBtn').onclick = async () => {
+                    prompt.style.animation = 'slideOutDown 0.3s ease';
+                    setTimeout(() => prompt.classList.add('hidden'), 300);
+                    
+                    this.deferredPrompt.prompt();
+                    const { outcome } = await this.deferredPrompt.userChoice;
+                    console.log(`User response: ${outcome}`);
+                    this.deferredPrompt = null;
+                    localStorage.setItem('installPromptShown', 'true');
+                };
+                
+                document.getElementById('installLaterBtn').onclick = () => {
+                    prompt.style.animation = 'slideOutDown 0.3s ease';
+                    setTimeout(() => prompt.classList.add('hidden'), 300);
+                    localStorage.setItem('installPromptShown', 'true');
+                };
+                
+                // Auto-hide after 30 seconds
+                setTimeout(() => {
+                    if (!prompt.classList.contains('hidden')) {
+                        prompt.style.animation = 'slideOutDown 0.3s ease';
+                        setTimeout(() => prompt.classList.add('hidden'), 300);
+                        localStorage.setItem('installPromptShown', 'true');
+                    }
+                }, 30000);
+            }
+        }
+        
+        hideInstallPrompt() {
+            const prompt = document.getElementById('installPrompt');
+            prompt.classList.add('hidden');
+        }
+        
+        async registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    // Register service worker
+                    this.serviceWorkerRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+                        scope: '/'
+                    });
+                    
+                    console.log('Service Worker registered:', this.serviceWorkerRegistration);
+                    
+                    // Listen for updates
+                    this.serviceWorkerRegistration.addEventListener('updatefound', () => {
+                        const newWorker = this.serviceWorkerRegistration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && 
+                                    navigator.serviceWorker.controller) {
+                                    this.showUpdatePrompt();
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Check for updates periodically
+                    setInterval(() => {
+                        this.serviceWorkerRegistration.update();
+                    }, 60 * 60 * 1000); // Check every hour
+                    
+                    // Message channel for communication
+                    if (navigator.serviceWorker.controller) {
+                        this.setupServiceWorkerMessages();
+                    }
+                    
+                } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                    // Fallback: Try to register a simpler service worker
+                    this.registerSimpleServiceWorker();
+                }
+            }
+        }
+        
+        async registerSimpleServiceWorker() {
+            try {
+                // Simple service worker for offline support
+                const simpleSW = `
+                    self.addEventListener('install', (event) => {
+                        console.log('Simple Service Worker installing...');
+                        self.skipWaiting();
+                    });
+                    
+                    self.addEventListener('activate', (event) => {
+                        console.log('Simple Service Worker activating...');
+                        self.clients.claim();
+                    });
+                    
+                    self.addEventListener('fetch', (event) => {
+                        // Simple cache-first strategy
+                        event.respondWith(
+                            caches.match(event.request)
+                                .then(response => response || fetch(event.request))
+                        );
+                    });
+                `;
+                
+                const blob = new Blob([simpleSW], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                
+                this.serviceWorkerRegistration = await navigator.serviceWorker.register(url, {
+                    scope: '/'
+                });
+                
+                console.log('Simple Service Worker registered');
+            } catch (error) {
+                console.error('Simple Service Worker registration failed:', error);
+            }
+        }
+        
+        showUpdatePrompt() {
+            const updatePrompt = document.getElementById('updatePrompt');
+            if (updatePrompt) {
+                updatePrompt.classList.remove('hidden');
+                updatePrompt.onclick = () => {
+                    if (this.serviceWorkerRegistration.waiting) {
+                        this.serviceWorkerRegistration.waiting.postMessage({type: 'SKIP_WAITING'});
+                        location.reload();
+                    }
+                };
+            }
+        }
+        
+        setupServiceWorkerMessages() {
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+                    this.handleNotificationClick(event.data.data);
+                }
+            });
+            
+            // Send message to service worker
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'INIT',
+                    payload: { userId: window.currentUser?.username }
+                });
+            }
+        }
+        
+        handleNotificationClick(data) {
+            console.log('Notification clicked with data:', data);
+            
+            if (data && data.type === 'announcement') {
+                showSection('home');
+            } else if (data && data.type === 'request') {
+                showSection('pendingRequests');
+            } else if (data && data.type === 'request_response') {
+                showSection('myRequests');
+            }
+        }
+        
+        checkNotificationPermission() {
+            if ('Notification' in window) {
+                this.notificationPermission = Notification.permission;
+                
+                if (this.notificationPermission === 'default' && 
+                    !localStorage.getItem('notificationPromptShown')) {
+                    setTimeout(() => this.showNotificationPrompt(), 5000);
+                }
+            }
+        }
+        
+        showNotificationPrompt() {
+            if (window.currentUser && !this.isStandalone) {
+                const prompt = document.getElementById('notificationPrompt');
+                prompt.classList.add('show');
+            }
+        }
+        
+        hideNotificationPrompt() {
+            const prompt = document.getElementById('notificationPrompt');
+            prompt.classList.remove('show');
+            localStorage.setItem('notificationPromptShown', 'true');
+        }
+        
+        async enableNotifications() {
+            this.hideNotificationPrompt();
+            
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                this.notificationPermission = permission;
+                
+                if (permission === 'granted') {
+                    this.showToast('Notifications enabled!', 'success');
+                    this.initializeFirebaseMessaging();
+                } else {
+                    this.showToast('Notifications blocked', 'warning');
+                }
+            }
+        }
+        
+        async initializeFirebaseMessaging() {
+            if (!firebase.messaging.isSupported() || !window.currentUser) return;
+            
+            try {
+                this.messaging = firebase.messaging();
+                
+                // Get FCM token
+                const token = await this.messaging.getToken({ 
+                    vapidKey: 'BNld9EIubEB5i3S9IpuJmSgmJcw-u0z1ZEEtqSi3YGAoo8Y3FH0vm94GrqNKCcW2Kptv9wV76V4zzLSNDdSeoYo'
+                });
+                
+                if (token) {
+                    console.log('FCM Token:', token);
+                    await this.saveUserNotificationToken(token);
+                    
+                    // Subscribe to topics based on user role
+                    if (window.currentUser.level === 'Supervisor') {
+                        await this.subscribeToTopics(['admin', 'announcements']);
+                    } else {
+                        await this.subscribeToTopics(['users', 'announcements']);
+                    }
+                }
+                
+                // Handle incoming messages
+                this.messaging.onMessage((payload) => {
+                    console.log('Foreground message received:', payload);
+                    this.showLocalNotification(payload);
+                });
+                
+            } catch (error) {
+                console.error('Firebase messaging error:', error);
+            }
+        }
+        
+        async subscribeToTopics(topics) {
+            // This would require a backend API to subscribe to FCM topics
+            // For now, we'll store user subscriptions in Firestore
+            try {
+                await db.collection('userSubscriptions').doc(window.currentUser.username).set({
+                    topics: topics,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (error) {
+                console.error('Error subscribing to topics:', error);
+            }
+        }
+        
+        showLocalNotification(payload) {
+            const { title, body, data } = payload.notification || payload;
+            
+            // Check if notification is for current user
+            const isForMe = !data || !data.targetUser || data.targetUser === window.currentUser.username;
+            
+            if (isForMe && this.notificationPermission === 'granted') {
+                const notification = new Notification(title || 'Duty Manager', {
+                    body: body || 'New notification',
+                    icon: this.getIconUrl('icon-192x192.png'),
+                    badge: this.getIconUrl('icon-72x72.png'),
+                    tag: 'duty-manager-local',
+                    requireInteraction: true,
+                    data: data
+                });
+                
+                notification.onclick = () => {
+                    window.focus();
+                    notification.close();
+                    this.handleNotificationClick(data);
+                };
+            }
+            
+            // Always show toast
+            this.showToast(body || title, 'info');
+        }
+        
+        getIconUrl(filename) {
+            // Try to get icon from correct path
+            const baseUrl = window.location.origin;
+            return `${baseUrl}/${filename}`;
+        }
+        
+        async saveUserNotificationToken(token) {
+            try {
+                await db.collection('userTokens').doc(window.currentUser.username).set({
+                    token: token,
+                    updatedAt: new Date().toISOString(),
+                    platform: this.isStandalone ? 'pwa' : 'web'
+                }, { merge: true });
+                
+                console.log('Token saved for user:', window.currentUser.username);
+            } catch (error) {
+                console.error('Error saving token:', error);
+            }
+        }
+        
+        showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toastId = 'toast-' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">
+                    ${type === 'success' ? '✅' : 
+                      type === 'error' ? '❌' : 
+                      type === 'warning' ? '⚠️' : 'ℹ️'}
+                </span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Remove after duration
+            setTimeout(() => {
+                const toastElem = document.getElementById(toastId);
+                if (toastElem) {
+                    toastElem.style.opacity = '0';
+                    toastElem.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (toastElem.parentNode) {
+                            toastElem.parentNode.removeChild(toastElem);
+                        }
+                    }, 300);
+                }
+            }, duration);
+        }
+    }
+
+    // Initialize PWA Manager
+    let pwaManager;
+    
+    // GLOBAL VARIABLES - Declare only once at the top level
+    let currentUser = null;
+    let allUsers = [];
+    let dutyRoster = {};
+    let leaveBalances = {};
+    let allRequests = [];
+    let announcements = [];
+    let isMobile = false;
+    let currentToastId = 0;
+    let lastCheckTime = new Date();
+    let rosterViewMode = 'grid';
+
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', function() {
+        detectMobile();
+        initApp();
+        
+        // Initialize PWA Manager
+        pwaManager = new PWAManager();
+    });
+
+    // Add these functions to your existing script
+    function enableNotifications() {
+        if (pwaManager) {
+            pwaManager.enableNotifications();
+        }
+    }
+
+    function hideNotificationPrompt() {
+        if (pwaManager) {
+            pwaManager.hideNotificationPrompt();
+        }
+    }
+
+    async function sendNotificationToUser(username, title, body, data = {}) {
+        try {
+            // Store notification in Firestore
+            await db.collection('notifications').add({
+                targetUser: username,
+                title: title,
+                body: body,
+                data: data,
+                timestamp: new Date().toISOString(),
+                read: false,
+                delivered: false
+            });
+            
+            // Show immediate local notification if user is current user
+            if (currentUser && currentUser.username === username) {
+                if (pwaManager) {
+                    pwaManager.showLocalNotification({
+                        notification: { title, body },
+                        data: data
+                    });
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error sending notification:', error);
+        }
+    }
+
+    // Add offline support for Firestore
+    function enableOfflineSupport() {
+        if (typeof db !== 'undefined') {
+            // Enable offline persistence
+            db.enablePersistence()
+                .catch((err) => {
+                    if (err.code === 'failed-precondition') {
+                        console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                    } else if (err.code === 'unimplemented') {
+                        console.warn('The current browser doesn\'t support persistence.');
+                    }
+                });
+            
+            // Sync data when coming back online
+            window.addEventListener('online', () => {
+                // Your sync logic here
+                if (currentUser) {
+                    initializeData();
+                }
+            });
+        }
+    }
+
+    // Update the loginUser function to initialize notifications
+    async function loginUser(userData) {
+        currentUser = userData;
+        allUsers = users || [];
+        
+        // Update UI
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'block';
+        
+        // Update user info
+        document.getElementById('mobileTitle').textContent = 'Dashboard';
+        document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
+        document.getElementById('navUserName').textContent = userData.name;
+        document.getElementById('navUserRC').textContent = userData.rcNo;
+        document.getElementById('navUserLevel').textContent = userData.level;
+        document.getElementById('welcomeName').textContent = userData.name;
+        
+        // Show/hide admin sections
+        const isAdmin = userData.level === 'Supervisor';
+        document.querySelectorAll('.admin-nav').forEach(el => {
+            el.style.display = isAdmin ? 'flex' : 'none';
+        });
+        
+        // Load data
+        await initializeData();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Request notification permission
+        requestNotificationPermission();
+        
+        // Show welcome
+        showToast(`Welcome back, ${userData.name}!`, 'success');
+        
+        // Initialize push notifications for logged-in user
+        if (pwaManager) {
+            pwaManager.initializeFirebaseMessaging();
+        }
+        
+        // Enable offline support
+        enableOfflineSupport();
+        
+        // Show immediate notification if there are pending requests
+        setTimeout(() => {
+            const pendingRequests = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            );
+            
+            if (pendingRequests.length > 0) {
+                showBrowserNotification(
+                    'Pending Requests',
+                    `You have ${pendingRequests.length} pending duty change request(s)`,
+                    { type: 'request' }
+                );
+            }
+        }, 2000);
+    }
+
+    // Update the showToast function to work offline
+    function showToast(message, type = 'info', duration = 3000) {
+        // Save toasts in localStorage if offline
+        if (!navigator.onLine) {
+            const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
+            offlineToasts.push({
+                message,
+                type,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('offlineToasts', JSON.stringify(offlineToasts));
+        }
+        
+        // Show toast normally
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        const toastId = 'toast-' + (++currentToastId);
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span class="toast-icon">
+                ${type === 'success' ? '✅' : 
+                  type === 'error' ? '❌' : 
+                  type === 'warning' ? '⚠️' : 'ℹ️'}
+            </span>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Remove after duration
+        setTimeout(() => {
+            const toastElem = document.getElementById(toastId);
+            if (toastElem) {
+                toastElem.style.opacity = '0';
+                toastElem.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toastElem.parentNode) {
+                        toastElem.parentNode.removeChild(toastElem);
+                    }
+                }, 300);
+            }
+        }, duration);
+    }
+
+    // Show offline toasts when coming back online
+    window.addEventListener('online', () => {
+        const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
+        offlineToasts.forEach(toast => {
+            showToast(toast.message + ' (offline)', toast.type);
+        });
+        localStorage.removeItem('offlineToasts');
+    });
+    
+    // SIMPLE BROWSER NOTIFICATIONS
+    function requestNotificationPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    console.log("Notification permission granted");
+                    showToast("Notifications enabled!", "success");
+                    // Start checking for new notifications
+                    startNotificationPolling();
+                } else if (permission === "denied") {
+                    console.log("Notification permission denied");
+                    showToast("Notifications disabled. You won't receive alerts.", "warning");
+                }
+            });
+        } else {
+            console.log("This browser does not support notifications");
+            showToast("Your browser doesn't support notifications", "warning");
+        }
+    }
+
+    function showBrowserNotification(title, message, data = {}) {
+        // Check if browser supports notifications
+        if (!("Notification" in window)) {
+            console.log("This browser does not support desktop notification");
+            return null;
+        }
+        
+        // Check if permission is granted
+        if (Notification.permission === "granted") {
+            return createBrowserNotification(title, message, data);
+        }
+        
+        return null;
+    }
+
+    function createBrowserNotification(title, message, data) {
+        const icon = data.type === 'announcement' ? '📢' : 
+                    data.type === 'request' ? '🔄' : 
+                    data.type === 'leave' ? '📅' : 'ℹ️';
+        
+        const notification = new Notification(`${icon} ${title}`, {
+            body: message,
+            icon: getIconUrl('icon-192x192.png'),
+            badge: getIconUrl('icon-72x72.png'),
+            tag: 'duty-manager',
+            silent: false,
+            vibrate: [200, 100, 200] // Vibration pattern for mobile
+        });
+        
+        // Handle notification click
+        notification.onclick = function() {
+            window.focus();
+            this.close();
+            
+            // Navigate to relevant section based on notification type
+            if (data.type === 'announcement') {
+                showSection('home');
+            } else if (data.type === 'request') {
+                showSection('pendingRequests');
+            } else if (data.type === 'leave') {
+                showSection('myRequests');
+            }
+        };
+        
+        // Auto-close notification after 10 seconds
+        setTimeout(() => {
+            notification.close();
+        }, 10000);
+        
+        return notification;
+    }
+
+    function getIconUrl(filename) {
+        // Try to get icon from correct path
+        const baseUrl = window.location.origin;
+        return `${baseUrl}/${filename}`;
+    }
+
+    // Check for new announcements and requests
+    function startNotificationPolling() {
+        // Check every 30 seconds for new items
+        setInterval(() => {
+            if (!currentUser) return;
+            
+            // Check for new announcements
+            const newAnnouncements = announcements.filter(ann => {
+                if (!ann.createdAt) return false;
+                const createdTime = new Date(ann.createdAt);
+                return createdTime > lastCheckTime && 
+                       (ann.target === 'all' || 
+                       (ann.target === 'specific' && ann.targetUsers && 
+                        ann.targetUsers.includes(currentUser.username)));
+            });
+            
+            // Check for new duty change requests
+            const newRequests = allRequests.filter(req => {
+                if (!req.timestamp) return false;
+                const requestTime = new Date(req.timestamp);
+                return requestTime > lastCheckTime &&
+                       req.type === 'dutyChange' &&
+                       req.toUsername === currentUser.username &&
+                       req.status === 'pending';
+            });
+            
+            // Check for new leave applications (for supervisors)
+            const newLeaveRequests = allRequests.filter(req => {
+                if (!req.timestamp) return false;
+                const requestTime = new Date(req.timestamp);
+                return requestTime > lastCheckTime &&
+                       req.type === 'leave' &&
+                       req.status === 'pending' &&
+                       currentUser.level === 'Supervisor';
+            });
+            
+            // Check for request responses
+            const newResponses = allRequests.filter(req => {
+                if (!req.respondedAt) return false;
+                const responseTime = new Date(req.respondedAt);
+                return responseTime > lastCheckTime &&
+                       req.fromUsername === currentUser.username &&
+                       req.status !== 'pending';
+            });
+            
+            // Show notifications
+            newAnnouncements.forEach(ann => {
+                showBrowserNotification(
+                    'New Announcement',
+                    ann.title,
+                    { type: 'announcement', id: ann.id }
+                );
+                showToast(`📢 ${ann.title}`, 'info');
+            });
+            
+            newRequests.forEach(req => {
+                showBrowserNotification(
+                    'Duty Change Request',
+                    `${req.fromName} wants to swap duty on ${req.date}`,
+                    { type: 'request', id: req.id }
+                );
+                showToast(`🔄 New duty change request from ${req.fromName}`, 'info');
+            });
+            
+            newLeaveRequests.forEach(req => {
+                showBrowserNotification(
+                    'Leave Application',
+                    `${req.fromName} applied for ${req.leaveType} on ${req.date}`,
+                    { type: 'leave', id: req.id }
+                );
+                showToast(`📅 New leave application from ${req.fromName}`, 'info');
+            });
+            
+            newResponses.forEach(req => {
+                showBrowserNotification(
+                    'Request ' + (req.status === 'approved' ? 'Approved' : 'Rejected'),
+                    `${req.respondedBy || 'Supervisor'} ${req.status} your request`,
+                    { type: 'request_response', id: req.id }
+                );
+                showToast(`✅ Your request was ${req.status}`, req.status === 'approved' ? 'success' : 'warning');
+            });
+            
+            // Update last check time
+            lastCheckTime = new Date();
+            
+        }, 30000); // Check every 30 seconds
+    }
+
+    // REST OF YOUR EXISTING FUNCTIONS (keep all the functions below as they are)
+    function detectMobile() {
+        isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            document.body.classList.add('mobile');
+        }
+    }
+
+    function showLoading(show, text = 'Loading...') {
+        const overlay = document.getElementById('loadingOverlay');
+        const textEl = document.getElementById('loadingText');
+        if (overlay) {
+            if (show) {
+                overlay.classList.add('active');
+                if (textEl) textEl.textContent = text;
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+    }
+
+    function initApp() {
+        // Setup login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+        }
+        
+        // Setup mobile navigation
+        setupMobileNavigation();
+        
+        // Set minimum dates
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('changeDate').min = today;
+        document.getElementById('leaveDate').min = today;
+        
+        // Set default dates
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+        
+        // Set default roster dates (next 7 days)
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        document.getElementById('myRosterStartDate').value = today;
+        document.getElementById('myRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+        document.getElementById('allRosterStartDate').value = today;
+        document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+        
+        // Check session
+        checkSession();
+    }
+
+    function setupMobileNavigation() {
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileNav = document.getElementById('mobileNav');
+        const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+        
+        if (menuToggle && mobileNav && mobileNavOverlay) {
+            menuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                mobileNav.classList.add('active');
+                mobileNavOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            mobileNavOverlay.addEventListener('click', function() {
+                mobileNav.classList.remove('active');
+                mobileNavOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close menu when clicking a nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    mobileNavOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                    
+                    const sectionId = this.getAttribute('data-section');
+                    showSection(sectionId);
+                });
+            });
+        }
+    }
+
+    function checkSession() {
+        const session = localStorage.getItem('dutySystemSession');
+        if (session) {
+            try {
+                const user = JSON.parse(session);
+                if (user.expiry > Date.now()) {
+                    loginUser(user);
+                } else {
+                    localStorage.removeItem('dutySystemSession');
+                }
+            } catch (e) {
+                localStorage.removeItem('dutySystemSession');
+            }
+        }
+    }
+
+    async function handleLogin() {
+        showLoading(true, 'Authenticating...');
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        
+        if (!username || !password) {
+            showToast('Please enter both username and password', 'warning');
+            showLoading(false);
+            return;
+        }
+        
+        if (!users || !Array.isArray(users)) {
+            showToast('System error. Please try again.', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        const user = users.find(u => u.username === username);
+        
+        if (!user) {
+            showToast('Invalid username or password', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        // Hash and check password
+        const hashedPassword = sha256(password);
+        
+        if (hashedPassword === user.passwordHash) {
+            const sessionData = {
+                username: user.username,
+                name: user.name,
+                rcNo: user.RCNo,
+                level: user.Level,
+                expiry: Date.now() + (8 * 60 * 60 * 1000)
+            };
+            
+            localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
+            await loginUser(sessionData);
+            showLoading(false);
+        } else {
+            showToast('Invalid username or password', 'error');
+            showLoading(false);
+        }
+    }
+
+    async function initializeData() {
+        showLoading(true, 'Loading data...');
+        
+        try {
+            // Load all data
+            await Promise.all([
+                loadDutyRoster(),
+                loadLeaveBalances(),
+                loadAllRequests(),
+                loadAnnouncements()
+            ]);
+            
+            // Update UI
+            updateUserBalance();
+            updateRequestCounts();
+            loadHomeAnnouncements();
+            
+            showLoading(false);
+        } catch (error) {
+            console.error('Error initializing data:', error);
+            showToast('Failed to load data', 'error');
+            showLoading(false);
+        }
+    }
+
+    // Firebase Functions
+    async function loadDutyRoster() {
+        try {
+            const doc = await db.collection('dutyRoster').doc('current').get();
+            dutyRoster = doc.exists ? doc.data() || {} : {};
+            console.log('Loaded duty roster:', dutyRoster);
+            return dutyRoster;
+        } catch (error) {
+            console.error('Error loading duty roster:', error);
+            dutyRoster = {};
+            return dutyRoster;
+        }
+    }
+
+    async function saveDutyRoster() {
+        try {
+            await db.collection('dutyRoster').doc('current').set(dutyRoster);
+            return true;
+        } catch (error) {
+            console.error('Error saving duty roster:', error);
+            showToast('Failed to save roster', 'error');
+            return false;
+        }
+    }
+
+    async function loadLeaveBalances() {
+        try {
+            const doc = await db.collection('leaveBalances').doc('current').get();
+            if (doc.exists) {
+                leaveBalances = doc.data() || {};
+            } else {
+                // Initialize default balances
+                leaveBalances = {};
+                allUsers.forEach(user => {
+                    leaveBalances[user.username] = {
+                        SL: 12,
+                        FRL: 6
+                    };
+                });
+                await saveLeaveBalances();
+            }
+            return leaveBalances;
+        } catch (error) {
+            console.error('Error loading leave balances:', error);
+            leaveBalances = {};
+            return leaveBalances;
+        }
+    }
+
+    async function saveLeaveBalances() {
+        try {
+            await db.collection('leaveBalances').doc('current').set(leaveBalances);
+            return true;
+        } catch (error) {
+            console.error('Error saving leave balances:', error);
+            showToast('Failed to save leave balances', 'error');
+            return false;
+        }
+    }
+
+    async function loadAllRequests() {
+        try {
+            const doc = await db.collection('requests').doc('all').get();
+            if (doc.exists && doc.data().requests) {
+                allRequests = doc.data().requests;
+            } else {
+                allRequests = [];
+            }
+            return allRequests;
+        } catch (error) {
+            console.error('Error loading requests:', error);
+            allRequests = [];
+            return allRequests;
+        }
+    }
+
+    async function saveAllRequests() {
+        try {
+            await db.collection('requests').doc('all').set({ requests: allRequests });
+            return true;
+        } catch (error) {
+            console.error('Error saving requests:', error);
+            showToast('Failed to save requests', 'error');
+            return false;
+        }
+    }
+
+    async function loadAnnouncements() {
+        try {
+            const doc = await db.collection('announcements').doc('all').get();
+            if (doc.exists && doc.data().announcements) {
+                announcements = doc.data().announcements;
+            } else {
+                announcements = [];
+                await saveAnnouncements();
+            }
+            return announcements;
+        } catch (error) {
+            console.error('Error loading announcements:', error);
+            announcements = [];
+            return announcements;
+        }
+    }
+
+    async function saveAnnouncements() {
+        try {
+            await db.collection('announcements').doc('all').set({ announcements: announcements });
+            return true;
+        } catch (error) {
+            console.error('Error saving announcements:', error);
+            showToast('Failed to save announcements', 'error');
+            return false;
+        }
+    }
+
+    function updateUserBalance() {
+        if (!currentUser) return;
+        
+        const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+        document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
+        document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
+    }
+
+    function updateRequestCounts() {
+        if (!currentUser) return;
+        
+        // Pending requests for user
+        const pendingForUser = allRequests.filter(req => 
+            req.status === 'pending' && 
+            req.type === 'dutyChange' && 
+            req.toUsername === currentUser.username
+        ).length;
+        
+        const pendingNav = document.getElementById('pendingRequestsNav');
+        const pendingBadge = document.getElementById('pendingRequestsBadge');
+        
+        if (pendingForUser > 0) {
+            pendingNav.style.display = 'flex';
+            pendingBadge.textContent = pendingForUser;
+            pendingBadge.style.display = 'inline-block';
+        } else {
+            pendingNav.style.display = 'none';
+            pendingBadge.style.display = 'none';
+        }
+        
+        // My pending requests
+        const myPending = allRequests.filter(req => 
+            req.fromUsername === currentUser.username && 
+            req.status === 'pending'
+        ).length;
+        
+        const myBadge = document.getElementById('myRequestsBadge');
+        if (myPending > 0) {
+            myBadge.textContent = myPending;
+            myBadge.style.display = 'inline-block';
+        } else {
+            myBadge.style.display = 'none';
+        }
+    }
+
+    // Navigation Functions
+    function showSection(sectionId) {
+        // Update mobile title
+        const titles = {
+            home: 'Dashboard',
+            dutyChange: 'Duty Change',
+            leaveApplication: 'Apply Leave',
+            myRequests: 'My Requests',
+            pendingRequests: 'Pending Requests',
+            viewMyRoster: 'My Roster',
+            viewAllRoster: 'All Roster',
+            adminAnnouncements: 'Announcements'
+        };
+        
+        document.getElementById('mobileTitle').textContent = titles[sectionId] || sectionId;
+        
+        // Update sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        const sectionEl = document.getElementById(sectionId + 'Section');
+        if (sectionEl) {
+            sectionEl.classList.add('active');
+        }
+        
+        // Update navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-section') === sectionId) {
+                item.classList.add('active');
+            }
+        });
+        
+        // Update bottom nav
+        document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            const btnText = btn.querySelector('span:last-child').textContent.toLowerCase();
+            if (sectionId === 'home' && btnText === 'home') btn.classList.add('active');
+            if (sectionId === 'dutyChange' && btnText === 'change') btn.classList.add('active');
+            if (sectionId === 'leaveApplication' && btnText === 'leave') btn.classList.add('active');
+            if (sectionId === 'myRequests' && btnText === 'requests') btn.classList.add('active');
+            if (sectionId === 'viewAllRoster' && btnText === 'roster') btn.classList.add('active');
+        });
+        
+        // Load section data
+        loadSectionData(sectionId);
+        
+        // Scroll to top
+        document.getElementById('dashboardContent').scrollTop = 0;
+    }
+
+    function loadSectionData(sectionId) {
+        switch(sectionId) {
+            case 'home':
+                updateDashboard();
+                break;
+            case 'dutyChange':
+                loadDutyChangeForm();
+                break;
+            case 'leaveApplication':
+                loadLeaveForm();
+                break;
+            case 'myRequests':
+                loadMyRequests();
+                break;
+            case 'pendingRequests':
+                loadPendingRequests();
+                break;
+            case 'viewMyRoster':
+                loadMyRoster();
+                break;
+            case 'viewAllRoster':
+                loadAllRoster();
+                break;
+            case 'adminAnnouncements':
+                loadAnnouncementsAdmin();
+                break;
+        }
+    }
+
+    // Dashboard Functions
+    function updateDashboard() {
+        const today = new Date().toISOString().split('T')[0];
+        const todayDutyTime = document.getElementById('todayDutyTime');
+        const nextDutyTime = document.getElementById('nextDutyTime');
+        
+        // Today's duty
+        if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
+            const duty = dutyRoster[today][currentUser.username];
+            todayDutyTime.textContent = duty === 'Off' ? 'Off Duty' : duty;
+            todayDutyTime.className = duty === 'Off' ? 'status-off' : '';
+        } else {
+            todayDutyTime.textContent = 'Not Scheduled';
+        }
+        
+        // Next duty
+        const tomorrow = new Date();
+        let foundNext = false;
+        
+        for (let i = 1; i <= 7; i++) {
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+            if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                const duty = dutyRoster[dateStr][currentUser.username];
+                if (duty !== 'Off') {
+                    const date = new Date(dateStr);
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                    nextDutyTime.textContent = `${dayName}: ${duty}`;
+                    foundNext = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!foundNext) {
+            nextDutyTime.textContent = 'No upcoming duty';
+        }
+        
+        // Update balance
+        updateUserBalance();
+        
+        // Load announcements
+        loadHomeAnnouncements();
+    }
+
+    function loadHomeAnnouncements() {
+        const container = document.getElementById('homeAnnouncements');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const now = new Date();
+        const activeAnnouncements = announcements.filter(ann => {
+            if (ann.status === 'expired' || ann.status === 'archived') return false;
+            if (ann.expiry && new Date(ann.expiry) < now) return false;
+            return ann.target === 'all' || 
+                   (ann.target === 'specific' && ann.targetUsers && 
+                    ann.targetUsers.includes(currentUser.username));
+        });
+        
+        if (activeAnnouncements.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.innerHTML = `
+                <div class="empty-state-icon">📢</div>
+                <div class="empty-state-title">No Announcements</div>
+            `;
+            container.appendChild(emptyState);
+            return;
+        }
+        
+        // Show only 2 announcements on mobile
+        const displayAnnouncements = isMobile ? 
+            activeAnnouncements.slice(0, 2) : activeAnnouncements;
+        
+        displayAnnouncements.forEach(ann => {
+            const announcementDiv = document.createElement('div');
+            announcementDiv.className = `announcement-banner priority-${ann.priority}`;
+            
+            announcementDiv.innerHTML = `
+                <div class="announcement-title">
+                    <span>📢</span> ${ann.title}
+                </div>
+                <div style="margin-bottom: 10px; font-size: 14px;">${ann.content}</div>
+                <div style="font-size: 12px; opacity: 0.9;">
+                    By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                </div>
+            `;
+            
+            container.appendChild(announcementDiv);
+        });
+    }
+
+    function formatTimeAgo(timestamp) {
+        const now = new Date();
+        const past = new Date(timestamp);
+        const diffMs = now - past;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return past.toLocaleDateString();
+    }
+
+    // Duty Change Functions
+    function loadDutyChangeForm() {
+        // Set tomorrow as default
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+        
+        // Populate staff dropdown
+        const staffSelect = document.getElementById('requestToStaff');
+        if (staffSelect) {
+            staffSelect.innerHTML = '<option value="">Select staff member</option>';
+            allUsers.forEach(user => {
+                if (user.username !== currentUser.username && user.Level === 'User') {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.name} (RC: ${user.RCNo})`;
+                    staffSelect.appendChild(option);
+                }
+            });
+        }
+        
+        // Load duty times
+        loadUserDutyTimes('changeDutyTime', tomorrow.toISOString().split('T')[0]);
+    }
+
+    function loadUserDutyTimes(selectId, date) {
+        const select = document.getElementById(selectId);
+        if (!select || !date || !currentUser) return;
+        
+        select.innerHTML = '<option value="">Select duty time</option>';
+        const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+        
+        if (dutyTime) {
+            const option = document.createElement('option');
+            option.value = dutyTime;
+            option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+            select.appendChild(option);
+        }
+    }
+
+    async function submitDutyChange() {
+        const date = document.getElementById('changeDate').value;
+        const dutyTime = document.getElementById('changeDutyTime').value;
+        const toStaff = document.getElementById('requestToStaff').value;
+        const toDutyTime = document.getElementById('requestToDutyTime').value;
+        const reason = document.getElementById('changeReason').value;
+        
+        if (!date || !dutyTime || !toStaff || !toDutyTime) {
+            showToast('Please fill all required fields', 'warning');
+            return;
+        }
+        
+        if (dutyTime === 'Off' || toDutyTime === 'Off') {
+            showToast('Cannot request duty change on off days', 'warning');
+            return;
+        }
+        
+        // Check if date is at least 24 hours from now
+        const requestDate = new Date(date);
+        const now = new Date();
+        const hoursDiff = (requestDate - now) / (1000 * 60 * 60);
+        
+        if (hoursDiff < 24) {
+            showToast('Duty changes must be requested at least 24 hours in advance', 'warning');
+            return;
+        }
+        
+        const toUser = allUsers.find(u => u.username === toStaff);
+        if (!toUser) {
+            showToast('Selected staff not found', 'error');
+            return;
+        }
+        
+        const request = {
+            id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'dutyChange',
+            fromUsername: currentUser.username,
+            fromName: currentUser.name,
+            fromRcNo: currentUser.rcNo,
+            date: date,
+            dutyTime: dutyTime,
+            toUsername: toStaff,
+            toName: toUser.name,
+            toRcNo: toUser.RCNo,
+            toDutyTime: toDutyTime,
+            reason: reason,
+            status: 'pending',
+            timestamp: new Date().toISOString(),
+            history: [{
+                action: 'created',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            }]
+        };
+        
+        allRequests.push(request);
+        
+        const success = await saveAllRequests();
+        if (success) {
+            updateRequestCounts();
+            showToast('Duty change request submitted!', 'success');
+            
+            // Show notification to user
+            showBrowserNotification(
+                'Request Sent',
+                `Duty change request sent to ${toUser.name}`,
+                { type: 'request' }
+            );
+            
+            showSection('home');
+            document.getElementById('dutyChangeForm').reset();
+        }
+    }
+
+    // Leave Application Functions
+    function loadLeaveForm() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+        loadUserDutyTimes('leaveDutyTime', tomorrow.toISOString().split('T')[0]);
+        updateLeaveRules();
+    }
+
+    function updateLeaveRules() {
+        const leaveType = document.getElementById('leaveType').value;
+        const leaveDate = document.getElementById('leaveDate').value;
+        const dutyTime = document.getElementById('leaveDutyTime').value;
+        const alertDiv = document.getElementById('leaveRulesAlert');
+        const submitBtn = document.getElementById('submitLeaveBtn');
+        
+        if (!leaveType || !leaveDate || !dutyTime) {
+            alertDiv.className = 'alert alert-warning';
+            alertDiv.textContent = 'Please select leave type, date and duty time';
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+        }
+        
+        // Check if user is off duty
+        if (dutyTime === 'Off' || dutyTime === '') {
+            alertDiv.className = 'alert alert-warning';
+            alertDiv.textContent = 'You are off duty on this date. No leave needed.';
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+        }
+        
+        const dutyStart = dutyTime.split('-')[0];
+        const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
+        const now = new Date();
+        const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
+        
+        let canApply = false;
+        let message = '';
+        
+        if (leaveType === 'Sick Leave') {
+            canApply = hoursBeforeDuty >= 2;
+            message = canApply 
+                ? '✅ You can apply for Sick Leave (2+ hours before duty)'
+                : `❌ Need ${Math.ceil(2 - hoursBeforeDuty)} more hours before duty`;
+        } else if (leaveType === 'FRL') {
+            canApply = hoursBeforeDuty >= 1;
+            message = canApply
+                ? '✅ You can apply for FRL (1+ hour before duty)'
+                : `❌ Need ${Math.ceil(1 - hoursBeforeDuty)} more hours before duty`;
+        }
+        
+        // Check balance if user can apply
+        if (canApply) {
+            const duration = parseFloat(document.getElementById('leaveDuration').value) || 1;
+            const userBalance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+            
+            if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
+                canApply = false;
+                message = `❌ Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`;
+            } else if (leaveType === 'FRL' && userBalance.FRL < duration) {
+                canApply = false;
+                message = `❌ Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`;
+            }
+        }
+        
+        alertDiv.className = canApply ? 'alert alert-success' : 'alert alert-danger';
+        alertDiv.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
+        if (submitBtn) submitBtn.disabled = !canApply;
+    }
+
+    async function submitLeaveApplication() {
+        const leaveType = document.getElementById('leaveType').value;
+        const date = document.getElementById('leaveDate').value;
+        const dutyTime = document.getElementById('leaveDutyTime').value;
+        const duration = parseFloat(document.getElementById('leaveDuration').value);
+        const reason = document.getElementById('leaveReason').value;
+        
+        if (!leaveType || !date || !dutyTime || !reason) {
+            showToast('Please fill all required fields', 'warning');
+            return;
+        }
+        
+        if (dutyTime === 'Off' || dutyTime === '') {
+            showToast('You are off duty on this date', 'warning');
+            return;
+        }
+        
+        // Check balance
+        const userBalance = leaveBalances[currentUser.username];
+        if (!userBalance) {
+            showToast('Error: User balance not found', 'error');
+            return;
+        }
+        
+        // IMMEDIATELY DEDUCT FROM BALANCE
+        if (leaveType === 'Sick Leave') {
+            if (userBalance.SL < duration) {
+                showToast(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`, 'warning');
+                return;
+            }
+            userBalance.SL -= duration;
+            userBalance.SL = Math.max(0, userBalance.SL); // Ensure non-negative
+        } else if (leaveType === 'FRL') {
+            if (userBalance.FRL < duration) {
+                showToast(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`, 'warning');
+                return;
+            }
+            userBalance.FRL -= duration;
+            userBalance.FRL = Math.max(0, userBalance.FRL);
+        }
+        
+        // Save updated balance immediately
+        await saveLeaveBalances();
+        
+        // Create leave request (auto-approved since balance already deducted)
+        const request = {
+            id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'leave',
+            leaveType: leaveType,
+            fromUsername: currentUser.username,
+            fromName: currentUser.name,
+            fromRcNo: currentUser.rcNo,
+            date: date,
+            dutyTime: dutyTime,
+            duration: duration,
+            reason: reason,
+            status: 'approved', // Auto-approved since balance deducted
+            timestamp: new Date().toISOString(),
+            approvedBy: 'System (Auto-approved)',
+            approvedAt: new Date().toISOString(),
+            history: [{
+                action: 'created_and_approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString(),
+                note: 'Leave balance deducted immediately upon application'
+            }]
+        };
+        
+        allRequests.push(request);
+        
+        // Save request
+        const success = await saveAllRequests();
+        if (success) {
+            // Update UI immediately
+            updateUserBalance();
+            updateRequestCounts();
+            
+            // Show success message with balance deduction info
+            showToast(`${leaveType} application submitted successfully! ${duration} day(s) deducted from your balance.`, 'success');
+            
+            // Show notification
+            showBrowserNotification(
+                'Leave Approved',
+                `${leaveType} for ${date} has been approved`,
+                { type: 'leave' }
+            );
+            
+            // Reset form and go to dashboard
+            showSection('home');
+            document.getElementById('leaveApplicationForm').reset();
+            
+            // Show updated balance
+            showToast(`New ${leaveType} balance: ${leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`, 'info', 2000);
+        }
+    }
+
+    // My Requests Functions
+    function loadMyRequests() {
+        const tbody = document.getElementById('myRequestsTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
+        
+        if (myReqs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px;">
+                        <div style="color: #7f8c8d; font-size: 16px;">
+                            No requests found
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        // Sort by timestamp
+        myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        myReqs.forEach(req => {
+            const tr = document.createElement('tr');
+            
+            let details = '';
+            if (req.type === 'dutyChange') {
+                details = `Swap with ${req.toName} (${req.toDutyTime})`;
+            } else {
+                details = `${req.leaveType} - ${req.duration} day(s)`;
+            }
+            
+            let statusClass = 'status-' + req.status;
+            let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+            
+            tr.innerHTML = `
+                <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
+                <td>${req.date}</td>
+                <td>${details}</td>
+                <td class="${statusClass}">${statusText}</td>
+                <td>
+                    ${req.status === 'pending' ? 
+                        `<button class="action-btn reject" onclick="cancelRequest('${req.id}')">Cancel</button>` : ''}
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function cancelRequest(requestId) {
+        if (!confirm('Are you sure you want to cancel this request?')) return;
+        
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        if (request.status !== 'pending') {
+            showToast('Only pending requests can be cancelled', 'warning');
+            return;
+        }
+        
+        // If it's a leave request that was auto-approved, refund the balance
+        if (request.type === 'leave' && request.status === 'approved') {
+            const userBalance = leaveBalances[request.fromUsername];
+            if (userBalance) {
+                if (request.leaveType === 'Sick Leave') {
+                    userBalance.SL += request.duration;
+                } else if (request.leaveType === 'FRL') {
+                    userBalance.FRL += request.duration;
+                }
+                await saveLeaveBalances();
+                updateUserBalance();
+                showToast(`${request.duration} day(s) refunded to ${request.leaveType} balance`, 'info');
+            }
+        }
+        
+        request.status = 'cancelled';
+        request.history.push({
+            action: 'cancelled',
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            loadMyRequests();
+            updateRequestCounts();
+            showToast('Request cancelled', 'success');
+        }
+    }
+
+    // Pending Requests Functions
+    function loadPendingRequests() {
+        const tbody = document.getElementById('pendingRequestsTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const pendingReqs = allRequests.filter(req => 
+            req.status === 'pending' && 
+            req.type === 'dutyChange' && 
+            req.toUsername === currentUser.username
+        );
+        
+        if (pendingReqs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px;">
+                        <div style="color: #7f8c8d; font-size: 16px;">
+                            No pending requests
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        pendingReqs.forEach(req => {
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td>${req.fromName}</td>
+                <td>${req.date}</td>
+                <td>Swap ${req.dutyTime} with ${req.toDutyTime}</td>
+                <td class="action-buttons">
+                    <button class="action-btn approve" onclick="respondToRequest('${req.id}', 'approved')">Accept</button>
+                    <button class="action-btn reject" onclick="respondToRequest('${req.id}', 'rejected')">Reject</button>
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function respondToRequest(requestId, response) {
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        if (response === 'approved') {
+            // Swap duty times
+            const date = request.date;
+            if (dutyRoster[date]) {
+                const fromDuty = dutyRoster[date][request.fromUsername];
+                const toDuty = dutyRoster[date][request.toUsername];
+                
+                dutyRoster[date][request.fromUsername] = toDuty;
+                dutyRoster[date][request.toUsername] = fromDuty;
+                
+                await saveDutyRoster();
+            }
+        }
+        
+        request.status = response;
+        request.respondedAt = new Date().toISOString();
+        request.respondedBy = currentUser.name;
+        request.history.push({
+            action: response,
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            showToast(`Request ${response} successfully!`, 'success');
+            
+            // Show notification to user
+            showBrowserNotification(
+                'Request ' + (response === 'approved' ? 'Approved' : 'Rejected'),
+                `${currentUser.name} ${response} your duty change request`,
+                { type: 'request_response' }
+            );
+            
+            showSection('home');
+            updateRequestCounts();
+        }
+    }
+
+    // My Roster Functions
+    function loadMyRoster() {
+        const container = document.getElementById('myRosterContainer');
+        if (!container) return;
+        
+        const startDate = document.getElementById('myRosterStartDate').value;
+        const endDate = document.getElementById('myRosterEndDate').value;
+        
+        if (!startDate || !endDate) {
+            // Default to next 7 days
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            document.getElementById('myRosterStartDate').value = today.toISOString().split('T')[0];
+            document.getElementById('myRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+            
+            loadMyRoster();
+            return;
+        }
+        
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        if (start > end) {
+            showToast('Start date must be before end date', 'warning');
+            return;
+        }
+        
+        // Create roster display
+        const today = new Date().toISOString().split('T')[0];
+        let html = '<div class="roster-grid">';
+        
+        // Loop through each date
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+            const dateFormatted = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            const isToday = dateStr === today;
+            
+            // Get duty for current user
+            let dutyTime = 'Off';
+            let dutyClass = 'off-day-cell';
+            
+            if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                dutyTime = dutyRoster[dateStr][currentUser.username];
+                if (dutyTime !== 'Off') {
+                    dutyClass = getDutyTimeClass(dutyTime);
+                }
+            }
+            
+            html += `
+                <div class="roster-card">
+                    <div class="roster-date">
+                        ${dayName}, ${dateFormatted}${isToday ? ' <span style="color: #3498db;">(Today)</span>' : ''}
+                    </div>
+                    <div class="roster-staff-list">
+                        <div class="roster-staff-item ${dutyClass}" style="margin-bottom: 10px;">
+                            <div class="roster-staff-name">${currentUser.name}</div>
+                            <div class="roster-staff-duty">${dutyTime}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        
+        if (html === '<div class="roster-grid"></div>') {
+            html = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">No Roster Found</div></div>';
+        }
+        
+        container.innerHTML = html;
+    }
+
+    // All Roster Functions
+    function showRosterView(mode) {
+        rosterViewMode = mode;
+        loadAllRoster();
+    }
+
+    function loadAllRoster() {
+        const container = document.getElementById('allRosterContainer');
+        if (!container) return;
+        
+        const startDate = document.getElementById('allRosterStartDate').value;
+        const endDate = document.getElementById('allRosterEndDate').value;
+        
+        if (!startDate || !endDate) {
+            // Default to next 7 days
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            document.getElementById('allRosterStartDate').value = today.toISOString().split('T')[0];
+            document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+            
+            loadAllRoster();
+            return;
+        }
+        
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        if (start > end) {
+            showToast('Start date must be before end date', 'warning');
+            return;
+        }
+        
+        // Get regular staff (non-admin)
+        const staffUsers = allUsers.filter(user => user.Level === 'User');
+        
+        if (staffUsers.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">No Staff Found</div></div>';
+            return;
+        }
+        
+        if (rosterViewMode === 'calendar') {
+            displayCalendarView(start, end, staffUsers, container);
+        } else {
+            displayGridView(start, end, staffUsers, container);
+        }
+    }
+
+    function displayGridView(start, end, staffUsers, container) {
+        const today = new Date().toISOString().split('T')[0];
+        let html = '<div class="roster-grid">';
+        
+        // Loop through each date
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+            const dateFormatted = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            const isToday = dateStr === today;
+            
+            html += `
+                <div class="roster-card">
+                    <div class="roster-date">
+                        ${dayName}, ${dateFormatted}${isToday ? ' <span style="color: #3498db;">(Today)</span>' : ''}
+                    </div>
+                    <div class="roster-staff-list">
+            `;
+            
+            // Add each staff member for this date
+            staffUsers.forEach(staff => {
+                let dutyTime = 'Off';
+                let dutyClass = 'off-day-cell';
+                
+                if (dutyRoster[dateStr] && dutyRoster[dateStr][staff.username]) {
+                    dutyTime = dutyRoster[dateStr][staff.username];
+                    if (dutyTime !== 'Off') {
+                        dutyClass = getDutyTimeClass(dutyTime);
+                    }
+                }
+                
+                html += `
+                    <div class="roster-staff-item ${dutyClass}">
+                        <div class="roster-staff-name">${staff.name}</div>
+                        <div class="roster-staff-duty">${dutyTime}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        
+        if (html === '<div class="roster-grid"></div>') {
+            html = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">No Roster Found</div></div>';
+        }
+        
+        container.innerHTML = html;
+    }
+
+    function displayCalendarView(start, end, staffUsers, container) {
+        const today = new Date().toISOString().split('T')[0];
+        let html = '<div class="calendar-view">';
+        
+        // Create header with dates
+        html += '<div class="calendar-header">';
+        html += '<div class="calendar-day" style="min-width: 120px;">Staff</div>';
+        
+        const dateArray = [];
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const dateNum = d.getDate();
+            dateArray.push({ dateStr, dayName, dateNum, isToday: dateStr === today });
+            
+            html += `<div class="calendar-day ${dateStr === today ? 'today-day' : ''}">
+                <div>${dayName}</div>
+                <div style="font-size: 16px; font-weight: bold;">${dateNum}</div>
+                ${dateStr === today ? '<div style="font-size: 10px; opacity: 0.8;">TODAY</div>' : ''}
+            </div>`;
+        }
+        
+        html += '</div>';
+        
+        // Create body with staff and duties
+        html += '<div class="calendar-body">';
+        html += '<div class="calendar-staff-column">';
+        
+        // Staff names column
+        staffUsers.forEach(staff => {
+            html += `<div class="calendar-staff">
+                <div class="calendar-staff-name">${staff.name}</div>
+                <div class="calendar-staff-rc">${staff.RCNo}</div>
+            </div>`;
+        });
+        
+        html += '</div>';
+        html += '<div class="calendar-duties">';
+        
+        // Duties for each date
+        dateArray.forEach(dateInfo => {
+            html += '<div class="calendar-duty-column">';
+            
+            staffUsers.forEach(staff => {
+                let dutyTime = 'Off';
+                let dutyClass = 'off-day-cell';
+                
+                if (dutyRoster[dateInfo.dateStr] && dutyRoster[dateInfo.dateStr][staff.username]) {
+                    dutyTime = dutyRoster[dateInfo.dateStr][staff.username];
+                    if (dutyTime !== 'Off') {
+                        dutyClass = getDutyTimeClass(dutyTime);
+                    }
+                }
+                
+                html += `<div class="calendar-duty-day ${dutyClass} ${dateInfo.isToday ? 'today-cell' : ''}">
+                    ${dutyTime}
+                </div>`;
+            });
+            
+            html += '</div>';
+        });
+        
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        
+        container.innerHTML = html;
+    }
+
+    function getDutyTimeClass(dutyTime) {
+        if (!dutyTime || dutyTime === 'Off') return 'off-day-cell';
+        if (dutyTime.includes('Leave')) return 'duty-leave';
+        
+        const normalizedTime = dutyTime.replace(/\s/g, '').toUpperCase();
+        
+        if (normalizedTime.includes('0730-1530') || normalizedTime.includes('0700-1500')) 
+            return 'duty-0730-1530';
+        if (normalizedTime.includes('0830-1630') || normalizedTime.includes('0800-1600')) 
+            return 'duty-0830-1630';
+        if (normalizedTime.includes('1030-1830') || normalizedTime.includes('1000-1800')) 
+            return 'duty-1030-1830';
+        if (normalizedTime.includes('1530-2330') || normalizedTime.includes('1500-2300')) 
+            return 'duty-1530-2330';
+        if (normalizedTime.includes('1630-0030') || normalizedTime.includes('1600-0000')) 
+            return 'duty-1630-0030';
+        
+        return 'duty-other';
+    }
+
+    // Admin Announcements Functions
+    function loadAnnouncementsAdmin() {
+        const container = document.getElementById('activeAnnouncementsList');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const activeAnnouncements = announcements.filter(ann => 
+            ann.status !== 'expired' && ann.status !== 'archived'
+        );
+        
+        if (activeAnnouncements.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📢</div>
+                    <div class="empty-state-title">No Active Announcements</div>
+                </div>
+            `;
+            return;
+        }
+        
+        activeAnnouncements.forEach(ann => {
+            const announcementDiv = document.createElement('div');
+            announcementDiv.className = `announcement-banner priority-${ann.priority}`;
+            announcementDiv.style.marginBottom = '15px';
+            
+            announcementDiv.innerHTML = `
+                <div class="announcement-title">
+                    <span>📢</span> ${ann.title}
+                </div>
+                <div style="margin-bottom: 10px;">${ann.content}</div>
+                <div style="font-size: 12px; opacity: 0.9;">
+                    By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                    <button class="action-btn reject" onclick="deleteAnnouncement('${ann.id}')" 
+                            style="float: right; margin-left: 5px;">Delete</button>
+                </div>
+            `;
+            
+            container.appendChild(announcementDiv);
+        });
+    }
+
+    async function createAnnouncement() {
+        const title = document.getElementById('announcementTitle').value.trim();
+        const content = document.getElementById('announcementContent').value.trim();
+        const priority = document.getElementById('announcementPriority').value;
+        
+        if (!title || !content) {
+            showToast('Please fill title and content', 'warning');
+            return;
+        }
+        
+        const announcement = {
+            id: 'ann_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            title: title,
+            content: content,
+            priority: priority,
+            target: 'all',
+            createdBy: currentUser.name,
+            createdByUsername: currentUser.username,
+            createdAt: new Date().toISOString(),
+            status: 'active'
+        };
+        
+        announcements.push(announcement);
+        
+        const success = await saveAnnouncements();
+        if (success) {
+            showToast('Announcement created!', 'success');
+            document.getElementById('announcementForm').reset();
+            loadAnnouncementsAdmin();
+            loadHomeAnnouncements();
+            
+            // Show notification to all users (except creator)
+            allUsers.forEach(user => {
+                if (user.username !== currentUser.username) {
+                    showBrowserNotification(
+                        'New Announcement',
+                        title,
+                        { type: 'announcement', id: announcement.id }
+                    );
+                }
+            });
+        }
+    }
+
+    async function deleteAnnouncement(announcementId) {
+        if (!confirm('Delete this announcement?')) return;
+        
+        const index = announcements.findIndex(ann => ann.id === announcementId);
+        if (index !== -1) {
+            announcements.splice(index, 1);
+            const success = await saveAnnouncements();
+            if (success) {
+                showToast('Announcement deleted', 'success');
+                loadAnnouncementsAdmin();
+                loadHomeAnnouncements();
+            }
+        }
+    }
+
+    // Setup Event Listeners
+    function setupEventListeners() {
+        // Duty Change Form
+        const dutyChangeForm = document.getElementById('dutyChangeForm');
+        if (dutyChangeForm) {
+            dutyChangeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitDutyChange();
+            });
+        }
+        
+        // Leave Application Form
+        const leaveApplicationForm = document.getElementById('leaveApplicationForm');
+        if (leaveApplicationForm) {
+            leaveApplicationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitLeaveApplication();
+            });
+        }
+        
+        // Announcement Form
+        const announcementForm = document.getElementById('announcementForm');
+        if (announcementForm) {
+            announcementForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                createAnnouncement();
+            });
+        }
+        
+        // Date change handlers
+        document.getElementById('changeDate').addEventListener('change', function() {
+            loadUserDutyTimes('changeDutyTime', this.value);
+        });
+        
+        document.getElementById('requestToStaff').addEventListener('change', function() {
+            const user = allUsers.find(u => u.username === this.value);
+            if (user) {
+                document.getElementById('requestToRcNo').value = user.RCNo;
+                const date = document.getElementById('changeDate').value;
+                if (date) {
+                    // Load staff's duty time
+                    const select = document.getElementById('requestToDutyTime');
+                    select.innerHTML = '<option value="">Select duty time</option>';
+                    const dutyTime = dutyRoster[date] && dutyRoster[date][user.username];
+                    if (dutyTime) {
+                        const option = document.createElement('option');
+                        option.value = dutyTime;
+                        option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                        select.appendChild(option);
+                    }
+                }
+            }
+        });
+        
+        // Leave form handlers
+        document.getElementById('leaveDate').addEventListener('change', function() {
+            loadUserDutyTimes('leaveDutyTime', this.value);
+            updateLeaveRules();
+        });
+        
+        document.getElementById('leaveType').addEventListener('change', updateLeaveRules);
+        document.getElementById('leaveDutyTime').addEventListener('change', updateLeaveRules);
+        document.getElementById('leaveDuration').addEventListener('change', updateLeaveRules);
+        
+        // Roster date change handlers
+        document.getElementById('myRosterStartDate').addEventListener('change', loadMyRoster);
+        document.getElementById('myRosterEndDate').addEventListener('change', loadMyRoster);
+        document.getElementById('allRosterStartDate').addEventListener('change', loadAllRoster);
+        document.getElementById('allRosterEndDate').addEventListener('change', loadAllRoster);
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('dutySystemSession');
+                location.reload();
+            }
+        });
+    }
+
+    // Initialize real-time listeners after login
+    function setupRealtimeListeners() {
+        if (typeof db === 'undefined') return;
+        
+        // Listen for announcements
+        db.collection('announcements').doc('all')
+            .onSnapshot((doc) => {
+                if (doc.exists && doc.data().announcements) {
+                    const newAnnouncements = doc.data().announcements;
+                    const oldAnnouncementIds = announcements.map(a => a.id);
+                    const newlyAdded = newAnnouncements.filter(a => !oldAnnouncementIds.includes(a.id));
+                    
+                    announcements = newAnnouncements;
+                    
+                    // Show notification for new announcements
+                    newlyAdded.forEach(ann => {
+                        if (ann.target === 'all' || 
+                            (ann.target === 'specific' && ann.targetUsers && 
+                             ann.targetUsers.includes(currentUser.username))) {
+                            showBrowserNotification(
+                                'New Announcement',
+                                ann.title,
+                                { type: 'announcement', id: ann.id }
+                            );
+                        }
+                    });
+                    
+                    if (document.getElementById('homeSection').classList.contains('active')) {
+                        loadHomeAnnouncements();
+                    }
+                    if (document.getElementById('adminAnnouncementsSection').classList.contains('active')) {
+                        loadAnnouncementsAdmin();
+                    }
+                }
+            });
+        
+        // Listen for requests
+        db.collection('requests').doc('all')
+            .onSnapshot((doc) => {
+                if (doc.exists && doc.data().requests) {
+                    const newRequests = doc.data().requests;
+                    const oldRequestIds = allRequests.map(r => r.id);
+                    const newlyAdded = newRequests.filter(r => !oldRequestIds.includes(r.id));
+                    
+                    allRequests = newRequests;
+                    
+                    // Show notification for new pending requests for current user
+                    newlyAdded.forEach(req => {
+                        if (req.status === 'pending' && 
+                            req.type === 'dutyChange' && 
+                            req.toUsername === currentUser.username) {
+                            showBrowserNotification(
+                                'Duty Change Request',
+                                `${req.fromName} wants to swap duty on ${req.date}`,
+                                { type: 'request', id: req.id }
+                            );
+                        }
+                    });
+                    
+                    updateRequestCounts();
+                    
+                    const activeSection = document.querySelector('.section.active')?.id;
+                    if (activeSection === 'myRequestsSection') loadMyRequests();
+                    if (activeSection === 'pendingRequestsSection') loadPendingRequests();
+                }
+            });
+        
+        // Listen for roster changes
+        db.collection('dutyRoster').doc('current')
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    dutyRoster = doc.data() || {};
+                    
+                    // Reload roster views if active
+                    const activeSection = document.querySelector('.section.active')?.id;
+                    if (activeSection === 'viewMyRosterSection') loadMyRoster();
+                    if (activeSection === 'viewAllRosterSection') loadAllRoster();
+                    if (activeSection === 'homeSection') updateDashboard();
+                }
+            });
+    }
+    
+    // Setup real-time listeners when user logs in
+    setTimeout(setupRealtimeListeners, 1000);
+</script>
+ <script>
+// PWA Initialization Script
+(function() {
+    'use strict';
+    
+    // Check if browser supports PWA features
+    const isPwaSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    
+    if (!isPwaSupported) {
+        console.warn('PWA features not supported in this browser');
+        return;
+    }
+    
+    class DutyManagerPWA {
+        constructor() {
+            this.registration = null;
+            this.isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            this.deferredPrompt = null;
+            this.updateFound = false;
+            
+            this.init();
+        }
+        
+        async init() {
+            await this.registerServiceWorker();
+            this.setupInstallPrompt();
+            this.setupUpdateCheck();
+            this.setupOfflineDetection();
+            
+            // Request notification permission on user interaction
+            this.setupNotificationPermission();
+        }
+        
+        async registerServiceWorker() {
+            try {
+                this.registration = await navigator.serviceWorker.register('/service-worker.js', {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+                
+                console.log('Service Worker registered:', this.registration);
+                
+                // Listen for updates
+                this.registration.addEventListener('updatefound', () => {
+                    const newWorker = this.registration.installing;
+                    console.log('New Service Worker found:', newWorker.state);
+                    
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            this.showUpdateNotification();
+                        }
+                    });
+                });
+                
+                // Listen for messages from Service Worker
+                navigator.serviceWorker.addEventListener('message', this.handleServiceWorkerMessage.bind(this));
+                
+                // Check for updates periodically
+                setInterval(() => {
+                    if (this.registration) {
+                        this.registration.update();
+                    }
+                }, 60 * 60 * 1000); // Every hour
+                
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+            }
+        }
+        
+        setupInstallPrompt() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                
+                // Only show prompt if not already installed and user hasn't dismissed it
+                if (!this.isStandalone && !localStorage.getItem('installPromptDismissed')) {
+                    setTimeout(() => this.showInstallPrompt(), 10000); // Show after 10 seconds
+                }
+            });
+            
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA installed successfully');
+                this.isStandalone = true;
+                localStorage.setItem('installPromptDismissed', 'true');
+                this.showToast('App installed successfully!', 'success');
+                
+                // Track installation
+                this.trackEvent('pwa_installed');
+            });
+        }
+        
+        showInstallPrompt() {
+            if (!this.deferredPrompt) return;
+            
+            const promptHTML = `
+                <div id="installPrompt" class="pwa-prompt">
+                    <div class="pwa-prompt-content">
+                        <div class="pwa-prompt-icon">📱</div>
+                        <div class="pwa-prompt-text">
+                            <h3>Install Duty Manager</h3>
+                            <p>Add to home screen for quick access and offline use</p>
+                        </div>
+                        <button class="pwa-prompt-close" onclick="dutyManagerPWA.hideInstallPrompt()">×</button>
+                    </div>
+                    <div class="pwa-prompt-actions">
+                        <button class="pwa-prompt-install" onclick="dutyManagerPWA.installApp()">Install</button>
+                        <button class="pwa-prompt-later" onclick="dutyManagerPWA.hideInstallPrompt()">Later</button>
+                    </div>
+                </div>
+            `;
+            
+            if (!document.getElementById('installPrompt')) {
+                document.body.insertAdjacentHTML('beforeend', promptHTML);
+                
+                // Auto-hide after 30 seconds
+                setTimeout(() => {
+                    this.hideInstallPrompt();
+                }, 30000);
+            }
+        }
+        
+        hideInstallPrompt() {
+            const prompt = document.getElementById('installPrompt');
+            if (prompt) {
+                prompt.style.animation = 'slideOutDown 0.3s ease';
+                setTimeout(() => prompt.remove(), 300);
+                localStorage.setItem('installPromptDismissed', 'true');
+            }
+        }
+        
+        async installApp() {
+            if (!this.deferredPrompt) return;
+            
+            this.deferredPrompt.prompt();
+            const { outcome } = await this.deferredPrompt.userChoice;
+            
+            console.log(`User response to install prompt: ${outcome}`);
+            this.deferredPrompt = null;
+            this.hideInstallPrompt();
+            
+            if (outcome === 'accepted') {
+                this.trackEvent('pwa_install_accepted');
+            } else {
+                this.trackEvent('pwa_install_declined');
+            }
+        }
+        
+        setupUpdateCheck() {
+            // Check for app updates
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (this.updateFound) {
+                        this.showUpdateNotification();
+                    }
+                });
+            }
+            
+            // Check for content updates every 4 hours
+            setInterval(() => {
+                this.checkForUpdates();
+            }, 4 * 60 * 60 * 1000);
+        }
+        
+        showUpdateNotification() {
+            if (this.updateNotificationShown) return;
+            
+            const updateHTML = `
+                <div id="updateNotification" class="pwa-update">
+                    <div class="pwa-update-content">
+                        <span>🔄 Update Available</span>
+                        <button onclick="dutyManagerPWA.applyUpdate()">Update Now</button>
+                    </div>
+                </div>
+            `;
+            
+            if (!document.getElementById('updateNotification')) {
+                document.body.insertAdjacentHTML('beforeend', updateHTML);
+                this.updateNotificationShown = true;
+            }
+        }
+        
+        async applyUpdate() {
+            if (this.registration && this.registration.waiting) {
+                this.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                location.reload();
+            }
+        }
+        
+        setupOfflineDetection() {
+            // Update UI based on network status
+            const updateNetworkStatus = () => {
+                const isOnline = navigator.onLine;
+                
+                if (!isOnline) {
+                    this.showOfflineIndicator();
+                } else {
+                    this.hideOfflineIndicator();
+                    this.syncOfflineData();
+                }
+            };
+            
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+            
+            // Initial check
+            updateNetworkStatus();
+        }
+        
+        showOfflineIndicator() {
+            if (!document.getElementById('offlineIndicator')) {
+                const indicator = document.createElement('div');
+                indicator.id = 'offlineIndicator';
+                indicator.className = 'network-offline';
+                indicator.innerHTML = `
+                    <span>⚠️</span>
+                    <span>You are offline. Working in offline mode.</span>
+                `;
+                document.body.appendChild(indicator);
+            }
+        }
+        
+        hideOfflineIndicator() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.style.opacity = '0';
+                setTimeout(() => indicator.remove(), 300);
+            }
+        }
+        
+        async syncOfflineData() {
+            // Check for pending offline actions
+            const pendingActions = localStorage.getItem('pendingOfflineActions');
+            
+            if (pendingActions) {
+                const actions = JSON.parse(pendingActions);
+                
+                if (actions.length > 0) {
+                    try {
+                        // Send to server
+                        const response = await fetch('/api/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: window.currentUser?.username,
+                                offlineActions: actions
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            
+                            // Clear successful actions
+                            const failedActions = actions.filter(action => 
+                                !result.results.find(r => r.type === action.type && r.success)
+                            );
+                            
+                            localStorage.setItem('pendingOfflineActions', JSON.stringify(failedActions));
+                            
+                            if (failedActions.length === 0) {
+                                this.showToast('All offline data synced successfully', 'success');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Sync failed:', error);
+                    }
+                }
+            }
+        }
+        
+        setupNotificationPermission() {
+            // Only ask for permission after user interaction
+            document.addEventListener('click', () => {
+                this.requestNotificationPermission();
+            }, { once: true });
+        }
+        
+        async requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                console.log('This browser does not support notifications');
+                return;
+            }
+            
+            if (Notification.permission === 'default') {
+                try {
+                    const permission = await Notification.requestPermission();
+                    
+                    if (permission === 'granted') {
+                        console.log('Notification permission granted');
+                        this.setupPushNotifications();
+                    } else {
+                        console.log('Notification permission denied');
+                    }
+                } catch (error) {
+                    console.error('Error requesting notification permission:', error);
+                }
+            } else if (Notification.permission === 'granted') {
+                this.setupPushNotifications();
+            }
+        }
+        
+        async setupPushNotifications() {
+            try {
+                // Get VAPID public key from server
+                const response = await fetch('/api/vapid-key');
+                const { publicKey } = await response.json();
+                
+                // Subscribe to push notifications
+                const subscription = await this.registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: this.urlBase64ToUint8Array(publicKey)
+                });
+                
+                // Send subscription to server
+                await fetch('/api/push/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subscription,
+                        userId: window.currentUser?.username,
+                        deviceInfo: {
+                            userAgent: navigator.userAgent,
+                            platform: navigator.platform,
+                            language: navigator.language
+                        }
+                    })
+                });
+                
+                console.log('Push notification subscription successful');
+                
+            } catch (error) {
+                console.error('Push notification setup failed:', error);
+            }
+        }
+        
+        urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+            
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            
+            return outputArray;
+        }
+        
+        handleServiceWorkerMessage(event) {
+            const { type, payload } = event.data;
+            
+            switch (type) {
+                case 'CACHE_UPDATED':
+                    this.showToast('Content updated in background', 'info');
+                    break;
+                    
+                case 'OFFLINE_ACTION_QUEUED':
+                    this.showToast('Action queued for offline sync', 'warning');
+                    break;
+                    
+                case 'UPDATE_AVAILABLE':
+                    this.updateFound = true;
+                    this.showUpdateNotification();
+                    break;
+            }
+        }
+        
+        showToast(message, type = 'info') {
+            // Use your existing toast implementation
+            if (typeof showToast === 'function') {
+                showToast(message, type);
+            }
+        }
+        
+        trackEvent(eventName, data = {}) {
+            // Send analytics event to server
+            if (window.currentUser) {
+                fetch('/api/analytics/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: window.currentUser.username,
+                        event: eventName,
+                        data: {
+                            ...data,
+                            timestamp: new Date().toISOString(),
+                            isStandalone: this.isStandalone
+                        }
+                    })
+                }).catch(() => {}); // Silent fail
+            }
+        }
+        
+        // Public methods
+        static async checkForUpdates() {
+            if (this.registration) {
+                await this.registration.update();
+            }
+        }
+        
+        static clearCache() {
+            if ('caches' in window) {
+                caches.keys().then(cacheNames => {
+                    cacheNames.forEach(cacheName => {
+                        caches.delete(cacheName);
+                    });
+                });
+            }
+        }
+    }
+    
+    // Initialize PWA when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        window.dutyManagerPWA = new DutyManagerPWA();
+    });
+    
+    // Add CSS for PWA components
+    const pwaStyles = `
+        .pwa-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            z-index: 9999;
+            border: 2px solid #3498db;
+            animation: slideInUp 0.3s ease;
+        }
+        
+        .pwa-prompt-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .pwa-prompt-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        
+        .pwa-prompt-text {
+            flex: 1;
+        }
+        
+        .pwa-prompt-text h3 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .pwa-prompt-text p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .pwa-prompt-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #7f8c8d;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .pwa-prompt-close:hover {
+            background: #f5f5f5;
+        }
+        
+        .pwa-prompt-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .pwa-prompt-install {
+            flex: 2;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .pwa-prompt-later {
+            flex: 1;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .pwa-update {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: #f39c12;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9998;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .pwa-update button {
+            background: white;
+            color: #f39c12;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .network-offline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 9997;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .pwa-prompt {
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                max-width: 400px;
+            }
+        }
+    `;
+    
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = pwaStyles;
+    document.head.appendChild(styleSheet);
+})();
+</script>  
+</body>
+</html>
