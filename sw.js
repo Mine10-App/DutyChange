@@ -4,12 +4,13 @@ importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js')
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAf_sjwVHG65vKhezpS_L7KC2j0WHIDaWc",
+  authDomain: "leelidc-1f753.firebaseapp.com",
+  projectId: "leelidc-1f753",
+  storageBucket: "leelidc-1f753.firebasestorage.app",
+  messagingSenderId: "43622932335",
+  appId: "1:43622932335:web:a7529bce1f19714687129a",
+  measurementId: "G-3KD6ZYS599"
 };
 
 // Initialize Firebase
