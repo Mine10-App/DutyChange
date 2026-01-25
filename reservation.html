@@ -277,19 +277,6 @@
             box-shadow: var(--box-shadow);
         }
         
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 20px;
-            background: white;
-        }
-        
-        .company-logo {
-            width: 120px;
-            height: auto;
-        }
-        
         .company-info {
             flex: 1;
         }
@@ -313,10 +300,6 @@
                 flex-direction: column;
                 text-align: center;
                 gap: 15px;
-            }
-            
-            .company-logo {
-                width: 100px;
             }
             
             .stats-card {
@@ -405,7 +388,7 @@
     <div id="loginScreen" class="login-container">
         <div class="card dashboard-card">
             <div class="card-header text-center py-4">
-                <img src="macl.png" alt="MACL Logo" class="company-logo mb-3" style="height: 60px;">
+                <i class="fas fa-hotel fa-3x mb-3"></i>
                 <h3 class="mb-2">Vilu Business Lounge</h3>
                 <p class="mb-0 opacity-75">Reservation & Check-In System</p>
             </div>
@@ -442,7 +425,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center" href="#">
-                    <img src="macl.png" alt="MACL Logo" style="height: 40px; margin-right: 12px;">
+                    <i class="fas fa-hotel fa-lg me-2"></i>
                     <div>
                         <div class="fw-bold">Vilu Lounge</div>
                         <small class="opacity-75">Reservation System</small>
@@ -1854,34 +1837,34 @@
                                     width: 100%;
                                 }
                                 .header {
-                                    display: flex;
-                                    align-items: flex-start;
-                                    gap: 20px;
                                     margin-bottom: 20px;
                                     padding-bottom: 15px;
                                     border-bottom: 1px solid #ddd;
                                 }
-                                .logo-container {
-                                    text-align: center;
+                                .logo-section {
+                                    float: left;
+                                    width: 200px;
                                 }
                                 .company-logo {
                                     width: 120px;
                                     height: auto;
+                                    margin-bottom: 10px;
                                 }
                                 .company-info {
-                                    flex: 1;
+                                    float: left;
                                     text-align: left;
-                                    font-size: 12px;
-                                    line-height: 1.4;
+                                    font-size: 11px;
+                                    line-height: 1.3;
+                                    margin-left: 20px;
                                 }
                                 .company-name {
-                                    font-size: 18px;
+                                    font-size: 16px;
                                     font-weight: bold;
-                                    margin: 0 0 5px 0;
+                                    margin: 0 0 3px 0;
                                     color: #2c5282;
                                 }
                                 .company-address {
-                                    font-size: 11px;
+                                    font-size: 10px;
                                     margin: 0 0 2px 0;
                                 }
                                 .report-details {
@@ -1973,34 +1956,36 @@
                                     box-shadow: 0 0 10px rgba(0,0,0,0.1);
                                 }
                                 .header {
-                                    display: flex;
-                                    align-items: flex-start;
-                                    gap: 30px;
                                     margin-bottom: 20px;
                                     padding-bottom: 20px;
                                     border-bottom: 1px solid #ddd;
+                                    overflow: hidden;
                                 }
-                                .logo-container {
-                                    text-align: center;
+                                .logo-section {
+                                    float: left;
+                                    width: 200px;
                                 }
                                 .company-logo {
                                     width: 120px;
                                     height: auto;
+                                    margin-bottom: 10px;
                                 }
                                 .company-info {
-                                    flex: 1;
+                                    float: left;
                                     text-align: left;
+                                    font-size: 11px;
                                     line-height: 1.4;
+                                    margin-left: 20px;
                                 }
                                 .company-name {
-                                    font-size: 20px;
+                                    font-size: 18px;
                                     font-weight: bold;
-                                    margin: 0 0 8px 0;
+                                    margin: 0 0 5px 0;
                                     color: #2c5282;
                                 }
                                 .company-address {
-                                    font-size: 12px;
-                                    margin: 0 0 3px 0;
+                                    font-size: 11px;
+                                    margin: 0 0 2px 0;
                                 }
                                 .report-details {
                                     margin-top: 15px;
@@ -2079,7 +2064,7 @@
                         <div class="report-container">
                             <!-- Header -->
                             <div class="header">
-                                <div class="logo-container">
+                                <div class="logo-section">
                                     <img src="macl.png" alt="MACL Logo" class="company-logo">
                                 </div>
                                 <div class="company-info">
@@ -2091,6 +2076,7 @@
                                     <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
                                     <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
                                 </div>
+                                <div class="clearfix"></div>
                             </div>
                             
                             <div class="report-details">
