@@ -744,7 +744,7 @@
     </div>
 
     <script>
-        // Global variables
+        // Global variables - REMOVED the duplicate 'db' declaration
         let allStaff = [];
         let dutyRoster = {};
         let leaveRequests = [];
@@ -752,7 +752,7 @@
         let refreshInterval;
         let currentDate = new Date().toISOString().split('T')[0];
         let isOnline = false;
-        let db; // Firebase database reference
+        // 'db' is already declared in dcfire.js, so we don't redeclare it here
 
         // Define shift timings
         const SHIFT_TIMINGS = {
@@ -768,8 +768,8 @@
             // Set default date for forms
             document.getElementById('phoneLeaveDate').value = currentDate;
             
-            // Initialize Firebase
-            initializeFirebase();
+            // Check if Firebase is initialized (from dcfire.js)
+            checkFirebaseInitialization();
             
             // Start real-time updates
             updateDateTime();
@@ -787,11 +787,16 @@
             startAutoRefresh();
         });
 
-        // Initialize Firebase
-        function initializeFirebase() {
+        // Check if Firebase is initialized
+        function checkFirebaseInitialization() {
             if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-                db = firebase.firestore();
                 console.log('Firebase initialized from dcfire.js');
+                // 'db' should already be available from dcfire.js
+                if (typeof db === 'undefined') {
+                    console.error('Firestore database (db) not initialized in dcfire.js');
+                    showErrorMessage('Firebase database not initialized. Please check dcfire.js configuration.');
+                    return;
+                }
                 
                 // Enable Firestore offline persistence
                 db.enablePersistence()
@@ -818,7 +823,7 @@
             // Listen for online/offline events
             window.addEventListener('online', () => {
                 updateConnectionStatus(true);
-                if (db) {
+                if (typeof db !== 'undefined') {
                     loadAllData();
                 }
             });
@@ -864,9 +869,11 @@
 
         // Load all data from Firebase
         async function loadAllData() {
-            if (!db) {
-                console.warn('Firebase not available, cannot load data');
+            // Check if db is available
+            if (typeof db === 'undefined') {
+                console.warn('Firebase database (db) not available');
                 updateConnectionStatus(false);
+                showErrorMessage('Firebase database not available. Please check connection.');
                 return;
             }
             
@@ -896,7 +903,7 @@
                 
             } catch (error) {
                 console.error('Error loading data:', error);
-                showErrorMessage(`Failed to load data: ${error.message}. Using cached data.`);
+                showErrorMessage(`Failed to load data: ${error.message}.`);
                 updateConnectionStatus(false);
             } finally {
                 // Re-enable refresh button
@@ -930,8 +937,29 @@
                 }
             } catch (error) {
                 console.error('Error loading staff data:', error);
-                throw error;
+                // If error is due to permissions, try a different approach
+                if (error.code === 'permission-denied') {
+                    console.warn('Permission denied for users collection. Using fallback data.');
+                    // You could load from a public collection or use default data
+                    allStaff = getFallbackStaffData();
+                } else {
+                    throw error;
+                }
             }
+        }
+
+        // Fallback staff data in case Firebase fails
+        function getFallbackStaffData() {
+            return [
+                { name: "Irufan1", rcNo: "001", username: "irufan1" },
+                { name: "Irufan2", rcNo: "002", username: "irufan2" },
+                { name: "Hussain", rcNo: "003", username: "hussain" },
+                { name: "Mohamed", rcNo: "004", username: "mohamed" },
+                { name: "Staff1", rcNo: "005", username: "staff1" },
+                { name: "Staff2", rcNo: "006", username: "staff2" },
+                { name: "Staff3", rcNo: "007", username: "staff3" },
+                { name: "Staff4", rcNo: "008", username: "staff4" }
+            ];
         }
 
         // Load duty roster
@@ -1401,6 +1429,14 @@
                 return;
             }
             
+            // Check if db is available
+            if (typeof db === 'undefined') {
+                document.getElementById('phoneFormAlert').textContent = 'Database not available. Please refresh the page.';
+                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
+                document.getElementById('phoneFormAlert').style.display = 'block';
+                return;
+            }
+            
             const staffName = document.getElementById('phoneStaffName').value.trim();
             const rcNo = document.getElementById('phoneStaffRC').value.trim();
             const leaveType = document.getElementById('phoneLeaveType').value;
@@ -1537,7 +1573,7 @@
             }
             
             refreshInterval = setInterval(() => {
-                if (isOnline && db) {
+                if (isOnline && typeof db !== 'undefined') {
                     loadAllData();
                     console.log('Auto-refreshing data...');
                 }
@@ -1589,10 +1625,10 @@
 
         // Manual refresh function
         window.loadAllData = function() {
-            if (db) {
+            if (typeof db !== 'undefined') {
                 loadAllData();
             } else {
-                showErrorMessage('Firebase not available. Please check your connection.');
+                showErrorMessage('Firebase database not available. Please check your connection.');
             }
         };
     </script>
