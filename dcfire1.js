@@ -1,12 +1,13 @@
 // dcfire.js - Firebase Configuration
 // Replace with your Firebase project config
 const firebaseConfig = {
-    apiKey: "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890abcdef"
+     apiKey: "AIzaSyAf_sjwVHG65vKhezpS_L7KC2j0WHIDaWc",
+  authDomain: "leelidc-1f753.firebaseapp.com",
+  projectId: "leelidc-1f753",
+  storageBucket: "leelidc-1f753.firebasestorage.app",
+  messagingSenderId: "43622932335",
+  appId: "1:43622932335:web:a7529bce1f19714687129a",
+  measurementId: "G-3KD6ZYS599"
 };
 
 // Initialize Firebase
