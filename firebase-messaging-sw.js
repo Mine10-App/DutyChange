@@ -3,7 +3,7 @@ importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
 // Your Firebase configuration
-firebase.initializeApp({
+const firebaseConfig = {
     apiKey: "AIzaSyAf_sjwVHG65vKhezpS_L7KC2j0WHIDaWc",
   authDomain: "leelidc-1f753.firebaseapp.com",
   projectId: "leelidc-1f753",
@@ -11,34 +11,88 @@ firebase.initializeApp({
   messagingSenderId: "43622932335",
   appId: "1:43622932335:web:a7529bce1f19714687129a",
   measurementId: "G-3KD6ZYS599"
-});
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
-// Handle background messages
-messaging.setBackgroundMessageHandler(function(payload) {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
-    
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/icon.png',
-        badge: '/badge.png',
-        data: payload.data || {}
-    };
+// Background message handler
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
+  const notificationTitle = payload.notification?.title || 'Duty Manager';
+  const notificationOptions = {
+    body: payload.notification?.body || 'New notification',
+    icon: '/icon-192x192.png',
+    badge: '/badge-72x72.png',
+    data: payload.data || {},
+    tag: 'duty-manager-notification',
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'view',
+        title: 'View'
+      },
+      {
+        action: 'dismiss',
+        title: 'Dismiss'
+      }
+    ]
+  };
 
-    return self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Handle notification click
-self.addEventListener('notificationclick', function(event) {
-    console.log('[firebase-messaging-sw.js] Notification click received.');
-    
-    event.notification.close();
-    
-    // Navigate to specific URL based on notification data
-    const targetUrl = event.notification.data.url || '/';
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  const urlToOpen = new URL('/', self.location.origin).href;
+  
+  if (event.action === 'view') {
+    // Open the app
     event.waitUntil(
-        clients.openWindow(targetUrl)
+      clients.matchAll({type: 'window', includeUncontrolled: true})
+      .then((windowClients) => {
+        if (windowClients.length > 0) {
+          const client = windowClients[0];
+          client.focus();
+          client.postMessage({
+            type: 'NOTIFICATION_CLICK',
+            data: event.notification.data
+          });
+        } else {
+          clients.openWindow(urlToOpen);
+        }
+      })
     );
+  } else if (event.action === 'dismiss') {
+    // Just close the notification
+  } else {
+    // Default click behavior
+    event.waitUntil(
+      clients.matchAll({type: 'window', includeUncontrolled: true})
+      .then((windowClients) => {
+        if (windowClients.length > 0) {
+          const client = windowClients[0];
+          client.focus();
+          client.postMessage({
+            type: 'NOTIFICATION_CLICK',
+            data: event.notification.data
+          });
+        } else {
+          clients.openWindow(urlToOpen);
+        }
+      })
+    );
+  }
+});
+
+// Listen for messages from the main app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
