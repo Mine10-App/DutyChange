@@ -1,23 +1,54 @@
 {
   "name": "Duty Manager",
   "short_name": "DutyMgr",
-  "description": "Duty and Leave Management System",
+  "description": "Duty and Leave Management Mobile App",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#3498db",
   "theme_color": "#3498db",
   "orientation": "portrait",
+  "scope": "/",
+  "categories": ["productivity", "business"],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%233498db'/%3E%3Ccircle cx='256' cy='140' r='70' fill='white'/%3E%3Cpath d='M256,230 Q340,230 370,310 L142,310 Q172,230 256,230 Z' fill='white'/%3E%3Crect x='200' y='310' width='112' height='110' rx='25' fill='white'/%3E%3Cpath d='M80,80 L80,160 L120,120 Z' fill='%2327ae60'/%3E%3Ctext x='256' y='430' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='64'%3EDM%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%233498db'/%3E%3Ccircle cx='256' cy='140' r='70' fill='white'/%3E%3Cpath d='M256,230 Q340,230 370,310 L142,310 Q172,230 256,230 Z' fill='white'/%3E%3Crect x='200' y='310' width='112' height='110' rx='25' fill='white'/%3E%3Cpath d='M80,80 L80,160 L120,120 Z' fill='%2327ae60'/%3E%3Ctext x='256' y='430' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='64'%3EDM%3C/text%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='568'%3E%3Crect width='320' height='568' fill='%233498db'/%3E%3Ccircle cx='160' cy='200' r='60' fill='white'/%3E%3Cpath d='M160,270 Q220,270 250,330 L70,330 Q100,270 160,270 Z' fill='white'/%3E%3Crect x='130' y='330' width='60' height='50' rx='10' fill='white'/%3E%3Ctext x='160' y='500' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold' font-size='32'%3EDuty Manager%3C/text%3E%3C/svg%3E",
+      "sizes": "320x568",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Apply Leave",
+      "short_name": "Leave",
+      "description": "Apply for leave",
+      "url": "/?action=leave",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%233498db'/%3E%3Ctext x='24' y='32' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3EL%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    },
+    {
+      "name": "Duty Change",
+      "short_name": "Swap",
+      "description": "Request duty change",
+      "url": "/?action=swap",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%233498db'/%3E%3Ctext x='24' y='32' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E", "sizes": "96x96" }]
+    }
+  ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
