@@ -1044,259 +1044,411 @@
     
     <!-- Main Application Script -->
     <script>
-        class ReservationSystem {
-            constructor() {
-                this.currentUser = null;
-                this.db = firebase.firestore();
-                this.customers = new Set();
-                this.flightHotels = new Set();
-                this.excelData = [];
-                this.init();
-            }
+    
+    class ReservationSystem {
+        constructor() {
+            this.currentUser = null;
+            this.db = firebase.firestore();
+            this.customers = new Set();
+            this.flightHotels = new Set();
+            this.excelData = [];
+            this.init();
+        }
 
-            init() {
-                this.setupEventListeners();
-                this.checkAuth();
-                this.loadAutocompleteData();
-            }
+        init() {
+            this.setupEventListeners();
+            this.checkAuth();
+            this.loadAutocompleteData();
+        }
 
-            async loadAutocompleteData() {
-                try {
-                    const snapshot = await this.db.collection('reservations').get();
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.customer) this.customers.add(data.customer);
-                        if (data.flightHotel) this.flightHotels.add(data.flightHotel);
-                    });
-                } catch (error) {
-                    console.error('Error loading autocomplete data:', error);
-                }
+        async loadAutocompleteData() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.customer) this.customers.add(data.customer);
+                    if (data.flightHotel) this.flightHotels.add(data.flightHotel);
+                });
+            } catch (error) {
+                console.error('Error loading autocomplete data:', error);
             }
+        }
 
-            setupEventListeners() {
-                // Login
-                document.getElementById('loginBtn').addEventListener('click', () => this.login());
-                
-                // Logout
-                document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
-                
-                // Forms
-                document.getElementById('reservationForm').addEventListener('submit', (e) => this.saveReservation(e));
-                
-                // Autocomplete setup
-                const customerInput = document.getElementById('customer');
-                if (customerInput) {
-                    customerInput.addEventListener('focus', () => this.showCustomerDropdown());
-                    customerInput.addEventListener('input', (e) => this.filterCustomerDropdown(e.target.value));
+        setupEventListeners() {
+            // Login
+            document.getElementById('loginBtn').addEventListener('click', () => this.login());
+            
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+            
+            // Forms
+            document.getElementById('reservationForm').addEventListener('submit', (e) => this.saveReservation(e));
+            
+            // Autocomplete setup
+            const customerInput = document.getElementById('customer');
+            if (customerInput) {
+                customerInput.addEventListener('focus', () => this.showCustomerDropdown());
+                customerInput.addEventListener('input', (e) => this.filterCustomerDropdown(e.target.value));
+            }
+            
+            const flightInput = document.getElementById('flightHotel');
+            if (flightInput) {
+                flightInput.addEventListener('focus', () => this.showFlightDropdown());
+                flightInput.addEventListener('input', (e) => this.filterFlightDropdown(e.target.value));
+            }
+            
+            // Click outside to close dropdowns
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.autocomplete-container')) {
+                    this.closeAllDropdowns();
                 }
+            });
+            
+            // Excel upload
+            const excelInput = document.getElementById('excelFileInput');
+            if (excelInput) {
+                excelInput.addEventListener('change', (e) => this.handleExcelUpload(e));
+            }
+            
+            const uploadBtn = document.getElementById('uploadExcelBtn');
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', () => this.uploadExcelData());
+            }
+            
+            // Excel drag and drop
+            const excelUploadArea = document.getElementById('excelUploadArea');
+            if (excelUploadArea) {
+                excelUploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    excelUploadArea.classList.add('dragover');
+                });
                 
-                const flightInput = document.getElementById('flightHotel');
-                if (flightInput) {
-                    flightInput.addEventListener('focus', () => this.showFlightDropdown());
-                    flightInput.addEventListener('input', (e) => this.filterFlightDropdown(e.target.value));
-                }
+                excelUploadArea.addEventListener('dragleave', () => {
+                    excelUploadArea.classList.remove('dragover');
+                });
                 
-                // Click outside to close dropdowns
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.autocomplete-container')) {
-                        this.closeAllDropdowns();
+                excelUploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    excelUploadArea.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0 && files[0].name.match(/\.(xlsx|xls|csv)$/)) {
+                        this.readExcelFile(files[0]);
                     }
                 });
-                
-                // Excel upload
-                const excelInput = document.getElementById('excelFileInput');
-                if (excelInput) {
-                    excelInput.addEventListener('change', (e) => this.handleExcelUpload(e));
-                }
-                
-                const uploadBtn = document.getElementById('uploadExcelBtn');
-                if (uploadBtn) {
-                    uploadBtn.addEventListener('click', () => this.uploadExcelData());
-                }
-                
-                // Excel drag and drop
-                const excelUploadArea = document.getElementById('excelUploadArea');
-                if (excelUploadArea) {
-                    excelUploadArea.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        excelUploadArea.classList.add('dragover');
-                    });
-                    
-                    excelUploadArea.addEventListener('dragleave', () => {
-                        excelUploadArea.classList.remove('dragover');
-                    });
-                    
-                    excelUploadArea.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        excelUploadArea.classList.remove('dragover');
-                        const files = e.dataTransfer.files;
-                        if (files.length > 0 && files[0].name.match(/\.(xlsx|xls|csv)$/)) {
-                            this.readExcelFile(files[0]);
-                        }
-                    });
-                }
-                
-                // Filters
-                const checkinDateFilter = document.getElementById('checkinDateFilter');
-                if (checkinDateFilter) {
-                    checkinDateFilter.addEventListener('change', () => this.loadCheckinData());
-                }
-                
-                const checkinFlightFilter = document.getElementById('checkinFlightFilter');
-                if (checkinFlightFilter) {
-                    checkinFlightFilter.addEventListener('change', () => this.loadCheckinData());
-                }
-                
-                const checkinCustomerFilter = document.getElementById('checkinCustomerFilter');
-                if (checkinCustomerFilter) {
-                    checkinCustomerFilter.addEventListener('change', () => this.loadCheckinData());
-                }
-                
-                const checkinStatusFilter = document.getElementById('checkinStatusFilter');
-                if (checkinStatusFilter) {
-                    checkinStatusFilter.addEventListener('change', () => this.loadCheckinData());
-                }
-                
-                const checkoutDateFilter = document.getElementById('checkoutDateFilter');
-                if (checkoutDateFilter) {
-                    checkoutDateFilter.addEventListener('change', () => this.loadCheckoutData());
-                }
-                
-                const checkoutFlightFilter = document.getElementById('checkoutFlightFilter');
-                if (checkoutFlightFilter) {
-                    checkoutFlightFilter.addEventListener('change', () => this.loadCheckoutData());
-                }
-                
-                const checkoutCustomerFilter = document.getElementById('checkoutCustomerFilter');
-                if (checkoutCustomerFilter) {
-                    checkoutCustomerFilter.addEventListener('change', () => this.loadCheckoutData());
-                }
-                
-                const checkoutStatusFilter = document.getElementById('checkoutStatusFilter');
-                if (checkoutStatusFilter) {
-                    checkoutStatusFilter.addEventListener('change', () => this.loadCheckoutData());
-                }
-                
-                const generateReportBtn = document.getElementById('generateReportBtn');
-                if (generateReportBtn) {
-                    generateReportBtn.addEventListener('click', () => this.generateReport());
-                }
-                
-                const generateExcelBtn = document.getElementById('generateExcelBtn');
-                if (generateExcelBtn) {
-                    generateExcelBtn.addEventListener('click', () => this.exportToExcel());
-                }
-                
-                // Tab change events
-                document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-                    tab.addEventListener('shown.bs.tab', (e) => {
-                        const target = e.target.getAttribute('href');
-                        if (target === '#checkinTab') {
-                            this.loadCheckinData();
-                            this.loadFlightOptionsForCheckin();
-                            this.loadCustomerOptionsForCheckin();
-                        } else if (target === '#checkoutTab') {
-                            this.loadCheckoutData();
-                            this.loadFlightOptionsForCheckout();
-                            this.loadCustomerOptionsForCheckout();
-                        } else if (target === '#reportTab') {
-                            this.loadReportOptions();
-                        } else if (target === '#reservationTab') {
-                            this.loadRecentReservations();
-                        }
-                    });
-                });
             }
+            
+            // Filters
+            const checkinDateFilter = document.getElementById('checkinDateFilter');
+            if (checkinDateFilter) {
+                checkinDateFilter.addEventListener('change', () => this.loadCheckinData());
+            }
+            
+            const checkinFlightFilter = document.getElementById('checkinFlightFilter');
+            if (checkinFlightFilter) {
+                checkinFlightFilter.addEventListener('change', () => this.loadCheckinData());
+            }
+            
+            const checkinCustomerFilter = document.getElementById('checkinCustomerFilter');
+            if (checkinCustomerFilter) {
+                checkinCustomerFilter.addEventListener('change', () => this.loadCheckinData());
+            }
+            
+            const checkinStatusFilter = document.getElementById('checkinStatusFilter');
+            if (checkinStatusFilter) {
+                checkinStatusFilter.addEventListener('change', () => this.loadCheckinData());
+            }
+            
+            const checkoutDateFilter = document.getElementById('checkoutDateFilter');
+            if (checkoutDateFilter) {
+                checkoutDateFilter.addEventListener('change', () => this.loadCheckoutData());
+            }
+            
+            const checkoutFlightFilter = document.getElementById('checkoutFlightFilter');
+            if (checkoutFlightFilter) {
+                checkoutFlightFilter.addEventListener('change', () => this.loadCheckoutData());
+            }
+            
+            const checkoutCustomerFilter = document.getElementById('checkoutCustomerFilter');
+            if (checkoutCustomerFilter) {
+                checkoutCustomerFilter.addEventListener('change', () => this.loadCheckoutData());
+            }
+            
+            const checkoutStatusFilter = document.getElementById('checkoutStatusFilter');
+            if (checkoutStatusFilter) {
+                checkoutStatusFilter.addEventListener('change', () => this.loadCheckoutData());
+            }
+            
+            const generateReportBtn = document.getElementById('generateReportBtn');
+            if (generateReportBtn) {
+                generateReportBtn.addEventListener('click', () => this.generateReport());
+            }
+            
+            const generateExcelBtn = document.getElementById('generateExcelBtn');
+            if (generateExcelBtn) {
+                generateExcelBtn.addEventListener('click', () => this.exportToExcel());
+            }
+            
+            // Tab change events
+            document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', (e) => {
+                    const target = e.target.getAttribute('href');
+                    if (target === '#checkinTab') {
+                        this.loadCheckinData();
+                        this.loadFlightOptionsForCheckin();
+                        this.loadCustomerOptionsForCheckin();
+                    } else if (target === '#checkoutTab') {
+                        this.loadCheckoutData();
+                        this.loadFlightOptionsForCheckout();
+                        this.loadCustomerOptionsForCheckout();
+                    } else if (target === '#reportTab') {
+                        this.loadReportOptions();
+                    } else if (target === '#reservationTab') {
+                        this.loadRecentReservations();
+                    }
+                });
+            });
+        }
 
-            checkAuth() {
-                const savedUser = localStorage.getItem('currentUser');
-                if (savedUser) {
-                    this.currentUser = JSON.parse(savedUser);
+        checkAuth() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                this.currentUser = JSON.parse(savedUser);
+                this.showDashboard();
+            }
+        }
+
+        login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Hash the password using SHA-256
+            this.hashPasswordSHA256(password).then(hashedPassword => {
+                const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
+                
+                if (user) {
+                    this.currentUser = user;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
                     this.showDashboard();
+                    this.hideError();
+                } else {
+                    this.showError('Invalid username or password');
                 }
-            }
+            }).catch(error => {
+                console.error('Error hashing password:', error);
+                this.showError('Login error. Please try again.');
+            });
+        }
 
-            login() {
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                
-                // Hash the password using SHA-256
-                this.hashPasswordSHA256(password).then(hashedPassword => {
-                    const user = users.find(u => u.username === username && u.passwordHash === hashedPassword);
-                    
-                    if (user) {
-                        this.currentUser = user;
-                        localStorage.setItem('currentUser', JSON.stringify(user));
-                        this.showDashboard();
-                        this.hideError();
-                    } else {
-                        this.showError('Invalid username or password');
-                    }
-                }).catch(error => {
-                    console.error('Error hashing password:', error);
-                    this.showError('Login error. Please try again.');
-                });
-            }
+        async hashPasswordSHA256(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
 
-            async hashPasswordSHA256(password) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                return hashHex;
+        showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('d-none');
             }
+        }
 
-            showError(message) {
-                const errorDiv = document.getElementById('loginError');
-                if (errorDiv) {
-                    errorDiv.textContent = message;
-                    errorDiv.classList.remove('d-none');
-                }
+        hideError() {
+            const errorDiv = document.getElementById('loginError');
+            if (errorDiv) {
+                errorDiv.classList.add('d-none');
             }
+        }
 
-            hideError() {
-                const errorDiv = document.getElementById('loginError');
-                if (errorDiv) {
-                    errorDiv.classList.add('d-none');
-                }
-            }
+        showDashboard() {
+            const loginScreen = document.getElementById('loginScreen');
+            const dashboard = document.getElementById('dashboard');
+            
+            if (loginScreen) loginScreen.classList.add('d-none');
+            if (dashboard) dashboard.classList.remove('d-none');
+            
+            // Display user info
+            const userName = document.getElementById('userName');
+            const userLevel = document.getElementById('userLevel');
+            const userRC = document.getElementById('userRC');
+            
+            if (userName) userName.textContent = this.currentUser.name;
+            if (userLevel) userLevel.textContent = this.currentUser.Level;
+            if (userRC) userRC.textContent = this.currentUser.RCNo;
+            
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            const dateFields = [
+                'reservationDate',
+                'checkinDateFilter',
+                'checkoutDateFilter',
+                'reportFromDate',
+                'reportToDate'
+            ];
+            
+            dateFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.value = today;
+            });
+            
+            // Show initial state for recent reservations
+            this.showInitialRecentReservations();
+            
+            // Load initial data
+            this.loadCheckinData();
+            this.loadCheckoutData();
+            this.loadFlightOptionsForCheckin();
+            this.loadFlightOptionsForCheckout();
+            this.loadCustomerOptionsForCheckin();
+            this.loadCustomerOptionsForCheckout();
+            this.loadReportOptions();
+            this.loadRecentReservations();
+        }
 
-            showDashboard() {
-                const loginScreen = document.getElementById('loginScreen');
-                const dashboard = document.getElementById('dashboard');
+        logout() {
+            this.currentUser = null;
+            localStorage.removeItem('currentUser');
+            
+            const dashboard = document.getElementById('dashboard');
+            const loginScreen = document.getElementById('loginScreen');
+            
+            if (dashboard) dashboard.classList.add('d-none');
+            if (loginScreen) loginScreen.classList.remove('d-none');
+            
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            
+            if (usernameInput) usernameInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        showCustomerDropdown() {
+            this.closeAllDropdowns();
+            const input = document.getElementById('customer');
+            if (!input) return;
+            
+            const container = input.parentElement;
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            
+            // Add "Add new" option
+            const addNewOption = document.createElement('div');
+            addNewOption.className = 'dropdown-item';
+            addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new customer';
+            addNewOption.onclick = () => {
+                this.closeAllDropdowns();
+                input.focus();
+            };
+            dropdown.appendChild(addNewOption);
+            
+            // Add existing customers
+            Array.from(this.customers).sort().forEach(customer => {
+                const option = document.createElement('div');
+                option.className = 'dropdown-item';
+                option.textContent = customer;
+                option.onclick = () => {
+                    input.value = customer;
+                    this.closeAllDropdowns();
+                };
+                dropdown.appendChild(option);
+            });
+            
+            container.style.position = 'relative';
+            container.appendChild(dropdown);
+        }
+
+        showFlightDropdown() {
+            this.closeAllDropdowns();
+            const input = document.getElementById('flightHotel');
+            if (!input) return;
+            
+            const container = input.parentElement;
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            
+            // Add "Add new" option
+            const addNewOption = document.createElement('div');
+            addNewOption.className = 'dropdown-item';
+            addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new flight/hotel';
+            addNewOption.onclick = () => {
+                this.closeAllDropdowns();
+                input.focus();
+            };
+            dropdown.appendChild(addNewOption);
+            
+            // Add existing flights/hotels
+            Array.from(this.flightHotels).sort().forEach(flightHotel => {
+                const option = document.createElement('div');
+                option.className = 'dropdown-item';
+                option.textContent = flightHotel;
+                option.onclick = () => {
+                    input.value = flightHotel;
+                    this.closeAllDropdowns();
+                };
+                dropdown.appendChild(option);
+            });
+            
+            container.style.position = 'relative';
+            container.appendChild(dropdown);
+        }
+
+        filterCustomerDropdown(searchTerm) {
+            // Implement filtering if needed
+        }
+
+        filterFlightDropdown(searchTerm) {
+            // Implement filtering if needed
+        }
+
+        closeAllDropdowns() {
+            document.querySelectorAll('.autocomplete-dropdown').forEach(dropdown => {
+                dropdown.remove();
+            });
+        }
+
+        async saveReservation(e) {
+            e.preventDefault();
+            
+            const customer = document.getElementById('customer').value;
+            const flightHotel = document.getElementById('flightHotel').value;
+            const reservationDate = document.getElementById('reservationDate').value;
+            
+            const reservation = {
+                customer: customer,
+                date: reservationDate,
+                flightHotel: flightHotel,
+                eta: document.getElementById('eta').value,
+                direction: document.getElementById('direction').value,
+                guestName: document.getElementById('guestName').value,
+                nationality: document.getElementById('nationality').value,
+                remarks: document.getElementById('remarks').value,
+                status: 'reserved',
+                createdAt: new Date().toISOString(),
+                createdBy: this.currentUser.username,
+                checkinDate: null,
+                checkoutDate: null,
+                reservationDate: reservationDate
+            };
+            
+            try {
+                const docRef = await this.db.collection('reservations').add(reservation);
                 
-                if (loginScreen) loginScreen.classList.add('d-none');
-                if (dashboard) dashboard.classList.remove('d-none');
+                // Add to autocomplete sets
+                if (customer) this.customers.add(customer);
+                if (flightHotel) this.flightHotels.add(flightHotel);
                 
-                // Display user info
-                const userName = document.getElementById('userName');
-                const userLevel = document.getElementById('userLevel');
-                const userRC = document.getElementById('userRC');
+                alert('Reservation saved successfully!');
                 
-                if (userName) userName.textContent = this.currentUser.name;
-                if (userLevel) userLevel.textContent = this.currentUser.Level;
-                if (userRC) userRC.textContent = this.currentUser.RCNo;
+                // Reload recent reservations from Firebase
+                this.loadRecentReservations();
                 
-                // Set default dates
-                const today = new Date().toISOString().split('T')[0];
-                const dateFields = [
-                    'reservationDate',
-                    'checkinDateFilter',
-                    'checkoutDateFilter',
-                    'reportFromDate',
-                    'reportToDate'
-                ];
+                document.getElementById('reservationForm').reset();
+                document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
                 
-                dateFields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    if (field) field.value = today;
-                });
-                
-                // Show initial state for recent reservations
-                this.showInitialRecentReservations();
-                
-                // Load initial data
+                // Refresh all data
                 this.loadCheckinData();
                 this.loadCheckoutData();
                 this.loadFlightOptionsForCheckin();
@@ -1304,543 +1456,392 @@
                 this.loadCustomerOptionsForCheckin();
                 this.loadCustomerOptionsForCheckout();
                 this.loadReportOptions();
-                this.loadRecentReservations();
+                
+            } catch (error) {
+                console.error('Error saving reservation:', error);
+                alert('Error saving reservation. Please try again.');
             }
+        }
 
-            logout() {
-                this.currentUser = null;
-                localStorage.removeItem('currentUser');
-                
-                const dashboard = document.getElementById('dashboard');
-                const loginScreen = document.getElementById('loginScreen');
-                
-                if (dashboard) dashboard.classList.add('d-none');
-                if (loginScreen) loginScreen.classList.remove('d-none');
-                
-                const usernameInput = document.getElementById('username');
-                const passwordInput = document.getElementById('password');
-                
-                if (usernameInput) usernameInput.value = '';
-                if (passwordInput) passwordInput.value = '';
-            }
+        showInitialRecentReservations() {
+            const container = document.getElementById('recentReservationsContainer');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Recent Reservations</h6>
+                        <p class="text-muted mb-0">Reservations will appear here.</p>
+                    </div>
+                </div>
+            `;
+        }
 
-            showCustomerDropdown() {
-                this.closeAllDropdowns();
-                const input = document.getElementById('customer');
-                if (!input) return;
+        async loadRecentReservations() {
+            try {
+                // Fetch reservations with status 'reserved' (not checked-in) from Firebase
+                const snapshot = await this.db.collection('reservations')
+                    .where('status', '==', 'reserved')  // Only get non-checked-in reservations
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .get();
                 
-                const container = input.parentElement;
-                const dropdown = document.createElement('div');
-                dropdown.className = 'autocomplete-dropdown';
-                
-                // Add "Add new" option
-                const addNewOption = document.createElement('div');
-                addNewOption.className = 'dropdown-item';
-                addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new customer';
-                addNewOption.onclick = () => {
-                    this.closeAllDropdowns();
-                    input.focus();
-                };
-                dropdown.appendChild(addNewOption);
-                
-                // Add existing customers
-                Array.from(this.customers).sort().forEach(customer => {
-                    const option = document.createElement('div');
-                    option.className = 'dropdown-item';
-                    option.textContent = customer;
-                    option.onclick = () => {
-                        input.value = customer;
-                        this.closeAllDropdowns();
-                    };
-                    dropdown.appendChild(option);
+                const recentReservations = [];
+                snapshot.forEach(doc => {
+                    recentReservations.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
                 });
                 
-                container.style.position = 'relative';
-                container.appendChild(dropdown);
+                this.displayRecentReservations(recentReservations);
+            } catch (error) {
+                console.error('Error loading recent reservations from Firebase:', error);
+                this.displayRecentReservations([]);
             }
+        }
 
-            showFlightDropdown() {
-                this.closeAllDropdowns();
-                const input = document.getElementById('flightHotel');
-                if (!input) return;
-                
-                const container = input.parentElement;
-                const dropdown = document.createElement('div');
-                dropdown.className = 'autocomplete-dropdown';
-                
-                // Add "Add new" option
-                const addNewOption = document.createElement('div');
-                addNewOption.className = 'dropdown-item';
-                addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new flight/hotel';
-                addNewOption.onclick = () => {
-                    this.closeAllDropdowns();
-                    input.focus();
-                };
-                dropdown.appendChild(addNewOption);
-                
-                // Add existing flights/hotels
-                Array.from(this.flightHotels).sort().forEach(flightHotel => {
-                    const option = document.createElement('div');
-                    option.className = 'dropdown-item';
-                    option.textContent = flightHotel;
-                    option.onclick = () => {
-                        input.value = flightHotel;
-                        this.closeAllDropdowns();
-                    };
-                    dropdown.appendChild(option);
-                });
-                
-                container.style.position = 'relative';
-                container.appendChild(dropdown);
-            }
-
-            filterCustomerDropdown(searchTerm) {
-                // Implement filtering if needed
-            }
-
-            filterFlightDropdown(searchTerm) {
-                // Implement filtering if needed
-            }
-
-            closeAllDropdowns() {
-                document.querySelectorAll('.autocomplete-dropdown').forEach(dropdown => {
-                    dropdown.remove();
-                });
-            }
-
-            async saveReservation(e) {
-                e.preventDefault();
-                
-                const customer = document.getElementById('customer').value;
-                const flightHotel = document.getElementById('flightHotel').value;
-                const reservationDate = document.getElementById('reservationDate').value;
-                
-                const reservation = {
-                    customer: customer,
-                    date: reservationDate,
-                    flightHotel: flightHotel,
-                    eta: document.getElementById('eta').value,
-                    direction: document.getElementById('direction').value,
-                    guestName: document.getElementById('guestName').value,
-                    nationality: document.getElementById('nationality').value,
-                    remarks: document.getElementById('remarks').value,
-                    status: 'reserved',
-                    createdAt: new Date().toISOString(),
-                    createdBy: this.currentUser.username,
-                    checkinDate: null,
-                    checkoutDate: null,
-                    reservationDate: reservationDate
-                };
-                
-                try {
-                    const docRef = await this.db.collection('reservations').add(reservation);
-                    
-                    // Add to autocomplete sets
-                    if (customer) this.customers.add(customer);
-                    if (flightHotel) this.flightHotels.add(flightHotel);
-                    
-                    alert('Reservation saved successfully!');
-                    
-                    // Reload recent reservations from Firebase
-                    this.loadRecentReservations();
-                    
-                    document.getElementById('reservationForm').reset();
-                    document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
-                    
-                    // Refresh all data
-                    this.loadCheckinData();
-                    this.loadCheckoutData();
-                    this.loadFlightOptionsForCheckin();
-                    this.loadFlightOptionsForCheckout();
-                    this.loadCustomerOptionsForCheckin();
-                    this.loadCustomerOptionsForCheckout();
-                    this.loadReportOptions();
-                    
-                } catch (error) {
-                    console.error('Error saving reservation:', error);
-                    alert('Error saving reservation. Please try again.');
-                }
-            }
-
-            showInitialRecentReservations() {
-                const container = document.getElementById('recentReservationsContainer');
-                if (!container) return;
-                
+        displayRecentReservations(recentReservations) {
+            const container = document.getElementById('recentReservationsContainer');
+            if (!container) return;
+            
+            if (recentReservations.length === 0) {
                 container.innerHTML = `
                     <div class="card">
                         <div class="card-body">
                             <h6 class="card-title mb-3">Recent Reservations</h6>
-                            <p class="text-muted mb-0">Reservations will appear here.</p>
+                            <p class="text-muted mb-0">No recent reservations found.</p>
                         </div>
                     </div>
                 `;
+                return;
             }
-
-            async loadRecentReservations() {
-                try {
-                    // Fetch reservations with status 'reserved' (not checked-in) from Firebase
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', '==', 'reserved')  // Only get non-checked-in reservations
-                        .orderBy('createdAt', 'desc')
-                        .limit(10)
-                        .get();
-                    
-                    const recentReservations = [];
-                    snapshot.forEach(doc => {
-                        recentReservations.push({
-                            id: doc.id,
-                            ...doc.data()
-                        });
-                    });
-                    
-                    this.displayRecentReservations(recentReservations);
-                } catch (error) {
-                    console.error('Error loading recent reservations from Firebase:', error);
-                    this.displayRecentReservations([]);
-                }
-            }
-
-            displayRecentReservations(recentReservations) {
-                const container = document.getElementById('recentReservationsContainer');
-                if (!container) return;
-                
-                if (recentReservations.length === 0) {
-                    container.innerHTML = `
-                        <div class="card">
-                            <div class="card-body">
-                                <h6 class="card-title mb-3">Recent Reservations</h6>
-                                <p class="text-muted mb-0">No recent reservations found.</p>
-                            </div>
+            
+            let html = `
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0">Recent Reservations</h6>
+                            <span class="badge bg-primary">${recentReservations.length}</span>
                         </div>
-                    `;
-                    return;
-                }
-                
-                let html = `
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="card-title mb-0">Recent Reservations</h6>
-                                <span class="badge bg-primary">${recentReservations.length}</span>
-                            </div>
-                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Guest</th>
-                                            <th>Flight/Hotel</th>
-                                            <th>Customer</th>
-                                            <th>Status</th>
-                                            <th>Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                `;
-                
-                recentReservations.forEach(res => {
-                    const time = new Date(res.createdAt).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                    
-                    html += `
-                        <tr onclick="app.showReservationDetails('${res.id}')" style="cursor: pointer;">
-                            <td>${res.guestName}</td>
-                            <td>${res.flightHotel}</td>
-                            <td>${res.customer}</td>
-                            <td>
-                                <span class="status-badge status-reserved">Reserved</span>
-                            </td>
-                            <td>${time}</td>
-                        </tr>
-                    `;
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Guest</th>
+                                        <th>Flight/Hotel</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            recentReservations.forEach(res => {
+                const time = new Date(res.createdAt).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
                 
                 html += `
-                                    </tbody>
-                                </table>
+                    <tr onclick="app.showReservationDetails('${res.id}')" style="cursor: pointer;">
+                        <td>${res.guestName}</td>
+                        <td>${res.flightHotel}</td>
+                        <td>${res.customer}</td>
+                        <td>
+                            <span class="status-badge status-reserved">Reserved</span>
+                        </td>
+                        <td>${time}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        async showReservationDetails(reservationId) {
+            try {
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                if (!doc.exists) {
+                    alert('Reservation not found!');
+                    return;
+                }
+                
+                const reservation = doc.data();
+                
+                // Create modal for details
+                const modalHtml = `
+                    <div class="modal fade" id="reservationDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reservation Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Guest Name:</strong></label>
+                                                <p>${reservation.guestName}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Customer:</strong></label>
+                                                <p>${reservation.customer}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Flight/Hotel:</strong></label>
+                                                <p>${reservation.flightHotel}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>ETA:</strong></label>
+                                                <p>${reservation.eta}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Direction:</strong></label>
+                                                <p>${reservation.direction}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Nationality:</strong></label>
+                                                <p>${reservation.nationality}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Reservation Date:</strong></label>
+                                                <p>${reservation.reservationDate}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Status:</strong></label>
+                                                <span class="badge bg-warning text-dark">${reservation.status}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label class="form-label"><strong>Created:</strong></label>
+                                        <p>${new Date(reservation.createdAt).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">Delete</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
                 
-                container.innerHTML = html;
-            }
-
-            async showReservationDetails(reservationId) {
-                try {
-                    const doc = await this.db.collection('reservations').doc(reservationId).get();
-                    if (!doc.exists) {
-                        alert('Reservation not found!');
-                        return;
-                    }
-                    
-                    const reservation = doc.data();
-                    
-                    // Create modal for details
-                    const modalHtml = `
-                        <div class="modal fade" id="reservationDetailsModal" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Reservation Details</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Guest Name:</strong></label>
-                                                    <p>${reservation.guestName}</p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Customer:</strong></label>
-                                                    <p>${reservation.customer}</p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Flight/Hotel:</strong></label>
-                                                    <p>${reservation.flightHotel}</p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>ETA:</strong></label>
-                                                    <p>${reservation.eta}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Direction:</strong></label>
-                                                    <p>${reservation.direction}</p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Nationality:</strong></label>
-                                                    <p>${reservation.nationality}</p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Reservation Date:</strong></label>
-                                                    <p>${reservation.reservationDate}</p>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label"><strong>Status:</strong></label>
-                                                    <span class="badge bg-warning text-dark">${reservation.status}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3">
-                                            <label class="form-label"><strong>Created:</strong></label>
-                                            <p>${new Date(reservation.createdAt).toLocaleString()}</p>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">Delete</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Remove existing modal if any
-                    const existingModal = document.getElementById('reservationDetailsModal');
-                    if (existingModal) {
-                        existingModal.remove();
-                    }
-                    
-                    // Add modal to body
-                    document.body.insertAdjacentHTML('beforeend', modalHtml);
-                    
-                    // Show modal
-                    const modal = new bootstrap.Modal(document.getElementById('reservationDetailsModal'));
-                    modal.show();
-                    
-                } catch (error) {
-                    console.error('Error loading reservation details:', error);
-                    alert('Error loading reservation details.');
+                // Remove existing modal if any
+                const existingModal = document.getElementById('reservationDetailsModal');
+                if (existingModal) {
+                    existingModal.remove();
                 }
+                
+                // Add modal to body
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('reservationDetailsModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading reservation details:', error);
+                alert('Error loading reservation details.');
             }
+        }
 
-            async deleteReservation(reservationId) {
-                if (!confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
+        async deleteReservation(reservationId) {
+            if (!confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).delete();
+                
+                // Refresh recent reservations from Firebase
+                this.loadRecentReservations();
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reservationDetailsModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                alert('Reservation deleted successfully!');
+                
+                // Refresh other data
+                this.loadCheckinData();
+                this.loadCheckoutData();
+                
+            } catch (error) {
+                console.error('Error deleting reservation:', error);
+                alert('Error deleting reservation. Please try again.');
+            }
+        }
+
+        // Edit Reservation Functions
+        async openEditModal(reservationId) {
+            try {
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                if (!doc.exists) {
+                    alert('Reservation not found!');
                     return;
                 }
                 
-                try {
-                    await this.db.collection('reservations').doc(reservationId).delete();
-                    
-                    // Refresh recent reservations from Firebase
-                    this.loadRecentReservations();
-                    
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('reservationDetailsModal'));
-                    if (modal) {
-                        modal.hide();
-                    }
-                    
-                    alert('Reservation deleted successfully!');
-                    
-                    // Refresh other data
-                    this.loadCheckinData();
-                    this.loadCheckoutData();
-                    
-                } catch (error) {
-                    console.error('Error deleting reservation:', error);
-                    alert('Error deleting reservation. Please try again.');
-                }
-            }
-
-            // Edit Reservation Functions
-            async openEditModal(reservationId) {
-                try {
-                    const doc = await this.db.collection('reservations').doc(reservationId).get();
-                    if (!doc.exists) {
-                        alert('Reservation not found!');
-                        return;
-                    }
-                    
-                    const reservation = doc.data();
-                    
-                    // Populate form
-                    document.getElementById('editReservationId').value = reservationId;
-                    document.getElementById('editCustomer').value = reservation.customer || '';
-                    document.getElementById('editReservationDate').value = reservation.reservationDate || '';
-                    document.getElementById('editFlightHotel').value = reservation.flightHotel || '';
-                    document.getElementById('editEta').value = reservation.eta || '';
-                    document.getElementById('editDirection').value = reservation.direction || 'Arrival';
-                    document.getElementById('editGuestName').value = reservation.guestName || '';
-                    document.getElementById('editNationality').value = reservation.nationality || '';
-                    document.getElementById('editStatus').value = reservation.status || 'reserved';
-                    document.getElementById('editRemarks').value = reservation.remarks || '';
-                    
-                    // Show modal
-                    const modal = new bootstrap.Modal(document.getElementById('editReservationModal'));
-                    modal.show();
-                    
-                } catch (error) {
-                    console.error('Error loading reservation for edit:', error);
-                    alert('Error loading reservation details.');
-                }
-            }
-
-            async updateReservation() {
-                const reservationId = document.getElementById('editReservationId').value;
+                const reservation = doc.data();
                 
-                const updatedData = {
-                    customer: document.getElementById('editCustomer').value,
-                    reservationDate: document.getElementById('editReservationDate').value,
-                    flightHotel: document.getElementById('editFlightHotel').value,
-                    eta: document.getElementById('editEta').value,
-                    direction: document.getElementById('editDirection').value,
-                    guestName: document.getElementById('editGuestName').value,
-                    nationality: document.getElementById('editNationality').value,
-                    status: document.getElementById('editStatus').value,
-                    remarks: document.getElementById('editRemarks').value,
-                    updatedAt: new Date().toISOString(),
-                    updatedBy: this.currentUser.username
-                };
+                // Populate form
+                document.getElementById('editReservationId').value = reservationId;
+                document.getElementById('editCustomer').value = reservation.customer || '';
+                document.getElementById('editReservationDate').value = reservation.reservationDate || '';
+                document.getElementById('editFlightHotel').value = reservation.flightHotel || '';
+                document.getElementById('editEta').value = reservation.eta || '';
+                document.getElementById('editDirection').value = reservation.direction || 'Arrival';
+                document.getElementById('editGuestName').value = reservation.guestName || '';
+                document.getElementById('editNationality').value = reservation.nationality || '';
+                document.getElementById('editStatus').value = reservation.status || 'reserved';
+                document.getElementById('editRemarks').value = reservation.remarks || '';
                 
-                try {
-                    await this.db.collection('reservations').doc(reservationId).update(updatedData);
-                    
-                    // Add to autocomplete sets
-                    if (updatedData.customer) this.customers.add(updatedData.customer);
-                    if (updatedData.flightHotel) this.flightHotels.add(updatedData.flightHotel);
-                    
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
-                    if (modal) {
-                        modal.hide();
-                    }
-                    
-                    alert('Reservation updated successfully!');
-                    
-                    // Refresh all data
-                    this.loadRecentReservations();
-                    this.loadCheckinData();
-                    this.loadCheckoutData();
-                    this.loadFlightOptionsForCheckin();
-                    this.loadFlightOptionsForCheckout();
-                    this.loadCustomerOptionsForCheckin();
-                    this.loadCustomerOptionsForCheckout();
-                    this.loadReportOptions();
-                    
-                } catch (error) {
-                    console.error('Error updating reservation:', error);
-                    alert('Error updating reservation. Please try again.');
-                }
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('editReservationModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading reservation for edit:', error);
+                alert('Error loading reservation details.');
             }
+        }
 
-            async loadFlightOptionsForCheckin() {
-                try {
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', 'in', ['reserved', 'checked-in'])
-                        .get();
-                    
-                    const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                    const select = document.getElementById('checkinFlightFilter');
-                    if (!select) return;
-                    
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">All Flights/Hotels</option>';
-                    flights.forEach(flight => {
-                        if (flight) {
-                            const option = document.createElement('option');
-                            option.value = flight;
-                            option.textContent = flight;
-                            select.appendChild(option);
-                        }
-                    });
-                    
-                    if (flights.includes(currentValue)) {
-                        select.value = currentValue;
-                    }
-                } catch (error) {
-                    console.error('Error loading flight options for check-in:', error);
+        async updateReservation() {
+            const reservationId = document.getElementById('editReservationId').value;
+            
+            const updatedData = {
+                customer: document.getElementById('editCustomer').value,
+                reservationDate: document.getElementById('editReservationDate').value,
+                flightHotel: document.getElementById('editFlightHotel').value,
+                eta: document.getElementById('editEta').value,
+                direction: document.getElementById('editDirection').value,
+                guestName: document.getElementById('editGuestName').value,
+                nationality: document.getElementById('editNationality').value,
+                status: document.getElementById('editStatus').value,
+                remarks: document.getElementById('editRemarks').value,
+                updatedAt: new Date().toISOString(),
+                updatedBy: this.currentUser.username
+            };
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update(updatedData);
+                
+                // Add to autocomplete sets
+                if (updatedData.customer) this.customers.add(updatedData.customer);
+                if (updatedData.flightHotel) this.flightHotels.add(updatedData.flightHotel);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
+                if (modal) {
+                    modal.hide();
                 }
+                
+                alert('Reservation updated successfully!');
+                
+                // Refresh all data
+                this.loadRecentReservations();
+                this.loadCheckinData();
+                this.loadCheckoutData();
+                this.loadFlightOptionsForCheckin();
+                this.loadFlightOptionsForCheckout();
+                this.loadCustomerOptionsForCheckin();
+                this.loadCustomerOptionsForCheckout();
+                this.loadReportOptions();
+                
+            } catch (error) {
+                console.error('Error updating reservation:', error);
+                alert('Error updating reservation. Please try again.');
             }
+        }
 
-            async loadCustomerOptionsForCheckin() {
-                try {
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', 'in', ['reserved', 'checked-in'])
-                        .get();
-                    
-                    const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
-                    const select = document.getElementById('checkinCustomerFilter');
-                    if (!select) return;
-                    
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">All Customers</option>';
-                    customers.forEach(customer => {
-                        if (customer) {
-                            const option = document.createElement('option');
-                            option.value = customer;
-                            option.textContent = customer;
-                            select.appendChild(option);
-                        }
-                    });
-                    
-                    if (customers.includes(currentValue)) {
-                        select.value = currentValue;
+        async loadFlightOptionsForCheckin() {
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('status', 'in', ['reserved', 'checked-in'])
+                    .get();
+                
+                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+                const select = document.getElementById('checkinFlightFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Flights/Hotels</option>';
+                flights.forEach(flight => {
+                    if (flight) {
+                        const option = document.createElement('option');
+                        option.value = flight;
+                        option.textContent = flight;
+                        select.appendChild(option);
                     }
-                } catch (error) {
-                    console.error('Error loading customer options for check-in:', error);
+                });
+                
+                if (flights.includes(currentValue)) {
+                    select.value = currentValue;
                 }
+            } catch (error) {
+                console.error('Error loading flight options for check-in:', error);
             }
+        }
 
-            async loadFlightOptionsForCheckout() {
-                try {
-                    const snapshot = await this.db.collection('reservations')
-                        .where('status', 'in', ['checked-in', 'checked-out'])
-                        .get();
-                    
-                    const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                    const select = document.getElementById('checkoutFlightFilter');
-                    if (!select) return;
-                    
-                    const currentValue = select.value;
-                    select.innerHTML = '<option value="">All Flights/Hotels</option>';
-                    flights.forEach(flight => {
-                        if (flight) {
-                            const option = document.createElement('option');
+        async loadCustomerOptionsForCheckin() {
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('status', 'in', ['reserved', 'checked-in'])
+                    .get();
+                
+                const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
+                const select = document.getElementById('checkinCustomerFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Customers</option>';
+                customers.forEach(customer => {
+                    if (customer) {
+                        const option = document.createElement('option');
+                        option.value = customer;
+                        option.textContent = customer;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (customers.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error loading customer options for check-in:', error);
+            }
+        }
+
+        async loadFlightOptionsForCheckout() {
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('status', 'in', ['checked-in', 'checked-out'])
+                    .get();
+                
+                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+                const select = document.getElementById('checkoutFlightFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Flights/Hotels</option>';
+                flights.forEach(flight => {
+                    if (flight) {
+                        const option = document.createElement('option');
                             option.value = flight;
                             option.textContent = flight;
                             select.appendChild(option);
@@ -2890,244 +2891,177 @@
                 return new Date().toISOString().split('T')[0];
             }
 
-           // VILU EXCEL SPECIFIC PROCESSING - IMPROVED
-// VILU EXCEL SPECIFIC PROCESSING - IMPROVED
-processViluExcelFormat(data) {
-    console.log('Processing VILU Excel format with raw data:', data);
-    
-    const reservations = [];
-    const today = new Date().toISOString().split('T')[0];
-    
-    let contactPerson = '';
-    let customerName = '';
-    let guestSectionStart = -1;
-    let direction = 'Arrival'; // Default for VILU
-    
-    // First pass: Find customer information and guest section
-    for (let i = 0; i < data.length; i++) {
-        const row = data[i];
-        
-        // Skip empty rows
-        if (!row || row.length === 0) continue;
-        
-        // Look for "Contact Person:" in row
-        for (let j = 0; j < row.length; j++) {
-            const cell = row[j];
-            if (typeof cell === 'string') {
-                const cellLower = cell.toLowerCase();
+            // VILU EXCEL SPECIFIC PROCESSING - FIXED VERSION
+            processViluExcelFormat(data) {
+                console.log('Processing VILU Excel format with raw data:', data);
                 
-                // Find contact person
-                if (cellLower.includes('contact person') || cellLower === 'contact person') {
-                    // Contact person value is in the same row, 1 cell to the right
-                    if (j + 1 < row.length && row[j + 1]) {
-                        contactPerson = row[j + 1].toString().trim();
-                        console.log('Found contact person:', contactPerson);
-                    }
-                }
+                const reservations = [];
+                const today = new Date().toISOString().split('T')[0];
                 
-                // Find name of service applicant
-                if (cellLower.includes('name of service applicant')) {
-                    if (j + 1 < row.length && row[j + 1]) {
-                        customerName = row[j + 1].toString().trim();
-                        console.log('Found service applicant:', customerName);
-                    }
-                }
+                let contactPerson = '';
+                let guestSectionStart = -1;
                 
-                // Find guest information section - look for "Guest Name" header
-                if ((cellLower === 'guest name' || cellLower.includes('guest name')) && guestSectionStart === -1) {
-                    guestSectionStart = i;
-                    console.log('Guest section header found at row:', i, 'cell:', j);
-                }
-                
-                // Check if this is departure section (look for "Departure" in headers)
-                if (cellLower.includes('departure') && !cellLower.includes('arrival')) {
-                    direction = 'Departure';
-                }
-            }
-        }
-    }
-    
-    // Use contact person as customer if available, otherwise use service applicant
-    if (contactPerson) {
-        customerName = contactPerson;
-    } else if (!customerName) {
-        customerName = 'Unknown Customer';
-    }
-    
-    console.log('Using customer:', customerName, 'direction:', direction);
-    console.log('Guest section starts at row:', guestSectionStart);
-    
-    // Second pass: Process guest rows
-    if (guestSectionStart !== -1) {
-        // Find the data header row (it's usually the row after "Guest Name" header)
-        let dataStartRow = guestSectionStart;
-        
-        // Look for the row that has actual data (not empty)
-        for (let i = guestSectionStart + 1; i < data.length; i++) {
-            const row = data[i];
-            if (row && row.length > 0 && row[0] && row[0].toString().trim() !== '') {
-                dataStartRow = i;
-                break;
-            }
-        }
-        
-        console.log('Guest data starts at row:', dataStartRow);
-        
-        // Process from dataStartRow onward
-        for (let i = dataStartRow; i < data.length; i++) {
-            const row = data[i];
-            
-            // Skip empty rows or rows with no guest name
-            if (!row || row.length < 1) continue;
-            
-            const guestName = row[0]; // Guest Name is first column
-            
-            // Skip if no guest name or if it looks like a header
-            if (!guestName || guestName.toString().trim() === '' || 
-                guestName.toString().toLowerCase().includes('guest name') ||
-                guestName.toString().toLowerCase().includes('name')) {
-                continue;
-            }
-            
-            // Debug: Log the row structure
-            console.log('Processing guest row:', row);
-            
-            // VILU Excel structure analysis:
-            // Based on the sample, columns are:
-            // 0: Guest Name
-            // 1-5: Empty or other data
-            // 6: Passport No (maybe)
-            // 7-8: Empty
-            // 9: Country
-            // 10-11: Empty
-            // 12: Flight No (Arrival)
-            // 13: Flight Time
-            // 14: Flight Date
-            // 15: Flight No (Departure) - if exists
-            // 16: Flight Time (Departure)
-            // 17: Flight Date (Departure)
-            
-            // Try different column indices for flight info
-            let flightHotel = '';
-            let rawTime = '';
-            let rawDate = '';
-            let nationality = '';
-            
-            // Try to find data in common positions
-            for (let j = 0; j < row.length; j++) {
-                const cell = row[j];
-                if (cell && cell.toString().trim() !== '') {
-                    // Look for flight numbers (usually contain letters and numbers)
-                    if (typeof cell === 'string' && /[A-Za-z]/.test(cell) && /\d/.test(cell)) {
-                        // Could be flight number like EK656, QR670, TK740, Somerset
-                        if (!flightHotel) {
-                            flightHotel = cell.toString().trim();
-                            console.log('Found flight at column', j, ':', flightHotel);
-                        }
-                    }
+                // First pass: Find customer information and guest section
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
                     
-                    // Look for time (contains colon or "hrs")
-                    if (typeof cell === 'string' && (cell.includes(':') || cell.toLowerCase().includes('hr'))) {
-                        if (!rawTime) {
-                            rawTime = cell.toString().trim();
-                            console.log('Found time at column', j, ':', rawTime);
-                        }
-                    }
+                    // Skip empty rows
+                    if (!row || row.length === 0) continue;
                     
-                    // Look for date (contains dash or slash)
-                    if (typeof cell === 'string' && (cell.includes('-') || cell.includes('/'))) {
-                        if (!rawDate) {
-                            rawDate = cell.toString().trim();
-                            console.log('Found date at column', j, ':', rawDate);
+                    // Look for "Contact Person:" in row
+                    for (let j = 0; j < row.length; j++) {
+                        const cell = row[j];
+                        if (typeof cell === 'string') {
+                            const cellLower = cell.toLowerCase().trim();
+                            
+                            // Find contact person - look for "Contact Person:" in any cell
+                            if (cellLower === 'contact person:' || cellLower.includes('contact person')) {
+                                // Contact person value is usually in the same row, next cell or same cell
+                                // Try to extract from the cell itself if it contains ":"
+                                if (cell.includes(':')) {
+                                    const parts = cell.split(':');
+                                    if (parts.length > 1) {
+                                        contactPerson = parts[1].trim();
+                                        if (!contactPerson) {
+                                            // Check next cell in same row
+                                            for (let k = j + 1; k < row.length; k++) {
+                                                if (row[k] && row[k].toString().trim() !== '') {
+                                                    contactPerson = row[k].toString().trim();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Check next cells for contact person value
+                                    for (let k = j + 1; k < row.length; k++) {
+                                        if (row[k] && row[k].toString().trim() !== '') {
+                                            contactPerson = row[k].toString().trim();
+                                            break;
+                                        }
+                                    }
+                                }
+                                console.log('Found contact person:', contactPerson, 'at row', i, 'col', j);
+                            }
+                            
+                            // Find guest information section - look for "Guest Name" header
+                            if (cellLower === 'guest name' && guestSectionStart === -1) {
+                                guestSectionStart = i;
+                                console.log('Guest section header found at row:', i, 'cell:', j);
+                                // Check the next row for column headers
+                                if (i + 1 < data.length) {
+                                    const nextRow = data[i + 1];
+                                    console.log('Next row (column headers):', nextRow);
+                                }
+                            }
                         }
                     }
+                }
+                
+                // Use contact person as customer
+                const customerName = contactPerson || 'Unknown Customer';
+                
+                console.log('Using customer:', customerName);
+                console.log('Guest section starts at row:', guestSectionStart);
+                
+                // Second pass: Process guest rows
+                if (guestSectionStart !== -1) {
+                    // Start from 2 rows after the header (header row + column labels row)
+                    const dataStartRow = guestSectionStart + 2;
                     
-                    // Look for country/nationality (usually 2-3 letter codes or country names)
-                    if (typeof cell === 'string' && cell.length <= 3 && /^[A-Za-z]{2,3}$/.test(cell)) {
-                        if (!nationality) {
-                            nationality = cell.toString().trim();
-                            console.log('Found nationality at column', j, ':', nationality);
+                    console.log('Processing guest data from row:', dataStartRow);
+                    
+                    for (let i = dataStartRow; i < data.length; i++) {
+                        const row = data[i];
+                        
+                        // Skip empty rows or rows with no guest name
+                        if (!row || row.length < 1) continue;
+                        
+                        const guestName = row[0]; // Guest Name is first column
+                        
+                        // Skip if no guest name or if it's empty
+                        if (!guestName || guestName.toString().trim() === '') {
+                            continue;
+                        }
+                        
+                        console.log('Processing guest row', i, ':', row);
+                        
+                        // VILU Excel column mapping based on the provided sample:
+                        // 0: Guest Name
+                        // 1-5: Empty or other data
+                        // 6: Passport No
+                        // 7-8: Empty
+                        // 9: Country (Nationality)
+                        // 10-11: Empty
+                        // 12: Flight No (Arrival)
+                        // 13: Flight Time (Arrival)
+                        // 14: Flight Date (Arrival)
+                        // 15: Flight No (Departure)
+                        // 16: Flight Time (Departure)
+                        // 17: Flight Date (Departure)
+                        
+                        // Determine direction and extract flight info
+                        let direction = 'Arrival';
+                        let flightHotel = '';
+                        let rawTime = '';
+                        let rawDate = '';
+                        let nationality = '';
+                        
+                        // Check if we have departure flight info
+                        const hasDepartureInfo = row[15] && row[15].toString().trim() !== '';
+                        
+                        if (hasDepartureInfo) {
+                            // This is a departure
+                            direction = 'Departure';
+                            flightHotel = row[15] ? row[15].toString().trim() : '';
+                            rawTime = row[16] ? row[16].toString().trim() : '';
+                            rawDate = row[17] ? row[17].toString().trim() : '';
+                        } else {
+                            // This is an arrival (default)
+                            direction = 'Arrival';
+                            flightHotel = row[12] ? row[12].toString().trim() : '';
+                            rawTime = row[13] ? row[13].toString().trim() : '';
+                            rawDate = row[14] ? row[14].toString().trim() : '';
+                        }
+                        
+                        // Get nationality from column 9 (Country)
+                        nationality = row[9] ? row[9].toString().trim() : '';
+                        // If Country is empty, set nationality to empty (not 'Unknown')
+                        
+                        // Parse date and time
+                        const parsedDate = this.parseDate(rawDate || today);
+                        const parsedTime = this.parseTime(rawTime || '00:00');
+                        
+                        // Create reservation object
+                        const reservation = {
+                            customer: customerName,
+                            reservationDate: parsedDate,
+                            flightHotel: flightHotel || 'Unknown Flight',
+                            eta: parsedTime,
+                            direction: direction,
+                            guestName: guestName.toString().trim(),
+                            nationality: nationality, // Empty if Country was empty
+                            remarks: `Imported from VILU Excel - ${direction}: ${flightHotel || 'No flight info'}`,
+                            status: 'reserved',
+                            createdAt: new Date().toISOString(),
+                            createdBy: this.currentUser.username,
+                            source: 'vilu_excel_import'
+                        };
+                        
+                        console.log('Created reservation:', reservation);
+                        
+                        // Validate the reservation
+                        if (this.validateReservation(reservation)) {
+                            reservations.push(reservation);
+                        } else {
+                            console.log('Invalid reservation skipped:', reservation);
                         }
                     }
                 }
+                
+                console.log(`Found ${reservations.length} reservations in VILU format`);
+                return reservations;
             }
-            
-            // If we didn't find flight, try specific column indices based on VILU format
-            if (!flightHotel) {
-                // Try column 12 for arrival flight
-                if (row[12] && row[12].toString().trim() !== '') {
-                    flightHotel = row[12].toString().trim();
-                }
-                // Try column 15 for departure flight
-                else if (row[15] && row[15].toString().trim() !== '') {
-                    flightHotel = row[15].toString().trim();
-                    direction = 'Departure';
-                }
-            }
-            
-            // If we didn't find time, try specific column indices
-            if (!rawTime) {
-                // Try column 13 for arrival time
-                if (row[13] && row[13].toString().trim() !== '') {
-                    rawTime = row[13].toString().trim();
-                }
-                // Try column 16 for departure time
-                else if (row[16] && row[16].toString().trim() !== '') {
-                    rawTime = row[16].toString().trim();
-                }
-            }
-            
-            // If we didn't find date, try specific column indices
-            if (!rawDate) {
-                // Try column 14 for arrival date
-                if (row[14] && row[14].toString().trim() !== '') {
-                    rawDate = row[14].toString().trim();
-                }
-                // Try column 17 for departure date
-                else if (row[17] && row[17].toString().trim() !== '') {
-                    rawDate = row[17].toString().trim();
-                }
-            }
-            
-            // If we didn't find nationality, try column 9
-            if (!nationality && row[9] && row[9].toString().trim() !== '') {
-                nationality = row[9].toString().trim();
-            }
-            
-            // Parse date and time
-            const parsedDate = this.parseDate(rawDate || today);
-            const parsedTime = this.parseTime(rawTime || '00:00');
-            
-            // Create reservation object
-            const reservation = {
-                customer: customerName,
-                reservationDate: parsedDate,
-                flightHotel: flightHotel || 'Unknown Flight',
-                eta: parsedTime,
-                direction: direction,
-                guestName: guestName.toString().trim(),
-                nationality: nationality || 'Unknown',
-                remarks: `Imported from VILU Excel - ${direction}: ${flightHotel || 'No flight info'}`,
-                status: 'reserved',
-                createdAt: new Date().toISOString(),
-                createdBy: this.currentUser.username,
-                source: 'vilu_excel_import'
-            };
-            
-            console.log('Created reservation:', reservation);
-            
-            // Validate the reservation
-            if (this.validateReservation(reservation)) {
-                reservations.push(reservation);
-            } else {
-                console.log('Invalid reservation skipped:', reservation);
-            }
-        }
-    }
-    
-    console.log(`Found ${reservations.length} reservations in VILU format`);
-    return reservations;
-}
 
             validateReservation(reservation) {
                 // Check required fields
@@ -3158,107 +3092,108 @@ processViluExcelFormat(data) {
             }
 
             displayExcelPreview(data) {
-    const previewContainer = document.getElementById('excelPreview');
-    const previewHeader = document.getElementById('excelPreviewHeader');
-    const previewBody = document.getElementById('excelPreviewBody');
-    const previewCount = document.getElementById('previewCount');
-    
-    if (!previewContainer || !previewHeader || !previewBody) return;
-    
-    // Clear previous preview
-    previewHeader.innerHTML = '';
-    previewBody.innerHTML = '';
-    
-    if (data.length > 0) {
-        // Create header row for preview
-        const headers = [
-            'Guest Name', 'Customer', 'Flight/Hotel', 'ETA', 
-            'Direction', 'Nationality', 'Reservation Date', 'Status'
-        ];
-        
-        // Create header row
-        let headerHtml = '<tr>';
-        headers.forEach(header => {
-            headerHtml += `<th>${header}</th>`;
-        });
-        headerHtml += '</tr>';
-        previewHeader.innerHTML = headerHtml;
-        
-        // Create data rows
-        let validCount = 0;
-        const previewLimit = Math.min(10, data.length);
-        
-        for (let i = 0; i < previewLimit; i++) {
-            const reservation = data[i];
-            const isValid = this.validateReservation(reservation);
-            
-            let rowHtml = '<tr>';
-            
-            // Guest Name
-            rowHtml += `<td><strong>${reservation.guestName || ''}</strong></td>`;
-            
-            // Customer
-            rowHtml += `<td>${reservation.customer || ''}</td>`;
-            
-            // Flight/Hotel
-            rowHtml += `<td>${reservation.flightHotel || ''}</td>`;
-            
-            // ETA
-            rowHtml += `<td>${reservation.eta || ''}</td>`;
-            
-            // Direction
-            rowHtml += `<td>${reservation.direction || 'Arrival'}</td>`;
-            
-            // Nationality
-            rowHtml += `<td>${reservation.nationality || ''}</td>`;
-            
-            // Reservation Date
-            rowHtml += `<td>${reservation.reservationDate || ''}</td>`;
-            
-            // Validation Status
-            rowHtml += `<td style="background-color: ${isValid ? '#d4edda' : '#f8d7da'}">
-                ${isValid ? '✓ Valid' : '✗ Invalid'}
-                <br><small>${!reservation.flightHotel ? 'No flight' : ''}</small>
-            </td>`;
-            
-            rowHtml += '</tr>';
-            previewBody.innerHTML += rowHtml;
-            
-            if (isValid) validCount++;
-        }
-        
-        // Add summary row
-        previewBody.innerHTML += `
-            <tr>
-                <td colspan="8" style="background-color: #e9ecef; font-weight: bold;">
-                    Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} reservations)
-                    ${validCount < data.length ? `<br><small>${data.length - validCount} invalid due to missing data</small>` : ''}
-                </td>
-            </tr>
-        `;
-        
-        previewCount.textContent = data.length;
-        previewContainer.classList.remove('d-none');
-        
-        // Show sample of what will be uploaded
-        if (data.length > 0) {
-            const sample = data[0];
-            const issues = [];
-            if (!sample.customer || sample.customer === 'Unknown Customer') issues.push('Customer');
-            if (!sample.flightHotel || sample.flightHotel === 'Unknown Flight') issues.push('Flight');
-            if (sample.eta === '00:00') issues.push('ETA');
-            
-            let message = `VILU Excel detected! Found ${data.length} guest entries.\n\nSample entry:\n- Guest: ${sample.guestName}\n- Customer: ${sample.customer}\n- Flight: ${sample.flightHotel}\n- ETA: ${sample.eta}\n- Date: ${sample.reservationDate}\n- Direction: ${sample.direction}`;
-            
-            if (issues.length > 0) {
-                message += `\n\n⚠️ Issues detected in sample: ${issues.join(', ')}`;
-                message += `\nPlease check the Excel format matches VILU template.`;
+                const previewContainer = document.getElementById('excelPreview');
+                const previewHeader = document.getElementById('excelPreviewHeader');
+                const previewBody = document.getElementById('excelPreviewBody');
+                const previewCount = document.getElementById('previewCount');
+                
+                if (!previewContainer || !previewHeader || !previewBody) return;
+                
+                // Clear previous preview
+                previewHeader.innerHTML = '';
+                previewBody.innerHTML = '';
+                
+                if (data.length > 0) {
+                    // Create header row for preview
+                    const headers = [
+                        'Guest Name', 'Customer', 'Flight/Hotel', 'ETA', 
+                        'Direction', 'Nationality', 'Reservation Date', 'Status'
+                    ];
+                    
+                    // Create header row
+                    let headerHtml = '<tr>';
+                    headers.forEach(header => {
+                        headerHtml += `<th>${header}</th>`;
+                    });
+                    headerHtml += '</tr>';
+                    previewHeader.innerHTML = headerHtml;
+                    
+                    // Create data rows
+                    let validCount = 0;
+                    const previewLimit = Math.min(10, data.length);
+                    
+                    for (let i = 0; i < previewLimit; i++) {
+                        const reservation = data[i];
+                        const isValid = this.validateReservation(reservation);
+                        
+                        let rowHtml = '<tr>';
+                        
+                        // Guest Name
+                        rowHtml += `<td><strong>${reservation.guestName || ''}</strong></td>`;
+                        
+                        // Customer
+                        rowHtml += `<td>${reservation.customer || ''}</td>`;
+                        
+                        // Flight/Hotel
+                        rowHtml += `<td>${reservation.flightHotel || ''}</td>`;
+                        
+                        // ETA
+                        rowHtml += `<td>${reservation.eta || ''}</td>`;
+                        
+                        // Direction
+                        rowHtml += `<td>${reservation.direction || 'Arrival'}</td>`;
+                        
+                        // Nationality
+                        rowHtml += `<td>${reservation.nationality || ''}</td>`;
+                        
+                        // Reservation Date
+                        rowHtml += `<td>${reservation.reservationDate || ''}</td>`;
+                        
+                        // Validation Status
+                        rowHtml += `<td style="background-color: ${isValid ? '#d4edda' : '#f8d7da'}">
+                            ${isValid ? '✓ Valid' : '✗ Invalid'}
+                            <br><small>${!reservation.flightHotel || reservation.flightHotel === 'Unknown Flight' ? 'No flight' : ''}</small>
+                        </td>`;
+                        
+                        rowHtml += '</tr>';
+                        previewBody.innerHTML += rowHtml;
+                        
+                        if (isValid) validCount++;
+                    }
+                    
+                    // Add summary row
+                    previewBody.innerHTML += `
+                        <tr>
+                            <td colspan="8" style="background-color: #e9ecef; font-weight: bold;">
+                                Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} reservations)
+                                ${validCount < data.length ? `<br><small>${data.length - validCount} invalid due to missing data</small>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                    
+                    previewCount.textContent = data.length;
+                    previewContainer.classList.remove('d-none');
+                    
+                    // Show sample of what will be uploaded
+                    if (data.length > 0) {
+                        const sample = data[0];
+                        const issues = [];
+                        if (!sample.customer || sample.customer === 'Unknown Customer') issues.push('Customer');
+                        if (!sample.flightHotel || sample.flightHotel === 'Unknown Flight') issues.push('Flight');
+                        if (sample.eta === '00:00') issues.push('ETA');
+                        
+                        let message = `VILU Excel detected! Found ${data.length} guest entries.\n\nSample entry:\n- Guest: ${sample.guestName}\n- Customer: ${sample.customer}\n- Flight: ${sample.flightHotel}\n- ETA: ${sample.eta}\n- Date: ${sample.reservationDate}\n- Direction: ${sample.direction}\n- Nationality: ${sample.nationality || '(empty)'}`;
+                        
+                        if (issues.length > 0) {
+                            message += `\n\n⚠️ Issues detected in sample: ${issues.join(', ')}`;
+                            message += `\nPlease check the Excel format matches VILU template.`;
+                        }
+                        
+                        alert(message);
+                    }
+                }
             }
-            
-            alert(message);
-        }
-    }
-}
+
             async uploadExcelData() {
                 if (this.excelData.length === 0) {
                     alert('No data to upload. Please select an Excel file first.');
@@ -3375,77 +3310,63 @@ processViluExcelFormat(data) {
             }
 
             debugViluExcelColumns() {
-    if (!this.excelData || this.excelData.length === 0) {
-        alert('No Excel data loaded. Please upload a VILU Excel file first.');
-        return;
-    }
-    
-    console.log('=== VILU EXCEL DEBUG ===');
-    console.log('Total rows in raw data:', this.excelData.length);
-    
-    // Show first 20 rows of raw data
-    console.log('First 20 rows of raw Excel data:');
-    for (let i = 0; i < Math.min(20, this.excelData.length); i++) {
-        console.log(`Row ${i}:`, this.excelData[i]);
-    }
-    
-    // Try to find the structure
-    let foundContactPerson = false;
-    let foundGuestSection = false;
-    
-    for (let i = 0; i < Math.min(30, this.excelData.length); i++) {
-        const row = this.excelData[i];
-        if (row && row.length > 0) {
-            // Look for contact person
-            for (let j = 0; j < row.length; j++) {
-                const cell = row[j];
-                if (typeof cell === 'string') {
-                    const cellLower = cell.toLowerCase();
-                    if (cellLower.includes('contact person')) {
-                        console.log(`Found "Contact Person" at row ${i}, column ${j}:`, row);
-                        foundContactPerson = true;
-                    }
-                    if (cellLower === 'guest name' || cellLower.includes('guest name')) {
-                        console.log(`Found "Guest Name" header at row ${i}, column ${j}`);
-                        console.log('Row structure:', row);
-                        foundGuestSection = true;
+                if (!this.excelData || this.excelData.length === 0) {
+                    alert('No Excel data loaded. Please upload a VILU Excel file first.');
+                    return;
+                }
+                
+                console.log('=== VILU EXCEL DEBUG ===');
+                console.log('Total rows in raw data:', this.excelData.length);
+                
+                // Show first 30 rows of raw data to see structure
+                console.log('First 30 rows of raw Excel data:');
+                for (let i = 0; i < Math.min(30, this.excelData.length); i++) {
+                    const row = this.excelData[i];
+                    console.log(`Row ${i}:`, row);
+                    
+                    // Look for "Contact Person" in this row
+                    if (row && row.length > 0) {
+                        for (let j = 0; j < row.length; j++) {
+                            const cell = row[j];
+                            if (typeof cell === 'string' && cell.toLowerCase().includes('contact person')) {
+                                console.log(`Found "Contact Person" reference at row ${i}, column ${j}:`, cell);
+                                console.log('Full row:', row);
+                            }
+                            if (typeof cell === 'string' && cell.toLowerCase() === 'guest name') {
+                                console.log(`Found "Guest Name" header at row ${i}, column ${j}`);
+                                console.log('Next 5 rows for context:');
+                                for (let k = i; k < Math.min(i + 5, this.excelData.length); k++) {
+                                    console.log(`Row ${k}:`, this.excelData[k]);
+                                }
+                            }
+                        }
                     }
                 }
+                
+                // Process and show results
+                const processed = this.processViluExcelFormat(this.excelData);
+                console.log(`Processed ${processed.length} reservations`);
+                
+                if (processed.length > 0) {
+                    console.log('First processed reservation:', processed[0]);
+                    console.log('Last processed reservation:', processed[processed.length - 1]);
+                    
+                    // Count issues
+                    let missingCustomer = 0;
+                    let missingFlight = 0;
+                    let missingTime = 0;
+                    
+                    processed.forEach(res => {
+                        if (!res.customer || res.customer === 'Unknown Customer') missingCustomer++;
+                        if (!res.flightHotel || res.flightHotel === 'Unknown Flight') missingFlight++;
+                        if (res.eta === '00:00') missingTime++;
+                    });
+                    
+                    console.log(`Issues: ${missingCustomer} missing customer, ${missingFlight} missing flight, ${missingTime} missing time`);
+                }
+                
+                alert('Check browser console (F12) for detailed VILU Excel analysis. Look for "Contact Person" and "Guest Name" sections.');
             }
-        }
-    }
-    
-    if (!foundContactPerson) {
-        console.log('WARNING: Could not find "Contact Person" in Excel');
-    }
-    if (!foundGuestSection) {
-        console.log('WARNING: Could not find "Guest Name" section in Excel');
-    }
-    
-    // Process and show results
-    const processed = this.processViluExcelFormat(this.excelData);
-    console.log(`Processed ${processed.length} reservations`);
-    
-    if (processed.length > 0) {
-        console.log('First processed reservation:', processed[0]);
-        console.log('Last processed reservation:', processed[processed.length - 1]);
-        
-        // Count issues
-        let missingCustomer = 0;
-        let missingFlight = 0;
-        let missingTime = 0;
-        
-        processed.forEach(res => {
-            if (!res.customer || res.customer === 'Unknown Customer') missingCustomer++;
-            if (!res.flightHotel || res.flightHotel === 'Unknown Flight') missingFlight++;
-            if (res.eta === '00:00') missingTime++;
-        });
-        
-        console.log(`Issues: ${missingCustomer} missing customer, ${missingFlight} missing flight, ${missingTime} missing time`);
-    }
-    
-    alert('Check browser console (F12) for detailed VILU Excel analysis. Look for "Contact Person" and "Guest Name" sections.');
-}
 
             downloadExcelTemplate() {
                 // Create VILU Business Lounge template based on the provided format
@@ -3462,7 +3383,7 @@ processViluExcelFormat(data) {
                     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     ['1- Service Applicant:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     ['Name of Service Applicant:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    ['Contact Person:', '', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
+                    ['Contact Person:', 'AIRLINE COMPANY CONTACT', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
                     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     ['Billing Address:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     ['Contact Person', '', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
@@ -3474,6 +3395,7 @@ processViluExcelFormat(data) {
                     ['Haruka Yazaki', '', '', '', '', '', 'AB123456', '', '', 'Japan', '', '', 'Somerset', '07:15 Hrs', '2026-01-25', '', '', ''],
                     ['Hayato Atagi', '', '', '', '', '', 'CD789012', '', '', 'Japan', '', '', 'Somerset', '07:15 Hrs', '2026-01-25', '', '', ''],
                     ['Frank Johnsen', '', '', '', '', '', 'EF345678', '', '', 'Norway', '', '', 'EK656', '07:35 Hrs', '2026-01-25', '', '', ''],
+                    ['Ana-Maria Mereuta Johnsen', '', '', '', '', '', 'GH456789', '', '', 'Norway', '', '', 'EK656', '07:35 Hrs', '2026-01-25', '', '', ''],
                     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     ['4- Flight Details  (Please Tick (√ ) required service below)', '', '', '', '', '', '5-  Preference (Please Tick (√ ) below)', '', '', '', '', '', '', '', '', '', '', ''],
                     ['Arrival', '', '', 'Departure', '', '', 'Gluten Free', '', 'Lactose Free', '', '', 'Vegan', '', '', 'Nut Allergy', '', '', ''],
@@ -3516,7 +3438,7 @@ processViluExcelFormat(data) {
                 XLSX.utils.book_append_sheet(wb, ws, 'VILU Template');
                 XLSX.writeFile(wb, 'VILU_Business_Lounge_Template.xlsx');
                 
-                alert('VILU Business Lounge template downloaded. Fill in rows 22-25 with guest information.');
+                alert('VILU Business Lounge template downloaded. Fill in rows 22-25 with guest information and set Contact Person in row 13.');
             }
 
             async exportToExcel() {
@@ -3585,7 +3507,7 @@ processViluExcelFormat(data) {
                 const excelData = data.map(item => ({
                     'Customer': item.customer,
                     'Reservation Date': item.reservationDate,
-                    'Flight/Hotel': item. FlightNo,
+                    'Flight/Hotel': item.flightHotel,
                     'ETA': item.eta,
                     'Direction': item.direction,
                     'Guest Name': item.guestName,
@@ -3617,5 +3539,6 @@ processViluExcelFormat(data) {
         // Initialize application
         const app = new ReservationSystem();
     </script>
+   
 </body>
 </html>
