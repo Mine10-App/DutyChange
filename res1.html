@@ -441,6 +441,14 @@
             color: #2a4365;
             text-decoration: underline;
         }
+        
+        /* Debug button */
+        .debug-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -681,7 +689,7 @@
                                         <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
                                         <h5 class="mb-3">Upload Excel File</h5>
                                         <p class="text-muted mb-3">Drag & drop your Excel file here or click to browse</p>
-                                        <input type="file" id="excelFileInput" accept=".xlsx,.xls" class="d-none">
+                                        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="d-none">
                                         <button class="btn btn-outline-primary" onclick="document.getElementById('excelFileInput').click()">
                                             <i class="fas fa-folder-open me-2"></i> Browse Files
                                         </button>
@@ -689,6 +697,11 @@
                                             <a href="#" class="template-download" onclick="app.downloadExcelTemplate()">
                                                 <i class="fas fa-download me-1"></i> Download Excel Template
                                             </a>
+                                        </div>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm" onclick="app.debugExcelColumns()">
+                                                <i class="fas fa-bug me-1"></i> Debug Columns
+                                            </button>
                                         </div>
                                     </div>
                                     <div id="excelPreview" class="d-none mt-4">
@@ -1122,7 +1135,7 @@
                         e.preventDefault();
                         excelUploadArea.classList.remove('dragover');
                         const files = e.dataTransfer.files;
-                        if (files.length > 0 && files[0].name.match(/\.(xlsx|xls)$/)) {
+                        if (files.length > 0 && files[0].name.match(/\.(xlsx|xls|csv)$/)) {
                             this.readExcelFile(files[0]);
                         }
                     });
@@ -2674,7 +2687,7 @@
                 printWindow.focus();
             }
 
-            // Excel Upload Functions
+            // Excel Upload Functions - IMPROVED VERSION
             handleExcelUpload(event) {
                 const file = event.target.files[0];
                 if (file) {
@@ -2686,23 +2699,282 @@
                 const reader = new FileReader();
                 
                 reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    // Get first worksheet
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    
-                    if (jsonData.length === 0) {
-                        alert('Excel file is empty or has no valid data.');
-                        return;
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        // Get first worksheet
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+                        
+                        if (jsonData.length === 0) {
+                            alert('Excel file is empty or has no valid data.');
+                            return;
+                        }
+                        
+                        console.log('Excel data loaded:', jsonData);
+                        this.excelData = jsonData;
+                        this.displayExcelPreview(jsonData);
+                    } catch (error) {
+                        console.error('Error reading Excel file:', error);
+                        alert('Error reading Excel file. Please make sure it\'s a valid Excel file.');
                     }
-                    
-                    this.excelData = jsonData;
-                    this.displayExcelPreview(jsonData);
+                };
+                
+                reader.onerror = () => {
+                    alert('Error reading file. Please try again.');
                 };
                 
                 reader.readAsArrayBuffer(file);
+            }
+
+            // IMPROVED TIME PARSING FUNCTION
+            parseTime(timeValue) {
+                if (!timeValue && timeValue !== 0) return '00:00';
+                
+                // Convert to string and trim
+                let timeStr = timeValue.toString().trim();
+                
+                console.log('Parsing time:', timeValue, 'as string:', timeStr);
+                
+                // Handle Excel numeric time (fraction of day)
+                if (!isNaN(timeValue) && timeValue < 1) {
+                    // Excel stores times as fractions (0.5 = 12:00)
+                    const totalSeconds = timeValue * 24 * 60 * 60;
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+                
+                // Handle numeric values like 1130, 930, 1430
+                if (!isNaN(timeStr) && timeStr.length >= 3 && timeStr.length <= 4) {
+                    const num = parseInt(timeStr);
+                    let hours, minutes;
+                    
+                    if (timeStr.length === 3) {
+                        hours = Math.floor(num / 100);
+                        minutes = num % 100;
+                    } else {
+                        hours = Math.floor(num / 100);
+                        minutes = num % 100;
+                    }
+                    
+                    // Ensure valid hours and minutes
+                    if (hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 59) {
+                        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                    }
+                }
+                
+                // Handle various string formats
+                // Remove spaces and convert to uppercase
+                timeStr = timeStr.replace(/\s+/g, '').toUpperCase();
+                
+                // Try to match patterns like:
+                // 11:30, 11:30AM, 11:30 PM, 1130, 1130AM, 11.30, 11.30AM
+                const patterns = [
+                    /^(\d{1,2})[:.](\d{2})\s*(AM|PM)?$/i,      // 11:30, 11:30AM, 11.30
+                    /^(\d{3,4})\s*(AM|PM)?$/i,                 // 1130, 1130AM
+                    /^(\d{1,2})\s*(AM|PM)?$/i                  // 11, 11AM
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = timeStr.match(pattern);
+                    if (match) {
+                        let hours = parseInt(match[1]);
+                        let minutes = match[2] ? parseInt(match[2]) : 0;
+                        const period = match[3] ? match[3].toUpperCase() : '';
+                        
+                        // Handle 12-hour format
+                        if (period === 'PM' && hours < 12) hours += 12;
+                        if (period === 'AM' && hours === 12) hours = 0;
+                        
+                        // Handle 24-hour format for times like 1330
+                        if (!period && hours < 24 && match[1].length >= 3) {
+                            if (match[1].length === 3) {
+                                hours = Math.floor(hours / 10);
+                                minutes = hours % 10 * 10 + minutes;
+                            } else if (match[1].length === 4) {
+                                minutes = hours % 100;
+                                hours = Math.floor(hours / 100);
+                            }
+                        }
+                        
+                        // Validate hours and minutes
+                        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                        }
+                    }
+                }
+                
+                // Try to parse as Date object
+                const date = new Date(timeValue);
+                if (!isNaN(date.getTime())) {
+                    const hours = date.getHours();
+                    const minutes = date.getMinutes();
+                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+                
+                console.warn('Could not parse time:', timeValue);
+                return '00:00';
+            }
+
+            // IMPROVED DATE PARSING FUNCTION
+            parseDate(dateValue) {
+                if (!dateValue) return new Date().toISOString().split('T')[0];
+                
+                // Convert to string
+                let dateStr = dateValue.toString().trim();
+                
+                console.log('Parsing date:', dateValue, 'as string:', dateStr);
+                
+                // Handle Excel serial date (number)
+                if (!isNaN(dateValue) && dateValue > 25569) {
+                    // Excel date (days since 1900)
+                    const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
+                    return excelDate.toISOString().split('T')[0];
+                }
+                
+                // Try common date formats
+                const dateFormats = [
+                    /^(\d{4})-(\d{1,2})-(\d{1,2})$/,      // YYYY-MM-DD
+                    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,    // MM/DD/YYYY or DD/MM/YYYY
+                    /^(\d{1,2})-(\d{1,2})-(\d{4})$/,      // DD-MM-YYYY
+                    /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/,    // DD.MM.YYYY
+                    /^(\d{4})(\d{2})(\d{2})$/,            // YYYYMMDD
+                    /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,    // MM/DD/YY
+                ];
+                
+                for (const format of dateFormats) {
+                    const match = dateStr.match(format);
+                    if (match) {
+                        let year, month, day;
+                        
+                        if (format.source.includes('YYYY') || format.source.includes('YY')) {
+                            // Format with explicit year
+                            if (format.source.startsWith('^\\d{4}')) {
+                                // YYYY-MM-DD or YYYYMMDD
+                                year = parseInt(match[1]);
+                                month = parseInt(match[2]) - 1;
+                                day = parseInt(match[3]);
+                            } else {
+                                // Other formats
+                                if (match[3].length === 4) {
+                                    year = parseInt(match[3]);
+                                    month = parseInt(match[1]) - 1;
+                                    day = parseInt(match[2]);
+                                } else {
+                                    // 2-digit year
+                                    year = 2000 + parseInt(match[3]);
+                                    month = parseInt(match[1]) - 1;
+                                    day = parseInt(match[2]);
+                                }
+                            }
+                            
+                            const date = new Date(year, month, day);
+                            if (!isNaN(date.getTime())) {
+                                return date.toISOString().split('T')[0];
+                            }
+                        }
+                    }
+                }
+                
+                // Try JavaScript Date parsing as last resort
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().split('T')[0];
+                }
+                
+                console.warn('Could not parse date:', dateValue);
+                return new Date().toISOString().split('T')[0];
+            }
+
+            normalizeExcelRow(row, today) {
+                // Helper function to get value with multiple possible column names
+                const getValue = (...possibleKeys) => {
+                    for (const key of possibleKeys) {
+                        if (row[key] !== undefined && row[key] !== null && row[key] !== '') {
+                            const value = row[key];
+                            // Handle numbers that should be strings
+                            if (typeof value === 'number' && !isNaN(value)) {
+                                // Check if it's a date/time or regular number
+                                if (key.toLowerCase().includes('date') || key.toLowerCase().includes('time')) {
+                                    return value;
+                                }
+                                return value.toString();
+                            }
+                            return value;
+                        }
+                    }
+                    return '';
+                };
+
+                // Extract values with flexible column names
+                const customer = getValue('Customer', 'customer', 'Company', 'company', 'Client', 'client', 'Guest Company');
+                const rawDate = getValue('Date', 'date', 'Reservation Date', 'ReservationDate', 'Reservation_Date', 'Booking Date');
+                const flightHotel = getValue('Flight/Hotel', 'Flight_Hotel', 'Flight', 'flight', 'Hotel', 'hotel', 'Flight Hotel', 'FlightNo', 'Flight Number');
+                const rawTime = getValue('ETA', 'eta', 'Time', 'time', 'Estimated Time', 'Check-in Time', 'Arrival Time');
+                const direction = getValue('Direction', 'direction', 'Arrival/Departure', 'Type', 'Travel Type') || 'Arrival';
+                const guestName = getValue('Guest Name', 'Guest_Name', 'Guest', 'guest', 'Name', 'name', 'Passenger', 'passenger', 'GuestName');
+                const nationality = getValue('Nationality', 'nationality', 'Country', 'country', 'Citizenship', 'Passenger Nationality') || 'Unknown';
+                const remarks = getValue('Remarks', 'remarks', 'Note', 'note', 'Comments', 'comments', 'Special Requests', 'Additional Info') || '';
+
+                // Parse date and time
+                const reservationDate = this.parseDate(rawDate);
+                const eta = this.parseTime(rawTime);
+
+                console.log('Normalized row:', {
+                    rawDate,
+                    parsedDate: reservationDate,
+                    rawTime,
+                    parsedTime: eta,
+                    customer,
+                    flightHotel,
+                    direction,
+                    guestName,
+                    nationality
+                });
+
+                return {
+                    customer: customer.toString().trim(),
+                    reservationDate: reservationDate,
+                    flightHotel: flightHotel.toString().trim(),
+                    eta: eta,
+                    direction: direction.toString().trim(),
+                    guestName: guestName.toString().trim(),
+                    nationality: nationality.toString().trim(),
+                    remarks: remarks.toString().trim(),
+                    status: 'reserved',
+                    createdAt: new Date().toISOString(),
+                    createdBy: this.currentUser.username
+                };
+            }
+
+            validateReservation(reservation) {
+                // Check required fields
+                const requiredFields = ['customer', 'guestName', 'flightHotel'];
+                
+                for (const field of requiredFields) {
+                    if (!reservation[field] || reservation[field].toString().trim() === '') {
+                        console.log(`Missing required field: ${field}`, reservation);
+                        return false;
+                    }
+                }
+                
+                // Validate date format (YYYY-MM-DD)
+                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!dateRegex.test(reservation.reservationDate)) {
+                    console.log('Invalid date format:', reservation.reservationDate);
+                    return false;
+                }
+                
+                // Validate time format (HH:MM)
+                const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (!timeRegex.test(reservation.eta)) {
+                    console.log('Invalid time format:', reservation.eta);
+                    return false;
+                }
+                
+                return true;
             }
 
             displayExcelPreview(data) {
@@ -2722,6 +2994,8 @@
                     const firstRow = data[0];
                     const headers = Object.keys(firstRow);
                     
+                    console.log('Excel columns detected:', headers);
+                    
                     // Create header row
                     let headerHtml = '<tr>';
                     headers.forEach(header => {
@@ -2736,24 +3010,42 @@
                         const row = data[i];
                         let rowHtml = '<tr>';
                         headers.forEach(header => {
-                            rowHtml += `<td>${row[header] || ''}</td>`;
+                            const value = row[header];
+                            // Show sample parsing for date/time columns
+                            let displayValue = value !== undefined ? value : '';
+                            
+                            // Test parsing for date/time columns
+                            if (header.toLowerCase().includes('date') || header.toLowerCase().includes('time') || 
+                                header === 'ETA' || header === 'eta') {
+                                if (value) {
+                                    if (header.toLowerCase().includes('date')) {
+                                        const parsed = this.parseDate(value);
+                                        displayValue = `${value} → ${parsed}`;
+                                    } else {
+                                        const parsed = this.parseTime(value);
+                                        displayValue = `${value} → ${parsed}`;
+                                    }
+                                }
+                            }
+                            
+                            rowHtml += `<td>${displayValue}</td>`;
                         });
                         rowHtml += '</tr>';
                         previewBody.innerHTML += rowHtml;
                     }
                     
+                    // Add parsing info
+                    previewBody.innerHTML += `
+                        <tr>
+                            <td colspan="${headers.length}" style="background-color: #f8f9fa; font-style: italic; font-size: 0.8rem;">
+                                <small>Note: Date/Time values show original → parsed format</small>
+                            </td>
+                        </tr>
+                    `;
+                    
                     previewCount.textContent = data.length;
                     previewContainer.classList.remove('d-none');
                 }
-            }
-
-            clearExcelPreview() {
-                const previewContainer = document.getElementById('excelPreview');
-                const fileInput = document.getElementById('excelFileInput');
-                
-                if (previewContainer) previewContainer.classList.add('d-none');
-                if (fileInput) fileInput.value = '';
-                this.excelData = [];
             }
 
             async uploadExcelData() {
@@ -2761,40 +3053,41 @@
                     alert('No data to upload. Please select an Excel file first.');
                     return;
                 }
-                
+
                 if (!confirm(`Are you sure you want to upload ${this.excelData.length} reservations?`)) {
                     return;
                 }
-                
+
                 const today = new Date().toISOString().split('T')[0];
                 let successCount = 0;
                 let errorCount = 0;
-                
+                let skippedRows = [];
+
+                // Show processing message
+                alert(`Processing ${this.excelData.length} records... Please wait.`);
+
                 // Process each row
-                for (const row of this.excelData) {
+                for (let i = 0; i < this.excelData.length; i++) {
+                    const row = this.excelData[i];
                     try {
-                        // Map Excel columns to reservation fields
-                        const reservation = {
-                            customer: row.Customer || row.customer || '',
-                            reservationDate: row.Date || row.date || today,
-                            flightHotel: row['Flight/Hotel'] || row.Flight || row.flight || '',
-                            eta: row.ETA || row.eta || '00:00',
-                            direction: row.Direction || row.direction || 'Arrival',
-                            guestName: row['Guest Name'] || row.Guest || row.guest || '',
-                            nationality: row.Nationality || row.nationality || '',
-                            remarks: row.Remarks || row.remarks || '',
-                            status: 'reserved',
-                            createdAt: new Date().toISOString(),
-                            createdBy: this.currentUser.username
-                        };
+                        // Normalize and map Excel columns to reservation fields
+                        const reservation = this.normalizeExcelRow(row, today);
+                        
+                        console.log(`Processing row ${i + 1}:`, reservation);
                         
                         // Validate required fields
-                        if (!reservation.customer || !reservation.guestName || !reservation.flightHotel) {
-                            console.warn('Skipping row with missing required fields:', row);
+                        if (!this.validateReservation(reservation)) {
+                            console.warn(`Skipping row ${i + 1}: Validation failed`, row);
+                            skippedRows.push({ 
+                                row: i + 1, 
+                                reason: 'Missing required fields or invalid format',
+                                data: row 
+                            });
                             errorCount++;
                             continue;
                         }
                         
+                        // Add to Firebase
                         await this.db.collection('reservations').add(reservation);
                         successCount++;
                         
@@ -2803,12 +3096,30 @@
                         if (reservation.flightHotel) this.flightHotels.add(reservation.flightHotel);
                         
                     } catch (error) {
-                        console.error('Error uploading row:', row, error);
+                        console.error(`Error uploading row ${i + 1}:`, row, error);
+                        skippedRows.push({ 
+                            row: i + 1, 
+                            reason: error.message, 
+                            data: row 
+                        });
                         errorCount++;
                     }
                 }
+
+                // Show detailed results
+                let resultMessage = `Upload completed!\n\nSuccess: ${successCount}\nFailed: ${errorCount}`;
                 
-                alert(`Upload completed!\n\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+                if (skippedRows.length > 0) {
+                    resultMessage += `\n\nSkipped Rows (first 5):`;
+                    skippedRows.slice(0, 5).forEach(skip => {
+                        resultMessage += `\nRow ${skip.row}: ${skip.reason}`;
+                    });
+                    if (skippedRows.length > 5) {
+                        resultMessage += `\n... and ${skippedRows.length - 5} more`;
+                    }
+                }
+                
+                alert(resultMessage);
                 
                 // Clear preview and refresh data
                 this.clearExcelPreview();
@@ -2822,43 +3133,153 @@
                 this.loadReportOptions();
             }
 
+            clearExcelPreview() {
+                const previewContainer = document.getElementById('excelPreview');
+                const fileInput = document.getElementById('excelFileInput');
+                
+                if (previewContainer) previewContainer.classList.add('d-none');
+                if (fileInput) fileInput.value = '';
+                this.excelData = [];
+            }
+
+            debugExcelColumns() {
+                if (this.excelData.length === 0) {
+                    alert('No Excel data loaded. Please upload an Excel file first.');
+                    return;
+                }
+                
+                console.log('=== EXCEL DATA DEBUG ===');
+                console.log('Total rows:', this.excelData.length);
+                
+                if (this.excelData.length > 0) {
+                    const firstRow = this.excelData[0];
+                    console.log('First row columns:', Object.keys(firstRow));
+                    console.log('First row raw data:', firstRow);
+                    
+                    // Test parsing for first row
+                    const testRow = this.normalizeExcelRow(firstRow, new Date().toISOString().split('T')[0]);
+                    console.log('Mapped result:', testRow);
+                    console.log('Validation result:', this.validateReservation(testRow));
+                    
+                    // Test time parsing
+                    const timeTestValues = ['1130', '11:30', '1130 AM', '11:30 AM', '1430', '14:30', '2:30 PM', '930', '9:30', '9:30 AM'];
+                    console.log('Time parsing tests:');
+                    timeTestValues.forEach(time => {
+                        console.log(`${time} → ${this.parseTime(time)}`);
+                    });
+                    
+                    // Test date parsing
+                    const dateTestValues = ['2024-01-15', '15/01/2024', '01/15/2024', '15-01-2024', '20240115', '15.01.2024'];
+                    console.log('Date parsing tests:');
+                    dateTestValues.forEach(date => {
+                        console.log(`${date} → ${this.parseDate(date)}`);
+                    });
+                }
+                
+                alert('Check browser console (F12) for Excel column debug information.');
+            }
+
             downloadExcelTemplate() {
-                // Create template data
+                // Create template data with sample times in different formats
                 const templateData = [
                     {
-                        'Customer': 'Example Customer',
+                        'Customer': 'Airline Company',
                         'Date': new Date().toISOString().split('T')[0],
                         'Flight/Hotel': 'EK654',
-                        'ETA': '14:30',
+                        'ETA': '11:30',  // Standard format
                         'Direction': 'Arrival',
                         'Guest Name': 'John Doe',
                         'Nationality': 'American',
                         'Remarks': 'VIP Guest'
                     },
                     {
-                        'Customer': 'Another Customer',
+                        'Customer': 'Hotel Resort',
                         'Date': new Date().toISOString().split('T')[0],
                         'Flight/Hotel': 'QR672',
-                        'ETA': '18:45',
+                        'ETA': '1430',  // 24-hour without colon
                         'Direction': 'Departure',
                         'Guest Name': 'Jane Smith',
                         'Nationality': 'British',
+                        'Remarks': 'Vegetarian meal required'
+                    },
+                    {
+                        'Customer': 'Travel Agency',
+                        'Date': new Date().toISOString().split('T')[0],
+                        'Flight/Hotel': 'UL403',
+                        'ETA': '2:30 PM',  // 12-hour with PM
+                        'Direction': 'Transit',
+                        'Guest Name': 'Robert Johnson',
+                        'Nationality': 'Canadian',
                         'Remarks': ''
+                    },
+                    {
+                        'Customer': 'Corporate Client',
+                        'Date': new Date().toISOString().split('T')[0],
+                        'Flight/Hotel': 'SQ452',
+                        'ETA': '930',  // Without leading zero
+                        'Direction': 'Arrival',
+                        'Guest Name': 'Maria Garcia',
+                        'Nationality': 'Spanish',
+                        'Remarks': 'Wheelchair assistance'
                     }
                 ];
                 
                 // Create worksheet
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 
+                // Add column width
+                const wscols = [
+                    {wch: 20}, // Customer
+                    {wch: 15}, // Date
+                    {wch: 15}, // Flight/Hotel
+                    {wch: 15}, // ETA
+                    {wch: 12}, // Direction
+                    {wch: 20}, // Guest Name
+                    {wch: 15}, // Nationality
+                    {wch: 25}  // Remarks
+                ];
+                ws['!cols'] = wscols;
+                
                 // Create workbook
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Template');
+                
+                // Add instructions sheet
+                const instructions = [
+                    ['IMPORTANT INSTRUCTIONS:'],
+                    [''],
+                    ['1. Do not change column headers (first row)'],
+                    ['2. Required fields: Customer, Flight/Hotel, Guest Name'],
+                    ['3. Date format: Any format accepted (YYYY-MM-DD, DD/MM/YYYY, etc.)'],
+                    ['4. Time format examples:'],
+                    ['   - 11:30 (standard)'],
+                    ['   - 1130 (no colon)'],
+                    ['   - 11:30 AM (12-hour with AM/PM)'],
+                    ['   - 1430 (24-hour military time)'],
+                    ['   - 2:30 PM (12-hour)'],
+                    ['   - 930 (9:30 AM)'],
+                    ['5. Direction options: Arrival, Departure, Transit, Local'],
+                    ['6. Save file as .xlsx or .xls format'],
+                    [''],
+                    ['SUPPORTED COLUMN NAMES:'],
+                    ['Customer (Company, Client, Guest Company)'],
+                    ['Date (Reservation Date, Booking Date)'],
+                    ['Flight/Hotel (Flight, Hotel, FlightNo, Flight Number)'],
+                    ['ETA (Time, Estimated Time, Check-in Time, Arrival Time)'],
+                    ['Direction (Arrival/Departure, Type, Travel Type)'],
+                    ['Guest Name (Guest, Name, Passenger, GuestName)'],
+                    ['Nationality (Country, Citizenship, Passenger Nationality)'],
+                    ['Remarks (Note, Comments, Special Requests)']
+                ];
+                
+                const ws2 = XLSX.utils.aoa_to_sheet(instructions);
+                XLSX.utils.book_append_sheet(wb, ws2, 'Instructions');
                 
                 // Generate file and download
                 XLSX.writeFile(wb, 'Vilu_Lounge_Reservation_Template.xlsx');
             }
 
-            exportToExcel() {
+            async exportToExcel() {
                 const fromDateInput = document.getElementById('reportFromDate');
                 const toDateInput = document.getElementById('reportToDate');
                 const flightSelect = document.getElementById('reportFlightFilter');
