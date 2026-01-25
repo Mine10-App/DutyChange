@@ -2700,16 +2700,19 @@
                         
                         // Get first worksheet
                         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
                         
                         if (jsonData.length === 0) {
                             alert('Excel file is empty or has no valid data.');
                             return;
                         }
                         
-                        console.log('Excel data loaded:', jsonData);
-                        this.excelData = jsonData;
-                        this.displayExcelPreview(jsonData);
+                        console.log('Excel data loaded (raw):', jsonData);
+                        
+                        // Process VILU format specifically
+                        const processedData = this.processViluExcelFormat(jsonData);
+                        this.excelData = processedData;
+                        this.displayExcelPreview(processedData);
                     } catch (error) {
                         console.error('Error reading Excel file:', error);
                         alert('Error reading Excel file. Please make sure it\'s a valid Excel file.');
@@ -2730,8 +2733,6 @@
                 // Convert to string and trim
                 let timeStr = timeValue.toString().trim();
                 
-                console.log('Parsing time:', timeValue, 'as string:', timeStr);
-                
                 // Handle Excel numeric time (fraction of day)
                 if (!isNaN(timeValue) && timeValue < 1) {
                     // Excel stores times as fractions (0.5 = 12:00)
@@ -2740,6 +2741,9 @@
                     const minutes = Math.floor((totalSeconds % 3600) / 60);
                     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                 }
+                
+                // Remove "Hrs" or "hrs" from time string
+                timeStr = timeStr.replace(/hrs?/gi, '').trim();
                 
                 // Handle numeric values like 1130, 930, 1430
                 if (!isNaN(timeStr) && timeStr.length >= 3 && timeStr.length <= 4) {
@@ -2820,13 +2824,16 @@
                 // Convert to string
                 let dateStr = dateValue.toString().trim();
                 
-                console.log('Parsing date:', dateValue, 'as string:', dateStr);
-                
                 // Handle Excel serial date (number)
                 if (!isNaN(dateValue) && dateValue > 25569) {
                     // Excel date (days since 1900)
                     const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
                     return excelDate.toISOString().split('T')[0];
+                }
+                
+                // Handle date-time strings like "2026-01-25 00:00:00"
+                if (dateStr.includes(' ')) {
+                    dateStr = dateStr.split(' ')[0];
                 }
                 
                 // Try common date formats
@@ -2883,129 +2890,115 @@
                 return new Date().toISOString().split('T')[0];
             }
 
-            // VILU EXCEL SPECIFIC PROCESSING
-            normalizeExcelRow(row, today) {
-                console.log('Processing Excel row:', row);
-
-                // Helper function to get value with multiple possible column names
-                const getValue = (key) => {
-                    // First check if the key exists exactly
-                    if (row[key] !== undefined && row[key] !== null && row[key] !== '') {
-                        return row[key];
-                    }
+            // VILU EXCEL SPECIFIC PROCESSING - IMPROVED
+            processViluExcelFormat(data) {
+                console.log('Processing VILU Excel format with raw data:', data);
+                
+                const reservations = [];
+                const today = new Date().toISOString().split('T')[0];
+                
+                let contactPerson = '';
+                let customerName = '';
+                let guestSectionStart = -1;
+                
+                // First pass: Find customer information and guest section
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
                     
-                    // Check for common variations
-                    const variations = [
-                        key,
-                        key.toLowerCase(),
-                        key.toUpperCase(),
-                        key.replace(/\s+/g, ''),
-                        key.replace(/\s+/g, '_'),
-                        key.replace(/\s+/g, '-')
-                    ];
+                    // Skip empty rows
+                    if (!row || row.length === 0) continue;
                     
-                    for (const variation of variations) {
-                        if (row[variation] !== undefined && row[variation] !== null && row[variation] !== '') {
-                            return row[variation];
+                    // Look for "Contact Person:" in row
+                    for (let j = 0; j < row.length; j++) {
+                        const cell = row[j];
+                        if (typeof cell === 'string') {
+                            const cellLower = cell.toLowerCase();
+                            
+                            // Find contact person
+                            if (cellLower.includes('contact person')) {
+                                if (j + 1 < row.length && row[j + 1]) {
+                                    contactPerson = row[j + 1].toString().trim();
+                                }
+                            }
+                            
+                            // Find name of service applicant
+                            if (cellLower.includes('name of service applicant')) {
+                                if (j + 1 < row.length && row[j + 1]) {
+                                    customerName = row[j + 1].toString().trim();
+                                }
+                            }
+                            
+                            // Find guest information section
+                            if (cellLower.includes('guest name') && guestSectionStart === -1) {
+                                guestSectionStart = i;
+                            }
                         }
                     }
-                    
-                    return '';
-                };
-
-                // Extract from VILU Excel template structure
-                let customer = '';
-                if (row['Name of Service Applicant']) {
-                    customer = row['Name of Service Applicant'];
-                } else if (row['Contact Person']) {
-                    customer = row['Contact Person'];
-                } else if (row['Service Applicant']) {
-                    customer = row['Service Applicant'];
-                } else if (row['Customer']) {
-                    customer = row['Customer'];
                 }
                 
-                // Try to get guest name
-                let guestName = '';
-                if (row['Guest Name']) {
-                    guestName = row['Guest Name'];
-                } else if (row['Guest']) {
-                    guestName = row['Guest'];
-                } else if (row['Name']) {
-                    guestName = row['Name'];
+                // Use contact person as customer if customer name not found
+                if (!customerName && contactPerson) {
+                    customerName = contactPerson;
                 }
                 
-                // Try to get flight number
-                let flightHotel = '';
-                if (row['Flight No']) {
-                    flightHotel = row['Flight No'];
-                } else if (row['Flight Number']) {
-                    flightHotel = row['Flight Number'];
-                } else if (row['Flight']) {
-                    flightHotel = row['Flight'];
-                } else if (row['Arrival']) {
-                    flightHotel = row['Arrival'];
+                console.log('Found customer:', customerName, 'contact person:', contactPerson);
+                console.log('Guest section starts at row:', guestSectionStart);
+                
+                // Second pass: Process guest rows
+                if (guestSectionStart !== -1) {
+                    // Start from the row after the header
+                    for (let i = guestSectionStart + 1; i < data.length; i++) {
+                        const row = data[i];
+                        
+                        // Skip empty rows or rows with no guest name
+                        if (!row || row.length < 2) continue;
+                        
+                        const guestName = row[0]; // Guest Name is usually first column
+                        
+                        // Skip if no guest name or if it's a header row
+                        if (!guestName || guestName.toString().trim() === '' || 
+                            guestName.toString().toLowerCase().includes('guest name')) {
+                            continue;
+                        }
+                        
+                        // Extract data from VILU format columns
+                        // Assuming columns: Guest Name, Passport No, Country, Arrival Flight No, Flight Time, Flight Date
+                        const nationality = row[2] || ''; // Country column
+                        const flightHotel = row[3] || ''; // Arrival Flight No column
+                        const rawTime = row[4] || ''; // Flight Time column
+                        const rawDate = row[5] || ''; // Flight Date column
+                        
+                        // Parse date and time
+                        const parsedDate = this.parseDate(rawDate || today);
+                        const parsedTime = this.parseTime(rawTime || '00:00');
+                        
+                        // Create reservation object
+                        const reservation = {
+                            customer: customerName || 'Unknown Customer',
+                            reservationDate: parsedDate,
+                            flightHotel: flightHotel.toString().trim(),
+                            eta: parsedTime,
+                            direction: 'Arrival', // VILU form is for arrivals
+                            guestName: guestName.toString().trim(),
+                            nationality: nationality.toString().trim() || 'Unknown',
+                            remarks: `Imported from VILU Excel - Flight: ${flightHotel}`,
+                            status: 'reserved',
+                            createdAt: new Date().toISOString(),
+                            createdBy: this.currentUser.username,
+                            source: 'vilu_excel_import'
+                        };
+                        
+                        // Validate the reservation
+                        if (this.validateReservation(reservation)) {
+                            reservations.push(reservation);
+                        } else {
+                            console.log('Invalid reservation skipped:', reservation);
+                        }
+                    }
                 }
                 
-                // Try to get flight time
-                let rawTime = '';
-                if (row['Flight Time']) {
-                    rawTime = row['Flight Time'];
-                } else if (row['Time']) {
-                    rawTime = row['Time'];
-                } else if (row['ETA']) {
-                    rawTime = row['ETA'];
-                }
-                
-                // Try to get flight date
-                let rawDate = '';
-                if (row['Flight Date']) {
-                    rawDate = row['Flight Date'];
-                } else if (row['Date']) {
-                    rawDate = row['Date'];
-                }
-                
-                // Try to get nationality
-                let nationality = '';
-                if (row['Country']) {
-                    nationality = row['Country'];
-                } else if (row['Nationality']) {
-                    nationality = row['Nationality'];
-                }
-                
-                // Handle raw data from Excel
-                let parsedDate = this.parseDate(rawDate || today);
-                const parsedTime = this.parseTime(rawTime || '00:00');
-                
-                // If we have a timestamp in date field (like "2026-01-25 00:00:00"), extract just the date
-                if (rawDate && typeof rawDate === 'string' && rawDate.includes(' ')) {
-                    const datePart = rawDate.split(' ')[0];
-                    parsedDate = this.parseDate(datePart);
-                }
-                
-                // Default direction for VILU lounge is Arrival
-                const direction = 'Arrival';
-                
-                // Default remarks
-                const remarks = `Imported from VILU Excel - ${flightHotel || 'No flight info'}`;
-                
-                const normalized = {
-                    customer: customer.toString().trim(),
-                    reservationDate: parsedDate,
-                    flightHotel: flightHotel.toString().trim(),
-                    eta: parsedTime,
-                    direction: direction.toString().trim(),
-                    guestName: guestName.toString().trim(),
-                    nationality: nationality.toString().trim() || 'Unknown',
-                    remarks: remarks.toString().trim(),
-                    status: 'reserved',
-                    createdAt: new Date().toISOString(),
-                    createdBy: this.currentUser.username,
-                    source: 'excel_import'
-                };
-                
-                console.log('Normalized reservation:', normalized);
-                return normalized;
+                console.log(`Found ${reservations.length} reservations in VILU format`);
+                return reservations;
             }
 
             validateReservation(reservation) {
@@ -3048,13 +3041,12 @@
                 previewHeader.innerHTML = '';
                 previewBody.innerHTML = '';
                 
-                // Get headers from first row
                 if (data.length > 0) {
-                    const firstRow = data[0];
-                    const headers = Object.keys(firstRow);
-                    
-                    console.log('Excel columns detected:', headers);
-                    console.log('First row sample:', firstRow);
+                    // Create header row for preview
+                    const headers = [
+                        'Guest Name', 'Customer', 'Flight/Hotel', 'ETA', 
+                        'Direction', 'Nationality', 'Reservation Date', 'Status'
+                    ];
                     
                     // Create header row
                     let headerHtml = '<tr>';
@@ -3064,45 +3056,38 @@
                     headerHtml += '</tr>';
                     previewHeader.innerHTML = headerHtml;
                     
-                    // Create data rows (limit to 10 for preview)
-                    const previewLimit = Math.min(10, data.length);
+                    // Create data rows
                     let validCount = 0;
+                    const previewLimit = Math.min(10, data.length);
                     
                     for (let i = 0; i < previewLimit; i++) {
-                        const row = data[i];
+                        const reservation = data[i];
+                        const isValid = this.validateReservation(reservation);
+                        
                         let rowHtml = '<tr>';
                         
-                        // Process the row to check if it's valid
-                        const normalized = this.normalizeExcelRow(row, new Date().toISOString().split('T')[0]);
-                        const isValid = this.validateReservation(normalized);
+                        // Guest Name
+                        rowHtml += `<td><strong>${reservation.guestName || ''}</strong></td>`;
                         
-                        headers.forEach(header => {
-                            const value = row[header];
-                            let displayValue = value !== undefined ? value : '';
-                            
-                            // Highlight important fields
-                            const isImportantField = [
-                                'Guest Name', 'Name of Service Applicant', 'Contact Person',
-                                'Flight No', 'Flight Time', 'Flight Date', 'Country'
-                            ].some(field => header.toLowerCase().includes(field.toLowerCase()));
-                            
-                            if (isImportantField) {
-                                displayValue = `<strong>${displayValue}</strong>`;
-                            }
-                            
-                            // Show parsing for key fields
-                            if (header.toLowerCase().includes('date')) {
-                                const parsed = this.parseDate(value);
-                                displayValue = `${value}<br><small class="text-muted">→ ${parsed}</small>`;
-                            } else if (header.toLowerCase().includes('time') || header === 'Flight Time' || header === 'ETA') {
-                                const parsed = this.parseTime(value);
-                                displayValue = `${value}<br><small class="text-muted">→ ${parsed}</small>`;
-                            }
-                            
-                            rowHtml += `<td>${displayValue}</td>`;
-                        });
+                        // Customer
+                        rowHtml += `<td>${reservation.customer || ''}</td>`;
                         
-                        // Add validation status
+                        // Flight/Hotel
+                        rowHtml += `<td>${reservation.flightHotel || ''}</td>`;
+                        
+                        // ETA
+                        rowHtml += `<td>${reservation.eta || ''}</td>`;
+                        
+                        // Direction
+                        rowHtml += `<td>${reservation.direction || 'Arrival'}</td>`;
+                        
+                        // Nationality
+                        rowHtml += `<td>${reservation.nationality || ''}</td>`;
+                        
+                        // Reservation Date
+                        rowHtml += `<td>${reservation.reservationDate || ''}</td>`;
+                        
+                        // Validation Status
                         rowHtml += `<td style="background-color: ${isValid ? '#d4edda' : '#f8d7da'}">
                             ${isValid ? '✓ Valid' : '✗ Invalid'}
                         </td>`;
@@ -3116,78 +3101,21 @@
                     // Add summary row
                     previewBody.innerHTML += `
                         <tr>
-                            <td colspan="${headers.length + 1}" style="background-color: #e9ecef; font-weight: bold;">
-                                Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} rows)
+                            <td colspan="8" style="background-color: #e9ecef; font-weight: bold;">
+                                Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} reservations)
                             </td>
                         </tr>
                     `;
                     
                     previewCount.textContent = data.length;
                     previewContainer.classList.remove('d-none');
-                }
-            }
-
-            // VILU SPECIFIC PROCESSING
-            processViluExcelFormat(data) {
-                console.log('Processing VILU Excel format');
-                
-                const reservations = [];
-                const today = new Date().toISOString().split('T')[0];
-                
-                // The VILU Excel has multiple sections. We need to find the guest list section
-                // Typically starts with "Guest Name" header
-                let foundGuestSection = false;
-                let currentCustomer = '';
-                
-                // First pass: Find customer information
-                for (let i = 0; i < Math.min(20, data.length); i++) {
-                    const row = data[i];
                     
-                    // Look for customer info in early rows
-                    if (row['Name of Service Applicant']) {
-                        currentCustomer = row['Name of Service Applicant'];
-                    } else if (row['Contact Person']) {
-                        currentCustomer = row['Contact Person'];
-                    } else if (row['Service Applicant']) {
-                        currentCustomer = row['Service Applicant'];
-                    }
-                    
-                    // Check if this row contains "Guest Name" header
-                    if (row['Guest Name'] === 'Guest Name' || 
-                        (typeof row['Guest Name'] === 'string' && row['Guest Name'].toLowerCase().includes('guest'))) {
-                        foundGuestSection = true;
-                        continue;
+                    // Show sample of what will be uploaded
+                    if (data.length > 0) {
+                        const sample = data[0];
+                        alert(`VILU Excel detected! Found ${data.length} guest entries.\n\nSample entry:\n- Guest: ${sample.guestName}\n- Customer: ${sample.customer}\n- Flight: ${sample.flightHotel}\n- ETA: ${sample.eta}\n- Date: ${sample.reservationDate}`);
                     }
                 }
-                
-                // Second pass: Process guest rows
-                if (foundGuestSection) {
-                    for (let i = 0; i < data.length; i++) {
-                        const row = data[i];
-                        const guestName = row['Guest Name'] || '';
-                        
-                        // Skip header rows and empty rows
-                        if (!guestName || guestName.toString().trim() === '' || 
-                            guestName.toString().toLowerCase() === 'guest name') {
-                            continue;
-                        }
-                        
-                        // Process the guest row
-                        const reservation = this.normalizeExcelRow(row, today);
-                        
-                        // Add customer if not already in row
-                        if (!reservation.customer && currentCustomer) {
-                            reservation.customer = currentCustomer;
-                        }
-                        
-                        if (this.validateReservation(reservation)) {
-                            reservations.push(reservation);
-                        }
-                    }
-                }
-                
-                console.log(`Found ${reservations.length} reservations in VILU format`);
-                return reservations;
             }
 
             async uploadExcelData() {
@@ -3196,25 +3124,8 @@
                     return;
                 }
 
-                // Process data based on format
-                let reservations = [];
-                
-                // Check if it's VILU format
-                const firstRow = this.excelData[0];
-                const hasViluFields = firstRow['Guest Name'] !== undefined || 
-                                      firstRow['Name of Service Applicant'] !== undefined ||
-                                      firstRow['Contact Person'] !== undefined;
-                
-                if (hasViluFields) {
-                    alert('Detected VILU Business Lounge format. Processing...');
-                    reservations = this.processViluExcelFormat(this.excelData);
-                } else {
-                    alert('Processing standard format...');
-                    // Process as standard format
-                    const today = new Date().toISOString().split('T')[0];
-                    reservations = this.excelData.map(row => this.normalizeExcelRow(row, today))
-                                                 .filter(res => this.validateReservation(res));
-                }
+                // Filter valid reservations
+                const reservations = this.excelData.filter(res => this.validateReservation(res));
                 
                 if (reservations.length === 0) {
                     alert('No valid reservations found to upload.');
@@ -3298,148 +3209,123 @@
                 }
                 
                 console.log('=== EXCEL DATA DEBUG ===');
-                console.log('Total rows:', this.excelData.length);
+                console.log('Total reservations:', this.excelData.length);
                 
                 if (this.excelData.length > 0) {
-                    const firstRow = this.excelData[0];
-                    console.log('First row columns:', Object.keys(firstRow));
-                    console.log('First row raw data:', firstRow);
-                    
-                    // Test parsing for first row
-                    const testRow = this.normalizeExcelRow(firstRow, new Date().toISOString().split('T')[0]);
-                    console.log('Mapped result:', testRow);
-                    console.log('Validation result:', this.validateReservation(testRow));
+                    console.log('First reservation:', this.excelData[0]);
+                    console.log('Validation result:', this.validateReservation(this.excelData[0]));
                     
                     // Test time parsing
-                    const timeTestValues = ['1130', '11:30', '1130 AM', '11:30 AM', '1430', '14:30', '2:30 PM', '930', '9:30', '9:30 AM'];
+                    const timeTestValues = ['07:15 Hrs', '07:15', '0715', '7:15', '7:15 AM', '1430', '14:30', '2:30 PM'];
                     console.log('Time parsing tests:');
                     timeTestValues.forEach(time => {
                         console.log(`${time} → ${this.parseTime(time)}`);
                     });
                     
                     // Test date parsing
-                    const dateTestValues = ['2024-01-15', '15/01/2024', '01/15/2024', '15-01-2024', '20240115', '15.01.2024'];
+                    const dateTestValues = ['2026-01-25 00:00:00', '2026-01-25', '25/01/2026', '01/25/2026'];
                     console.log('Date parsing tests:');
                     dateTestValues.forEach(date => {
                         console.log(`${date} → ${this.parseDate(date)}`);
                     });
                 }
                 
-                alert('Check browser console (F12) for Excel column debug information.');
+                alert('Check browser console (F12) for Excel debug information.');
             }
 
             debugViluExcelColumns() {
                 if (this.excelData.length === 0) {
-                    alert('No Excel data loaded. Please upload an Excel file first.');
+                    alert('No Excel data loaded. Please upload a VILU Excel file first.');
                     return;
                 }
                 
                 console.log('=== VILU EXCEL DEBUG ===');
-                console.log('Total rows:', this.excelData.length);
+                console.log('Total reservations found:', this.excelData.length);
                 
                 if (this.excelData.length > 0) {
-                    // Log first few rows
-                    console.log('First 5 rows:');
-                    for (let i = 0; i < Math.min(5, this.excelData.length); i++) {
-                        console.log(`Row ${i}:`, this.excelData[i]);
+                    console.log('First 3 reservations:');
+                    for (let i = 0; i < Math.min(3, this.excelData.length); i++) {
+                        console.log(`Reservation ${i + 1}:`, this.excelData[i]);
                     }
                     
-                    // Find and log all column names
-                    const allColumns = new Set();
-                    this.excelData.forEach(row => {
-                        Object.keys(row).forEach(key => allColumns.add(key));
-                    });
-                    console.log('All columns found:', Array.from(allColumns));
-                    
-                    // Test processing
-                    const processed = this.processViluExcelFormat(this.excelData);
-                    console.log(`Processed ${processed.length} reservations`);
-                    
-                    if (processed.length > 0) {
-                        console.log('First processed reservation:', processed[0]);
-                    }
+                    // Count valid vs invalid
+                    const validCount = this.excelData.filter(res => this.validateReservation(res)).length;
+                    console.log(`Valid: ${validCount}, Invalid: ${this.excelData.length - validCount}`);
                 }
                 
                 alert('Check browser console (F12) for VILU Excel debug information.');
             }
 
             downloadExcelTemplate() {
-                // Ask which template to download
-                const templateType = prompt('Which template do you want?\n1. Standard Template\n2. VILU Business Lounge Template\n\nEnter 1 or 2:', '2');
+                // Create VILU Business Lounge template based on the provided format
+                const viluTemplate = [
+                    ['VILU Business Lounge', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Seaplane Terminal', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Maldives Airports Company Limited', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Velana International Airport', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Hulhule 2200', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Republic of Maldives', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Booking Number:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['VILU BUSINESS LOUNGE SERVICE APPLICATION FORM', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['1- Service Applicant:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Name of Service Applicant:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Contact Person:', '', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Billing Address:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Contact Person', '', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['2- Guest Information (if required more space please attach sheets in this format)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Guest Name', '', '', '', '', '', 'Passport No:', '', '', 'Country', '', '', 'Arrival', '', '', 'Departure', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', 'Flight No', 'Flight Time', 'Flight Date', 'Flight No', 'Flight Time', 'Flight Date'],
+                    ['Haruka Yazaki', '', '', '', '', '', 'AB123456', '', '', 'Japan', '', '', 'Somerset', '07:15 Hrs', '2026-01-25', '', '', ''],
+                    ['Hayato Atagi', '', '', '', '', '', 'CD789012', '', '', 'Japan', '', '', 'Somerset', '07:15 Hrs', '2026-01-25', '', '', ''],
+                    ['Frank Johnsen', '', '', '', '', '', 'EF345678', '', '', 'Norway', '', '', 'EK656', '07:35 Hrs', '2026-01-25', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['4- Flight Details  (Please Tick (√ ) required service below)', '', '', '', '', '', '5-  Preference (Please Tick (√ ) below)', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Arrival', '', '', 'Departure', '', '', 'Gluten Free', '', 'Lactose Free', '', '', 'Vegan', '', '', 'Nut Allergy', '', '', ''],
+                    ['Airline:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Flight No.:', '', '', '', '', '', '6- Special Assistance (Please Tick (√ ) the required service)', '', '', '', '', '', '', '', '', '', ''],
+                    ['Time:', '', '', '', '', '', 'Wheel Chair', '', '', 'Stretcher', '', '', '', 'Ambulance', '', '', '', ''],
+                    ['Date:', '', '', '', '', '', '7- If any special name preferred for "Name Board" please write below in capital letters', '', '', '', '', '', '', '', '', '', ''],
+                    ['Origin/Destination:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['I have read the terms and conditions for VILU Business Lounge (seaplane terminal)  service and agreed to abide by', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['8- Applicant Signatory:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Name', '', '', '', '', '', 'Designation', '', '', 'Date', '', '', 'Time', '', '', 'Stamp & Signature', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['9-  Authorized Signatory of MACL for VILU Business Lounge (seaplane terminal)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Name', '', '', '', '', '', 'Designation', '', '', 'Date', '', '', 'Time', '', '', 'Stamp & Signature', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Important Information:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Reservation of VILU Business lounge (seaplane Terminal) for the following day shall be made, before 1900hrs of every day, and all late bookings must be notified  02 hours prior to the movement time.(Applications for early morning flights during non working hours will be counted from lounge opening time).VILU Business Lounge will be open from 0500am to 0900pm. For reservations the hotline is +(960)    and VILU Business lounge service application form" can be emailed to :   email:vilu.lounge@macl.aero', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    ['Telephone + (960) 7288007            Fax: + (960)  3331640               e-mail: vilu.lounge@macl.aero       website: www.macl.aero', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+                ];
                 
-                if (templateType === '1') {
-                    // Standard template
-                    const templateData = [
-                        {
-                            'Customer': 'Airline Company',
-                            'Date': new Date().toISOString().split('T')[0],
-                            'Flight/Hotel': 'EK654',
-                            'ETA': '11:30',
-                            'Direction': 'Arrival',
-                            'Guest Name': 'John Doe',
-                            'Nationality': 'American',
-                            'Remarks': 'VIP Guest'
-                        }
-                    ];
-                    
-                    const ws = XLSX.utils.json_to_sheet(templateData);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, 'Template');
-                    XLSX.writeFile(wb, 'Standard_Reservation_Template.xlsx');
-                    
-                } else if (templateType === '2') {
-                    // VILU Business Lounge template
-                    const viluTemplate = [
-                        {
-                            'VILU Business Lounge': 'Seaplane Terminal Application Form',
-                            'Booking Number:': 'VILU20240125'
-                        },
-                        {},
-                        {
-                            '1- Service Applicant:': '',
-                            'Name of Service Applicant:': 'Airline Company',
-                            'Contact Person:': 'John Smith',
-                            'Telephone/Mobile': '+960 1234567',
-                            'Email': 'contact@airline.com'
-                        },
-                        {},
-                        {
-                            '2- Guest Information': ''
-                        },
-                        {
-                            'Guest Name': 'Guest Name',
-                            'Passport No:': 'Passport No',
-                            'Country': 'Country',
-                            'Arrival': 'Arrival',
-                            'Flight No': 'Flight No',
-                            'Flight Time': 'Flight Time',
-                            'Flight Date': 'Flight Date'
-                        },
-                        {
-                            'Guest Name': 'John Doe',
-                            'Passport No:': 'AB123456',
-                            'Country': 'USA',
-                            'Arrival': 'EK654',
-                            'Flight No': 'EK654',
-                            'Flight Time': '11:30',
-                            'Flight Date': new Date().toISOString().split('T')[0]
-                        },
-                        {
-                            'Guest Name': 'Jane Smith',
-                            'Passport No:': 'CD789012',
-                            'Country': 'UK',
-                            'Arrival': 'QR672',
-                            'Flight No': 'QR672',
-                            'Flight Time': '14:30',
-                            'Flight Date': new Date().toISOString().split('T')[0]
-                        }
-                    ];
-                    
-                    const ws = XLSX.utils.json_to_sheet(viluTemplate);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, 'VILU Template');
-                    XLSX.writeFile(wb, 'VILU_Business_Lounge_Template.xlsx');
+                // Create worksheet
+                const ws = XLSX.utils.aoa_to_sheet(viluTemplate);
+                
+                // Set column widths for better readability
+                const wscols = [];
+                for (let i = 0; i < 18; i++) {
+                    wscols.push({ wch: 15 });
                 }
+                ws['!cols'] = wscols;
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'VILU Template');
+                XLSX.writeFile(wb, 'VILU_Business_Lounge_Template.xlsx');
+                
+                alert('VILU Business Lounge template downloaded. Fill in rows 22-25 with guest information.');
             }
 
             async exportToExcel() {
