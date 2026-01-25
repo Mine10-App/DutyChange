@@ -2,324 +2,832 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Offline - Duty Manager</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        
+
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            --gray-light: #ecf0f1;
+            --border: #e0e0e0;
+            --surface: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --shadow: 0 4px 20px rgba(0,0,0,0.1);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            z-index: -1;
+        }
+
+        /* Floating background elements */
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: -1;
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            right: -150px;
+        }
+
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .circle-3 {
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            left: -75px;
+        }
+
+        /* Main container */
         .offline-container {
-            background: white;
-            border-radius: 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
             padding: 40px 30px;
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 152, 219, 0.2);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            margin-top: var(--safe-top);
+            margin-bottom: var(--safe-bottom);
         }
-        
+
+        /* Status indicator */
+        .status-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f39c12, #e74c3c);
+            animation: statusPulse 2s infinite;
+        }
+
+        .status-indicator.online {
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            animation: none;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Icon animation */
         .offline-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            color: #7f8c8d;
-            animation: bounce 2s infinite;
+            font-size: 90px;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
         }
-        
+
+        .offline-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1));
+            z-index: -1;
+            animation: ripple 3s infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+        }
+
+        /* Content */
         h1 {
-            color: #2c3e50;
-            font-size: 28px;
-            margin-bottom: 10px;
+            color: var(--text);
+            font-size: 32px;
             font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.2;
         }
-        
+
         .subtitle {
-            color: #7f8c8d;
+            color: var(--text-light);
             font-size: 16px;
             margin-bottom: 30px;
-            line-height: 1.5;
+            line-height: 1.6;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        
-        .features {
-            background: #f8f9fa;
-            border-radius: 15px;
+
+        /* Connection status */
+        .connection-card {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(231, 76, 60, 0.1));
+            border-radius: var(--radius-sm);
             padding: 20px;
             margin: 25px 0;
             text-align: left;
+            border-left: 4px solid var(--warning);
+            transition: all 0.3s;
         }
-        
-        .features h3 {
-            color: #3498db;
-            font-size: 16px;
+
+        .connection-card.online {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1));
+            border-left-color: var(--secondary);
+        }
+
+        .connection-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 15px;
+        }
+
+        .connection-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        
-        .features ul {
-            list-style: none;
-            padding-left: 5px;
+
+        .connection-header h3 {
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 600;
         }
-        
-        .features li {
-            padding: 8px 0;
-            color: #2c3e50;
+
+        .connection-details {
+            color: var(--text-light);
             font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: var(--light);
+            border-radius: var(--radius-sm);
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .feature-card:active {
+            transform: translateY(-2px);
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            height: 60px;
+            width: 60px;
+            background: white;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        
-        .features li:before {
-            content: "✓";
-            color: #27ae60;
-            font-weight: bold;
+
+        .feature-name {
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
-        
-        .offline-actions {
+
+        .feature-status {
+            color: var(--text-light);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .action-buttons {
             display: flex;
-            gap: 10px;
-            margin-top: 25px;
+            gap: 12px;
+            margin: 30px 0 20px;
         }
-        
+
         .btn {
             flex: 1;
-            padding: 14px 20px;
+            padding: 18px 20px;
             border: none;
-            border-radius: 10px;
+            border-radius: var(--radius-sm);
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            text-align: center;
-        }
-        
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #2c3e50;
-            border: 2px solid #e0e6ed;
-        }
-        
-        .btn-secondary:hover {
-            background: #e9ecef;
-            border-color: #3498db;
-        }
-        
-        .connection-status {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 20px;
-            padding: 10px;
-            background: #fff3cd;
-            border-radius: 10px;
-            color: #856404;
-            font-size: 14px;
-            animation: pulse 2s infinite;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .connection-status.online {
-            background: #d4edda;
-            color: #155724;
-            animation: none;
+
+        .btn:active {
+            transform: scale(0.98);
         }
-        
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn-primary:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 2px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+
+        /* Retry animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .retry-spinner {
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        /* App info */
         .app-info {
-            margin-top: 30px;
+            margin-top: 25px;
             padding-top: 20px;
-            border-top: 1px solid #e0e6ed;
-            color: #7f8c8d;
+            border-top: 1px solid var(--border);
+        }
+
+        .sync-info {
+            color: var(--text-light);
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sync-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 12px;
+            font-weight: 600;
         }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
+
+        .cache-info {
+            color: var(--text-light);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Offline actions notification */
+        .offline-actions-notice {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(231, 76, 60, 0.1));
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.3s ease-out;
+            border-left: 4px solid var(--warning);
+        }
+
+        @keyframes slideDown {
+            from {
                 transform: translateY(-10px);
+                opacity: 0;
             }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
+            to {
+                transform: translateY(0);
                 opacity: 1;
             }
-            50% {
-                opacity: 0.7;
-            }
         }
-        
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--gray-light);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 2px;
+        }
+
+        /* Responsive */
         @media (max-width: 480px) {
             .offline-container {
                 padding: 30px 20px;
             }
             
-            .offline-actions {
+            h1 {
+                font-size: 28px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .action-buttons {
                 flex-direction: column;
+            }
+            
+            .feature-card {
+                padding: 18px 12px;
+            }
+            
+            .circle-1, .circle-2, .circle-3 {
+                display: none;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .offline-container {
+                padding: 25px 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface: #222222;
+                --light: #2a2a2a;
+                --dark: #ffffff;
+                --text: #ffffff;
+                --text-light: #999999;
+                --border: #333333;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            }
+            
+            body::before {
+                background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(42, 42, 42, 0.9) 100%);
+            }
+            
+            .btn-secondary {
+                background: #333333;
+                color: white;
+                border-color: #444444;
+            }
+            
+            .feature-card {
+                background: #2a2a2a;
+            }
+            
+            .feature-card:active {
+                background: #333333;
+            }
+            
+            .feature-icon {
+                background: #333333;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Floating background elements -->
+    <div class="floating-circle circle-1"></div>
+    <div class="floating-circle circle-2"></div>
+    <div class="floating-circle circle-3"></div>
+
     <div class="offline-container">
-        <div class="offline-icon">📡</div>
+        <!-- Status indicator -->
+        <div class="status-indicator" id="statusIndicator"></div>
+
+        <!-- Offline icon -->
+        <div class="offline-icon" id="offlineIcon">📡</div>
         
-        <h1>You're Offline</h1>
-        <p class="subtitle">Don't worry! You can still use some features of Duty Manager.</p>
+        <h1>Connection Lost</h1>
+        <p class="subtitle">You're currently offline. Some features are limited, but you can continue working.</p>
         
-        <div id="connectionStatus" class="connection-status">
-            <span id="statusIcon">⚠️</span>
-            <span id="statusText">No internet connection</span>
+        <!-- Connection status card -->
+        <div class="connection-card" id="connectionCard">
+            <div class="connection-header">
+                <div class="connection-icon" id="connectionIcon">⚠️</div>
+                <div>
+                    <h3 id="connectionTitle">No Internet</h3>
+                    <div class="connection-details" id="connectionDetails">
+                        <div>Network unreachable</div>
+                        <div style="font-size: 12px; margin-top: 4px;">Last checked: <span id="lastChecked">Just now</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress bar for retry -->
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Offline actions notice (if any) -->
+        <div class="offline-actions-notice" id="offlineActionsNotice" style="display: none;">
+            <div>📋</div>
+            <div>
+                <div style="font-weight: 600; font-size: 14px; color: var(--text);" id="pendingCount">0 pending actions</div>
+                <div style="font-size: 12px; color: var(--text-light);">Will sync automatically when online</div>
+            </div>
+        </div>
+
+        <!-- Available features grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <div class="feature-name">Roster</div>
+                <div class="feature-status">Available</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <div class="feature-name">Leave Balance</div>
+                <div class="feature-status">Available</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <div class="feature-name">Requests</div>
+                <div class="feature-status">View Only</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <div class="feature-name">Forms</div>
+                <div class="feature-status">Draft Mode</div>
+            </div>
         </div>
         
-        <div class="features">
-            <h3>📱 Available Offline</h3>
-            <ul>
-                <li>View your duty roster</li>
-                <li>Check leave balances</li>
-                <li>Review pending requests</li>
-                <li>Read announcements</li>
-                <li>Fill forms (will sync later)</li>
-            </ul>
-        </div>
-        
-        <div class="offline-actions">
+        <!-- Action buttons -->
+        <div class="action-buttons">
             <button class="btn btn-primary" id="retryBtn">
-                🔄 Retry Connection
+                <span id="retryIcon">🔄</span>
+                <span id="retryText">Retry Connection</span>
+                <span class="retry-spinner" id="retrySpinner">⟳</span>
             </button>
             <button class="btn btn-secondary" id="continueBtn">
-                🚀 Continue Offline
+                <span>🚀</span>
+                <span>Continue Offline</span>
             </button>
         </div>
         
+        <!-- App info -->
         <div class="app-info">
-            <p>Duty Manager v2.0 • Last synced: <span id="lastSynced">Just now</span></p>
-            <p>Changes made offline will sync automatically when you reconnect.</p>
+            <div class="sync-info">
+                Last synced: 
+                <span class="sync-badge" id="lastSynced">Just now</span>
+            </div>
+            <div class="cache-info">
+                Changes made offline will sync automatically when you reconnect. Data is cached locally for offline use.
+            </div>
         </div>
     </div>
 
     <script>
-        // Check connection status
-        function updateConnectionStatus() {
-            const statusEl = document.getElementById('connectionStatus');
-            const statusIcon = document.getElementById('statusIcon');
-            const statusText = document.getElementById('statusText');
-            
-            if (navigator.onLine) {
-                statusEl.classList.add('online');
-                statusIcon.textContent = '✅';
-                statusText.textContent = 'Connection restored!';
-                
-                // Auto-redirect after 3 seconds
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 3000);
-            } else {
-                statusEl.classList.remove('online');
-                statusIcon.textContent = '⚠️';
-                statusText.textContent = 'No internet connection';
-            }
-        }
-        
-        // Update last synced time
-        function updateLastSynced() {
-            const lastSynced = localStorage.getItem('lastSynced');
-            const syncedEl = document.getElementById('lastSynced');
-            
-            if (lastSynced) {
-                const date = new Date(lastSynced);
-                const now = new Date();
-                const diffMs = now - date;
-                const diffMins = Math.floor(diffMs / 60000);
-                
-                if (diffMins < 1) {
-                    syncedEl.textContent = 'Just now';
-                } else if (diffMins < 60) {
-                    syncedEl.textContent = `${diffMins} minutes ago`;
-                } else {
-                    syncedEl.textContent = date.toLocaleTimeString();
-                }
-            } else {
-                syncedEl.textContent = 'Never';
-            }
-        }
-        
-        // Event listeners
-        document.getElementById('retryBtn').addEventListener('click', () => {
-            location.reload();
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initOfflinePage();
         });
-        
-        document.getElementById('continueBtn').addEventListener('click', () => {
-            // Try to load cached version of main app
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'GET_CACHED_PAGE',
-                    url: '/'
+
+        function initOfflinePage() {
+            // Elements
+            const statusIndicator = document.getElementById('statusIndicator');
+            const offlineIcon = document.getElementById('offlineIcon');
+            const connectionCard = document.getElementById('connectionCard');
+            const connectionIcon = document.getElementById('connectionIcon');
+            const connectionTitle = document.getElementById('connectionTitle');
+            const connectionDetails = document.getElementById('connectionDetails');
+            const lastChecked = document.getElementById('lastChecked');
+            const lastSynced = document.getElementById('lastSynced');
+            const offlineActionsNotice = document.getElementById('offlineActionsNotice');
+            const pendingCount = document.getElementById('pendingCount');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const retryBtn = document.getElementById('retryBtn');
+            const retryIcon = document.getElementById('retryIcon');
+            const retryText = document.getElementById('retryText');
+            const retrySpinner = document.getElementById('retrySpinner');
+            const continueBtn = document.getElementById('continueBtn');
+            
+            // Update connection status
+            function updateConnectionStatus() {
+                const now = new Date();
+                lastChecked.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                if (navigator.onLine) {
+                    // Online
+                    statusIndicator.classList.add('online');
+                    connectionCard.classList.add('online');
+                    connectionIcon.textContent = '✅';
+                    connectionTitle.textContent = 'Connected!';
+                    connectionDetails.innerHTML = `
+                        <div>You're back online</div>
+                        <div style="font-size: 12px; margin-top: 4px;">Redirecting to app...</div>
+                    `;
+                    
+                    // Show success animation
+                    offlineIcon.textContent = '🌐';
+                    offlineIcon.style.animation = 'none';
+                    void offlineIcon.offsetWidth; // Trigger reflow
+                    offlineIcon.style.animation = 'ripple 2s infinite';
+                    
+                    // Auto-redirect after 2 seconds
+                    setTimeout(() => {
+                        showProgressBar(100, () => {
+                            window.location.href = '/';
+                        });
+                    }, 500);
+                } else {
+                    // Offline
+                    statusIndicator.classList.remove('online');
+                    connectionCard.classList.remove('online');
+                    connectionIcon.textContent = '⚠️';
+                    connectionTitle.textContent = 'No Internet';
+                    connectionDetails.innerHTML = `
+                        <div>Network unreachable</div>
+                        <div style="font-size: 12px; margin-top: 4px;">Last checked: <span id="lastChecked">${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                    `;
+                    
+                    // Update icon
+                    offlineIcon.textContent = '📡';
+                }
+            }
+            
+            // Update last synced time
+            function updateLastSynced() {
+                const lastSync = localStorage.getItem('lastSynced');
+                if (lastSync) {
+                    const date = new Date(lastSync);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    
+                    if (diffMins < 1) {
+                        lastSynced.textContent = 'Just now';
+                    } else if (diffMins < 60) {
+                        lastSynced.textContent = `${diffMins}m ago`;
+                    } else if (diffMins < 1440) {
+                        const hours = Math.floor(diffMins / 60);
+                        lastSynced.textContent = `${hours}h ago`;
+                    } else {
+                        lastSynced.textContent = date.toLocaleDateString();
+                    }
+                } else {
+                    lastSynced.textContent = 'Never';
+                }
+            }
+            
+            // Check for pending offline actions
+            function checkPendingActions() {
+                const pendingActions = JSON.parse(localStorage.getItem('pendingOfflineActions') || '[]');
+                if (pendingActions.length > 0) {
+                    offlineActionsNotice.style.display = 'flex';
+                    pendingCount.textContent = `${pendingActions.length} pending action${pendingActions.length > 1 ? 's' : ''}`;
+                    
+                    // Add haptic feedback if pending actions exist
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([100]);
+                    }
+                }
+            }
+            
+            // Show progress bar
+            function showProgressBar(targetPercent, callback) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = '0%';
+                
+                let percent = 0;
+                const interval = setInterval(() => {
+                    percent += 5;
+                    progressFill.style.width = `${percent}%`;
+                    
+                    if (percent >= targetPercent) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            progressBar.style.display = 'none';
+                            if (callback) callback();
+                        }, 300);
+                    }
+                }, 100);
+            }
+            
+            // Handle retry button click
+            retryBtn.addEventListener('click', function() {
+                // Show loading state
+                retryIcon.style.display = 'none';
+                retrySpinner.style.display = 'inline-block';
+                retryText.textContent = 'Connecting...';
+                retryBtn.disabled = true;
+                
+                // Show progress bar
+                showProgressBar(50);
+                
+                // Try to fetch a small file to test connection
+                fetch('/favicon.ico', { 
+                    method: 'HEAD',
+                    cache: 'no-cache',
+                    mode: 'no-cors'
+                }).then(() => {
+                    // Success - update UI
+                    showProgressBar(100, () => {
+                        retrySpinner.style.display = 'none';
+                        retryIcon.style.display = 'inline-block';
+                        retryIcon.textContent = '✅';
+                        retryText.textContent = 'Connected!';
+                        
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1000);
+                    });
+                }).catch(() => {
+                    // Failed
+                    setTimeout(() => {
+                        showProgressBar(100, () => {
+                            retrySpinner.style.display = 'none';
+                            retryIcon.style.display = 'inline-block';
+                            retryIcon.textContent = '❌';
+                            retryText.textContent = 'Failed';
+                            retryBtn.disabled = false;
+                            
+                            // Reset after 2 seconds
+                            setTimeout(() => {
+                                retryIcon.textContent = '🔄';
+                                retryText.textContent = 'Retry Connection';
+                            }, 2000);
+                        });
+                    }, 1000);
+                });
+            });
+            
+            // Handle continue offline button
+            continueBtn.addEventListener('click', function() {
+                // Add haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(50);
+                }
+                
+                // Try to load from cache
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    // Signal service worker to serve cached version
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'OFFLINE_MODE',
+                        timestamp: Date.now()
+                    });
+                }
+                
+                // Show progress and redirect
+                showProgressBar(100, () => {
+                    window.location.href = '/';
+                });
+            });
+            
+            // Add haptic feedback to all buttons
+            [retryBtn, continueBtn].forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(50);
+                    }
+                });
+            });
+            
+            // Listen for online/offline events
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            
+            // Periodic connection check
+            setInterval(updateConnectionStatus, 10000);
+            
+            // Check for connection on page load
+            updateConnectionStatus();
+            updateLastSynced();
+            checkPendingActions();
+            
+            // Auto-retry after 30 seconds if still offline
+            setTimeout(() => {
+                if (!navigator.onLine) {
+                    // Pulse the retry button to get attention
+                    retryBtn.style.animation = 'pulse 2s infinite';
+                    setTimeout(() => {
+                        retryBtn.style.animation = '';
+                    }, 6000);
+                }
+            }, 30000);
+            
+            // Show network type if available
+            if (navigator.connection) {
+                const connection = navigator.connection;
+                connection.addEventListener('change', function() {
+                    const type = connection.effectiveType || 'unknown';
+                    const details = document.querySelector('.connection-details > div');
+                    if (details) {
+                        details.textContent = `Network: ${type.toUpperCase()}`;
+                    }
                 });
             }
-            window.location.href = '/';
-        });
-        
-        // Listen for online/offline events
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
-        
-        // Initialize
-        updateConnectionStatus();
-        updateLastSynced();
-        
-        // Check for updates every 30 seconds
-        setInterval(() => {
-            if (navigator.onLine) {
-                fetch('/api/health').catch(() => {});
-            }
-        }, 30000);
-        
-        // Show notification if there are pending offline actions
-        window.addEventListener('load', () => {
-            const pendingActions = localStorage.getItem('pendingOfflineActions');
-            if (pendingActions) {
-                const actions = JSON.parse(pendingActions);
-                if (actions.length > 0) {
-                    const notification = document.createElement('div');
-                    notification.className = 'connection-status';
-                    notification.innerHTML = `
-                        <span>📋</span>
-                        <span>You have ${actions.length} pending offline action(s)</span>
-                    `;
-                    document.querySelector('.offline-container').prepend(notification);
-                }
-            }
-        });
+        }
     </script>
 </body>
 </html>
