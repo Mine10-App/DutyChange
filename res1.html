@@ -2891,6 +2891,7 @@
             }
 
            // VILU EXCEL SPECIFIC PROCESSING - IMPROVED
+// VILU EXCEL SPECIFIC PROCESSING - IMPROVED
 processViluExcelFormat(data) {
     console.log('Processing VILU Excel format with raw data:', data);
     
@@ -3258,7 +3259,6 @@ processViluExcelFormat(data) {
         }
     }
 }
-
             async uploadExcelData() {
                 if (this.excelData.length === 0) {
                     alert('No data to upload. Please select an Excel file first.');
@@ -3375,27 +3375,77 @@ processViluExcelFormat(data) {
             }
 
             debugViluExcelColumns() {
-                if (this.excelData.length === 0) {
-                    alert('No Excel data loaded. Please upload a VILU Excel file first.');
-                    return;
-                }
-                
-                console.log('=== VILU EXCEL DEBUG ===');
-                console.log('Total reservations found:', this.excelData.length);
-                
-                if (this.excelData.length > 0) {
-                    console.log('First 3 reservations:');
-                    for (let i = 0; i < Math.min(3, this.excelData.length); i++) {
-                        console.log(`Reservation ${i + 1}:`, this.excelData[i]);
+    if (!this.excelData || this.excelData.length === 0) {
+        alert('No Excel data loaded. Please upload a VILU Excel file first.');
+        return;
+    }
+    
+    console.log('=== VILU EXCEL DEBUG ===');
+    console.log('Total rows in raw data:', this.excelData.length);
+    
+    // Show first 20 rows of raw data
+    console.log('First 20 rows of raw Excel data:');
+    for (let i = 0; i < Math.min(20, this.excelData.length); i++) {
+        console.log(`Row ${i}:`, this.excelData[i]);
+    }
+    
+    // Try to find the structure
+    let foundContactPerson = false;
+    let foundGuestSection = false;
+    
+    for (let i = 0; i < Math.min(30, this.excelData.length); i++) {
+        const row = this.excelData[i];
+        if (row && row.length > 0) {
+            // Look for contact person
+            for (let j = 0; j < row.length; j++) {
+                const cell = row[j];
+                if (typeof cell === 'string') {
+                    const cellLower = cell.toLowerCase();
+                    if (cellLower.includes('contact person')) {
+                        console.log(`Found "Contact Person" at row ${i}, column ${j}:`, row);
+                        foundContactPerson = true;
                     }
-                    
-                    // Count valid vs invalid
-                    const validCount = this.excelData.filter(res => this.validateReservation(res)).length;
-                    console.log(`Valid: ${validCount}, Invalid: ${this.excelData.length - validCount}`);
+                    if (cellLower === 'guest name' || cellLower.includes('guest name')) {
+                        console.log(`Found "Guest Name" header at row ${i}, column ${j}`);
+                        console.log('Row structure:', row);
+                        foundGuestSection = true;
+                    }
                 }
-                
-                alert('Check browser console (F12) for VILU Excel debug information.');
             }
+        }
+    }
+    
+    if (!foundContactPerson) {
+        console.log('WARNING: Could not find "Contact Person" in Excel');
+    }
+    if (!foundGuestSection) {
+        console.log('WARNING: Could not find "Guest Name" section in Excel');
+    }
+    
+    // Process and show results
+    const processed = this.processViluExcelFormat(this.excelData);
+    console.log(`Processed ${processed.length} reservations`);
+    
+    if (processed.length > 0) {
+        console.log('First processed reservation:', processed[0]);
+        console.log('Last processed reservation:', processed[processed.length - 1]);
+        
+        // Count issues
+        let missingCustomer = 0;
+        let missingFlight = 0;
+        let missingTime = 0;
+        
+        processed.forEach(res => {
+            if (!res.customer || res.customer === 'Unknown Customer') missingCustomer++;
+            if (!res.flightHotel || res.flightHotel === 'Unknown Flight') missingFlight++;
+            if (res.eta === '00:00') missingTime++;
+        });
+        
+        console.log(`Issues: ${missingCustomer} missing customer, ${missingFlight} missing flight, ${missingTime} missing time`);
+    }
+    
+    alert('Check browser console (F12) for detailed VILU Excel analysis. Look for "Contact Person" and "Guest Name" sections.');
+}
 
             downloadExcelTemplate() {
                 // Create VILU Business Lounge template based on the provided format
