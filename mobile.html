@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-     <!-- PWA Meta Tags -->
+    
+    <!-- PWA Meta Tags -->
     <meta name="application-name" content="Duty Manager">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,78 +17,17 @@
     <meta name="theme-color" content="#3498db">
     
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" sizes="512x512" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="/icon-192x192.png">
+    <link rel="apple-touch-startup-image" href="/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
-    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/png" href="/favicon.ico">
     
-    <!-- Manifest for PWA -->
-    <link rel="manifest" href="data:application/manifest+json,{
-        \"name\": \"Duty Manager\",
-        \"short_name\": \"DutyMgr\",
-        \"description\": \"Duty and Leave Management System\",
-        \"start_url\": \"./\",
-        \"display\": \"standalone\",
-        \"background_color\": \"#3498db\",
-        \"theme_color\": \"#3498db\",
-        \"orientation\": \"portrait\",
-        \"scope\": \"./\",
-        \"categories\": [\"productivity\", \"business\"],
-        \"icons\": [
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"72x72\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"96x96\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"128x128\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"144x144\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"152x152\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"192x192\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any maskable\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"384x384\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any maskable\"
-            },
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
-                \"sizes\": \"512x512\",
-                \"type\": \"image/svg+xml\",
-                \"purpose\": \"any maskable\"
-            }
-        ]
-    }">
     <title>Duty Management System</title>
+    
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -96,7 +36,7 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- External Firebase and User files -->
+    <!-- External files -->
     <script src="dcfire.js" defer></script>
     <script src="user.js" defer></script>
     
@@ -1006,9 +946,208 @@
                 font-size: 12px;
             }
         }
+        /* PWA Install Prompt Styles */
+        .install-prompt {
+            position: fixed;
+            bottom: 80px;
+            right: 15px;
+            z-index: 1000;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-width: 300px;
+            animation: slideInUp 0.3s ease;
+            border: 2px solid #3498db;
+        }
+        
+        .install-prompt.hidden {
+            display: none;
+        }
+        
+        .install-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .install-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .install-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        .install-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .install-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .install-btn {
+            flex: 1;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .install-btn:hover {
+            background: #2980b9;
+        }
+        
+        .install-btn.secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        /* Online/Offline Indicator */
+        .network-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: #e74c3c;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            animation: fadeIn 0.3s;
+        }
+        
+        .network-status.online {
+            background: #27ae60;
+        }
+        
+        .network-status.offline {
+            background: #e74c3c;
+            display: flex;
+        }
+        
+        /* Refresh Button for updates */
+        .update-available {
+            position: fixed;
+            bottom: 80px;
+            left: 15px;
+            z-index: 1000;
+            background: #f39c12;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        /* Notification Permission Prompt */
+        .notification-permission {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .notification-permission.show {
+            display: flex;
+        }
+        
+        .notification-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .notification-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .notification-btn.allow {
+            background: white;
+            color: #3498db;
+        }
+        
+        .notification-btn.later {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
     </style>
 </head>
 <body>
+    
     <!-- Loading Overlay -->
     <div id="loadingOverlay">
         <div class="spinner"></div>
@@ -1045,7 +1184,60 @@
             </div>
         </form>
     </div>
+     <!-- Network Status Indicator -->
+    <div class="network-status" id="networkStatus">
+        <span id="networkIcon">⚠️</span>
+        <span id="networkText">Offline</span>
+    </div>
     
+    <!-- Notification Permission Prompt -->
+    <div class="notification-permission" id="notificationPrompt">
+        <div>
+            <strong>🔔 Enable Notifications</strong>
+            <p style="font-size: 14px; margin-top: 5px; opacity: 0.9;">
+                Get real-time updates for duty changes, announcements, and leave requests.
+            </p>
+        </div>
+        <div class="notification-buttons">
+            <button class="notification-btn allow" onclick="enableNotifications()">Allow</button>
+            <button class="notification-btn later" onclick="hideNotificationPrompt()">Later</button>
+        </div>
+    </div>
+    
+    <!-- PWA Install Prompt -->
+    <div class="install-prompt hidden" id="installPrompt">
+        <div class="install-header">
+            <div class="install-icon">👤</div>
+            <div>
+                <div class="install-title">Install Duty Manager</div>
+                <div class="install-subtitle">Quick access on home screen</div>
+            </div>
+        </div>
+        <div class="install-buttons">
+            <button class="install-btn" id="installNowBtn">Install</button>
+            <button class="install-btn secondary" id="installLaterBtn">Later</button>
+        </div>
+    </div>
+    
+    <!-- Update Available Prompt -->
+    <div class="update-available hidden" id="updatePrompt">
+        <span>🔄</span>
+        <span>Update Available</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText">Loading...</div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <!-- ... (keep existing login HTML) ... -->
+    </div>
     <!-- Dashboard Container -->
     <div class="dashboard-container" id="dashboardContainer">
         <!-- Mobile Header -->
@@ -1479,6 +1671,465 @@
 
   
 <script>
+
+    // PWA and Notifications Manager
+        class PWAManager {
+            constructor() {
+                this.deferredPrompt = null;
+                this.isStandalone = false;
+                this.serviceWorkerRegistration = null;
+                this.notificationPermission = 'default';
+                this.isOnline = navigator.onLine;
+                
+                this.init();
+            }
+            
+            async init() {
+                this.checkStandalone();
+                this.setupNetworkListener();
+                this.setupInstallPrompt();
+                this.registerServiceWorker();
+                this.checkNotificationPermission();
+            }
+            
+            checkStandalone() {
+                this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                  window.navigator.standalone ||
+                                  document.referrer.includes('android-app://');
+                
+                if (this.isStandalone) {
+                    document.body.classList.add('standalone-app');
+                    console.log('Running as installed PWA');
+                }
+            }
+            
+            setupNetworkListener() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.updateNetworkStatus();
+                    showToast('You are back online', 'success');
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    this.updateNetworkStatus();
+                    showToast('You are offline', 'warning');
+                });
+                
+                this.updateNetworkStatus();
+            }
+            
+            updateNetworkStatus() {
+                const statusEl = document.getElementById('networkStatus');
+                if (!statusEl) return;
+                
+                if (this.isOnline) {
+                    statusEl.classList.remove('offline');
+                    statusEl.classList.add('online');
+                    statusEl.querySelector('#networkIcon').textContent = '✅';
+                    statusEl.querySelector('#networkText').textContent = 'Online';
+                    setTimeout(() => {
+                        statusEl.style.display = 'none';
+                    }, 3000);
+                } else {
+                    statusEl.classList.remove('online');
+                    statusEl.classList.add('offline');
+                    statusEl.querySelector('#networkIcon').textContent = '⚠️';
+                    statusEl.querySelector('#networkText').textContent = 'Offline';
+                    statusEl.style.display = 'flex';
+                }
+            }
+            
+            setupInstallPrompt() {
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    
+                    // Don't show immediately on standalone
+                    if (!this.isStandalone && !localStorage.getItem('installPromptShown')) {
+                        setTimeout(() => this.showInstallPrompt(), 3000);
+                    }
+                });
+                
+                // Listen for app installed
+                window.addEventListener('appinstalled', () => {
+                    console.log('PWA installed successfully');
+                    localStorage.setItem('installPromptShown', 'true');
+                    this.hideInstallPrompt();
+                    showToast('App installed successfully!', 'success');
+                });
+            }
+            
+            showInstallPrompt() {
+                if (this.deferredPrompt && !localStorage.getItem('installPromptShown')) {
+                    const prompt = document.getElementById('installPrompt');
+                    prompt.classList.remove('hidden');
+                    
+                    document.getElementById('installNowBtn').onclick = async () => {
+                        prompt.style.animation = 'slideOutDown 0.3s ease';
+                        setTimeout(() => prompt.classList.add('hidden'), 300);
+                        
+                        this.deferredPrompt.prompt();
+                        const { outcome } = await this.deferredPrompt.userChoice;
+                        console.log(`User response: ${outcome}`);
+                        this.deferredPrompt = null;
+                        localStorage.setItem('installPromptShown', 'true');
+                    };
+                    
+                    document.getElementById('installLaterBtn').onclick = () => {
+                        prompt.style.animation = 'slideOutDown 0.3s ease';
+                        setTimeout(() => prompt.classList.add('hidden'), 300);
+                        localStorage.setItem('installPromptShown', 'true');
+                    };
+                    
+                    // Auto-hide after 30 seconds
+                    setTimeout(() => {
+                        if (!prompt.classList.contains('hidden')) {
+                            prompt.style.animation = 'slideOutDown 0.3s ease';
+                            setTimeout(() => prompt.classList.add('hidden'), 300);
+                            localStorage.setItem('installPromptShown', 'true');
+                        }
+                    }, 30000);
+                }
+            }
+            
+            hideInstallPrompt() {
+                const prompt = document.getElementById('installPrompt');
+                prompt.classList.add('hidden');
+            }
+            
+            async registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        // Register service worker
+                        this.serviceWorkerRegistration = await navigator.register('/service-worker.js', {
+                            scope: '/'
+                        });
+                        
+                        console.log('Service Worker registered:', this.serviceWorkerRegistration);
+                        
+                        // Listen for updates
+                        this.serviceWorkerRegistration.addEventListener('updatefound', () => {
+                            const newWorker = this.serviceWorkerRegistration.installing;
+                            if (newWorker) {
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && 
+                                        navigator.serviceWorker.controller) {
+                                        this.showUpdatePrompt();
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Check for updates periodically
+                        setInterval(() => {
+                            this.serviceWorkerRegistration.update();
+                        }, 60 * 60 * 1000); // Check every hour
+                        
+                        // Message channel for communication
+                        if (navigator.serviceWorker.controller) {
+                            this.setupServiceWorkerMessages();
+                        }
+                        
+                    } catch (error) {
+                        console.error('Service Worker registration failed:', error);
+                    }
+                }
+            }
+            
+            showUpdatePrompt() {
+                const updatePrompt = document.getElementById('updatePrompt');
+                if (updatePrompt) {
+                    updatePrompt.classList.remove('hidden');
+                    updatePrompt.onclick = () => {
+                        if (this.serviceWorkerRegistration.waiting) {
+                            this.serviceWorkerRegistration.waiting.postMessage({type: 'SKIP_WAITING'});
+                            location.reload();
+                        }
+                    };
+                }
+            }
+            
+            setupServiceWorkerMessages() {
+                // Listen for messages from service worker
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+                        this.handleNotificationClick(event.data.data);
+                    }
+                });
+                
+                // Send message to service worker
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'INIT',
+                        payload: { userId: currentUser?.username }
+                    });
+                }
+            }
+            
+            handleNotificationClick(data) {
+                console.log('Notification clicked with data:', data);
+                
+                if (data && data.type === 'announcement') {
+                    showSection('home');
+                } else if (data && data.type === 'request') {
+                    showSection('pendingRequests');
+                } else if (data && data.type === 'request_response') {
+                    showSection('myRequests');
+                }
+            }
+            
+            checkNotificationPermission() {
+                if ('Notification' in window) {
+                    this.notificationPermission = Notification.permission;
+                    
+                    if (this.notificationPermission === 'default' && 
+                        !localStorage.getItem('notificationPromptShown')) {
+                        setTimeout(() => this.showNotificationPrompt(), 5000);
+                    }
+                }
+            }
+            
+            showNotificationPrompt() {
+                if (currentUser && !this.isStandalone) {
+                    const prompt = document.getElementById('notificationPrompt');
+                    prompt.classList.add('show');
+                }
+            }
+            
+            hideNotificationPrompt() {
+                const prompt = document.getElementById('notificationPrompt');
+                prompt.classList.remove('show');
+                localStorage.setItem('notificationPromptShown', 'true');
+            }
+            
+            async enableNotifications() {
+                this.hideNotificationPrompt();
+                
+                if ('Notification' in window) {
+                    const permission = await Notification.requestPermission();
+                    this.notificationPermission = permission;
+                    
+                    if (permission === 'granted') {
+                        showToast('Notifications enabled!', 'success');
+                        this.initializeFirebaseMessaging();
+                    } else {
+                        showToast('Notifications blocked', 'warning');
+                    }
+                }
+            }
+            
+            async initializeFirebaseMessaging() {
+                if (!firebase.messaging.isSupported() || !currentUser) return;
+                
+                try {
+                    messaging = firebase.messaging();
+                    
+                    // Get FCM token
+                    const token = await messaging.getToken({ 
+                        vapidKey: 'YOUR_VAPID_KEY_HERE'
+                    });
+                    
+                    if (token) {
+                        console.log('FCM Token:', token);
+                        await saveUserNotificationToken(token);
+                        
+                        // Subscribe to topics based on user role
+                        if (currentUser.level === 'Supervisor') {
+                            await this.subscribeToTopics(['admin', 'announcements']);
+                        } else {
+                            await this.subscribeToTopics(['users', 'announcements']);
+                        }
+                    }
+                    
+                    // Handle incoming messages
+                    messaging.onMessage((payload) => {
+                        console.log('Foreground message received:', payload);
+                        this.showLocalNotification(payload);
+                    });
+                    
+                } catch (error) {
+                    console.error('Firebase messaging error:', error);
+                }
+            }
+            
+            async subscribeToTopics(topics) {
+                // This would require a backend API to subscribe to FCM topics
+                // For now, we'll store user subscriptions in Firestore
+                try {
+                    await db.collection('userSubscriptions').doc(currentUser.username).set({
+                        topics: topics,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                } catch (error) {
+                    console.error('Error subscribing to topics:', error);
+                }
+            }
+            
+            showLocalNotification(payload) {
+                const { title, body, data } = payload.notification || payload;
+                
+                // Check if notification is for current user
+                const isForMe = !data || !data.targetUser || data.targetUser === currentUser.username;
+                
+                if (isForMe && this.notificationPermission === 'granted') {
+                    const notification = new Notification(title || 'Duty Manager', {
+                        body: body || 'New notification',
+                        icon: '/icon-192x192.png',
+                        badge: '/badge-72x72.png',
+                        tag: 'duty-manager-local',
+                        requireInteraction: true,
+                        data: data
+                    });
+                    
+                    notification.onclick = () => {
+                        window.focus();
+                        notification.close();
+                        this.handleNotificationClick(data);
+                    };
+                }
+                
+                // Always show toast
+                showToast(body || title, 'info');
+            }
+        }
+
+        // Initialize PWA Manager
+        let pwaManager;
+        let messaging = null;
+        let currentUser = null;
+        // ... (rest of your existing variables)
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            detectMobile();
+            initApp();
+            
+            // Initialize PWA Manager
+            pwaManager = new PWAManager();
+        });
+
+        // Add these functions to your existing script
+        function enableNotifications() {
+            if (pwaManager) {
+                pwaManager.enableNotifications();
+            }
+        }
+
+        function hideNotificationPrompt() {
+            if (pwaManager) {
+                pwaManager.hideNotificationPrompt();
+            }
+        }
+
+        async function saveUserNotificationToken(token) {
+            try {
+                await db.collection('userTokens').doc(currentUser.username).set({
+                    token: token,
+                    updatedAt: new Date().toISOString(),
+                    platform: pwaManager.isStandalone ? 'pwa' : 'web'
+                }, { merge: true });
+                
+                console.log('Token saved for user:', currentUser.username);
+            } catch (error) {
+                console.error('Error saving token:', error);
+            }
+        }
+
+        async function sendNotificationToUser(username, title, body, data = {}) {
+            try {
+                // Store notification in Firestore
+                await db.collection('notifications').add({
+                    targetUser: username,
+                    title: title,
+                    body: body,
+                    data: data,
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    delivered: false
+                });
+                
+                // Show immediate local notification if user is current user
+                if (currentUser && currentUser.username === username) {
+                    if (pwaManager) {
+                        pwaManager.showLocalNotification({
+                            notification: { title, body },
+                            data: data
+                        });
+                    }
+                }
+                
+                // You would typically call a Cloud Function here to send FCM messages
+                // sendFCMNotification({ username, title, body, data });
+                
+            } catch (error) {
+                console.error('Error sending notification:', error);
+            }
+        }
+
+        // Add offline support for Firestore
+        function enableOfflineSupport() {
+            if (typeof db !== 'undefined') {
+                // Enable offline persistence
+                db.enablePersistence()
+                    .catch((err) => {
+                        if (err.code === 'failed-precondition') {
+                            console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                        } else if (err.code === 'unimplemented') {
+                            console.warn('The current browser doesn\'t support persistence.');
+                        }
+                    });
+                
+                // Sync data when coming back online
+                window.addEventListener('online', () => {
+                    // Your sync logic here
+                    if (currentUser) {
+                        initializeData();
+                    }
+                });
+            }
+        }
+
+        // Update the loginUser function to initialize notifications
+        async function loginUser(userData) {
+            currentUser = userData;
+            // ... (rest of your existing loginUser code)
+            
+            // Initialize push notifications for logged-in user
+            if (pwaManager) {
+                pwaManager.initializeFirebaseMessaging();
+            }
+            
+            // Enable offline support
+            enableOfflineSupport();
+        }
+
+        // Update the showToast function to work offline
+        function showToast(message, type = 'info', duration = 3000) {
+            // Save toasts in localStorage if offline
+            if (!navigator.onLine) {
+                const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
+                offlineToasts.push({
+                    message,
+                    type,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem('offlineToasts', JSON.stringify(offlineToasts));
+            }
+            
+            // Show toast normally
+            // ... (your existing showToast code)
+        }
+
+        // Show offline toasts when coming back online
+        window.addEventListener('online', () => {
+            const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
+            offlineToasts.forEach(toast => {
+                showToast(toast.message + ' (offline)', toast.type);
+            });
+            localStorage.removeItem('offlineToasts');
+        });
+    
     // Mobile Duty Management System
     let currentUser = null;
     let allUsers = [];
