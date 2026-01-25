@@ -1,107 +1,43 @@
-// sw.js - Service Worker for PWA
+// sw.js
 const CACHE_NAME = 'duty-manager-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/dcfire.js',
-  '/user.js'
-];
 
-// Install event
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
-});
+// Create a simple SVG icon as string
+const iconSVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="45" fill="#3498db"/>
+    <circle cx="50" cy="35" r="12" fill="white"/>
+    <path d="M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z" fill="white"/>
+    <path d="M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z" fill="white"/>
+    <path d="M20,20 L20,40 L30,30 Z" fill="#27ae60"/>
+</svg>`;
 
-// Activate event
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
+const iconDataURI = 'data:image/svg+xml;base64,' + btoa(iconSVG);
 
-// Fetch event
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
-  );
-});
-
-// Push notification event
 self.addEventListener('push', event => {
-  const data = event.data ? event.data.json() : {};
-  
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: data.icon || '/icon-192x192.png',
-    badge: '/badge-72x72.png',
-    tag: data.tag || 'duty-notification',
-    data: data.data || {},
-    requireInteraction: data.requireInteraction || false,
-    actions: data.actions || []
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Duty Manager', options)
-  );
+    console.log('Push event received!');
+    
+    const data = event.data ? event.data.json() : {
+        title: 'Duty Manager',
+        body: 'You have a new notification'
+    };
+    
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'Duty Manager', {
+            body: data.body || 'New notification',
+            icon: iconDataURI,
+            badge: iconDataURI,
+            vibrate: [200, 100, 200],
+            data: data.data || {},
+            tag: 'duty-notification'
+        })
+    );
 });
 
-// Notification click event
 self.addEventListener('notificationclick', event => {
-  event.notification.close();
-
-  const urlToOpen = '/';
-  
-  event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then(windowClients => {
-      // Check if there is already a window/tab open
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // If not, open a new window/tab
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
+    console.log('Notification clicked');
+    event.notification.close();
+    
+    event.waitUntil(
+        clients.openWindow('/')
+    );
 });
-
-// Background sync for offline support
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-requests') {
-    event.waitUntil(syncRequests());
-  }
-});
-
-async function syncRequests() {
-  // Implement background sync logic here
-  console.log('Background sync triggered');
-}
