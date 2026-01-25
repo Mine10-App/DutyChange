@@ -1025,800 +1025,904 @@
     </div>
 
     <script>
-          // Global variables
-        let allStaff = [];
-        let dutyRoster = {};
-        let leaveRequests = [];
-        let allRequests = [];
-        let refreshInterval;
-        let currentDate = new Date().toISOString().split('T')[0];
+    
+    // Global variables
+    let allStaff = [];
+    let dutyRoster = {};
+    let leaveRequests = [];
+    let allRequests = [];
+    let refreshInterval;
+    let currentDate = new Date().toISOString().split('T')[0];
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Duty Status Board loading...');
+        
+        // Set default date for forms
+        document.getElementById('phoneLeaveDate').value = currentDate;
+        
+        // Initialize Firebase and load data
+        initializeApp();
+        
+        // Update current date/time display
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // Setup staff name suggestions
+        setupStaffSuggestions();
+        
+        // Start auto-refresh
+        startAutoRefresh();
+    });
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Duty Status Board loading...');
-            
-            // Set default date for forms
-            document.getElementById('phoneLeaveDate').value = currentDate;
-            
+    // Initialize Firebase app
+    async function initializeApp() {
+        try {
             // Load all data
-            loadAllData();
-            
-            // Start auto-refresh
-            startAutoRefresh();
-            
-            // Update current date/time display
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
-            
-            // Setup staff name suggestions
-            setupStaffSuggestions();
-        });
-
-        // Load all data from Firebase
-        async function loadAllData() {
-            try {
-                console.log('Loading data from Firebase...');
-                
-                // Update last updated time
-                updateLastUpdatedTime();
-                
-                // Load staff data (you may need to store staff list in Firebase)
-                await loadStaffData();
-                
-                // Load duty roster
-                await loadDutyRoster();
-                
-                // Load leave requests
-                await loadLeaveRequests();
-                
-                // Load all requests
-                await loadAllRequests();
-                
-                // Update all displays
-                updateAllDisplays();
-                
-                console.log('Data loaded successfully');
-            } catch (error) {
-                console.error('Error loading data:', error);
-                showErrorMessage('Failed to load data. Please refresh the page.');
-            }
+            await loadAllData();
+            console.log('App initialized successfully');
+        } catch (error) {
+            console.error('Error initializing app:', error);
+            showErrorMessage('Failed to initialize. Please refresh the page.');
         }
+    }
 
-        // Load staff data
-        async function loadStaffData() {
-            try {
-                // Try to load from Firebase or use default data
-                // You may want to create a 'staff' collection in Firebase
-                const staffDoc = await db.collection('staff').doc('all').get();
-                if (staffDoc.exists) {
-                    allStaff = staffDoc.data().staff || [];
-                } else {
-                    // Default staff list (you should populate this from your main app)
-                    allStaff = [
-                        { name: "Irufan1", rcNo: "001", username: "irufan1" },
-                        { name: "Irufan2", rcNo: "002", username: "irufan2" },
-                        { name: "Hussain", rcNo: "003", username: "hussain" },
-                        { name: "Mohamed", rcNo: "004", username: "mohamed" }
-                        // Add more staff as needed
-                    ];
-                }
-                
-                console.log('Staff data loaded:', allStaff.length, 'staff members');
-            } catch (error) {
-                console.error('Error loading staff data:', error);
+    // Load all data from Firebase
+    async function loadAllData() {
+        try {
+            console.log('Loading data from Firebase...');
+            
+            // Update last updated time
+            updateLastUpdatedTime();
+            
+            // Load staff data
+            await loadStaffData();
+            
+            // Load duty roster
+            await loadDutyRoster();
+            
+            // Load all requests (including leave requests)
+            await loadAllRequests();
+            
+            // Update all displays
+            updateAllDisplays();
+            
+            console.log('Data loaded successfully');
+        } catch (error) {
+            console.error('Error loading data:', error);
+            showErrorMessage('Failed to load data. Please refresh the page.');
+        }
+    }
+
+    // Load staff data
+    async function loadStaffData() {
+        try {
+            // Load from Firebase collection 'staff'
+            const staffSnapshot = await db.collection('staff').get();
+            
+            if (!staffSnapshot.empty) {
                 allStaff = [];
+                staffSnapshot.forEach(doc => {
+                    const staffData = doc.data();
+                    allStaff.push({
+                        id: doc.id,
+                        name: staffData.name || staffData.displayName || 'Unknown',
+                        rcNo: staffData.rcNo || staffData.employeeId || '',
+                        username: staffData.username || staffData.email || '',
+                        email: staffData.email || '',
+                        department: staffData.department || '',
+                        position: staffData.position || ''
+                    });
+                });
+                console.log('Staff data loaded:', allStaff.length, 'staff members');
+            } else {
+                // Default staff list if Firebase collection is empty
+                allStaff = [
+                    { id: '1', name: "Irufan1", rcNo: "001", username: "irufan1", email: "irufan1@example.com" },
+                    { id: '2', name: "Irufan2", rcNo: "002", username: "irufan2", email: "irufan2@example.com" },
+                    { id: '3', name: "Hussain", rcNo: "003", username: "hussain", email: "hussain@example.com" },
+                    { id: '4', name: "Mohamed", rcNo: "004", username: "mohamed", email: "mohamed@example.com" }
+                ];
+                console.log('Using default staff data');
             }
+        } catch (error) {
+            console.error('Error loading staff data:', error);
+            allStaff = [];
         }
+    }
 
-        // Load duty roster
-        async function loadDutyRoster() {
-            try {
-                const rosterDoc = await db.collection('dutyRoster').doc('current').get();
-                if (rosterDoc.exists) {
-                    dutyRoster = rosterDoc.data() || {};
-                    console.log('Duty roster loaded:', Object.keys(dutyRoster).length, 'dates');
+    // Load duty roster
+    async function loadDutyRoster() {
+        try {
+            // Load from Firebase collection 'dutyRoster' or 'dutySchedule'
+            const today = currentDate;
+            const rosterDoc = await db.collection('dutyRoster').doc(today).get();
+            
+            if (rosterDoc.exists) {
+                dutyRoster = rosterDoc.data() || {};
+                console.log('Duty roster loaded for:', today);
+            } else {
+                // Try alternative collection name
+                const scheduleDoc = await db.collection('dutySchedule').doc(today).get();
+                if (scheduleDoc.exists) {
+                    dutyRoster = scheduleDoc.data() || {};
                 } else {
                     dutyRoster = {};
-                    console.log('No duty roster found');
-                }
-            } catch (error) {
-                console.error('Error loading duty roster:', error);
-                dutyRoster = {};
-            }
-        }
-
-        // Load leave requests
-        async function loadLeaveRequests() {
-            try {
-                // This would be from your main app's requests collection
-                const requestsDoc = await db.collection('requests').doc('all').get();
-                if (requestsDoc.exists && requestsDoc.data().requests) {
-                    allRequests = requestsDoc.data().requests;
-                    console.log('Requests loaded:', allRequests.length, 'requests');
                     
-                    // Filter for leave requests
-                    leaveRequests = allRequests.filter(req => req.type === 'leave');
-                } else {
-                    allRequests = [];
-                    leaveRequests = [];
-                    console.log('No requests found');
+                    // Create a sample roster for demo
+                    allStaff.forEach(staff => {
+                        const hours = ['08:00-16:00', '09:00-17:00', '10:00-18:00'];
+                        const randomHour = hours[Math.floor(Math.random() * hours.length)];
+                        dutyRoster[staff.username] = Math.random() > 0.3 ? randomHour : 'Off';
+                    });
+                    
+                    console.log('Created sample duty roster');
                 }
-            } catch (error) {
-                console.error('Error loading requests:', error);
+            }
+        } catch (error) {
+            console.error('Error loading duty roster:', error);
+            dutyRoster = {};
+        }
+    }
+
+    // Load all requests
+    async function loadAllRequests() {
+        try {
+            // Load from Firebase collection 'requests'
+            const requestsSnapshot = await db.collection('requests')
+                .where('status', '==', 'approved')
+                .orderBy('timestamp', 'desc')
+                .limit(100)
+                .get();
+            
+            allRequests = [];
+            leaveRequests = [];
+            
+            if (!requestsSnapshot.empty) {
+                requestsSnapshot.forEach(doc => {
+                    const requestData = doc.data();
+                    requestData.id = doc.id;
+                    allRequests.push(requestData);
+                    
+                    // Filter leave requests
+                    if (requestData.type === 'leave') {
+                        leaveRequests.push(requestData);
+                    }
+                });
+                
+                console.log('Requests loaded:', allRequests.length, 'total,', leaveRequests.length, 'leave requests');
+            } else {
+                console.log('No requests found in database');
                 allRequests = [];
                 leaveRequests = [];
             }
+        } catch (error) {
+            console.error('Error loading requests:', error);
+            allRequests = [];
+            leaveRequests = [];
         }
+    }
 
-        // Load all requests (for activity feed)
-        async function loadAllRequests() {
-            try {
-                // Already loaded in loadLeaveRequests()
-                // Filter for recent activity
-                const today = new Date();
-                const sevenDaysAgo = new Date(today);
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                
-                // Get recent requests for activity feed
-                recentRequests = allRequests.filter(req => {
-                    const reqDate = new Date(req.timestamp || req.approvedAt || req.createdAt);
-                    return reqDate >= sevenDaysAgo;
-                });
-                
-                // Sort by date (newest first)
-                recentRequests.sort((a, b) => {
-                    const dateA = new Date(a.timestamp || a.approvedAt || a.createdAt);
-                    const dateB = new Date(b.timestamp || b.approvedAt || b.createdAt);
-                    return dateB - dateA;
-                });
-            } catch (error) {
-                console.error('Error loading all requests:', error);
-            }
+    // Update all displays
+    function updateAllDisplays() {
+        updateOverviewStats();
+        updateTodaySickLeave();
+        updateTodayFRL();
+        updateApprovedDutyChanges();
+        updateRecentActivity();
+    }
+
+    // Update overview statistics
+    function updateOverviewStats() {
+        const today = currentDate;
+        
+        // Get today's sick leave
+        const todaySickLeave = leaveRequests.filter(req => 
+            req.status === 'approved' && 
+            req.leaveType === 'Sick Leave' &&
+            isSameDay(req.date, today)
+        ).length;
+        
+        // Get today's FRL
+        const todayFRL = leaveRequests.filter(req => 
+            req.status === 'approved' && 
+            req.leaveType === 'FRL' &&
+            isSameDay(req.date, today)
+        ).length;
+        
+        // Get duty changes for today
+        const todayDutyChanges = allRequests.filter(req => 
+            req.type === 'dutyChange' && 
+            req.status === 'approved' &&
+            isSameDay(req.date, today)
+        ).length;
+        
+        // Count staff on duty today
+        let onDutyCount = 0;
+        if (dutyRoster) {
+            Object.values(dutyRoster).forEach(duty => {
+                if (duty && duty !== 'Off' && duty !== 'Not Scheduled' && duty !== 'OFF') {
+                    onDutyCount++;
+                }
+            });
         }
+        
+        // Update stat cards
+        document.getElementById('sickCount').textContent = todaySickLeave;
+        document.getElementById('frlCount').textContent = todayFRL;
+        document.getElementById('dutyChangeCount').textContent = todayDutyChanges;
+        document.getElementById('onDutyCount').textContent = onDutyCount;
+    }
 
-        // Update all displays
-        function updateAllDisplays() {
-            updateOverviewStats();
-            updateTodaySickLeave();
-            updateTodayFRL();
-            updateApprovedDutyChanges();
-            updateStaffStatusBoard();
-            updateRecentActivity();
-        }
-
-        // Update overview statistics
-        function updateOverviewStats() {
-            const container = document.getElementById('overviewStats');
-            const today = currentDate;
-            
-            // Get today's leave requests
-            const todaySickLeave = leaveRequests.filter(req => 
-                req.status === 'approved' && 
-                req.date === today && 
-                req.leaveType === 'Sick Leave'
-            ).length;
-            
-            const todayFRL = leaveRequests.filter(req => 
-                req.status === 'approved' && 
-                req.date === today && 
-                req.leaveType === 'FRL'
-            ).length;
-            
-            // Get duty changes for today
-            const todayDutyChanges = allRequests.filter(req => 
-                req.type === 'dutyChange' && 
-                req.status === 'approved' && 
-                req.date === today
-            ).length;
-            
-            // Count staff on duty today
-            let onDutyCount = 0;
-            if (dutyRoster[today]) {
-                Object.values(dutyRoster[today]).forEach(duty => {
-                    if (duty && duty !== 'Off' && duty !== 'Not Scheduled') {
-                        onDutyCount++;
-                    }
-                });
-            }
-            
+    // Update today's sick leave display
+    function updateTodaySickLeave() {
+        const container = document.getElementById('todaySickLeave');
+        const today = currentDate;
+        
+        const todaySickRequests = leaveRequests.filter(req => 
+            req.status === 'approved' && 
+            req.leaveType === 'Sick Leave' &&
+            isSameDay(req.date, today)
+        );
+        
+        if (todaySickRequests.length === 0) {
             container.innerHTML = `
-                <div class="stat-box sick">
-                    <div class="stat-label">Sick Leave</div>
-                    <div class="stat-value">${todaySickLeave}</div>
-                    <div class="stat-label">Today</div>
-                </div>
-                <div class="stat-box frl">
-                    <div class="stat-label">FRL</div>
-                    <div class="stat-value">${todayFRL}</div>
-                    <div class="stat-label">Today</div>
-                </div>
-                <div class="stat-box duty-change">
-                    <div class="stat-label">Duty Changes</div>
-                    <div class="stat-value">${todayDutyChanges}</div>
-                    <div class="stat-label">Today</div>
-                </div>
-                <div class="stat-box on-duty">
-                    <div class="stat-label">On Duty</div>
-                    <div class="stat-value">${onDutyCount}</div>
-                    <div class="stat-label">Today</div>
+                <div class="empty-state">
+                    <div class="icon">😊</div>
+                    <p>No sick leave today</p>
+                    <p style="font-size: 0.9rem;">All staff are healthy!</p>
                 </div>
             `;
+            return;
         }
-
-        // Update today's sick leave display
-        function updateTodaySickLeave() {
-            const container = document.getElementById('todaySickLeave');
-            const today = currentDate;
-            
-            const todaySickRequests = leaveRequests.filter(req => 
-                req.status === 'approved' && 
-                req.date === today && 
-                req.leaveType === 'Sick Leave'
-            );
-            
-            if (todaySickRequests.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">😊</div>
-                        <p>No sick leave today</p>
-                        <p style="font-size: 12px;">All staff are healthy!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC</th><th>Duration</th><th>Reason</th><th>Reported</th></tr></thead><tbody>';
-            
-            todaySickRequests.forEach(req => {
-                const staff = allStaff.find(s => s.username === req.fromUsername) || { name: req.fromName, rcNo: req.fromRcNo };
-                const reportedTime = req.timestamp ? formatTime(new Date(req.timestamp)) : 'Unknown';
-                
-                html += `
-                    <tr>
-                        <td><strong>${staff.name}</strong></td>
-                        <td>${staff.rcNo}</td>
-                        <td><span class="status-badge status-sick">${req.duration} day(s)</span></td>
-                        <td>${req.reason || 'Not specified'}</td>
-                        <td class="timestamp">${reportedTime}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
-        }
-
-        // Update today's FRL display
-        function updateTodayFRL() {
-            const container = document.getElementById('todayFRL');
-            const today = currentDate;
-            
-            const todayFRLRequests = leaveRequests.filter(req => 
-                req.status === 'approved' && 
-                req.date === today && 
-                req.leaveType === 'FRL'
-            );
-            
-            if (todayFRLRequests.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">😊</div>
-                        <p>No FRL today</p>
-                        <p style="font-size: 12px;">All staff are available!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC</th><th>Duration</th><th>Reason</th><th>Reported</th></tr></thead><tbody>';
-            
-            todayFRLRequests.forEach(req => {
-                const staff = allStaff.find(s => s.username === req.fromUsername) || { name: req.fromName, rcNo: req.fromRcNo };
-                const reportedTime = req.timestamp ? formatTime(new Date(req.timestamp)) : 'Unknown';
-                
-                html += `
-                    <tr>
-                        <td><strong>${staff.name}</strong></td>
-                        <td>${staff.rcNo}</td>
-                        <td><span class="status-badge status-frl">${req.duration} day(s)</span></td>
-                        <td>${req.reason || 'Not specified'}</td>
-                        <td class="timestamp">${reportedTime}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
-        }
-
-        // Update approved duty changes
-        function updateApprovedDutyChanges() {
-            const container = document.getElementById('approvedDutyChanges');
-            
-            // Get approved duty changes for today and tomorrow
-            const today = currentDate;
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = tomorrow.toISOString().split('T')[0];
-            
-            const approvedChanges = allRequests.filter(req => 
-                req.type === 'dutyChange' && 
-                req.status === 'approved' && 
-                (req.date === today || req.date === tomorrowStr)
-            );
-            
-            if (approvedChanges.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">🔄</div>
-                        <p>No approved duty changes</p>
-                        <p style="font-size: 12px;">All duties are as scheduled</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Sort by date then time
-            approvedChanges.sort((a, b) => {
-                if (a.date === b.date) {
-                    return (a.timestamp || '').localeCompare(b.timestamp || '');
-                }
-                return a.date.localeCompare(b.date);
-            });
-            
-            let html = '';
-            
-            approvedChanges.forEach(req => {
-                const isToday = req.date === today;
-                const dateLabel = isToday ? 'Today' : 'Tomorrow';
-                
-                html += `
-                    <div class="duty-change-item duty-change-approved">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <strong>${dateLabel} (${req.date})</strong><br>
-                                <span style="font-size: 14px;">
-                                    ${req.fromName} (${req.dutyTime}) ↔ ${req.toName} (${req.toDutyTime})
-                                </span>
-                                ${req.reason ? `<div style="margin-top: 5px; font-size: 13px; color: #666;">Reason: ${req.reason}</div>` : ''}
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge status-approved">Approved</span><br>
-                                <span style="font-size: 11px; color: #7f8c8d;">${formatTimeAgo(req.approvedAt || req.timestamp)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Filter duty changes
-        function filterDutyChanges(filter) {
-            // Update filter buttons
-            document.querySelectorAll('#dutyChangeFilters .filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // For now, just reload the data
-            updateApprovedDutyChanges();
-        }
-
-        // Update staff status board
-        function updateStaffStatusBoard() {
-            const container = document.getElementById('staffStatusBoard');
-            const today = currentDate;
-            
-            if (allStaff.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1;">
-                        <div class="icon">👥</div>
-                        <p>No staff data available</p>
-                        <p style="font-size: 12px;">Please check Firebase connection</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            
-            allStaff.forEach(staff => {
-                // Check if staff is on leave today
-                const todayLeave = leaveRequests.find(req => 
-                    req.status === 'approved' && 
-                    req.date === today && 
-                    req.fromUsername === staff.username
-                );
-                
-                // Get today's duty
-                let dutyTime = 'Not Scheduled';
-                let dutyStatus = 'Not Scheduled';
-                if (dutyRoster[today] && dutyRoster[today][staff.username]) {
-                    dutyTime = dutyRoster[today][staff.username];
-                    dutyStatus = dutyTime === 'Off' ? 'Off Duty' : 'On Duty';
-                }
-                
-                // Determine card class based on status
-                let cardClass = 'staff-card';
-                let statusBadge = '';
-                let statusDetails = '';
-                
-                if (todayLeave) {
-                    cardClass += todayLeave.leaveType === 'Sick Leave' ? ' sick' : ' frl';
-                    statusBadge = `<span class="status-badge ${todayLeave.leaveType === 'Sick Leave' ? 'status-sick' : 'status-frl'}">${todayLeave.leaveType}</span>`;
-                    statusDetails = `<div class="staff-details">${todayLeave.reason || 'Not specified'}</div>`;
-                    dutyStatus = `On ${todayLeave.leaveType}`;
-                } else if (dutyTime === 'Off') {
-                    cardClass += ' off-duty';
-                    dutyStatus = 'Off Duty';
-                } else if (dutyTime && dutyTime !== 'Not Scheduled') {
-                    cardClass += ' on-duty';
-                }
-                
-                html += `
-                    <div class="${cardClass}">
-                        <div class="staff-name">${staff.name}</div>
-                        <div class="staff-rc">RC: ${staff.rcNo}</div>
-                        <div class="staff-status">${statusBadge} ${dutyStatus}</div>
-                        <div class="staff-duty-time">${dutyTime}</div>
-                        ${statusDetails}
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Update recent activity
-        function updateRecentActivity() {
-            const container = document.getElementById('recentActivity');
-            
-            // Get recent activity (last 10 items)
-            const recentActivity = allRequests.slice(0, 10);
-            
-            if (recentActivity.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">🕒</div>
-                        <p>No recent activity</p>
-                        <p style="font-size: 12px;">Activity will appear here</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            
-            recentActivity.forEach(req => {
-                let activityClass = 'activity-item';
-                let icon = '📝';
-                let description = '';
-                let time = req.timestamp || req.approvedAt || req.createdAt;
-                
-                if (req.type === 'leave') {
-                    activityClass += req.leaveType === 'Sick Leave' ? ' activity-sick' : ' activity-frl';
-                    icon = req.leaveType === 'Sick Leave' ? '🤒' : '🏝️';
-                    description = `${req.fromName} - ${req.leaveType} (${req.duration} day)`;
-                } else if (req.type === 'dutyChange') {
-                    activityClass += ' activity-duty-change';
-                    icon = '🔄';
-                    description = `${req.fromName} ↔ ${req.toName}`;
-                }
-                
-                html += `
-                    <div class="${activityClass}">
-                        <div style="display: flex; align-items: start; gap: 10px;">
-                            <div style="font-size: 18px;">${icon}</div>
-                            <div>
-                                <div>${description}</div>
-                                <div class="activity-time">${formatTimeAgo(time)}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Setup staff name suggestions
-        function setupStaffSuggestions() {
-            const nameInput = document.getElementById('phoneStaffName');
-            const rcInput = document.getElementById('phoneStaffRC');
-            const suggestionsDiv = document.getElementById('staffSuggestions');
-            
-            nameInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                if (query.length < 2) {
-                    suggestionsDiv.style.display = 'none';
-                    return;
-                }
-                
-                const matches = allStaff.filter(staff => 
-                    staff.name.toLowerCase().includes(query) || 
-                    staff.rcNo.includes(query)
-                ).slice(0, 5);
-                
-                if (matches.length === 0) {
-                    suggestionsDiv.style.display = 'none';
-                    return;
-                }
-                
-                suggestionsDiv.innerHTML = '';
-                matches.forEach(staff => {
-                    const div = document.createElement('div');
-                    div.style.padding = '8px';
-                    div.style.cursor = 'pointer';
-                    div.style.borderBottom = '1px solid #eee';
-                    div.innerHTML = `${staff.name} (RC: ${staff.rcNo})`;
-                    div.onclick = function() {
-                        nameInput.value = staff.name;
-                        rcInput.value = staff.rcNo;
-                        suggestionsDiv.style.display = 'none';
-                    };
-                    suggestionsDiv.appendChild(div);
-                });
-                
-                suggestionsDiv.style.display = 'block';
-                suggestionsDiv.style.width = nameInput.offsetWidth + 'px';
-            });
-            
-            // Hide suggestions when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!nameInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-                    suggestionsDiv.style.display = 'none';
-                }
-            });
-        }
-
-        // Submit phone-reported leave
-        async function submitPhoneLeave(event) {
-            event.preventDefault();
-            
-            const staffName = document.getElementById('phoneStaffName').value.trim();
-            const rcNo = document.getElementById('phoneStaffRC').value.trim();
-            const leaveType = document.getElementById('phoneLeaveType').value;
-            const leaveDate = document.getElementById('phoneLeaveDate').value;
-            const dutyTime = document.getElementById('phoneDutyTime').value.trim();
-            const duration = document.getElementById('phoneDuration').value;
-            const reason = document.getElementById('phoneReason').value.trim();
-            const reportedBy = document.getElementById('phoneReportedBy').value.trim();
-            const contact = document.getElementById('phoneContact').value.trim();
-            
-            // Validation
-            if (!staffName || !rcNo || !leaveType || !leaveDate || !dutyTime || !reason || !reportedBy) {
-                document.getElementById('phoneFormAlert').style.display = 'block';
-                document.getElementById('phoneFormAlert').textContent = 'Please fill all required fields marked with *';
-                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
-                return;
-            }
-            
-            // Find or create staff
-            let staff = allStaff.find(s => s.rcNo === rcNo);
-            if (!staff) {
-                // Create a temporary staff entry
-                const username = staffName.toLowerCase().replace(/\s+/g, '');
-                staff = { name: staffName, rcNo: rcNo, username: username };
-                allStaff.push(staff);
-            }
-            
-            // Create leave request
-            const leaveRequest = {
-                id: 'phone_' + Date.now(),
-                type: 'leave',
-                leaveType: leaveType,
-                fromUsername: staff.username,
-                fromName: staff.name,
-                fromRcNo: rcNo,
-                date: leaveDate,
-                dutyTime: dutyTime,
-                duration: parseFloat(duration),
-                reason: reason,
-                status: 'pending',
-                source: 'phone',
-                reportedBy: reportedBy,
-                contact: contact,
-                timestamp: new Date().toISOString(),
-                history: [{
-                    action: 'phone_reported',
-                    by: reportedBy,
-                    timestamp: new Date().toISOString(),
-                    note: 'Reported via phone'
-                }]
+        
+        let html = `
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Name</th>
+                            <th>RC No</th>
+                            <th>Duration</th>
+                            <th>Reason</th>
+                            <th>Reported At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        todaySickRequests.forEach(req => {
+            const staff = allStaff.find(s => s.username === req.fromUsername || s.rcNo === req.fromRcNo) || { 
+                name: req.fromName || 'Unknown', 
+                rcNo: req.fromRcNo || 'N/A' 
             };
             
-            try {
-                // Add to all requests
-                allRequests.push(leaveRequest);
-                
-                // Save to Firebase
-                await db.collection('requests').doc('all').set({ requests: allRequests });
-                
-                // Show success message
-                document.getElementById('phoneFormSuccess').style.display = 'block';
-                document.getElementById('phoneFormAlert').style.display = 'none';
-                
-                // Clear form
-                clearPhoneForm();
-                
-                // Update displays
-                updateAllDisplays();
-                
-                // Hide success message after 5 seconds
-                setTimeout(() => {
-                    document.getElementById('phoneFormSuccess').style.display = 'none';
-                }, 5000);
-                
-                console.log('Phone-reported leave submitted:', leaveRequest);
-                
-            } catch (error) {
-                console.error('Error saving phone leave:', error);
-                document.getElementById('phoneFormAlert').textContent = 'Error saving leave request. Please try again.';
-                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
-                document.getElementById('phoneFormAlert').style.display = 'block';
+            const reportedTime = req.timestamp ? formatDateTime(new Date(req.timestamp)) : 'N/A';
+            const duration = req.duration ? `${req.duration} day${req.duration > 1 ? 's' : ''}` : 'N/A';
+            
+            html += `
+                <tr>
+                    <td><strong>${staff.name}</strong></td>
+                    <td>${staff.rcNo}</td>
+                    <td><span class="status-badge status-sick">${duration}</span></td>
+                    <td>${req.reason || 'Not specified'}</td>
+                    <td>${reportedTime}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+
+    // Update today's FRL display
+    function updateTodayFRL() {
+        const container = document.getElementById('todayFRL');
+        const today = currentDate;
+        
+        const todayFRLRequests = leaveRequests.filter(req => 
+            req.status === 'approved' && 
+            req.leaveType === 'FRL' &&
+            isSameDay(req.date, today)
+        );
+        
+        if (todayFRLRequests.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">😊</div>
+                    <p>No FRL today</p>
+                    <p style="font-size: 0.9rem;">All staff are available!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Name</th>
+                            <th>RC No</th>
+                            <th>Duration</th>
+                            <th>Reason</th>
+                            <th>Reported At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        todayFRLRequests.forEach(req => {
+            const staff = allStaff.find(s => s.username === req.fromUsername || s.rcNo === req.fromRcNo) || { 
+                name: req.fromName || 'Unknown', 
+                rcNo: req.fromRcNo || 'N/A' 
+            };
+            
+            const reportedTime = req.timestamp ? formatDateTime(new Date(req.timestamp)) : 'N/A';
+            const duration = req.duration ? `${req.duration} day${req.duration > 1 ? 's' : ''}` : 'N/A';
+            
+            html += `
+                <tr>
+                    <td><strong>${staff.name}</strong></td>
+                    <td>${staff.rcNo}</td>
+                    <td><span class="status-badge status-frl">${duration}</span></td>
+                    <td>${req.reason || 'Not specified'}</td>
+                    <td>${reportedTime}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+
+    // Update approved duty changes
+    function updateApprovedDutyChanges() {
+        const container = document.getElementById('approvedDutyChanges');
+        const today = new Date(currentDate);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const todayStr = today.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        
+        // Get approved duty changes for today and tomorrow
+        const approvedChanges = allRequests.filter(req => 
+            req.type === 'dutyChange' && 
+            req.status === 'approved' && 
+            (isSameDay(req.date, todayStr) || isSameDay(req.date, tomorrowStr))
+        );
+        
+        if (approvedChanges.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🔄</div>
+                    <p>No approved duty changes</p>
+                    <p style="font-size: 0.9rem;">All duties are as scheduled</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Group by date
+        const changesByDate = {};
+        approvedChanges.forEach(req => {
+            const date = req.date;
+            if (!changesByDate[date]) {
+                changesByDate[date] = [];
             }
-        }
-
-        // Clear phone form
-        function clearPhoneForm() {
-            document.getElementById('phoneLeaveForm').reset();
-            document.getElementById('phoneLeaveDate').value = currentDate;
-            document.getElementById('phoneFormAlert').style.display = 'block';
-            document.getElementById('phoneFormAlert').textContent = 'Fill in all required fields marked with *';
-            document.getElementById('phoneFormAlert').className = 'alert alert-warning';
-        }
-
-        // Update date/time display
-        function updateDateTime() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            });
-            document.getElementById('currentDateTime').textContent = `${dateStr} • ${timeStr}`;
-        }
-
-        // Update last updated time
-        function updateLastUpdatedTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            });
-            document.getElementById('lastUpdatedTime').textContent = timeStr;
-        }
-
-        // Start auto-refresh
-        function startAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
+            changesByDate[date].push(req);
+        });
+        
+        let html = '<div class="duty-changes-grid">';
+        
+        // Show today's changes first, then tomorrow's
+        [todayStr, tomorrowStr].forEach(date => {
+            if (changesByDate[date]) {
+                const isToday = date === todayStr;
+                const dateLabel = isToday ? 'Today' : 'Tomorrow';
+                const dateDisplay = formatDateDisplay(date);
+                
+                changesByDate[date].forEach(req => {
+                    const fromStaff = allStaff.find(s => s.username === req.fromUsername) || { name: req.fromName || 'Unknown' };
+                    const toStaff = allStaff.find(s => s.username === req.toUsername) || { name: req.toName || 'Unknown' };
+                    
+                    html += `
+                        <div class="duty-change-card">
+                            <div class="duty-change-date">${dateLabel} • ${dateDisplay}</div>
+                            <div class="duty-change-details">
+                                ${fromStaff.name} (${req.dutyTime || 'N/A'}) 
+                                ↔ 
+                                ${toStaff.name} (${req.toDutyTime || 'N/A'})
+                            </div>
+                            ${req.reason ? `<div class="duty-change-reason">Reason: ${req.reason}</div>` : ''}
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                                Approved ${formatTimeAgo(req.approvedAt || req.timestamp)}
+                            </div>
+                        </div>
+                    `;
+                });
             }
-            
-            refreshInterval = setInterval(() => {
-                loadAllData();
-                console.log('Auto-refreshing data...');
-            }, 60000); // Refresh every 60 seconds
-        }
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
 
-        // Utility functions
-        function formatTime(date) {
-            return date.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+    // Filter duty changes
+    function filterDutyChanges(filter) {
+        // Update filter buttons
+        document.querySelectorAll('#dutyChangeFilters .filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        const container = document.getElementById('approvedDutyChanges');
+        const today = new Date(currentDate);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const todayStr = today.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        
+        // Get approved duty changes
+        let filteredChanges = allRequests.filter(req => 
+            req.type === 'dutyChange' && 
+            req.status === 'approved'
+        );
+        
+        // Apply filter
+        if (filter === 'today') {
+            filteredChanges = filteredChanges.filter(req => isSameDay(req.date, todayStr));
+        } else if (filter === 'tomorrow') {
+            filteredChanges = filteredChanges.filter(req => isSameDay(req.date, tomorrowStr));
         }
-
-        function formatTimeAgo(timestamp) {
-            if (!timestamp) return 'Unknown time';
-            
-            const now = new Date();
-            const past = new Date(timestamp);
-            const diffMs = now - past;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-            if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-            
-            return past.toLocaleDateString();
+        
+        if (filteredChanges.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🔄</div>
+                    <p>No approved duty changes ${filter !== 'all' ? 'for ' + filter : ''}</p>
+                    <p style="font-size: 0.9rem;">All duties are as scheduled</p>
+                </div>
+            `;
+            return;
         }
-
-        function showErrorMessage(message) {
-            const header = document.querySelector('.header');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'alert alert-danger';
-            errorDiv.textContent = message;
-            errorDiv.style.marginTop = '10px';
+        
+        let html = '<div class="duty-changes-grid">';
+        
+        filteredChanges.forEach(req => {
+            const isToday = isSameDay(req.date, todayStr);
+            const dateLabel = isToday ? 'Today' : isSameDay(req.date, tomorrowStr) ? 'Tomorrow' : formatDateDisplay(req.date);
             
-            // Remove any existing error
-            const existingError = header.querySelector('.alert-danger');
-            if (existingError) {
-                existingError.remove();
-            }
+            const fromStaff = allStaff.find(s => s.username === req.fromUsername) || { name: req.fromName || 'Unknown' };
+            const toStaff = allStaff.find(s => s.username === req.toUsername) || { name: req.toName || 'Unknown' };
             
-            header.appendChild(errorDiv);
-            
-            // Auto-remove after 10 seconds
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 10000);
-        }
-
-        // Manual refresh function (called by button)
-        window.refreshData = function() {
-            loadAllData();
-        };
-        function updateRecentActivity() {
-            const container = document.getElementById('recentActivity');
-            const today = currentDate;
-            
-            // Filter to only show today's activity
-            const todayActivity = allRequests.filter(req => {
-                const requestDate = new Date(req.timestamp || req.approvedAt || req.createdAt);
-                const requestDateStr = requestDate.toISOString().split('T')[0];
-                return requestDateStr === today;
-            }).slice(0, 5); // Show only last 5 activities
-            
-            if (todayActivity.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📝</div>
-                        <p>No activity today</p>
-                        <p style="font-size: 0.9rem;">All updates will appear here</p>
+            html += `
+                <div class="duty-change-card">
+                    <div class="duty-change-date">${dateLabel} • ${formatDateDisplay(req.date)}</div>
+                    <div class="duty-change-details">
+                        ${fromStaff.name} (${req.dutyTime || 'N/A'}) 
+                        ↔ 
+                        ${toStaff.name} (${req.toDutyTime || 'N/A'})
                     </div>
-                `;
+                    ${req.reason ? `<div class="duty-change-reason">Reason: ${req.reason}</div>` : ''}
+                    <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                        Approved ${formatTimeAgo(req.approvedAt || req.timestamp)}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    // Update recent activity (only today's)
+    function updateRecentActivity() {
+        const container = document.getElementById('recentActivity');
+        const today = currentDate;
+        
+        // Get today's activity (all types)
+        const todayActivity = allRequests.filter(req => {
+            const requestDate = new Date(req.timestamp || req.approvedAt || req.createdAt);
+            const requestDateStr = requestDate.toISOString().split('T')[0];
+            return requestDateStr === today;
+        }).sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.approvedAt || a.createdAt);
+            const timeB = new Date(b.timestamp || b.approvedAt || b.createdAt);
+            return timeB - timeA; // Newest first
+        }).slice(0, 10); // Limit to 10 items
+        
+        if (todayActivity.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📝</div>
+                    <p>No activity today</p>
+                    <p style="font-size: 0.9rem;">All updates will appear here</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        
+        todayActivity.forEach(req => {
+            let activityType = '';
+            let activityClass = '';
+            let icon = '📝';
+            
+            if (req.type === 'leave') {
+                activityType = req.leaveType === 'Sick Leave' ? 'Sick Leave' : 'FRL';
+                activityClass = req.leaveType === 'Sick Leave' ? 'sick' : 'frl';
+                icon = req.leaveType === 'Sick Leave' ? '🤒' : '🏝️';
+            } else if (req.type === 'dutyChange') {
+                activityType = 'Duty Change';
+                activityClass = 'duty-change';
+                icon = '🔄';
+            } else {
+                activityType = req.type || 'Activity';
+                activityClass = 'other';
+            }
+            
+            const time = req.timestamp ? formatTime(new Date(req.timestamp)) : 'Just now';
+            const staffName = req.fromName || allStaff.find(s => s.username === req.fromUsername)?.name || 'Staff Member';
+            
+            html += `
+                <div class="activity-item ${activityClass}">
+                    <div class="activity-content">
+                        <div class="activity-staff">${staffName}</div>
+                        <span class="activity-type ${activityClass}">${activityType}</span>
+                        <div>${req.reason || 'No reason provided'}</div>
+                        <div class="activity-time">
+                            <span>🕒</span>
+                            ${time}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    // Setup staff name suggestions
+    function setupStaffSuggestions() {
+        const nameInput = document.getElementById('phoneStaffName');
+        const rcInput = document.getElementById('phoneStaffRC');
+        
+        if (!nameInput) return;
+        
+        let suggestionsDiv = document.createElement('div');
+        suggestionsDiv.className = 'suggestions-dropdown';
+        suggestionsDiv.style.cssText = `
+            position: absolute;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        `;
+        
+        nameInput.parentNode.style.position = 'relative';
+        nameInput.parentNode.appendChild(suggestionsDiv);
+        
+        nameInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (query.length < 1) {
+                suggestionsDiv.style.display = 'none';
                 return;
             }
             
-            let html = '';
+            const matches = allStaff.filter(staff => 
+                staff.name.toLowerCase().includes(query) || 
+                (staff.rcNo && staff.rcNo.toLowerCase().includes(query))
+            ).slice(0, 5);
             
-            todayActivity.forEach(req => {
-                let activityType = '';
-                let activityClass = '';
-                let icon = '';
-                
-                if (req.type === 'leave') {
-                    activityType = req.leaveType === 'Sick Leave' ? 'sick' : 'frl';
-                    activityClass = activityType;
-                    icon = req.leaveType === 'Sick Leave' ? '🤒' : '🏝️';
-                } else if (req.type === 'dutyChange') {
-                    activityType = 'duty-change';
-                    activityClass = 'duty-change';
-                    icon = '🔄';
-                }
-                
-                const time = req.timestamp ? formatTime(new Date(req.timestamp)) : 'Just now';
-                
-                html += `
-                    <div class="activity-item ${activityClass}">
-                        <div class="activity-content">
-                            <div class="activity-staff">${req.fromName || 'Staff Member'}</div>
-                            <span class="activity-type ${activityType}">${req.leaveType || 'Duty Change'}</span>
-                            <div>${req.reason || 'No reason provided'}</div>
-                            <div class="activity-time">
-                                <span>🕒</span>
-                                ${time}
-                            </div>
-                        </div>
-                    </div>
+            if (matches.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+            
+            suggestionsDiv.innerHTML = '';
+            matches.forEach(staff => {
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    padding: 10px 15px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f1f5f9;
+                    transition: background-color 0.2s;
                 `;
+                div.innerHTML = `
+                    <div style="font-weight: 600; color: #2d3748;">${staff.name}</div>
+                    <div style="font-size: 0.85rem; color: #718096;">RC: ${staff.rcNo || 'N/A'}</div>
+                `;
+                div.onmouseover = () => div.style.backgroundColor = '#f7fafc';
+                div.onmouseout = () => div.style.backgroundColor = 'white';
+                div.onclick = function() {
+                    nameInput.value = staff.name;
+                    rcInput.value = staff.rcNo || '';
+                    suggestionsDiv.style.display = 'none';
+                };
+                suggestionsDiv.appendChild(div);
             });
             
-            container.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+            suggestionsDiv.style.width = nameInput.offsetWidth + 'px';
+            suggestionsDiv.style.top = (nameInput.offsetHeight + 5) + 'px';
+        });
+        
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!nameInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+    }
+
+    // Submit phone-reported leave
+    async function submitPhoneLeave(event) {
+        event.preventDefault();
+        
+        const staffName = document.getElementById('phoneStaffName').value.trim();
+        const rcNo = document.getElementById('phoneStaffRC').value.trim();
+        const leaveType = document.getElementById('phoneLeaveType').value;
+        const leaveDate = document.getElementById('phoneLeaveDate').value;
+        const dutyTime = document.getElementById('phoneDutyTime').value.trim();
+        const duration = document.getElementById('phoneDuration').value;
+        const reason = document.getElementById('phoneReason').value.trim();
+        const reportedBy = document.getElementById('phoneReportedBy').value.trim();
+        const contact = document.getElementById('phoneContact').value.trim();
+        
+        // Validation
+        if (!staffName || !rcNo || !leaveType || !leaveDate || !dutyTime || !reason || !reportedBy) {
+            document.getElementById('phoneFormAlert').style.display = 'block';
+            document.getElementById('phoneFormAlert').textContent = 'Please fill all required fields marked with *';
+            document.getElementById('phoneFormAlert').className = 'alert alert-danger';
+            return;
         }
-    </script>
+        
+        // Validate duty time format
+        const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(dutyTime)) {
+            document.getElementById('phoneFormAlert').style.display = 'block';
+            document.getElementById('phoneFormAlert').textContent = 'Please enter duty time in format HH:MM-HH:MM (e.g., 08:00-16:00)';
+            document.getElementById('phoneFormAlert').className = 'alert alert-danger';
+            return;
+        }
+        
+        // Find or create staff
+        let staff = allStaff.find(s => s.rcNo === rcNo);
+        if (!staff) {
+            // Create a temporary staff entry
+            const username = staffName.toLowerCase().replace(/\s+/g, '_');
+            staff = { 
+                name: staffName, 
+                rcNo: rcNo, 
+                username: username,
+                id: 'temp_' + Date.now()
+            };
+            allStaff.push(staff);
+        }
+        
+        // Create leave request object
+        const leaveRequest = {
+            type: 'leave',
+            leaveType: leaveType,
+            fromUsername: staff.username,
+            fromName: staff.name,
+            fromRcNo: rcNo,
+            date: leaveDate,
+            dutyTime: dutyTime,
+            duration: parseFloat(duration),
+            reason: reason,
+            status: 'pending',
+            source: 'phone_report',
+            reportedBy: reportedBy,
+            contact: contact,
+            timestamp: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            history: [{
+                action: 'phone_reported',
+                by: reportedBy,
+                timestamp: new Date().toISOString(),
+                note: 'Reported via phone'
+            }]
+        };
+        
+        try {
+            // Save to Firebase
+            const docRef = await db.collection('requests').add(leaveRequest);
+            console.log('Phone-reported leave saved with ID:', docRef.id);
+            
+            // Add to local arrays for immediate display
+            leaveRequest.id = docRef.id;
+            allRequests.unshift(leaveRequest); // Add at beginning
+            leaveRequests.unshift(leaveRequest);
+            
+            // Show success message
+            const successAlert = document.getElementById('phoneFormSuccess');
+            successAlert.style.display = 'block';
+            successAlert.textContent = '✓ Leave successfully recorded! A pending request has been created for supervisor approval.';
+            
+            // Hide warning alert
+            document.getElementById('phoneFormAlert').style.display = 'none';
+            
+            // Clear form
+            clearPhoneForm();
+            
+            // Update displays
+            updateAllDisplays();
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+                successAlert.style.display = 'none';
+            }, 5000);
+            
+        } catch (error) {
+            console.error('Error saving phone leave:', error);
+            document.getElementById('phoneFormAlert').style.display = 'block';
+            document.getElementById('phoneFormAlert').textContent = 'Error saving leave request. Please try again.';
+            document.getElementById('phoneFormAlert').className = 'alert alert-danger';
+        }
+    }
+
+    // Clear phone form
+    function clearPhoneForm() {
+        document.getElementById('phoneLeaveForm').reset();
+        document.getElementById('phoneLeaveDate').value = currentDate;
+        document.getElementById('phoneFormAlert').style.display = 'none';
+        document.getElementById('phoneFormSuccess').style.display = 'none';
+    }
+
+    // Update date/time display
+    function updateDateTime() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        const timeStr = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: true 
+        });
+        document.getElementById('currentDateTime').textContent = `${dateStr} • ${timeStr}`;
+    }
+
+    // Update last updated time
+    function updateLastUpdatedTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            hour12: true 
+        });
+        document.getElementById('lastUpdatedTime').textContent = timeStr;
+    }
+
+    // Start auto-refresh
+    function startAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+        
+        refreshInterval = setInterval(() => {
+            loadAllData();
+            console.log('Auto-refreshing data...');
+        }, 60000); // Refresh every 60 seconds
+    }
+
+    // Utility functions
+    function formatTime(date) {
+        return date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
+
+    function formatDateTime(date) {
+        return date.toLocaleString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function formatDateDisplay(dateStr) {
+        const date = new Date(dateStr);
+        const today = new Date(currentDate);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        if (date.toDateString() === today.toDateString()) {
+            return 'Today';
+        } else if (date.toDateString() === tomorrow.toDateString()) {
+            return 'Tomorrow';
+        } else {
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short',
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+    }
+
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return 'recently';
+        
+        const now = new Date();
+        const past = new Date(timestamp);
+        const diffMs = now - past;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        
+        return past.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    function isSameDay(dateStr1, dateStr2) {
+        const date1 = new Date(dateStr1);
+        const date2 = new Date(dateStr2);
+        return date1.toDateString() === date2.toDateString();
+    }
+
+    function showErrorMessage(message) {
+        const header = document.querySelector('.header');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger';
+        errorDiv.textContent = message;
+        errorDiv.style.marginTop = '10px';
+        errorDiv.style.marginBottom = '0';
+        
+        // Remove any existing error
+        const existingError = header.querySelector('.alert-danger');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        header.appendChild(errorDiv);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 10000);
+    }
+
+    // Manual refresh function (called by button)
+    window.loadAllData = function() {
+        loadAllData();
+    };
+</script>
+    
 </body>
 </html>
