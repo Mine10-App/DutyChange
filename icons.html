@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+    <style>
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .icon-set { display: flex; flex-wrap: wrap; gap: 20px; }
+        .icon-item { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="icon-set">
+        <div class="icon-item">
+            <canvas id="icon72" width="72" height="72"></canvas>
+            <div>72x72</div>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon96" width="96" height="96"></canvas>
+            <div>96x96</div>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon128" width="128" height="128"></canvas>
+            <div>128x128</div>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon144" width="144" height="144"></canvas>
+            <div>144x144</div>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon192" width="192" height="192"></canvas>
+            <div>192x192</div>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon512" width="512" height="512"></canvas>
+            <div>512x512</div>
+        </div>
+    </div>
+
+    <script>
+        function generateIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Draw background circle
+            ctx.fillStyle = '#3498db';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw head
+            ctx.fillStyle = 'white';
+            const headRadius = size * 0.12;
+            ctx.beginPath();
+            ctx.arc(size/2, size * 0.35, headRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw body
+            ctx.beginPath();
+            ctx.moveTo(size * 0.4, size * 0.55);
+            ctx.bezierCurveTo(
+                size * 0.4, size * 0.55,
+                size * 0.3, size * 0.7,
+                size * 0.3, size * 0.7
+            );
+            ctx.bezierCurveTo(
+                size * 0.35, size * 0.55,
+                size * 0.65, size * 0.55,
+                size * 0.7, size * 0.7
+            );
+            ctx.bezierCurveTo(
+                size * 0.7, size * 0.7,
+                size * 0.6, size * 0.55,
+                size * 0.6, size * 0.55
+            );
+            ctx.fill();
+            
+            // Draw legs
+            ctx.beginPath();
+            ctx.rect(size * 0.35, size * 0.75, size * 0.1, size * 0.15);
+            ctx.rect(size * 0.55, size * 0.75, size * 0.1, size * 0.15);
+            ctx.fill();
+            
+            // Draw duty badge
+            ctx.fillStyle = '#27ae60';
+            ctx.beginPath();
+            ctx.moveTo(size * 0.2, size * 0.2);
+            ctx.lineTo(size * 0.2, size * 0.4);
+            ctx.lineTo(size * 0.3, size * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add text for larger icons
+            if (size >= 192) {
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${size * 0.1}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('DM', size/2, size * 0.9);
+            }
+            
+            // Download link
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.textContent = `Download ${size}x${size}`;
+            link.style.display = 'block';
+            canvas.parentNode.appendChild(link);
+        }
+        
+        // Generate all icons
+        [72, 96, 128, 144, 192, 512].forEach(size => {
+            generateIcon(`icon${size}`, size);
+        });
+    </script>
+</body>
+</html>
