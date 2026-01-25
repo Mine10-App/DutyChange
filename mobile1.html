@@ -590,40 +590,33 @@
         }
 
         function setupMessageHandler() {
-            if (!messaging) return;
+    if (!messaging) {
+        console.error('Messaging not initialized');
+        return;
+    }
 
-            // Handle background messages
-            messaging.onBackgroundMessage((payload) => {
-                console.log('Received background message:', payload);
-                
-                // Customize notification based on payload
-                const notificationTitle = payload.data?.title || 'Duty Manager';
-                const notificationOptions = {
-                    body: payload.data?.body || 'You have a new notification',
-                    icon: '/icon-192x192.png',
-                    badge: '/badge-72x72.png',
-                    tag: payload.data?.tag || 'duty-notification',
-                    data: payload.data,
-                    requireInteraction: payload.data?.important === 'true'
-                };
+    // Log token when available
+    messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY_HERE' })
+        .then((token) => {
+            console.log('FCM Token obtained:', token);
+        })
+        .catch((err) => {
+            console.error('Error getting token:', err);
+        });
 
-                self.registration.showNotification(notificationTitle, notificationOptions);
-            });
+    // Handle incoming messages when app is in foreground
+    messaging.onMessage((payload) => {
+        console.log('Foreground message received:', payload);
+        showToast(payload.notification?.body || 'New notification', 'info');
+    });
 
-            // Handle foreground messages
-            messaging.onMessage((payload) => {
-                console.log('Received foreground message:', payload);
-                showToast(payload.notification?.body || 'New notification', 'info');
-                
-                // Update UI if needed
-                if (payload.data?.type === 'new_request') {
-                    updateRequestCounts();
-                }
-                if (payload.data?.type === 'duty_change') {
-                    updateDashboard();
-                }
-            });
-        }
+    // Check service worker registration
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+            console.log('Service Worker ready:', registration);
+        });
+    }
+}
 
         function showNotificationPermission() {
             if (!notificationPermissionAsked && 
