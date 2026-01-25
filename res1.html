@@ -2890,116 +2890,243 @@
                 return new Date().toISOString().split('T')[0];
             }
 
-            // VILU EXCEL SPECIFIC PROCESSING - IMPROVED
-            processViluExcelFormat(data) {
-                console.log('Processing VILU Excel format with raw data:', data);
+           // VILU EXCEL SPECIFIC PROCESSING - IMPROVED
+processViluExcelFormat(data) {
+    console.log('Processing VILU Excel format with raw data:', data);
+    
+    const reservations = [];
+    const today = new Date().toISOString().split('T')[0];
+    
+    let contactPerson = '';
+    let customerName = '';
+    let guestSectionStart = -1;
+    let direction = 'Arrival'; // Default for VILU
+    
+    // First pass: Find customer information and guest section
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        
+        // Skip empty rows
+        if (!row || row.length === 0) continue;
+        
+        // Look for "Contact Person:" in row
+        for (let j = 0; j < row.length; j++) {
+            const cell = row[j];
+            if (typeof cell === 'string') {
+                const cellLower = cell.toLowerCase();
                 
-                const reservations = [];
-                const today = new Date().toISOString().split('T')[0];
-                
-                let contactPerson = '';
-                let customerName = '';
-                let guestSectionStart = -1;
-                
-                // First pass: Find customer information and guest section
-                for (let i = 0; i < data.length; i++) {
-                    const row = data[i];
-                    
-                    // Skip empty rows
-                    if (!row || row.length === 0) continue;
-                    
-                    // Look for "Contact Person:" in row
-                    for (let j = 0; j < row.length; j++) {
-                        const cell = row[j];
-                        if (typeof cell === 'string') {
-                            const cellLower = cell.toLowerCase();
-                            
-                            // Find contact person
-                            if (cellLower.includes('contact person')) {
-                                if (j + 1 < row.length && row[j + 1]) {
-                                    contactPerson = row[j + 1].toString().trim();
-                                }
-                            }
-                            
-                            // Find name of service applicant
-                            if (cellLower.includes('name of service applicant')) {
-                                if (j + 1 < row.length && row[j + 1]) {
-                                    customerName = row[j + 1].toString().trim();
-                                }
-                            }
-                            
-                            // Find guest information section
-                            if (cellLower.includes('guest name') && guestSectionStart === -1) {
-                                guestSectionStart = i;
-                            }
-                        }
+                // Find contact person
+                if (cellLower.includes('contact person') || cellLower === 'contact person') {
+                    // Contact person value is in the same row, 1 cell to the right
+                    if (j + 1 < row.length && row[j + 1]) {
+                        contactPerson = row[j + 1].toString().trim();
+                        console.log('Found contact person:', contactPerson);
                     }
                 }
                 
-                // Use contact person as customer if customer name not found
-                if (!customerName && contactPerson) {
-                    customerName = contactPerson;
-                }
-                
-                console.log('Found customer:', customerName, 'contact person:', contactPerson);
-                console.log('Guest section starts at row:', guestSectionStart);
-                
-                // Second pass: Process guest rows
-                if (guestSectionStart !== -1) {
-                    // Start from the row after the header
-                    for (let i = guestSectionStart + 1; i < data.length; i++) {
-                        const row = data[i];
-                        
-                        // Skip empty rows or rows with no guest name
-                        if (!row || row.length < 2) continue;
-                        
-                        const guestName = row[0]; // Guest Name is usually first column
-                        
-                        // Skip if no guest name or if it's a header row
-                        if (!guestName || guestName.toString().trim() === '' || 
-                            guestName.toString().toLowerCase().includes('guest name')) {
-                            continue;
-                        }
-                        
-                        // Extract data from VILU format columns
-                        // Assuming columns: Guest Name, Passport No, Country, Arrival Flight No, Flight Time, Flight Date
-                        const nationality = row[2] || ''; // Country column
-                        const flightHotel = row[3] || ''; // Arrival Flight No column
-                        const rawTime = row[4] || ''; // Flight Time column
-                        const rawDate = row[5] || ''; // Flight Date column
-                        
-                        // Parse date and time
-                        const parsedDate = this.parseDate(rawDate || today);
-                        const parsedTime = this.parseTime(rawTime || '00:00');
-                        
-                        // Create reservation object
-                        const reservation = {
-                            customer: customerName || 'Unknown Customer',
-                            reservationDate: parsedDate,
-                            flightHotel: flightHotel.toString().trim(),
-                            eta: parsedTime,
-                            direction: 'Arrival', // VILU form is for arrivals
-                            guestName: guestName.toString().trim(),
-                            nationality: nationality.toString().trim() || 'Unknown',
-                            remarks: `Imported from VILU Excel - Flight: ${flightHotel}`,
-                            status: 'reserved',
-                            createdAt: new Date().toISOString(),
-                            createdBy: this.currentUser.username,
-                            source: 'vilu_excel_import'
-                        };
-                        
-                        // Validate the reservation
-                        if (this.validateReservation(reservation)) {
-                            reservations.push(reservation);
-                        } else {
-                            console.log('Invalid reservation skipped:', reservation);
-                        }
+                // Find name of service applicant
+                if (cellLower.includes('name of service applicant')) {
+                    if (j + 1 < row.length && row[j + 1]) {
+                        customerName = row[j + 1].toString().trim();
+                        console.log('Found service applicant:', customerName);
                     }
                 }
                 
-                console.log(`Found ${reservations.length} reservations in VILU format`);
-                return reservations;
+                // Find guest information section - look for "Guest Name" header
+                if ((cellLower === 'guest name' || cellLower.includes('guest name')) && guestSectionStart === -1) {
+                    guestSectionStart = i;
+                    console.log('Guest section header found at row:', i, 'cell:', j);
+                }
+                
+                // Check if this is departure section (look for "Departure" in headers)
+                if (cellLower.includes('departure') && !cellLower.includes('arrival')) {
+                    direction = 'Departure';
+                }
             }
+        }
+    }
+    
+    // Use contact person as customer if available, otherwise use service applicant
+    if (contactPerson) {
+        customerName = contactPerson;
+    } else if (!customerName) {
+        customerName = 'Unknown Customer';
+    }
+    
+    console.log('Using customer:', customerName, 'direction:', direction);
+    console.log('Guest section starts at row:', guestSectionStart);
+    
+    // Second pass: Process guest rows
+    if (guestSectionStart !== -1) {
+        // Find the data header row (it's usually the row after "Guest Name" header)
+        let dataStartRow = guestSectionStart;
+        
+        // Look for the row that has actual data (not empty)
+        for (let i = guestSectionStart + 1; i < data.length; i++) {
+            const row = data[i];
+            if (row && row.length > 0 && row[0] && row[0].toString().trim() !== '') {
+                dataStartRow = i;
+                break;
+            }
+        }
+        
+        console.log('Guest data starts at row:', dataStartRow);
+        
+        // Process from dataStartRow onward
+        for (let i = dataStartRow; i < data.length; i++) {
+            const row = data[i];
+            
+            // Skip empty rows or rows with no guest name
+            if (!row || row.length < 1) continue;
+            
+            const guestName = row[0]; // Guest Name is first column
+            
+            // Skip if no guest name or if it looks like a header
+            if (!guestName || guestName.toString().trim() === '' || 
+                guestName.toString().toLowerCase().includes('guest name') ||
+                guestName.toString().toLowerCase().includes('name')) {
+                continue;
+            }
+            
+            // Debug: Log the row structure
+            console.log('Processing guest row:', row);
+            
+            // VILU Excel structure analysis:
+            // Based on the sample, columns are:
+            // 0: Guest Name
+            // 1-5: Empty or other data
+            // 6: Passport No (maybe)
+            // 7-8: Empty
+            // 9: Country
+            // 10-11: Empty
+            // 12: Flight No (Arrival)
+            // 13: Flight Time
+            // 14: Flight Date
+            // 15: Flight No (Departure) - if exists
+            // 16: Flight Time (Departure)
+            // 17: Flight Date (Departure)
+            
+            // Try different column indices for flight info
+            let flightHotel = '';
+            let rawTime = '';
+            let rawDate = '';
+            let nationality = '';
+            
+            // Try to find data in common positions
+            for (let j = 0; j < row.length; j++) {
+                const cell = row[j];
+                if (cell && cell.toString().trim() !== '') {
+                    // Look for flight numbers (usually contain letters and numbers)
+                    if (typeof cell === 'string' && /[A-Za-z]/.test(cell) && /\d/.test(cell)) {
+                        // Could be flight number like EK656, QR670, TK740, Somerset
+                        if (!flightHotel) {
+                            flightHotel = cell.toString().trim();
+                            console.log('Found flight at column', j, ':', flightHotel);
+                        }
+                    }
+                    
+                    // Look for time (contains colon or "hrs")
+                    if (typeof cell === 'string' && (cell.includes(':') || cell.toLowerCase().includes('hr'))) {
+                        if (!rawTime) {
+                            rawTime = cell.toString().trim();
+                            console.log('Found time at column', j, ':', rawTime);
+                        }
+                    }
+                    
+                    // Look for date (contains dash or slash)
+                    if (typeof cell === 'string' && (cell.includes('-') || cell.includes('/'))) {
+                        if (!rawDate) {
+                            rawDate = cell.toString().trim();
+                            console.log('Found date at column', j, ':', rawDate);
+                        }
+                    }
+                    
+                    // Look for country/nationality (usually 2-3 letter codes or country names)
+                    if (typeof cell === 'string' && cell.length <= 3 && /^[A-Za-z]{2,3}$/.test(cell)) {
+                        if (!nationality) {
+                            nationality = cell.toString().trim();
+                            console.log('Found nationality at column', j, ':', nationality);
+                        }
+                    }
+                }
+            }
+            
+            // If we didn't find flight, try specific column indices based on VILU format
+            if (!flightHotel) {
+                // Try column 12 for arrival flight
+                if (row[12] && row[12].toString().trim() !== '') {
+                    flightHotel = row[12].toString().trim();
+                }
+                // Try column 15 for departure flight
+                else if (row[15] && row[15].toString().trim() !== '') {
+                    flightHotel = row[15].toString().trim();
+                    direction = 'Departure';
+                }
+            }
+            
+            // If we didn't find time, try specific column indices
+            if (!rawTime) {
+                // Try column 13 for arrival time
+                if (row[13] && row[13].toString().trim() !== '') {
+                    rawTime = row[13].toString().trim();
+                }
+                // Try column 16 for departure time
+                else if (row[16] && row[16].toString().trim() !== '') {
+                    rawTime = row[16].toString().trim();
+                }
+            }
+            
+            // If we didn't find date, try specific column indices
+            if (!rawDate) {
+                // Try column 14 for arrival date
+                if (row[14] && row[14].toString().trim() !== '') {
+                    rawDate = row[14].toString().trim();
+                }
+                // Try column 17 for departure date
+                else if (row[17] && row[17].toString().trim() !== '') {
+                    rawDate = row[17].toString().trim();
+                }
+            }
+            
+            // If we didn't find nationality, try column 9
+            if (!nationality && row[9] && row[9].toString().trim() !== '') {
+                nationality = row[9].toString().trim();
+            }
+            
+            // Parse date and time
+            const parsedDate = this.parseDate(rawDate || today);
+            const parsedTime = this.parseTime(rawTime || '00:00');
+            
+            // Create reservation object
+            const reservation = {
+                customer: customerName,
+                reservationDate: parsedDate,
+                flightHotel: flightHotel || 'Unknown Flight',
+                eta: parsedTime,
+                direction: direction,
+                guestName: guestName.toString().trim(),
+                nationality: nationality || 'Unknown',
+                remarks: `Imported from VILU Excel - ${direction}: ${flightHotel || 'No flight info'}`,
+                status: 'reserved',
+                createdAt: new Date().toISOString(),
+                createdBy: this.currentUser.username,
+                source: 'vilu_excel_import'
+            };
+            
+            console.log('Created reservation:', reservation);
+            
+            // Validate the reservation
+            if (this.validateReservation(reservation)) {
+                reservations.push(reservation);
+            } else {
+                console.log('Invalid reservation skipped:', reservation);
+            }
+        }
+    }
+    
+    console.log(`Found ${reservations.length} reservations in VILU format`);
+    return reservations;
+}
 
             validateReservation(reservation) {
                 // Check required fields
@@ -3030,93 +3157,107 @@
             }
 
             displayExcelPreview(data) {
-                const previewContainer = document.getElementById('excelPreview');
-                const previewHeader = document.getElementById('excelPreviewHeader');
-                const previewBody = document.getElementById('excelPreviewBody');
-                const previewCount = document.getElementById('previewCount');
-                
-                if (!previewContainer || !previewHeader || !previewBody) return;
-                
-                // Clear previous preview
-                previewHeader.innerHTML = '';
-                previewBody.innerHTML = '';
-                
-                if (data.length > 0) {
-                    // Create header row for preview
-                    const headers = [
-                        'Guest Name', 'Customer', 'Flight/Hotel', 'ETA', 
-                        'Direction', 'Nationality', 'Reservation Date', 'Status'
-                    ];
-                    
-                    // Create header row
-                    let headerHtml = '<tr>';
-                    headers.forEach(header => {
-                        headerHtml += `<th>${header}</th>`;
-                    });
-                    headerHtml += '</tr>';
-                    previewHeader.innerHTML = headerHtml;
-                    
-                    // Create data rows
-                    let validCount = 0;
-                    const previewLimit = Math.min(10, data.length);
-                    
-                    for (let i = 0; i < previewLimit; i++) {
-                        const reservation = data[i];
-                        const isValid = this.validateReservation(reservation);
-                        
-                        let rowHtml = '<tr>';
-                        
-                        // Guest Name
-                        rowHtml += `<td><strong>${reservation.guestName || ''}</strong></td>`;
-                        
-                        // Customer
-                        rowHtml += `<td>${reservation.customer || ''}</td>`;
-                        
-                        // Flight/Hotel
-                        rowHtml += `<td>${reservation.flightHotel || ''}</td>`;
-                        
-                        // ETA
-                        rowHtml += `<td>${reservation.eta || ''}</td>`;
-                        
-                        // Direction
-                        rowHtml += `<td>${reservation.direction || 'Arrival'}</td>`;
-                        
-                        // Nationality
-                        rowHtml += `<td>${reservation.nationality || ''}</td>`;
-                        
-                        // Reservation Date
-                        rowHtml += `<td>${reservation.reservationDate || ''}</td>`;
-                        
-                        // Validation Status
-                        rowHtml += `<td style="background-color: ${isValid ? '#d4edda' : '#f8d7da'}">
-                            ${isValid ? '✓ Valid' : '✗ Invalid'}
-                        </td>`;
-                        
-                        rowHtml += '</tr>';
-                        previewBody.innerHTML += rowHtml;
-                        
-                        if (isValid) validCount++;
-                    }
-                    
-                    // Add summary row
-                    previewBody.innerHTML += `
-                        <tr>
-                            <td colspan="8" style="background-color: #e9ecef; font-weight: bold;">
-                                Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} reservations)
-                            </td>
-                        </tr>
-                    `;
-                    
-                    previewCount.textContent = data.length;
-                    previewContainer.classList.remove('d-none');
-                    
-                    // Show sample of what will be uploaded
-                    if (data.length > 0) {
-                        const sample = data[0];
-                        alert(`VILU Excel detected! Found ${data.length} guest entries.\n\nSample entry:\n- Guest: ${sample.guestName}\n- Customer: ${sample.customer}\n- Flight: ${sample.flightHotel}\n- ETA: ${sample.eta}\n- Date: ${sample.reservationDate}`);
-                    }
-                }
+    const previewContainer = document.getElementById('excelPreview');
+    const previewHeader = document.getElementById('excelPreviewHeader');
+    const previewBody = document.getElementById('excelPreviewBody');
+    const previewCount = document.getElementById('previewCount');
+    
+    if (!previewContainer || !previewHeader || !previewBody) return;
+    
+    // Clear previous preview
+    previewHeader.innerHTML = '';
+    previewBody.innerHTML = '';
+    
+    if (data.length > 0) {
+        // Create header row for preview
+        const headers = [
+            'Guest Name', 'Customer', 'Flight/Hotel', 'ETA', 
+            'Direction', 'Nationality', 'Reservation Date', 'Status'
+        ];
+        
+        // Create header row
+        let headerHtml = '<tr>';
+        headers.forEach(header => {
+            headerHtml += `<th>${header}</th>`;
+        });
+        headerHtml += '</tr>';
+        previewHeader.innerHTML = headerHtml;
+        
+        // Create data rows
+        let validCount = 0;
+        const previewLimit = Math.min(10, data.length);
+        
+        for (let i = 0; i < previewLimit; i++) {
+            const reservation = data[i];
+            const isValid = this.validateReservation(reservation);
+            
+            let rowHtml = '<tr>';
+            
+            // Guest Name
+            rowHtml += `<td><strong>${reservation.guestName || ''}</strong></td>`;
+            
+            // Customer
+            rowHtml += `<td>${reservation.customer || ''}</td>`;
+            
+            // Flight/Hotel
+            rowHtml += `<td>${reservation.flightHotel || ''}</td>`;
+            
+            // ETA
+            rowHtml += `<td>${reservation.eta || ''}</td>`;
+            
+            // Direction
+            rowHtml += `<td>${reservation.direction || 'Arrival'}</td>`;
+            
+            // Nationality
+            rowHtml += `<td>${reservation.nationality || ''}</td>`;
+            
+            // Reservation Date
+            rowHtml += `<td>${reservation.reservationDate || ''}</td>`;
+            
+            // Validation Status
+            rowHtml += `<td style="background-color: ${isValid ? '#d4edda' : '#f8d7da'}">
+                ${isValid ? '✓ Valid' : '✗ Invalid'}
+                <br><small>${!reservation.flightHotel ? 'No flight' : ''}</small>
+            </td>`;
+            
+            rowHtml += '</tr>';
+            previewBody.innerHTML += rowHtml;
+            
+            if (isValid) validCount++;
+        }
+        
+        // Add summary row
+        previewBody.innerHTML += `
+            <tr>
+                <td colspan="8" style="background-color: #e9ecef; font-weight: bold;">
+                    Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} reservations)
+                    ${validCount < data.length ? `<br><small>${data.length - validCount} invalid due to missing data</small>` : ''}
+                </td>
+            </tr>
+        `;
+        
+        previewCount.textContent = data.length;
+        previewContainer.classList.remove('d-none');
+        
+        // Show sample of what will be uploaded
+        if (data.length > 0) {
+            const sample = data[0];
+            const issues = [];
+            if (!sample.customer || sample.customer === 'Unknown Customer') issues.push('Customer');
+            if (!sample.flightHotel || sample.flightHotel === 'Unknown Flight') issues.push('Flight');
+            if (sample.eta === '00:00') issues.push('ETA');
+            
+            let message = `VILU Excel detected! Found ${data.length} guest entries.\n\nSample entry:\n- Guest: ${sample.guestName}\n- Customer: ${sample.customer}\n- Flight: ${sample.flightHotel}\n- ETA: ${sample.eta}\n- Date: ${sample.reservationDate}\n- Direction: ${sample.direction}`;
+            
+            if (issues.length > 0) {
+                message += `\n\n⚠️ Issues detected in sample: ${issues.join(', ')}`;
+                message += `\nPlease check the Excel format matches VILU template.`;
             }
+            
+            alert(message);
+        }
+    }
+}
 
             async uploadExcelData() {
                 if (this.excelData.length === 0) {
