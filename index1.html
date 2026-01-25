@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA Meta Tags -->
+     <!-- PWA Meta Tags -->
     <meta name="application-name" content="Duty Manager">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Duty Manager">
-    <meta name="description" content="Duty Management System for staff">
+    <meta name="description" content="Duty and Leave Management System for staff">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="msapplication-TileColor" content="#3498db">
@@ -16,33 +16,74 @@
     <meta name="theme-color" content="#3498db">
     
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
-    <link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
-    <link rel="apple-touch-icon" sizes="512x512" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="192x192" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="512x512" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
-    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
     
     <!-- Manifest for PWA -->
     <link rel="manifest" href="data:application/manifest+json,{
         \"name\": \"Duty Manager\",
         \"short_name\": \"DutyMgr\",
-        \"description\": \"Duty Management System\",
+        \"description\": \"Duty and Leave Management System\",
         \"start_url\": \"./\",
         \"display\": \"standalone\",
         \"background_color\": \"#3498db\",
         \"theme_color\": \"#3498db\",
+        \"orientation\": \"portrait\",
+        \"scope\": \"./\",
+        \"categories\": [\"productivity\", \"business\"],
         \"icons\": [
             {
-                \"src\": \"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>\",
-                \"sizes\": \"192x192\",
-                \"type\": \"image/svg+xml\"
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"72x72\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any\"
             },
             {
-                \"src\": \"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>\",
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"96x96\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any\"
+            },
+            {
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"128x128\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any\"
+            },
+            {
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"144x144\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any\"
+            },
+            {
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"152x152\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any\"
+            },
+            {
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"192x192\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any maskable\"
+            },
+            {
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
+                \"sizes\": \"384x384\",
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any maskable\"
+            },
+            {
+                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E\",
                 \"sizes\": \"512x512\",
-                \"type\": \"image/svg+xml\"
+                \"type\": \"image/svg+xml\",
+                \"purpose\": \"any maskable\"
             }
         ]
     }">
@@ -1250,6 +1291,132 @@
     </div>
 
     <script>
+
+         // Add PWA install prompt functionality
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show custom install prompt after 3 seconds
+            setTimeout(() => {
+                showInstallPrompt();
+            }, 3000);
+        });
+        
+        function showInstallPrompt() {
+            if (deferredPrompt && !localStorage.getItem('installPromptShown')) {
+                const installContainer = document.createElement('div');
+                installContainer.style.cssText = `
+                    position: fixed;
+                    bottom: 90px;
+                    right: 15px;
+                    z-index: 1000;
+                    background: white;
+                    border-radius: 15px;
+                    padding: 15px;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+                    max-width: 300px;
+                    animation: slideInUp 0.3s ease;
+                `;
+                
+                installContainer.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #3498db; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                            👤
+                        </div>
+                        <div>
+                            <div style="font-weight: bold; font-size: 14px;">Install Duty Manager</div>
+                            <div style="font-size: 12px; color: #666;">Quick access on home screen</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="installNowBtn" style="flex: 1; background: #3498db; color: white; border: none; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                            Install
+                        </button>
+                        <button id="installLaterBtn" style="background: #f0f0f0; color: #666; border: none; padding: 8px; border-radius: 8px; cursor: pointer;">
+                            Later
+                        </button>
+                    </div>
+                `;
+                
+                document.body.appendChild(installContainer);
+                
+                document.getElementById('installNowBtn').addEventListener('click', async () => {
+                    installContainer.style.animation = 'slideOutDown 0.3s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(installContainer);
+                    }, 300);
+                    
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response: ${outcome}`);
+                    deferredPrompt = null;
+                    localStorage.setItem('installPromptShown', 'true');
+                });
+                
+                document.getElementById('installLaterBtn').addEventListener('click', () => {
+                    installContainer.style.animation = 'slideOutDown 0.3s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(installContainer);
+                    }, 300);
+                    localStorage.setItem('installPromptShown', 'true');
+                });
+                
+                // Auto-remove after 15 seconds
+                setTimeout(() => {
+                    if (installContainer.parentNode) {
+                        installContainer.style.animation = 'slideOutDown 0.3s ease';
+                        setTimeout(() => {
+                            if (installContainer.parentNode) {
+                                document.body.removeChild(installContainer);
+                            }
+                        }, 300);
+                    }
+                }, 15000);
+            }
+        }
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInUp {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOutDown {
+                from {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Check if running as installed app
+        function isRunningStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone ||
+                   document.referrer.includes('android-app://');
+        }
+        
+        if (isRunningStandalone()) {
+            console.log('Running as installed app');
+            document.body.classList.add('standalone-app');
+        }
+
+        
         // Mobile Duty Management System
         let currentUser = null;
         let allUsers = [];
