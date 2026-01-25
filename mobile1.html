@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- PWA Meta Tags -->
     <meta name="application-name" content="Duty Manager">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Duty Manager">
-    <meta name="description" content="Duty and Leave Management System for staff">
+    <meta name="description" content="Duty and Leave Management System">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="msapplication-TileColor" content="#3498db">
@@ -17,10 +17,7 @@
     <meta name="theme-color" content="#3498db">
     
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3Ccircle cx='50' cy='35' r='12' fill='white'/%3E%3Cpath d='M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z' fill='white'/%3E%3Cpath d='M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z' fill='white'/%3E%3Cpath d='M20,20 L20,40 L30,30 Z' fill='%2327ae60'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%233498db'/%3E%3C/svg%3E">
     
     <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -37,40 +34,890 @@
     <script src="dcfire1.js" defer></script>
     <script src="user.js" defer></script>
     
-    <title>Duty Management System</title>
+    <title>Duty Manager</title>
     
     <style>
-        /* [All CSS styles from previous version remain exactly the same] */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ecc71;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            --gray-light: #ecf0f1;
+            --border: #e0e0e0;
+            --card-bg: #ffffff;
+            --surface: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --shadow: 0 2px 10px rgba(0,0,0,0.08);
+            --shadow-heavy: 0 4px 20px rgba(0,0,0,0.12);
+            --radius: 16px;
+            --radius-sm: 12px;
+            --radius-lg: 20px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
         }
 
         body {
-            background: #f5f7fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             overflow-x: hidden;
             padding: 0;
             margin: 0;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            position: relative;
         }
 
-        /* [All other CSS styles remain exactly as in previous version...] */
-        /* Loading Overlay, Toast, Login, Dashboard, Cards, etc. */
-        
-        /* ... (Complete CSS from previous version) ... */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: -2;
+        }
 
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        #loadingOverlay:not(.active) {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #loadingText {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Toast Container */
+        #toastContainer {
+            position: fixed;
+            top: calc(var(--safe-top) + 20px);
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--surface);
+            color: var(--text);
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-heavy);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 90%;
+            min-width: 280px;
+            animation: slideIn 0.3s ease-out;
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .toast.warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .toast.info {
+            background: var(--primary);
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Login Container */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .logo p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-heavy);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            transition: all 0.3s;
+            background: var(--light);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--light);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 0;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: calc(12px + var(--safe-top)) 20px 12px 20px;
+            position: relative;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .header-info h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .header-info p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .header-btn:active {
+            transform: scale(0.9);
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            display: flex;
+            padding: 8px 0 calc(8px + var(--safe-bottom)) 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .bottom-nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--gray);
+            padding: 8px 0;
+            font-size: 12px;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav-btn.active {
+            color: var(--primary);
+        }
+
+        .bottom-nav-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: calc(80px + var(--safe-bottom));
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+        }
+
+        .card:active {
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: var(--text);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Balance Display */
+        .balance-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .balance-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 20%);
+            border-radius: var(--radius);
+            padding: 20px;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .balance-box:nth-child(2) {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 20%);
+        }
+
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .balance-value {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+            margin: 10px 0;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .alert-info {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--primary);
+            color: var(--text);
+        }
+
+        .alert-warning {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid var(--warning);
+            color: var(--text);
+        }
+
+        .alert-success {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--text);
+        }
+
+        .alert-danger {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--danger);
+            color: var(--text);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .action-btn {
+            background: var(--surface);
+            border: none;
+            border-radius: var(--radius);
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .action-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Form Rows */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .form-row .btn {
+            flex: 1;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -20px;
+            padding: 0 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th {
+            background: var(--light);
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            padding: 12px 15px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status Badges */
+        .status-pending {
+            color: var(--warning);
+            font-weight: 600;
+            background: rgba(243, 156, 18, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .status-approved {
+            color: var(--success);
+            font-weight: 600;
+            background: rgba(46, 204, 113, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .status-rejected, .status-cancelled {
+            color: var(--danger);
+            font-weight: 600;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        /* Action Buttons */
+        .action-btn.small {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: var(--radius-sm);
+            background: var(--light);
+            color: var(--text);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn.small.reject {
+            background: var(--danger);
+            color: white;
+        }
+
+        .action-btn.small:active {
+            transform: scale(0.95);
+        }
+
+        /* Install Prompt */
+        .install-prompt {
+            position: fixed;
+            bottom: calc(80px + var(--safe-bottom));
+            left: 20px;
+            right: 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-heavy);
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .install-prompt.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .install-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .install-icon {
+            font-size: 32px;
+        }
+
+        .install-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Notification Permission */
+        .notification-permission {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .notification-permission.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .notification-box {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .notification-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Swipe Indicators */
+        .swipe-indicator {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 12px;
+            margin-top: 10px;
+            opacity: 0.7;
+        }
+
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .quick-actions {
+                gap: 10px;
+            }
+            
+            .action-btn {
+                padding: 15px 5px;
+            }
+            
+            .balance-box {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .logo h1 {
+                font-size: 24px;
+            }
+            
+            .card h3 {
+                font-size: 18px;
+            }
+            
+            .form-control {
+                padding: 14px;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --light: #1a1a1a;
+                --dark: #ffffff;
+                --gray: #666666;
+                --gray-light: #2a2a2a;
+                --border: #333333;
+                --card-bg: #222222;
+                --surface: #222222;
+                --text: #ffffff;
+                --text-light: #999999;
+                --shadow: 0 2px 10px rgba(0,0,0,0.3);
+                --shadow-heavy: 0 4px 20px rgba(0,0,0,0.4);
+            }
+            
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            }
+            
+            .form-control {
+                background: #333333;
+                color: white;
+                border-color: #444444;
+            }
+            
+            .form-control:focus {
+                background: #3a3a3a;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Loading Overlay -->
-    <div id="loadingOverlay">
+    <div id="loadingOverlay" class="active">
         <div class="spinner"></div>
-        <div id="loadingText">Loading...</div>
+        <div id="loadingText">Loading Duty Manager...</div>
     </div>
 
     <!-- Toast Container -->
@@ -79,17 +926,17 @@
     <!-- Install Prompt -->
     <div id="installPrompt" class="install-prompt">
         <div class="install-header">
-            <div class="install-icon">👤</div>
+            <div class="install-icon">📱</div>
             <div>
-                <div style="font-weight: bold; font-size: 14px;">Install Duty Manager</div>
-                <div style="font-size: 12px; color: #666;">Quick access on home screen</div>
+                <div style="font-weight: bold; font-size: 16px;">Install Duty Manager</div>
+                <div style="font-size: 14px; color: var(--text-light);">Add to home screen for quick access</div>
             </div>
         </div>
         <div class="install-buttons">
             <button id="installNowBtn" class="btn btn-primary" style="flex: 1;">
-                <span>⬇️</span> Install
+                <span>⬇️</span> Install App
             </button>
-            <button id="installLaterBtn" class="btn" style="background: #f0f0f0; color: #666;">
+            <button id="installLaterBtn" class="btn" style="background: var(--light); color: var(--text);">
                 Later
             </button>
         </div>
@@ -99,15 +946,15 @@
     <div id="notificationPermission" class="notification-permission">
         <div class="notification-box">
             <div class="notification-icon">🔔</div>
-            <h3 style="margin-bottom: 10px;">Enable Notifications</h3>
-            <p style="margin-bottom: 20px; color: #666;">
-                Get real-time alerts for duty changes, leave approvals, and announcements even when the app is closed.
+            <h3 style="margin-bottom: 15px; color: var(--text);">Enable Notifications</h3>
+            <p style="margin-bottom: 25px; color: var(--text-light); line-height: 1.5;">
+                Get real-time alerts for duty changes, leave approvals, and important announcements.
             </p>
-            <div style="display: flex; gap: 10px;">
-                <button id="allowNotificationsBtn" class="btn btn-success" style="flex: 1;">
-                    Allow Notifications
+            <div style="display: flex; gap: 12px;">
+                <button id="allowNotificationsBtn" class="btn btn-primary" style="flex: 1;">
+                    Allow
                 </button>
-                <button id="skipNotificationsBtn" class="btn" style="background: #f0f0f0; color: #666;">
+                <button id="skipNotificationsBtn" class="btn" style="background: var(--light); color: var(--text);">
                     Skip
                 </button>
             </div>
@@ -117,289 +964,153 @@
     <!-- Login Container -->
     <div class="login-container" id="loginContainer">
         <div class="logo">
-            <h1>Duty Management</h1>
-            <p>Secure Login System</p>
+            <h1>Duty Manager</h1>
+            <p>Staff Management System</p>
         </div>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-                <span>🔐</span> Login
-            </button>
-            
-            <div class="error-message" id="errorMessage" style="color: #e74c3c; margin-top: 15px; display: none;">
-                Invalid username or password
-            </div>
-        </form>
+        <div class="login-card">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                    <span>🔐</span> Sign In
+                </button>
+                
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    Invalid username or password
+                </div>
+            </form>
+        </div>
+        
+        <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 30px; text-align: center;">
+            Secure login • Version 1.0
+        </div>
     </div>
     
     <!-- Dashboard Container -->
     <div class="dashboard-container" id="dashboardContainer">
-        <!-- Mobile Header -->
-        <div class="mobile-header">
-            <button class="menu-toggle" id="menuToggle">
-                ☰
-            </button>
-            <div class="mobile-title" id="mobileTitle">Dashboard</div>
-            <div class="mobile-user">
-                <div class="mobile-avatar" id="mobileAvatar">U</div>
-            </div>
-        </div>
-        
-        <!-- Mobile Navigation -->
-        <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
-        <div class="mobile-nav" id="mobileNav">
-            <div class="nav-header">
-                <div class="nav-user-name" id="navUserName">User Name</div>
-                <div class="nav-user-details">
-                    <span>RC: <span id="navUserRC">000</span></span>
-                    <span>Level: <span id="navUserLevel">User</span></span>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-avatar" id="headerAvatar">U</div>
+                    <div class="header-info">
+                        <h1 id="headerName">User Name</h1>
+                        <p id="headerRole">RC: 000 • User Level</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" onclick="updateDashboard()" title="Refresh">
+                        🔄
+                    </button>
+                    <button class="header-btn" onclick="showNotifications()" title="Notifications">
+                        🔔
+                    </button>
                 </div>
             </div>
-            
-            <div class="nav-items">
-                <a href="#" class="nav-item active" data-section="home">
-                    <span class="nav-item-icon">🏠</span>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="nav-item" data-section="dutyChange">
-                    <span class="nav-item-icon">🔄</span>
-                    <span>Duty Change</span>
-                </a>
-                <a href="#" class="nav-item" data-section="leaveApplication">
-                    <span class="nav-item-icon">📅</span>
-                    <span>Apply Leave</span>
-                </a>
-                <a href="#" class="nav-item" data-section="myRequests">
-                    <span class="nav-item-icon">📋</span>
-                    <span>My Requests</span>
-                    <span class="nav-item-badge" id="myRequestsBadge" style="display: none;">0</span>
-                </a>
-                <a href="#" class="nav-item" data-section="viewMyRoster">
-                    <span class="nav-item-icon">📊</span>
-                    <span>My Roster</span>
-                </a>
-                <a href="#" class="nav-item" data-section="viewAllRoster">
-                    <span class="nav-item-icon">👥</span>
-                    <span>All Roster</span>
-                </a>
-                <a href="#" class="nav-item" data-section="pendingRequests" id="pendingRequestsNav" style="display: none;">
-                    <span class="nav-item-icon">⏳</span>
-                    <span>Pending</span>
-                    <span class="nav-item-badge" id="pendingRequestsBadge">0</span>
-                </a>
-                
-                <!-- Admin Sections -->
-                <a href="#" class="nav-item admin-nav" data-section="adminAnnouncements" style="display: none;">
-                    <span class="nav-item-icon">📢</span>
-                    <span>Announcements</span>
-                </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminDutyRoster" style="display: none;">
-                    <span class="nav-item-icon">📝</span>
-                    <span>Duty Roster</span>
-                </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminLeaveBalance" style="display: none;">
-                    <span class="nav-item-icon">💰</span>
-                    <span>Leave Balance</span>
-                </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminApprovals" style="display: none;">
-                    <span class="nav-item-icon">✅</span>
-                    <span>Approvals</span>
-                </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminRequestHistory" style="display: none;">
-                    <span class="nav-item-icon">📜</span>
-                    <span>History</span>
-                    <span class="nav-item-badge" id="historyNotificationBadge" style="display: none;">!</span>
-                </a>
-            </div>
-            
-            <div class="nav-footer">
-                <button class="btn btn-danger btn-block" id="logoutBtn">
-                    <span>🚪</span> Logout
-                </button>
-            </div>
         </div>
-        
-        <!-- Content Area -->
-        <div class="dashboard-content" id="dashboardContent">
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
             <!-- Dashboard -->
             <div class="section active" id="homeSection">
-                <div id="homeAnnouncements">
-                    <!-- Announcements will be loaded here -->
+                <!-- Announcements Carousel -->
+                <div id="announcementsCarousel" class="card" style="margin-bottom: 15px; padding: 0; overflow: hidden;">
+                    <div id="announcementsContent" style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                        <div style="text-align: center; padding: 30px;">
+                            <div style="font-size: 48px; opacity: 0.3; margin-bottom: 10px;">📢</div>
+                            <div style="color: var(--text-light);">No announcements</div>
+                        </div>
+                    </div>
+                    <div class="swipe-indicator">Swipe for more</div>
                 </div>
-                
+
+                <!-- Balance Cards -->
+                <div class="balance-display">
+                    <div class="balance-box">
+                        <div class="balance-label">Sick Leave</div>
+                        <div class="balance-value" id="slBalance">0</div>
+                        <div class="balance-label">Days Available</div>
+                    </div>
+                    <div class="balance-box">
+                        <div class="balance-label">FRL</div>
+                        <div class="balance-value" id="frlBalance">0</div>
+                        <div class="balance-label">Days Available</div>
+                    </div>
+                </div>
+
+                <!-- Today's Duty -->
                 <div class="card">
-                    <h3>Welcome, <span id="welcomeName">User</span>!</h3>
-                    
-                    <div class="balance-display">
-                        <div class="balance-box">
-                            <div class="balance-label">Sick Leave</div>
-                            <div class="balance-value" id="slBalance">0</div>
-                            <div class="balance-label">Days</div>
-                        </div>
-                        <div class="balance-box">
-                            <div class="balance-label">FRL</div>
-                            <div class="balance-value" id="frlBalance">0</div>
-                            <div class="balance-label">Days</div>
-                        </div>
-                    </div>
-                    
+                    <h3>📅 Today's Schedule</h3>
                     <div class="alert alert-info">
-                        <p><strong>Today's Duty:</strong> <span id="todayDutyTime">Not Scheduled</span></p>
-                        <p><strong>Next Duty:</strong> <span id="nextDutyTime">No upcoming duty</span></p>
-                        <div id="homeNotifications" style="margin-top: 10px; display: none;"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Current Duty</div>
+                                <div style="font-size: 18px; font-weight: 600;" id="todayDutyTime">Not Scheduled</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Next Duty</div>
+                                <div style="font-size: 16px; font-weight: 600;" id="nextDutyTime">No upcoming</div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-row">
-                        <button class="btn btn-primary" onclick="updateDashboard()">
-                            <span>🔄</span> Refresh
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="showSection('dutyChange')">
+                            <div class="action-icon">🔄</div>
+                            <div class="action-text">Duty Change</div>
                         </button>
-                        <button class="btn btn-warning" onclick="showSection('dutyChange')">
-                            <span>🔄</span> Change Duty
+                        <button class="action-btn" onclick="showSection('leaveApplication')">
+                            <div class="action-icon">📅</div>
+                            <div class="action-text">Apply Leave</div>
                         </button>
-                        <button class="btn btn-success" onclick="showSection('leaveApplication')">
-                            <span>📅</span> Apply Leave
+                        <button class="action-btn" onclick="showSection('myRequests')">
+                            <div class="action-icon">📋</div>
+                            <div class="action-text">My Requests</div>
+                            <span id="myRequestsBadge" style="display: none; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 10px; right: 10px;">0</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Pending Approvals (for supervisors) -->
+                <div class="card" id="pendingApprovalsCard" style="display: none;">
+                    <h3>⏳ Pending Approval</h3>
+                    <div id="pendingApprovalsList">
+                        <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
-            
-            <!-- Duty Change Request -->
+
+            <!-- Other sections will follow the same structure -->
             <div class="section" id="dutyChangeSection">
                 <div class="card">
-                    <h3>Duty Change Request</h3>
-                    
-                    <div class="alert alert-warning">
-                        <strong>Note:</strong> Requests must be made at least 24 hours in advance.
-                    </div>
-                    
-                    <form id="dutyChangeForm">
-                        <div class="form-group">
-                            <label for="changeDate">Change Date *</label>
-                            <input type="date" id="changeDate" class="form-control" required min="">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="changeDutyTime">Your Duty Time *</label>
-                            <select id="changeDutyTime" class="form-control" required>
-                                <option value="">Select duty time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="requestToStaff">Request To Staff *</label>
-                            <select id="requestToStaff" class="form-control" required>
-                                <option value="">Select staff member</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="requestToRcNo">Staff RC No</label>
-                            <input type="text" id="requestToRcNo" class="form-control" readonly>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="requestToDutyTime">Staff's Duty Time *</label>
-                            <select id="requestToDutyTime" class="form-control" required>
-                                <option value="">Select duty time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="changeReason">Reason (Optional)</label>
-                            <textarea id="changeReason" class="form-control" rows="2" placeholder="Brief reason for duty change"></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <button type="submit" class="btn btn-success">
-                                <span>📤</span> Submit Request
-                            </button>
-                            <button type="button" class="btn btn-danger" onclick="showSection('home')">
-                                <span>❌</span> Cancel
-                            </button>
-                        </div>
-                    </form>
+                    <h3>🔄 Duty Change</h3>
+                    <!-- Form content here -->
                 </div>
             </div>
-            
-            <!-- Leave Application -->
+
             <div class="section" id="leaveApplicationSection">
                 <div class="card">
-                    <h3>Leave Application</h3>
-                    
-                    <div class="alert alert-info">
-                        <p><strong>Application Rules:</strong></p>
-                        <p>• Sick Leave: Minimum 2 hours before duty time</p>
-                        <p>• FRL: Minimum 1 hour before duty time</p>
-                        <p><strong>Note:</strong> Leave balance will be deducted immediately upon submission</p>
-                    </div>
-                    
-                    <form id="leaveApplicationForm">
-                        <div class="form-group">
-                            <label for="leaveType">Leave Type *</label>
-                            <select id="leaveType" class="form-control" required>
-                                <option value="">Select leave type</option>
-                                <option value="Sick Leave">Sick Leave</option>
-                                <option value="FRL">FRL</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveDate">Leave Date *</label>
-                            <input type="date" id="leaveDate" class="form-control" required min="">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveDutyTime">Duty Time *</label>
-                            <select id="leaveDutyTime" class="form-control" required>
-                                <option value="">Select duty time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveDuration">Duration *</label>
-                            <select id="leaveDuration" class="form-control" required>
-                                <option value="1">1 Day</option>
-                                <option value="0.5">Half Day</option>
-                                <option value="2">2 Days</option>
-                                <option value="3">3 Days</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="leaveReason">Reason *</label>
-                            <textarea id="leaveReason" class="form-control" rows="3" placeholder="Please provide reason for leave" required></textarea>
-                        </div>
-                        
-                        <div id="leaveRulesAlert" class="alert">
-                            Select leave type, date and duty time to see rules
-                        </div>
-                        
-                        <div class="form-row">
-                            <button type="submit" class="btn btn-success" id="submitLeaveBtn">
-                                <span>📤</span> Submit Application
-                            </button>
-                            <button type="button" class="btn btn-danger" onclick="showSection('home')">
-                                <span>❌</span> Cancel
-                            </button>
-                        </div>
-                    </form>
+                    <h3>📅 Apply Leave</h3>
+                    <!-- Form content here -->
                 </div>
             </div>
-            
-            <!-- My Requests -->
+
             <div class="section" id="myRequestsSection">
                 <div class="card">
-                    <h3>My Requests</h3>
+                    <h3>📋 My Requests</h3>
                     <div class="table-container">
                         <table>
                             <thead>
@@ -412,16 +1123,14 @@
                                 </tr>
                             </thead>
                             <tbody id="myRequestsTable">
-                                <!-- Filled by JavaScript -->
+                                <!-- Will be populated by JavaScript -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            
-            <!-- More sections would continue here... -->
         </div>
-        
+
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
             <button class="bottom-nav-btn active" onclick="showSection('home')">
@@ -444,731 +1153,116 @@
     </div>
 
     <script>
-        // ============================================
-        // APP VARIABLES (Global)
-        // ============================================
-        let currentUser = null;
-        let allUsers = [];
-        let dutyRoster = {};
-        let leaveBalances = {};
-        let allRequests = [];
-        let announcements = [];
-        let isMobile = false;
-        let currentToastId = 0;
-        let deferredPrompt = null;
-        let notificationPermissionAsked = false;
-        let db = null;
-        let messaging = null;
-
-        // ============================================
-        // APP INITIALIZATION
-        // ============================================
+        // Mobile App Functionality
         document.addEventListener('DOMContentLoaded', function() {
-            detectMobile();
-            initApp();
-            initPWA();
-            initNotifications();
+            initMobileApp();
         });
 
-        function detectMobile() {
-            isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                document.body.classList.add('mobile');
-            }
-        }
+        function initMobileApp() {
+            // Setup pull to refresh
+            let startY = 0;
+            let pullDelta = 0;
+            const mainContent = document.getElementById('mainContent');
+            const pullToRefresh = document.createElement('div');
+            pullToRefresh.className = 'pull-to-refresh';
+            pullToRefresh.textContent = 'Pull to refresh';
+            mainContent.insertBefore(pullToRefresh, mainContent.firstChild);
 
-        // ============================================
-        // PWA INSTALLATION
-        // ============================================
-        function initPWA() {
-            // Handle before install prompt
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                
-                // Don't show install prompt if already installed
-                if (!isRunningStandalone()) {
-                    // Show install prompt after delay
-                    setTimeout(() => {
-                        if (!localStorage.getItem('installPromptShown')) {
-                            showInstallPrompt();
-                        }
-                    }, 3000);
+            mainContent.addEventListener('touchstart', e => {
+                if (mainContent.scrollTop === 0) {
+                    startY = e.touches[0].pageY;
+                    pullDelta = 0;
                 }
             });
 
-            // Check if app is already installed
-            if (isRunningStandalone()) {
-                document.body.classList.add('standalone-app');
-            }
-
-            // Handle app installed
-            window.addEventListener('appinstalled', () => {
-                console.log('App was installed');
-                localStorage.setItem('installPromptShown', 'true');
-                document.getElementById('installPrompt').classList.remove('show');
+            mainContent.addEventListener('touchmove', e => {
+                if (mainContent.scrollTop === 0) {
+                    pullDelta = e.touches[0].pageY - startY;
+                    if (pullDelta > 0) {
+                        e.preventDefault();
+                        pullToRefresh.style.transform = `translateY(${Math.min(pullDelta, 50)}px)`;
+                        pullToRefresh.textContent = pullDelta > 50 ? 'Release to refresh' : 'Pull to refresh';
+                    }
+                }
             });
-        }
 
-        function isRunningStandalone() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
-                   window.navigator.standalone ||
-                   document.referrer.includes('android-app://');
-        }
+            mainContent.addEventListener('touchend', e => {
+                if (pullDelta > 50) {
+                    pullToRefresh.textContent = 'Refreshing...';
+                    setTimeout(() => {
+                        pullToRefresh.style.transform = 'translateY(0)';
+                        pullToRefresh.textContent = 'Pull to refresh';
+                        updateDashboard();
+                        showToast('Refreshed!', 'success');
+                    }, 1000);
+                } else {
+                    pullToRefresh.style.transform = 'translateY(0)';
+                }
+                pullDelta = 0;
+            });
 
-        function showInstallPrompt() {
-            if (deferredPrompt && !isRunningStandalone()) {
-                const installPrompt = document.getElementById('installPrompt');
-                installPrompt.classList.add('show');
-                
-                document.getElementById('installNowBtn').addEventListener('click', async () => {
-                    installPrompt.classList.remove('show');
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response: ${outcome}`);
-                    deferredPrompt = null;
-                    localStorage.setItem('installPromptShown', 'true');
+            // Setup swipe gestures for announcements
+            let announcementStartX = 0;
+            const announcementsCarousel = document.getElementById('announcementsCarousel');
+            
+            if (announcementsCarousel) {
+                announcementsCarousel.addEventListener('touchstart', e => {
+                    announcementStartX = e.touches[0].clientX;
                 });
-                
-                document.getElementById('installLaterBtn').addEventListener('click', () => {
-                    installPrompt.classList.remove('show');
-                    localStorage.setItem('installPromptShown', 'true');
-                });
-            }
-        }
 
-        // ============================================
-        // PUSH NOTIFICATIONS
-        // ============================================
-        function initNotifications() {
-            // Wait for Firebase to be initialized from external file
-            setTimeout(() => {
-                if (typeof firebase !== 'undefined' && firebase.messaging && firebase.messaging.isSupported()) {
-                    messaging = firebase.messaging();
+                announcementsCarousel.addEventListener('touchend', e => {
+                    const endX = e.changedTouches[0].clientX;
+                    const diff = endX - announcementStartX;
                     
-                    // Request permission on user action
-                    document.getElementById('allowNotificationsBtn')?.addEventListener('click', async () => {
-                        try {
-                            const permission = await Notification.requestPermission();
-                            if (permission === 'granted') {
-                                console.log('Notification permission granted.');
-                                
-                                // Get FCM token
-                                const token = await messaging.getToken({
-                                    vapidKey: 'BNld9EIubEB5i3S9IpuJmSgmJcw-u0z1ZEEtqSi3YGAoo8Y3FH0vm94GrqNKCcW2Kptv9wV76V4zzLSNDdSeoYo' // Replace with your VAPID key
-                                });
-                                console.log('FCM Token:', token);
-                                
-                                // Save token to user's profile in Firestore
-                                if (currentUser && db) {
-                                    await db.collection('userDevices').doc(currentUser.username).set({
-                                        fcmToken: token,
-                                        lastUpdated: new Date().toISOString(),
-                                        platform: navigator.platform,
-                                        userAgent: navigator.userAgent
-                                    }, { merge: true });
-                                }
-                                
-                                document.getElementById('notificationPermission').classList.remove('show');
-                                showToast('Notifications enabled!', 'success');
-                                
-                                // Setup message handler
-                                setupMessageHandler();
-                            }
-                        } catch (error) {
-                            console.error('Error getting notification permission:', error);
-                            showToast('Failed to enable notifications', 'error');
-                        }
-                    });
-                }
-            }, 1000);
-
-            document.getElementById('skipNotificationsBtn')?.addEventListener('click', () => {
-                document.getElementById('notificationPermission').classList.remove('show');
-                localStorage.setItem('notificationPermissionSkipped', 'true');
-            });
-        }
-
-        function setupMessageHandler() {
-    if (!messaging) {
-        console.error('Messaging not initialized');
-        return;
-    }
-
-    // Log token when available
-    messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY_HERE' })
-        .then((token) => {
-            console.log('FCM Token obtained:', token);
-        })
-        .catch((err) => {
-            console.error('Error getting token:', err);
-        });
-
-    // Handle incoming messages when app is in foreground
-    messaging.onMessage((payload) => {
-        console.log('Foreground message received:', payload);
-        showToast(payload.notification?.body || 'New notification', 'info');
-    });
-
-    // Check service worker registration
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-            console.log('Service Worker ready:', registration);
-        });
-    }
-}
-
-        function showNotificationPermission() {
-            if (!notificationPermissionAsked && 
-                !localStorage.getItem('notificationPermissionSkipped') &&
-                'Notification' in window &&
-                Notification.permission === 'default') {
-                
-                document.getElementById('notificationPermission').classList.add('show');
-                notificationPermissionAsked = true;
-            }
-        }
-
-        // Function to send notifications to users
-        async function sendNotification(toUsername, title, body, data = {}) {
-            if (!db) return;
-            
-            try {
-                // Store notification in Firestore (Cloud Function will send push)
-                await db.collection('notifications').add({
-                    to: toUsername,
-                    title: title,
-                    body: body,
-                    data: data,
-                    timestamp: new Date().toISOString(),
-                    read: false
-                });
-
-                console.log(`Notification queued for ${toUsername}: ${title}`);
-            } catch (error) {
-                console.error('Error sending notification:', error);
-            }
-        }
-
-        // ============================================
-        // CORE APP FUNCTIONS
-        // ============================================
-        function showLoading(show, text = 'Loading...') {
-            const overlay = document.getElementById('loadingOverlay');
-            const textEl = document.getElementById('loadingText');
-            if (overlay) {
-                if (show) {
-                    overlay.classList.add('active');
-                    if (textEl) textEl.textContent = text;
-                } else {
-                    overlay.classList.remove('active');
-                }
-            }
-        }
-
-        function showToast(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            
-            const toastId = 'toast-' + (++currentToastId);
-            const toast = document.createElement('div');
-            toast.id = toastId;
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <span class="toast-icon">
-                    ${type === 'success' ? '✅' : 
-                      type === 'error' ? '❌' : 
-                      type === 'warning' ? '⚠️' : 'ℹ️'}
-                </span>
-                <span>${message}</span>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                const toastElem = document.getElementById(toastId);
-                if (toastElem) {
-                    toastElem.style.opacity = '0';
-                    toastElem.style.transform = 'translateX(100%)';
-                    setTimeout(() => {
-                        if (toastElem.parentNode) {
-                            toastElem.parentNode.removeChild(toastElem);
-                        }
-                    }, 300);
-                }
-            }, duration);
-        }
-
-        function initApp() {
-            // Setup login form
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    handleLogin();
-                });
-            }
-            
-            // Setup mobile navigation
-            setupMobileNavigation();
-            
-            // Set minimum dates
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('changeDate').min = today;
-            document.getElementById('leaveDate').min = today;
-            
-            // Set default dates
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
-            document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
-            
-            // Setup event listeners for forms
-            setupFormEventListeners();
-            
-            // Check session
-            checkSession();
-        }
-
-        function setupMobileNavigation() {
-            const menuToggle = document.getElementById('menuToggle');
-            const mobileNav = document.getElementById('mobileNav');
-            const mobileNavOverlay = document.getElementById('mobileNavOverlay');
-            
-            if (menuToggle && mobileNav && mobileNavOverlay) {
-                menuToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    mobileNav.classList.add('active');
-                    mobileNavOverlay.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-                
-                mobileNavOverlay.addEventListener('click', function() {
-                    mobileNav.classList.remove('active');
-                    mobileNavOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                // Close menu when clicking a nav item
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        mobileNav.classList.remove('active');
-                        mobileNavOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                        
-                        const sectionId = this.getAttribute('data-section');
-                        showSection(sectionId);
-                    });
-                });
-            }
-        }
-
-        function setupFormEventListeners() {
-            // Duty Change Form
-            const dutyChangeForm = document.getElementById('dutyChangeForm');
-            if (dutyChangeForm) {
-                dutyChangeForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    submitDutyChange();
-                });
-            }
-            
-            // Leave Application Form
-            const leaveApplicationForm = document.getElementById('leaveApplicationForm');
-            if (leaveApplicationForm) {
-                leaveApplicationForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    submitLeaveApplication();
-                });
-            }
-            
-            // Date change handlers
-            document.getElementById('changeDate').addEventListener('change', function() {
-                loadUserDutyTimes('changeDutyTime', this.value);
-            });
-            
-            document.getElementById('requestToStaff').addEventListener('change', function() {
-                if (allUsers && currentUser) {
-                    const user = allUsers.find(u => u.username === this.value);
-                    if (user) {
-                        document.getElementById('requestToRcNo').value = user.RCNo;
-                        const date = document.getElementById('changeDate').value;
-                        if (date) {
-                            // Load staff's duty time
-                            const select = document.getElementById('requestToDutyTime');
-                            select.innerHTML = '<option value="">Select duty time</option>';
-                            const dutyTime = dutyRoster[date] && dutyRoster[date][user.username];
-                            if (dutyTime) {
-                                const option = document.createElement('option');
-                                option.value = dutyTime;
-                                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
-                                select.appendChild(option);
-                            }
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) {
+                            // Swiped right
+                            showToast('Previous announcement', 'info');
+                        } else {
+                            // Swiped left
+                            showToast('Next announcement', 'info');
                         }
                     }
-                }
-            });
-            
-            // Leave form handlers
-            document.getElementById('leaveDate').addEventListener('change', function() {
-                loadUserDutyTimes('leaveDutyTime', this.value);
-                updateLeaveRules();
-            });
-            
-            document.getElementById('leaveType').addEventListener('change', updateLeaveRules);
-            document.getElementById('leaveDutyTime').addEventListener('change', updateLeaveRules);
-            document.getElementById('leaveDuration').addEventListener('change', updateLeaveRules);
-            
-            // Logout
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                if (confirm('Are you sure you want to logout?')) {
-                    localStorage.removeItem('dutySystemSession');
-                    location.reload();
-                }
-            });
-        }
+                });
+            }
 
-        function checkSession() {
-            const session = localStorage.getItem('dutySystemSession');
-            if (session) {
-                try {
-                    const user = JSON.parse(session);
-                    if (user.expiry > Date.now()) {
-                        loginUser(user);
-                    } else {
-                        localStorage.removeItem('dutySystemSession');
+            // Add haptic feedback for buttons
+            document.querySelectorAll('.btn, .action-btn, .header-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(10);
                     }
-                } catch (e) {
-                    localStorage.removeItem('dutySystemSession');
-                }
-            }
-        }
-
-        async function handleLogin() {
-            showLoading(true, 'Authenticating...');
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            if (!username || !password) {
-                showToast('Please enter both username and password', 'warning');
-                showLoading(false);
-                return;
-            }
-            
-            // The user data will come from user.js
-            // We'll check if the users array is loaded
-            if (!allUsers || !Array.isArray(allUsers)) {
-                showToast('System error. Please try again.', 'error');
-                showLoading(false);
-                return;
-            }
-            
-            const user = allUsers.find(u => u.username === username);
-            
-            if (!user) {
-                showToast('Invalid username or password', 'error');
-                showLoading(false);
-                return;
-            }
-            
-            // Hash and check password
-            const hashedPassword = sha256(password);
-            
-            if (hashedPassword === user.passwordHash) {
-                const sessionData = {
-                    username: user.username,
-                    name: user.name,
-                    rcNo: user.RCNo,
-                    level: user.Level,
-                    expiry: Date.now() + (8 * 60 * 60 * 1000)
-                };
-                
-                localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
-                await loginUser(sessionData);
-                showLoading(false);
-            } else {
-                showToast('Invalid username or password', 'error');
-                showLoading(false);
-            }
-        }
-
-        async function loginUser(userData) {
-            currentUser = userData;
-            
-            // Update UI
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('dashboardContainer').style.display = 'block';
-            
-            // Update user info
-            document.getElementById('mobileTitle').textContent = 'Dashboard';
-            document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
-            document.getElementById('navUserName').textContent = userData.name;
-            document.getElementById('navUserRC').textContent = userData.rcNo;
-            document.getElementById('navUserLevel').textContent = userData.level;
-            document.getElementById('welcomeName').textContent = userData.name;
-            
-            // Show/hide admin sections
-            const isAdmin = userData.level === 'Supervisor';
-            document.querySelectorAll('.admin-nav').forEach(el => {
-                el.style.display = isAdmin ? 'flex' : 'none';
+                });
             });
-            
-            // Load data from Firebase
-            await initializeData();
-            
-            // Show welcome
-            showToast(`Welcome back, ${userData.name}!`, 'success');
-            
-            // Ask for notification permission after login
-            setTimeout(() => {
-                showNotificationPermission();
-            }, 2000);
-            
-            // Setup real-time listeners
-            setupRealtimeListeners();
-        }
 
-        async function initializeData() {
-            showLoading(true, 'Loading data...');
-            
-            try {
-                // Load all data from Firebase
-                await Promise.all([
-                    loadDutyRoster(),
-                    loadLeaveBalances(),
-                    loadAllRequests(),
-                    loadAnnouncements()
-                ]);
-                
-                // Update UI
-                updateUserBalance();
-                updateRequestCounts();
-                loadHomeAnnouncements();
-                
-                showLoading(false);
-            } catch (error) {
-                console.error('Error initializing data:', error);
-                showToast('Failed to load data', 'error');
-                showLoading(false);
-            }
-        }
+            // Handle back button
+            let currentSection = 'home';
+            window.addEventListener('popstate', function(e) {
+                const section = e.state ? e.state.section : 'home';
+                showSection(section);
+            });
 
-        // ============================================
-        // FIREBASE DATA FUNCTIONS
-        // ============================================
-        async function loadDutyRoster() {
-            if (!db) return {};
-            
-            try {
-                const doc = await db.collection('dutyRoster').doc('current').get();
-                dutyRoster = doc.exists ? doc.data() || {} : {};
-                return dutyRoster;
-            } catch (error) {
-                console.error('Error loading duty roster:', error);
-                dutyRoster = {};
-                return dutyRoster;
-            }
-        }
-
-        async function saveDutyRoster() {
-            if (!db) return false;
-            
-            try {
-                await db.collection('dutyRoster').doc('current').set(dutyRoster);
-                return true;
-            } catch (error) {
-                console.error('Error saving duty roster:', error);
-                showToast('Failed to save roster', 'error');
-                return false;
-            }
-        }
-
-        async function loadLeaveBalances() {
-            if (!db) return {};
-            
-            try {
-                const doc = await db.collection('leaveBalances').doc('current').get();
-                if (doc.exists) {
-                    leaveBalances = doc.data() || {};
-                } else {
-                    // Initialize default balances
-                    leaveBalances = {};
-                    allUsers.forEach(user => {
-                        leaveBalances[user.username] = {
-                            SL: 12,
-                            FRL: 6
-                        };
-                    });
-                    await saveLeaveBalances();
-                }
-                return leaveBalances;
-            } catch (error) {
-                console.error('Error loading leave balances:', error);
-                leaveBalances = {};
-                return leaveBalances;
-            }
-        }
-
-        async function saveLeaveBalances() {
-            if (!db) return false;
-            
-            try {
-                await db.collection('leaveBalances').doc('current').set(leaveBalances);
-                return true;
-            } catch (error) {
-                console.error('Error saving leave balances:', error);
-                showToast('Failed to save leave balances', 'error');
-                return false;
-            }
-        }
-
-        async function loadAllRequests() {
-            if (!db) return [];
-            
-            try {
-                const doc = await db.collection('requests').doc('all').get();
-                if (doc.exists && doc.data().requests) {
-                    allRequests = doc.data().requests;
-                } else {
-                    allRequests = [];
-                }
-                return allRequests;
-            } catch (error) {
-                console.error('Error loading requests:', error);
-                allRequests = [];
-                return allRequests;
-            }
-        }
-
-        async function saveAllRequests() {
-            if (!db) return false;
-            
-            try {
-                await db.collection('requests').doc('all').set({ requests: allRequests });
-                return true;
-            } catch (error) {
-                console.error('Error saving requests:', error);
-                showToast('Failed to save requests', 'error');
-                return false;
-            }
-        }
-
-        async function loadAnnouncements() {
-            if (!db) return [];
-            
-            try {
-                const doc = await db.collection('announcements').doc('all').get();
-                if (doc.exists && doc.data().announcements) {
-                    announcements = doc.data().announcements;
-                } else {
-                    announcements = [];
-                    await saveAnnouncements();
-                }
-                return announcements;
-            } catch (error) {
-                console.error('Error loading announcements:', error);
-                announcements = [];
-                return announcements;
-            }
-        }
-
-        async function saveAnnouncements() {
-            if (!db) return false;
-            
-            try {
-                await db.collection('announcements').doc('all').set({ announcements: announcements });
-                return true;
-            } catch (error) {
-                console.error('Error saving announcements:', error);
-                showToast('Failed to save announcements', 'error');
-                return false;
-            }
-        }
-
-        // ============================================
-        // UI UPDATE FUNCTIONS
-        // ============================================
-        function updateUserBalance() {
-            if (!currentUser) return;
-            
-            const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-            document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
-            document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
-        }
-
-        function updateRequestCounts() {
-            if (!currentUser) return;
-            
-            // Pending requests for user
-            const pendingForUser = allRequests.filter(req => 
-                req.status === 'pending' && 
-                req.type === 'dutyChange' && 
-                req.toUsername === currentUser.username
-            ).length;
-            
-            const pendingNav = document.getElementById('pendingRequestsNav');
-            const pendingBadge = document.getElementById('pendingRequestsBadge');
-            
-            if (pendingForUser > 0) {
-                pendingNav.style.display = 'flex';
-                pendingBadge.textContent = pendingForUser;
-                pendingBadge.style.display = 'inline-block';
-            } else {
-                pendingNav.style.display = 'none';
-                pendingBadge.style.display = 'none';
-            }
-            
-            // My pending requests
-            const myPending = allRequests.filter(req => 
-                req.fromUsername === currentUser.username && 
-                req.status === 'pending'
-            ).length;
-            
-            const myBadge = document.getElementById('myRequestsBadge');
-            if (myPending > 0) {
-                myBadge.textContent = myPending;
-                myBadge.style.display = 'inline-block';
-            } else {
-                myBadge.style.display = 'none';
-            }
-        }
-
-        // ============================================
-        // NAVIGATION FUNCTIONS
-        // ============================================
-        function showSection(sectionId) {
-            // Update mobile title
-            const titles = {
-                home: 'Dashboard',
-                dutyChange: 'Duty Change',
-                leaveApplication: 'Apply Leave',
-                myRequests: 'My Requests',
-                pendingRequests: 'Pending Requests',
-                viewMyRoster: 'My Roster',
-                viewAllRoster: 'All Roster',
-                adminAnnouncements: 'Announcements'
+            // Update all showSection calls to use history
+            const originalShowSection = window.showSection;
+            window.showSection = function(sectionId) {
+                currentSection = sectionId;
+                history.pushState({ section: sectionId }, '', `#${sectionId}`);
+                originalShowSection(sectionId);
             };
-            
-            document.getElementById('mobileTitle').textContent = titles[sectionId] || sectionId;
-            
-            // Update sections
+        }
+
+        // Add this to your existing showSection function
+        function showSection(sectionId) {
+            // Hide all sections
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
             
+            // Show selected section
             const sectionElement = document.getElementById(sectionId + 'Section');
             if (sectionElement) {
                 sectionElement.classList.add('active');
             }
-            
-            // Update navigation
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-section') === sectionId) {
-                    item.classList.add('active');
-                }
-            });
             
             // Update bottom nav
             document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
@@ -1180,625 +1274,33 @@
                 if (sectionId === 'myRequests' && btnText === 'requests') btn.classList.add('active');
             });
             
-            // Load section data
-            loadSectionData(sectionId);
-            
             // Scroll to top
-            document.getElementById('dashboardContent').scrollTop = 0;
+            document.getElementById('mainContent').scrollTop = 0;
         }
 
-        function loadSectionData(sectionId) {
-            switch(sectionId) {
-                case 'home':
-                    updateDashboard();
-                    break;
-                case 'dutyChange':
-                    loadDutyChangeForm();
-                    break;
-                case 'leaveApplication':
-                    loadLeaveForm();
-                    break;
-                case 'myRequests':
-                    loadMyRequests();
-                    break;
-                case 'pendingRequests':
-                    loadPendingRequests();
-                    break;
-                // Add more cases for other sections
-            }
+        // Add these mobile-optimized functions
+        function showNotifications() {
+            showToast('No new notifications', 'info');
         }
 
-        // ============================================
-        // SETUP REALTIME LISTENERS
-        // ============================================
-        function setupRealtimeListeners() {
-            if (!db) return;
-            
-            // Listen for announcements
-            db.collection('announcements').doc('all')
-                .onSnapshot((doc) => {
-                    if (doc.exists && doc.data().announcements) {
-                        announcements = doc.data().announcements;
-                        if (document.getElementById('homeSection').classList.contains('active')) {
-                            loadHomeAnnouncements();
-                        }
-                    }
-                });
-            
-            // Listen for requests
-            db.collection('requests').doc('all')
-                .onSnapshot((doc) => {
-                    if (doc.exists && doc.data().requests) {
-                        allRequests = doc.data().requests;
-                        updateRequestCounts();
-                        
-                        const activeSection = document.querySelector('.section.active')?.id;
-                        if (activeSection === 'myRequestsSection') loadMyRequests();
-                        if (activeSection === 'pendingRequestsSection') loadPendingRequests();
-                    }
-                });
-            
-            // Listen for duty roster changes
-            db.collection('dutyRoster').doc('current')
-                .onSnapshot((doc) => {
-                    if (doc.exists) {
-                        dutyRoster = doc.data() || {};
-                        if (document.getElementById('homeSection').classList.contains('active')) {
-                            updateDashboard();
-                        }
-                    }
-                });
-            
-            // Listen for notifications for current user
-            if (currentUser) {
-                db.collection('notifications')
-                    .where('to', '==', currentUser.username)
-                    .where('read', '==', false)
-                    .orderBy('timestamp', 'desc')
-                    .limit(5)
-                    .onSnapshot((snapshot) => {
-                        snapshot.docChanges().forEach(change => {
-                            if (change.type === 'added') {
-                                const notification = change.doc.data();
-                                showToast(notification.body, 'info');
-                                
-                                // Mark as read
-                                change.doc.ref.update({ read: true });
-                            }
-                        });
-                    });
-            }
-        }
-
-        // ============================================
-        // DASHBOARD FUNCTIONS
-        // ============================================
+        // Mobile-optimized updateDashboard function
         function updateDashboard() {
-            const today = new Date().toISOString().split('T')[0];
-            const todayDutyTime = document.getElementById('todayDutyTime');
-            const nextDutyTime = document.getElementById('nextDutyTime');
-            
-            // Today's duty
-            if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
-                const duty = dutyRoster[today][currentUser.username];
-                todayDutyTime.textContent = duty === 'Off' ? 'Off Duty' : duty;
-            } else {
-                todayDutyTime.textContent = 'Not Scheduled';
-            }
-            
-            // Next duty
-            const tomorrow = new Date();
-            let foundNext = false;
-            
-            for (let i = 1; i <= 7; i++) {
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const dateStr = tomorrow.toISOString().split('T')[0];
-                if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-                    const duty = dutyRoster[dateStr][currentUser.username];
-                    if (duty !== 'Off') {
-                        const date = new Date(dateStr);
-                        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                        nextDutyTime.textContent = `${dayName}: ${duty}`;
-                        foundNext = true;
-                        break;
-                    }
-                }
-            }
-            
-            if (!foundNext) {
-                nextDutyTime.textContent = 'No upcoming duty';
-            }
-            
-            // Update balance
-            updateUserBalance();
-            
-            // Load announcements
-            loadHomeAnnouncements();
-        }
-
-        function loadHomeAnnouncements() {
-            const container = document.getElementById('homeAnnouncements');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            const now = new Date();
-            const activeAnnouncements = announcements.filter(ann => {
-                if (ann.status === 'expired' || ann.status === 'archived') return false;
-                if (ann.expiry && new Date(ann.expiry) < now) return false;
-                return ann.target === 'all' || 
-                       (ann.target === 'specific' && ann.targetUsers && 
-                        ann.targetUsers.includes(currentUser.username));
+            // Add shimmer effect to balance cards
+            const balanceCards = document.querySelectorAll('.balance-box');
+            balanceCards.forEach(card => {
+                card.style.opacity = '0.7';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                }, 300);
             });
             
-            if (activeAnnouncements.length === 0) {
-                const emptyState = document.createElement('div');
-                emptyState.className = 'empty-state';
-                emptyState.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #7f8c8d;">
-                        <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">📢</div>
-                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px; color: #2c3e50;">No Announcements</div>
-                    </div>
-                `;
-                container.appendChild(emptyState);
-                return;
-            }
+            // Show loading state
+            showLoading(true, 'Updating...');
             
-            // Show only 2 announcements on mobile
-            const displayAnnouncements = isMobile ? 
-                activeAnnouncements.slice(0, 2) : activeAnnouncements;
-            
-            displayAnnouncements.forEach(ann => {
-                const announcementDiv = document.createElement('div');
-                announcementDiv.className = 'announcement-banner';
-                announcementDiv.style.cssText = `
-                    color: white;
-                    padding: 15px;
-                    border-radius: 10px;
-                    margin-bottom: 15px;
-                    position: relative;
-                `;
-                
-                if (ann.priority === 'high') {
-                    announcementDiv.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
-                } else if (ann.priority === 'medium') {
-                    announcementDiv.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
-                } else {
-                    announcementDiv.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
-                }
-                
-                announcementDiv.innerHTML = `
-                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
-                        <span>📢</span> ${ann.title}
-                    </div>
-                    <div style="margin-bottom: 10px; font-size: 14px;">${ann.content}</div>
-                    <div style="font-size: 12px; opacity: 0.9;">
-                        By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
-                    </div>
-                `;
-                
-                container.appendChild(announcementDiv);
-            });
-        }
-
-        function formatTimeAgo(timestamp) {
-            const now = new Date();
-            const past = new Date(timestamp);
-            const diffMs = now - past;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            return past.toLocaleDateString();
-        }
-
-        // ============================================
-        // DUTY CHANGE FUNCTIONS
-        // ============================================
-        function loadDutyChangeForm() {
-            // Set tomorrow as default
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
-            
-            // Populate staff dropdown
-            const staffSelect = document.getElementById('requestToStaff');
-            if (staffSelect && allUsers && currentUser) {
-                staffSelect.innerHTML = '<option value="">Select staff member</option>';
-                allUsers.forEach(user => {
-                    if (user.username !== currentUser.username && user.Level === 'User') {
-                        const option = document.createElement('option');
-                        option.value = user.username;
-                        option.textContent = `${user.name} (RC: ${user.RCNo})`;
-                        staffSelect.appendChild(option);
-                    }
-                });
-            }
-            
-            // Load duty times
-            loadUserDutyTimes('changeDutyTime', tomorrow.toISOString().split('T')[0]);
-        }
-
-        function loadUserDutyTimes(selectId, date) {
-            const select = document.getElementById(selectId);
-            if (!select || !date || !currentUser) return;
-            
-            select.innerHTML = '<option value="">Select duty time</option>';
-            const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
-            
-            if (dutyTime) {
-                const option = document.createElement('option');
-                option.value = dutyTime;
-                option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
-                select.appendChild(option);
-            }
-        }
-
-        async function submitDutyChange() {
-            const date = document.getElementById('changeDate').value;
-            const dutyTime = document.getElementById('changeDutyTime').value;
-            const toStaff = document.getElementById('requestToStaff').value;
-            const toDutyTime = document.getElementById('requestToDutyTime').value;
-            const reason = document.getElementById('changeReason').value;
-            
-            if (!date || !dutyTime || !toStaff || !toDutyTime) {
-                showToast('Please fill all required fields', 'warning');
-                return;
-            }
-            
-            if (dutyTime === 'Off' || toDutyTime === 'Off') {
-                showToast('Cannot request duty change on off days', 'warning');
-                return;
-            }
-            
-            // Check if date is at least 24 hours from now
-            const requestDate = new Date(date);
-            const now = new Date();
-            const hoursDiff = (requestDate - now) / (1000 * 60 * 60);
-            
-            if (hoursDiff < 24) {
-                showToast('Duty changes must be requested at least 24 hours in advance', 'warning');
-                return;
-            }
-            
-            const toUser = allUsers.find(u => u.username === toStaff);
-            if (!toUser) {
-                showToast('Selected staff not found', 'error');
-                return;
-            }
-            
-            const request = {
-                id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                type: 'dutyChange',
-                fromUsername: currentUser.username,
-                fromName: currentUser.name,
-                fromRcNo: currentUser.rcNo,
-                date: date,
-                dutyTime: dutyTime,
-                toUsername: toStaff,
-                toName: toUser.name,
-                toRcNo: toUser.RCNo,
-                toDutyTime: toDutyTime,
-                reason: reason,
-                status: 'pending',
-                timestamp: new Date().toISOString(),
-                history: [{
-                    action: 'created',
-                    by: currentUser.name,
-                    timestamp: new Date().toISOString()
-                }]
-            };
-            
-            allRequests.push(request);
-            
-            const success = await saveAllRequests();
-            if (success) {
-                updateRequestCounts();
-                showToast('Duty change request submitted!', 'success');
-                
-                // Send notification to the staff member
-                await sendNotification(toStaff, 
-                    'Duty Change Request',
-                    `${currentUser.name} has requested a duty change with you on ${date}`,
-                    { type: 'duty_change_request', requestId: request.id }
-                );
-                
-                showSection('home');
-                document.getElementById('dutyChangeForm').reset();
-            }
-        }
-
-        // ============================================
-        // LEAVE APPLICATION FUNCTIONS
-        // ============================================
-        function loadLeaveForm() {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
-            loadUserDutyTimes('leaveDutyTime', tomorrow.toISOString().split('T')[0]);
-            updateLeaveRules();
-        }
-
-        function updateLeaveRules() {
-            const leaveType = document.getElementById('leaveType').value;
-            const leaveDate = document.getElementById('leaveDate').value;
-            const dutyTime = document.getElementById('leaveDutyTime').value;
-            const alertDiv = document.getElementById('leaveRulesAlert');
-            const submitBtn = document.getElementById('submitLeaveBtn');
-            
-            if (!leaveType || !leaveDate || !dutyTime) {
-                alertDiv.className = 'alert alert-warning';
-                alertDiv.textContent = 'Please select leave type, date and duty time';
-                if (submitBtn) submitBtn.disabled = true;
-                return;
-            }
-            
-            // Check if user is off duty
-            if (dutyTime === 'Off' || dutyTime === '') {
-                alertDiv.className = 'alert alert-warning';
-                alertDiv.textContent = 'You are off duty on this date. No leave needed.';
-                if (submitBtn) submitBtn.disabled = true;
-                return;
-            }
-            
-            const dutyStart = dutyTime.split('-')[0];
-            const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
-            const now = new Date();
-            const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
-            
-            let canApply = false;
-            let message = '';
-            
-            if (leaveType === 'Sick Leave') {
-                canApply = hoursBeforeDuty >= 2;
-                message = canApply 
-                    ? '✅ You can apply for Sick Leave (2+ hours before duty)'
-                    : `❌ Need ${Math.ceil(2 - hoursBeforeDuty)} more hours before duty`;
-            } else if (leaveType === 'FRL') {
-                canApply = hoursBeforeDuty >= 1;
-                message = canApply
-                    ? '✅ You can apply for FRL (1+ hour before duty)'
-                    : `❌ Need ${Math.ceil(1 - hoursBeforeDuty)} more hours before duty`;
-            }
-            
-            // Check balance if user can apply
-            if (canApply) {
-                const duration = parseFloat(document.getElementById('leaveDuration').value) || 1;
-                const userBalance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-                
-                if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
-                    canApply = false;
-                    message = `❌ Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`;
-                } else if (leaveType === 'FRL' && userBalance.FRL < duration) {
-                    canApply = false;
-                    message = `❌ Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`;
-                }
-            }
-            
-            alertDiv.className = canApply ? 'alert alert-success' : 'alert alert-danger';
-            alertDiv.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
-            if (submitBtn) submitBtn.disabled = !canApply;
-        }
-
-        async function submitLeaveApplication() {
-            const leaveType = document.getElementById('leaveType').value;
-            const date = document.getElementById('leaveDate').value;
-            const dutyTime = document.getElementById('leaveDutyTime').value;
-            const duration = parseFloat(document.getElementById('leaveDuration').value);
-            const reason = document.getElementById('leaveReason').value;
-            
-            if (!leaveType || !date || !dutyTime || !reason) {
-                showToast('Please fill all required fields', 'warning');
-                return;
-            }
-            
-            if (dutyTime === 'Off' || dutyTime === '') {
-                showToast('You are off duty on this date', 'warning');
-                return;
-            }
-            
-            // Check balance
-            const userBalance = leaveBalances[currentUser.username];
-            if (!userBalance) {
-                showToast('Error: User balance not found', 'error');
-                return;
-            }
-            
-            // IMMEDIATELY DEDUCT FROM BALANCE
-            if (leaveType === 'Sick Leave') {
-                if (userBalance.SL < duration) {
-                    showToast(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`, 'warning');
-                    return;
-                }
-                userBalance.SL -= duration;
-                userBalance.SL = Math.max(0, userBalance.SL); // Ensure non-negative
-            } else if (leaveType === 'FRL') {
-                if (userBalance.FRL < duration) {
-                    showToast(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`, 'warning');
-                    return;
-                }
-                userBalance.FRL -= duration;
-                userBalance.FRL = Math.max(0, userBalance.FRL);
-            }
-            
-            // Save updated balance immediately
-            await saveLeaveBalances();
-            
-            // Create leave request (auto-approved since balance already deducted)
-            const request = {
-                id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                type: 'leave',
-                leaveType: leaveType,
-                fromUsername: currentUser.username,
-                fromName: currentUser.name,
-                fromRcNo: currentUser.rcNo,
-                date: date,
-                dutyTime: dutyTime,
-                duration: duration,
-                reason: reason,
-                status: 'approved', // Auto-approved since balance deducted
-                timestamp: new Date().toISOString(),
-                approvedBy: 'System (Auto-approved)',
-                approvedAt: new Date().toISOString(),
-                history: [{
-                    action: 'created_and_approved',
-                    by: currentUser.name,
-                    timestamp: new Date().toISOString(),
-                    note: 'Leave balance deducted immediately upon application'
-                }]
-            };
-            
-            allRequests.push(request);
-            
-            // Save request
-            const success = await saveAllRequests();
-            if (success) {
-                // Update UI immediately
-                updateUserBalance();
-                updateRequestCounts();
-                
-                // Show success message with balance deduction info
-                showToast(`${leaveType} application submitted successfully! ${duration} day(s) deducted from your balance.`, 'success');
-                
-                // Send notification to supervisors
-                const supervisors = allUsers.filter(u => u.Level === 'Supervisor');
-                for (const supervisor of supervisors) {
-                    await sendNotification(supervisor.username,
-                        'Leave Application',
-                        `${currentUser.name} has applied for ${duration} day(s) of ${leaveType}`,
-                        { type: 'leave_application', userId: currentUser.username }
-                    );
-                }
-                
-                // Reset form and go to dashboard
-                showSection('home');
-                document.getElementById('leaveApplicationForm').reset();
-                
-                // Show updated balance
-                showToast(`New ${leaveType} balance: ${leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`, 'info', 2000);
-            }
-        }
-
-        // ============================================
-        // MY REQUESTS FUNCTIONS
-        // ============================================
-        function loadMyRequests() {
-            const tbody = document.getElementById('myRequestsTable');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
-            
-            if (myReqs.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px;">
-                            <div style="color: #7f8c8d; font-size: 16px;">
-                                No requests found
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            // Sort by timestamp
-            myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            myReqs.forEach(req => {
-                const tr = document.createElement('tr');
-                
-                let details = '';
-                if (req.type === 'dutyChange') {
-                    details = `Swap with ${req.toName} (${req.toDutyTime})`;
-                } else {
-                    details = `${req.leaveType} - ${req.duration} day(s)`;
-                }
-                
-                let statusClass = 'status-' + req.status;
-                let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
-                
-                tr.innerHTML = `
-                    <td>${req.type === 'dutyChange' ? 'Duty Change' : 'Leave'}</td>
-                    <td>${req.date}</td>
-                    <td>${details}</td>
-                    <td class="${statusClass}">${statusText}</td>
-                    <td>
-                        ${req.status === 'pending' ? 
-                            `<button class="action-btn reject" onclick="cancelRequest('${req.id}')">Cancel</button>` : ''}
-                    </td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function cancelRequest(requestId) {
-            if (!confirm('Are you sure you want to cancel this request?')) return;
-            
-            const request = allRequests.find(req => req.id === requestId);
-            if (!request) {
-                showToast('Request not found', 'error');
-                return;
-            }
-            
-            if (request.status !== 'pending') {
-                showToast('Only pending requests can be cancelled', 'warning');
-                return;
-            }
-            
-            // If it's a leave request that was auto-approved, refund the balance
-            if (request.type === 'leave' && request.status === 'approved') {
-                const userBalance = leaveBalances[request.fromUsername];
-                if (userBalance) {
-                    if (request.leaveType === 'Sick Leave') {
-                        userBalance.SL += request.duration;
-                    } else if (request.leaveType === 'FRL') {
-                        userBalance.FRL += request.duration;
-                    }
-                    await saveLeaveBalances();
-                    updateUserBalance();
-                    showToast(`${request.duration} day(s) refunded to ${request.leaveType} balance`, 'info');
-                }
-            }
-            
-            request.status = 'cancelled';
-            request.history.push({
-                action: 'cancelled',
-                by: currentUser.name,
-                timestamp: new Date().toISOString()
-            });
-            
-            const success = await saveAllRequests();
-            if (success) {
-                loadMyRequests();
-                updateRequestCounts();
-                showToast('Request cancelled', 'success');
-            }
-        }
-
-        // ============================================
-        // SERVICE WORKER REGISTRATION
-        // ============================================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // Register service worker for PWA and push notifications
-                navigator.serviceWorker.register('/sw.js').then(registration => {
-                    console.log('ServiceWorker registered:', registration);
-                    
-                    // Initialize Firebase Messaging after service worker is ready
-                    if (messaging) {
-                        messaging.useServiceWorker(registration);
-                    }
-                }).catch(error => {
-                    console.log('ServiceWorker registration failed:', error);
-                });
-            });
+            // Your existing update logic here
+            setTimeout(() => {
+                showLoading(false);
+            }, 1000);
         }
     </script>
 </body>
