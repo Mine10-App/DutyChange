@@ -24,7 +24,9 @@
     <link rel="manifest" href="/manifest.json">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/favicon.ico">
+    <!-- Replace the icon links in your <head> section with these data URLs -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E" type="image/svg+xml">
     
     <title>Duty Management System</title>
     
@@ -1670,467 +1672,427 @@
     </div>
 
   
+
 <script>
-
     // PWA and Notifications Manager
-        class PWAManager {
-            constructor() {
-                this.deferredPrompt = null;
-                this.isStandalone = false;
-                this.serviceWorkerRegistration = null;
-                this.notificationPermission = 'default';
-                this.isOnline = navigator.onLine;
-                
-                this.init();
-            }
+    class PWAManager {
+        constructor() {
+            this.deferredPrompt = null;
+            this.isStandalone = false;
+            this.serviceWorkerRegistration = null;
+            this.notificationPermission = 'default';
+            this.isOnline = navigator.onLine;
+            this.messaging = null;
             
-            async init() {
-                this.checkStandalone();
-                this.setupNetworkListener();
-                this.setupInstallPrompt();
-                this.registerServiceWorker();
-                this.checkNotificationPermission();
-            }
+            this.init();
+        }
+        
+        async init() {
+            this.checkStandalone();
+            this.setupNetworkListener();
+            this.setupInstallPrompt();
+            this.registerServiceWorker();
+            this.checkNotificationPermission();
+        }
+        
+        checkStandalone() {
+            this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                              window.navigator.standalone ||
+                              document.referrer.includes('android-app://');
             
-            checkStandalone() {
-                this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                                  window.navigator.standalone ||
-                                  document.referrer.includes('android-app://');
-                
-                if (this.isStandalone) {
-                    document.body.classList.add('standalone-app');
-                    console.log('Running as installed PWA');
-                }
+            if (this.isStandalone) {
+                document.body.classList.add('standalone-app');
+                console.log('Running as installed PWA');
             }
-            
-            setupNetworkListener() {
-                window.addEventListener('online', () => {
-                    this.isOnline = true;
-                    this.updateNetworkStatus();
-                    showToast('You are back online', 'success');
-                });
-                
-                window.addEventListener('offline', () => {
-                    this.isOnline = false;
-                    this.updateNetworkStatus();
-                    showToast('You are offline', 'warning');
-                });
-                
+        }
+        
+        setupNetworkListener() {
+            window.addEventListener('online', () => {
+                this.isOnline = true;
                 this.updateNetworkStatus();
-            }
+                this.showToast('You are back online', 'success');
+            });
             
-            updateNetworkStatus() {
-                const statusEl = document.getElementById('networkStatus');
-                if (!statusEl) return;
+            window.addEventListener('offline', () => {
+                this.isOnline = false;
+                this.updateNetworkStatus();
+                this.showToast('You are offline', 'warning');
+            });
+            
+            this.updateNetworkStatus();
+        }
+        
+        updateNetworkStatus() {
+            const statusEl = document.getElementById('networkStatus');
+            if (!statusEl) return;
+            
+            if (this.isOnline) {
+                statusEl.classList.remove('offline');
+                statusEl.classList.add('online');
+                statusEl.querySelector('#networkIcon').textContent = '✅';
+                statusEl.querySelector('#networkText').textContent = 'Online';
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            } else {
+                statusEl.classList.remove('online');
+                statusEl.classList.add('offline');
+                statusEl.querySelector('#networkIcon').textContent = '⚠️';
+                statusEl.querySelector('#networkText').textContent = 'Offline';
+                statusEl.style.display = 'flex';
+            }
+        }
+        
+        setupInstallPrompt() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
                 
-                if (this.isOnline) {
-                    statusEl.classList.remove('offline');
-                    statusEl.classList.add('online');
-                    statusEl.querySelector('#networkIcon').textContent = '✅';
-                    statusEl.querySelector('#networkText').textContent = 'Online';
-                    setTimeout(() => {
-                        statusEl.style.display = 'none';
-                    }, 3000);
-                } else {
-                    statusEl.classList.remove('online');
-                    statusEl.classList.add('offline');
-                    statusEl.querySelector('#networkIcon').textContent = '⚠️';
-                    statusEl.querySelector('#networkText').textContent = 'Offline';
-                    statusEl.style.display = 'flex';
+                // Don't show immediately on standalone
+                if (!this.isStandalone && !localStorage.getItem('installPromptShown')) {
+                    setTimeout(() => this.showInstallPrompt(), 3000);
                 }
-            }
+            });
             
-            setupInstallPrompt() {
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    this.deferredPrompt = e;
-                    
-                    // Don't show immediately on standalone
-                    if (!this.isStandalone && !localStorage.getItem('installPromptShown')) {
-                        setTimeout(() => this.showInstallPrompt(), 3000);
-                    }
-                });
-                
-                // Listen for app installed
-                window.addEventListener('appinstalled', () => {
-                    console.log('PWA installed successfully');
-                    localStorage.setItem('installPromptShown', 'true');
-                    this.hideInstallPrompt();
-                    showToast('App installed successfully!', 'success');
-                });
-            }
-            
-            showInstallPrompt() {
-                if (this.deferredPrompt && !localStorage.getItem('installPromptShown')) {
-                    const prompt = document.getElementById('installPrompt');
-                    prompt.classList.remove('hidden');
-                    
-                    document.getElementById('installNowBtn').onclick = async () => {
-                        prompt.style.animation = 'slideOutDown 0.3s ease';
-                        setTimeout(() => prompt.classList.add('hidden'), 300);
-                        
-                        this.deferredPrompt.prompt();
-                        const { outcome } = await this.deferredPrompt.userChoice;
-                        console.log(`User response: ${outcome}`);
-                        this.deferredPrompt = null;
-                        localStorage.setItem('installPromptShown', 'true');
-                    };
-                    
-                    document.getElementById('installLaterBtn').onclick = () => {
-                        prompt.style.animation = 'slideOutDown 0.3s ease';
-                        setTimeout(() => prompt.classList.add('hidden'), 300);
-                        localStorage.setItem('installPromptShown', 'true');
-                    };
-                    
-                    // Auto-hide after 30 seconds
-                    setTimeout(() => {
-                        if (!prompt.classList.contains('hidden')) {
-                            prompt.style.animation = 'slideOutDown 0.3s ease';
-                            setTimeout(() => prompt.classList.add('hidden'), 300);
-                            localStorage.setItem('installPromptShown', 'true');
-                        }
-                    }, 30000);
-                }
-            }
-            
-            hideInstallPrompt() {
+            // Listen for app installed
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA installed successfully');
+                localStorage.setItem('installPromptShown', 'true');
+                this.hideInstallPrompt();
+                this.showToast('App installed successfully!', 'success');
+            });
+        }
+        
+        showInstallPrompt() {
+            if (this.deferredPrompt && !localStorage.getItem('installPromptShown')) {
                 const prompt = document.getElementById('installPrompt');
-                prompt.classList.add('hidden');
-            }
-            
-            async registerServiceWorker() {
-                if ('serviceWorker' in navigator) {
-                    try {
-                        // Register service worker
-                        this.serviceWorkerRegistration = await navigator.register('/service-worker.js', {
-                            scope: '/'
-                        });
-                        
-                        console.log('Service Worker registered:', this.serviceWorkerRegistration);
-                        
-                        // Listen for updates
-                        this.serviceWorkerRegistration.addEventListener('updatefound', () => {
-                            const newWorker = this.serviceWorkerRegistration.installing;
-                            if (newWorker) {
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && 
-                                        navigator.serviceWorker.controller) {
-                                        this.showUpdatePrompt();
-                                    }
-                                });
-                            }
-                        });
-                        
-                        // Check for updates periodically
-                        setInterval(() => {
-                            this.serviceWorkerRegistration.update();
-                        }, 60 * 60 * 1000); // Check every hour
-                        
-                        // Message channel for communication
-                        if (navigator.serviceWorker.controller) {
-                            this.setupServiceWorkerMessages();
-                        }
-                        
-                    } catch (error) {
-                        console.error('Service Worker registration failed:', error);
+                prompt.classList.remove('hidden');
+                
+                document.getElementById('installNowBtn').onclick = async () => {
+                    prompt.style.animation = 'slideOutDown 0.3s ease';
+                    setTimeout(() => prompt.classList.add('hidden'), 300);
+                    
+                    this.deferredPrompt.prompt();
+                    const { outcome } = await this.deferredPrompt.userChoice;
+                    console.log(`User response: ${outcome}`);
+                    this.deferredPrompt = null;
+                    localStorage.setItem('installPromptShown', 'true');
+                };
+                
+                document.getElementById('installLaterBtn').onclick = () => {
+                    prompt.style.animation = 'slideOutDown 0.3s ease';
+                    setTimeout(() => prompt.classList.add('hidden'), 300);
+                    localStorage.setItem('installPromptShown', 'true');
+                };
+                
+                // Auto-hide after 30 seconds
+                setTimeout(() => {
+                    if (!prompt.classList.contains('hidden')) {
+                        prompt.style.animation = 'slideOutDown 0.3s ease';
+                        setTimeout(() => prompt.classList.add('hidden'), 300);
+                        localStorage.setItem('installPromptShown', 'true');
                     }
+                }, 30000);
+            }
+        }
+        
+        hideInstallPrompt() {
+            const prompt = document.getElementById('installPrompt');
+            prompt.classList.add('hidden');
+        }
+        
+        async registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    // Register service worker
+                    this.serviceWorkerRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+                        scope: '/'
+                    });
+                    
+                    console.log('Service Worker registered:', this.serviceWorkerRegistration);
+                    
+                    // Listen for updates
+                    this.serviceWorkerRegistration.addEventListener('updatefound', () => {
+                        const newWorker = this.serviceWorkerRegistration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && 
+                                    navigator.serviceWorker.controller) {
+                                    this.showUpdatePrompt();
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Check for updates periodically
+                    setInterval(() => {
+                        this.serviceWorkerRegistration.update();
+                    }, 60 * 60 * 1000); // Check every hour
+                    
+                    // Message channel for communication
+                    if (navigator.serviceWorker.controller) {
+                        this.setupServiceWorkerMessages();
+                    }
+                    
+                } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                    // Fallback: Try to register a simpler service worker
+                    this.registerSimpleServiceWorker();
                 }
             }
-            
-            showUpdatePrompt() {
-                const updatePrompt = document.getElementById('updatePrompt');
-                if (updatePrompt) {
-                    updatePrompt.classList.remove('hidden');
-                    updatePrompt.onclick = () => {
-                        if (this.serviceWorkerRegistration.waiting) {
-                            this.serviceWorkerRegistration.waiting.postMessage({type: 'SKIP_WAITING'});
-                            location.reload();
-                        }
-                    };
-                }
-            }
-            
-            setupServiceWorkerMessages() {
-                // Listen for messages from service worker
-                navigator.serviceWorker.addEventListener('message', (event) => {
-                    if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
-                        this.handleNotificationClick(event.data.data);
-                    }
+        }
+        
+        async registerSimpleServiceWorker() {
+            try {
+                // Simple service worker for offline support
+                const simpleSW = `
+                    self.addEventListener('install', (event) => {
+                        console.log('Simple Service Worker installing...');
+                        self.skipWaiting();
+                    });
+                    
+                    self.addEventListener('activate', (event) => {
+                        console.log('Simple Service Worker activating...');
+                        self.clients.claim();
+                    });
+                    
+                    self.addEventListener('fetch', (event) => {
+                        // Simple cache-first strategy
+                        event.respondWith(
+                            caches.match(event.request)
+                                .then(response => response || fetch(event.request))
+                        );
+                    });
+                `;
+                
+                const blob = new Blob([simpleSW], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                
+                this.serviceWorkerRegistration = await navigator.serviceWorker.register(url, {
+                    scope: '/'
                 });
                 
-                // Send message to service worker
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'INIT',
-                        payload: { userId: currentUser?.username }
-                    });
-                }
+                console.log('Simple Service Worker registered');
+            } catch (error) {
+                console.error('Simple Service Worker registration failed:', error);
             }
-            
-            handleNotificationClick(data) {
-                console.log('Notification clicked with data:', data);
-                
-                if (data && data.type === 'announcement') {
-                    showSection('home');
-                } else if (data && data.type === 'request') {
-                    showSection('pendingRequests');
-                } else if (data && data.type === 'request_response') {
-                    showSection('myRequests');
-                }
-            }
-            
-            checkNotificationPermission() {
-                if ('Notification' in window) {
-                    this.notificationPermission = Notification.permission;
-                    
-                    if (this.notificationPermission === 'default' && 
-                        !localStorage.getItem('notificationPromptShown')) {
-                        setTimeout(() => this.showNotificationPrompt(), 5000);
+        }
+        
+        showUpdatePrompt() {
+            const updatePrompt = document.getElementById('updatePrompt');
+            if (updatePrompt) {
+                updatePrompt.classList.remove('hidden');
+                updatePrompt.onclick = () => {
+                    if (this.serviceWorkerRegistration.waiting) {
+                        this.serviceWorkerRegistration.waiting.postMessage({type: 'SKIP_WAITING'});
+                        location.reload();
                     }
+                };
+            }
+        }
+        
+        setupServiceWorkerMessages() {
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+                    this.handleNotificationClick(event.data.data);
+                }
+            });
+            
+            // Send message to service worker
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'INIT',
+                    payload: { userId: window.currentUser?.username }
+                });
+            }
+        }
+        
+        handleNotificationClick(data) {
+            console.log('Notification clicked with data:', data);
+            
+            if (data && data.type === 'announcement') {
+                showSection('home');
+            } else if (data && data.type === 'request') {
+                showSection('pendingRequests');
+            } else if (data && data.type === 'request_response') {
+                showSection('myRequests');
+            }
+        }
+        
+        checkNotificationPermission() {
+            if ('Notification' in window) {
+                this.notificationPermission = Notification.permission;
+                
+                if (this.notificationPermission === 'default' && 
+                    !localStorage.getItem('notificationPromptShown')) {
+                    setTimeout(() => this.showNotificationPrompt(), 5000);
                 }
             }
-            
-            showNotificationPrompt() {
-                if (currentUser && !this.isStandalone) {
-                    const prompt = document.getElementById('notificationPrompt');
-                    prompt.classList.add('show');
-                }
-            }
-            
-            hideNotificationPrompt() {
+        }
+        
+        showNotificationPrompt() {
+            if (window.currentUser && !this.isStandalone) {
                 const prompt = document.getElementById('notificationPrompt');
-                prompt.classList.remove('show');
-                localStorage.setItem('notificationPromptShown', 'true');
-            }
-            
-            async enableNotifications() {
-                this.hideNotificationPrompt();
-                
-                if ('Notification' in window) {
-                    const permission = await Notification.requestPermission();
-                    this.notificationPermission = permission;
-                    
-                    if (permission === 'granted') {
-                        showToast('Notifications enabled!', 'success');
-                        this.initializeFirebaseMessaging();
-                    } else {
-                        showToast('Notifications blocked', 'warning');
-                    }
-                }
-            }
-            
-            async initializeFirebaseMessaging() {
-                if (!firebase.messaging.isSupported() || !currentUser) return;
-                
-                try {
-                    messaging = firebase.messaging();
-                    
-                    // Get FCM token
-                    const token = await messaging.getToken({ 
-                        vapidKey: 'BNld9EIubEB5i3S9IpuJmSgmJcw-u0z1ZEEtqSi3YGAoo8Y3FH0vm94GrqNKCcW2Kptv9wV76V4zzLSNDdSeoYo'
-                    });
-                    
-                    if (token) {
-                        console.log('FCM Token:', token);
-                        await saveUserNotificationToken(token);
-                        
-                        // Subscribe to topics based on user role
-                        if (currentUser.level === 'Supervisor') {
-                            await this.subscribeToTopics(['admin', 'announcements']);
-                        } else {
-                            await this.subscribeToTopics(['users', 'announcements']);
-                        }
-                    }
-                    
-                    // Handle incoming messages
-                    messaging.onMessage((payload) => {
-                        console.log('Foreground message received:', payload);
-                        this.showLocalNotification(payload);
-                    });
-                    
-                } catch (error) {
-                    console.error('Firebase messaging error:', error);
-                }
-            }
-            
-            async subscribeToTopics(topics) {
-                // This would require a backend API to subscribe to FCM topics
-                // For now, we'll store user subscriptions in Firestore
-                try {
-                    await db.collection('userSubscriptions').doc(currentUser.username).set({
-                        topics: topics,
-                        updatedAt: new Date().toISOString()
-                    }, { merge: true });
-                } catch (error) {
-                    console.error('Error subscribing to topics:', error);
-                }
-            }
-            
-            showLocalNotification(payload) {
-                const { title, body, data } = payload.notification || payload;
-                
-                // Check if notification is for current user
-                const isForMe = !data || !data.targetUser || data.targetUser === currentUser.username;
-                
-                if (isForMe && this.notificationPermission === 'granted') {
-                    const notification = new Notification(title || 'Duty Manager', {
-                        body: body || 'New notification',
-                        icon: '/icon-192x192.png',
-                        badge: '/badge-72x72.png',
-                        tag: 'duty-manager-local',
-                        requireInteraction: true,
-                        data: data
-                    });
-                    
-                    notification.onclick = () => {
-                        window.focus();
-                        notification.close();
-                        this.handleNotificationClick(data);
-                    };
-                }
-                
-                // Always show toast
-                showToast(body || title, 'info');
+                prompt.classList.add('show');
             }
         }
-
-        // Initialize PWA Manager
-        let pwaManager;
-        let messaging = null;
-        let currentUser = null;
-        // ... (rest of your existing variables)
-
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', function() {
-            detectMobile();
-            initApp();
+        
+        hideNotificationPrompt() {
+            const prompt = document.getElementById('notificationPrompt');
+            prompt.classList.remove('show');
+            localStorage.setItem('notificationPromptShown', 'true');
+        }
+        
+        async enableNotifications() {
+            this.hideNotificationPrompt();
             
-            // Initialize PWA Manager
-            pwaManager = new PWAManager();
-        });
-
-        // Add these functions to your existing script
-        function enableNotifications() {
-            if (pwaManager) {
-                pwaManager.enableNotifications();
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                this.notificationPermission = permission;
+                
+                if (permission === 'granted') {
+                    this.showToast('Notifications enabled!', 'success');
+                    this.initializeFirebaseMessaging();
+                } else {
+                    this.showToast('Notifications blocked', 'warning');
+                }
             }
         }
-
-        function hideNotificationPrompt() {
-            if (pwaManager) {
-                pwaManager.hideNotificationPrompt();
-            }
-        }
-
-        async function saveUserNotificationToken(token) {
+        
+        async initializeFirebaseMessaging() {
+            if (!firebase.messaging.isSupported() || !window.currentUser) return;
+            
             try {
-                await db.collection('userTokens').doc(currentUser.username).set({
+                this.messaging = firebase.messaging();
+                
+                // Get FCM token
+                const token = await this.messaging.getToken({ 
+                    vapidKey: 'BNld9EIubEB5i3S9IpuJmSgmJcw-u0z1ZEEtqSi3YGAoo8Y3FH0vm94GrqNKCcW2Kptv9wV76V4zzLSNDdSeoYo'
+                });
+                
+                if (token) {
+                    console.log('FCM Token:', token);
+                    await this.saveUserNotificationToken(token);
+                    
+                    // Subscribe to topics based on user role
+                    if (window.currentUser.level === 'Supervisor') {
+                        await this.subscribeToTopics(['admin', 'announcements']);
+                    } else {
+                        await this.subscribeToTopics(['users', 'announcements']);
+                    }
+                }
+                
+                // Handle incoming messages
+                this.messaging.onMessage((payload) => {
+                    console.log('Foreground message received:', payload);
+                    this.showLocalNotification(payload);
+                });
+                
+            } catch (error) {
+                console.error('Firebase messaging error:', error);
+            }
+        }
+        
+        async subscribeToTopics(topics) {
+            // This would require a backend API to subscribe to FCM topics
+            // For now, we'll store user subscriptions in Firestore
+            try {
+                await db.collection('userSubscriptions').doc(window.currentUser.username).set({
+                    topics: topics,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (error) {
+                console.error('Error subscribing to topics:', error);
+            }
+        }
+        
+        showLocalNotification(payload) {
+            const { title, body, data } = payload.notification || payload;
+            
+            // Check if notification is for current user
+            const isForMe = !data || !data.targetUser || data.targetUser === window.currentUser.username;
+            
+            if (isForMe && this.notificationPermission === 'granted') {
+                const notification = new Notification(title || 'Duty Manager', {
+                    body: body || 'New notification',
+                    icon: this.getIconUrl('icon-192x192.png'),
+                    badge: this.getIconUrl('icon-72x72.png'),
+                    tag: 'duty-manager-local',
+                    requireInteraction: true,
+                    data: data
+                });
+                
+                notification.onclick = () => {
+                    window.focus();
+                    notification.close();
+                    this.handleNotificationClick(data);
+                };
+            }
+            
+            // Always show toast
+            this.showToast(body || title, 'info');
+        }
+        
+        getIconUrl(filename) {
+            // Try to get icon from correct path
+            const baseUrl = window.location.origin;
+            return `${baseUrl}/${filename}`;
+        }
+        
+        async saveUserNotificationToken(token) {
+            try {
+                await db.collection('userTokens').doc(window.currentUser.username).set({
                     token: token,
                     updatedAt: new Date().toISOString(),
-                    platform: pwaManager.isStandalone ? 'pwa' : 'web'
+                    platform: this.isStandalone ? 'pwa' : 'web'
                 }, { merge: true });
                 
-                console.log('Token saved for user:', currentUser.username);
+                console.log('Token saved for user:', window.currentUser.username);
             } catch (error) {
                 console.error('Error saving token:', error);
             }
         }
-
-        async function sendNotificationToUser(username, title, body, data = {}) {
-            try {
-                // Store notification in Firestore
-                await db.collection('notifications').add({
-                    targetUser: username,
-                    title: title,
-                    body: body,
-                    data: data,
-                    timestamp: new Date().toISOString(),
-                    read: false,
-                    delivered: false
-                });
-                
-                // Show immediate local notification if user is current user
-                if (currentUser && currentUser.username === username) {
-                    if (pwaManager) {
-                        pwaManager.showLocalNotification({
-                            notification: { title, body },
-                            data: data
-                        });
-                    }
-                }
-                
-                // You would typically call a Cloud Function here to send FCM messages
-                // sendFCMNotification({ username, title, body, data });
-                
-            } catch (error) {
-                console.error('Error sending notification:', error);
-            }
-        }
-
-        // Add offline support for Firestore
-        function enableOfflineSupport() {
-            if (typeof db !== 'undefined') {
-                // Enable offline persistence
-                db.enablePersistence()
-                    .catch((err) => {
-                        if (err.code === 'failed-precondition') {
-                            console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-                        } else if (err.code === 'unimplemented') {
-                            console.warn('The current browser doesn\'t support persistence.');
+        
+        showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toastId = 'toast-' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">
+                    ${type === 'success' ? '✅' : 
+                      type === 'error' ? '❌' : 
+                      type === 'warning' ? '⚠️' : 'ℹ️'}
+                </span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Remove after duration
+            setTimeout(() => {
+                const toastElem = document.getElementById(toastId);
+                if (toastElem) {
+                    toastElem.style.opacity = '0';
+                    toastElem.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (toastElem.parentNode) {
+                            toastElem.parentNode.removeChild(toastElem);
                         }
-                    });
-                
-                // Sync data when coming back online
-                window.addEventListener('online', () => {
-                    // Your sync logic here
-                    if (currentUser) {
-                        initializeData();
-                    }
-                });
-            }
+                    }, 300);
+                }
+            }, duration);
         }
+    }
 
-        // Update the loginUser function to initialize notifications
-        async function loginUser(userData) {
-            currentUser = userData;
-            // ... (rest of your existing loginUser code)
-            
-            // Initialize push notifications for logged-in user
-            if (pwaManager) {
-                pwaManager.initializeFirebaseMessaging();
-            }
-            
-            // Enable offline support
-            enableOfflineSupport();
-        }
-
-        // Update the showToast function to work offline
-        function showToast(message, type = 'info', duration = 3000) {
-            // Save toasts in localStorage if offline
-            if (!navigator.onLine) {
-                const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
-                offlineToasts.push({
-                    message,
-                    type,
-                    timestamp: new Date().toISOString()
-                });
-                localStorage.setItem('offlineToasts', JSON.stringify(offlineToasts));
-            }
-            
-            // Show toast normally
-            // ... (your existing showToast code)
-        }
-
-        // Show offline toasts when coming back online
-        window.addEventListener('online', () => {
-            const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
-            offlineToasts.forEach(toast => {
-                showToast(toast.message + ' (offline)', toast.type);
-            });
-            localStorage.removeItem('offlineToasts');
-        });
+    // Initialize PWA Manager
+    let pwaManager;
     
-    // Mobile Duty Management System
+    // GLOBAL VARIABLES - Declare only once at the top level
     let currentUser = null;
     let allUsers = [];
     let dutyRoster = {};
@@ -2140,34 +2102,156 @@
     let isMobile = false;
     let currentToastId = 0;
     let lastCheckTime = new Date();
+    let rosterViewMode = 'grid';
 
     // Initialize App
     document.addEventListener('DOMContentLoaded', function() {
         detectMobile();
         initApp();
+        
+        // Initialize PWA Manager
+        pwaManager = new PWAManager();
     });
 
-    function detectMobile() {
-        isMobile = window.innerWidth <= 768;
-        if (isMobile) {
-            document.body.classList.add('mobile');
+    // Add these functions to your existing script
+    function enableNotifications() {
+        if (pwaManager) {
+            pwaManager.enableNotifications();
         }
     }
 
-    function showLoading(show, text = 'Loading...') {
-        const overlay = document.getElementById('loadingOverlay');
-        const textEl = document.getElementById('loadingText');
-        if (overlay) {
-            if (show) {
-                overlay.classList.add('active');
-                if (textEl) textEl.textContent = text;
-            } else {
-                overlay.classList.remove('active');
+    function hideNotificationPrompt() {
+        if (pwaManager) {
+            pwaManager.hideNotificationPrompt();
+        }
+    }
+
+    async function sendNotificationToUser(username, title, body, data = {}) {
+        try {
+            // Store notification in Firestore
+            await db.collection('notifications').add({
+                targetUser: username,
+                title: title,
+                body: body,
+                data: data,
+                timestamp: new Date().toISOString(),
+                read: false,
+                delivered: false
+            });
+            
+            // Show immediate local notification if user is current user
+            if (currentUser && currentUser.username === username) {
+                if (pwaManager) {
+                    pwaManager.showLocalNotification({
+                        notification: { title, body },
+                        data: data
+                    });
+                }
             }
+            
+        } catch (error) {
+            console.error('Error sending notification:', error);
         }
     }
 
+    // Add offline support for Firestore
+    function enableOfflineSupport() {
+        if (typeof db !== 'undefined') {
+            // Enable offline persistence
+            db.enablePersistence()
+                .catch((err) => {
+                    if (err.code === 'failed-precondition') {
+                        console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                    } else if (err.code === 'unimplemented') {
+                        console.warn('The current browser doesn\'t support persistence.');
+                    }
+                });
+            
+            // Sync data when coming back online
+            window.addEventListener('online', () => {
+                // Your sync logic here
+                if (currentUser) {
+                    initializeData();
+                }
+            });
+        }
+    }
+
+    // Update the loginUser function to initialize notifications
+    async function loginUser(userData) {
+        currentUser = userData;
+        allUsers = users || [];
+        
+        // Update UI
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'block';
+        
+        // Update user info
+        document.getElementById('mobileTitle').textContent = 'Dashboard';
+        document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
+        document.getElementById('navUserName').textContent = userData.name;
+        document.getElementById('navUserRC').textContent = userData.rcNo;
+        document.getElementById('navUserLevel').textContent = userData.level;
+        document.getElementById('welcomeName').textContent = userData.name;
+        
+        // Show/hide admin sections
+        const isAdmin = userData.level === 'Supervisor';
+        document.querySelectorAll('.admin-nav').forEach(el => {
+            el.style.display = isAdmin ? 'flex' : 'none';
+        });
+        
+        // Load data
+        await initializeData();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Request notification permission
+        requestNotificationPermission();
+        
+        // Show welcome
+        showToast(`Welcome back, ${userData.name}!`, 'success');
+        
+        // Initialize push notifications for logged-in user
+        if (pwaManager) {
+            pwaManager.initializeFirebaseMessaging();
+        }
+        
+        // Enable offline support
+        enableOfflineSupport();
+        
+        // Show immediate notification if there are pending requests
+        setTimeout(() => {
+            const pendingRequests = allRequests.filter(req => 
+                req.status === 'pending' && 
+                req.type === 'dutyChange' && 
+                req.toUsername === currentUser.username
+            );
+            
+            if (pendingRequests.length > 0) {
+                showBrowserNotification(
+                    'Pending Requests',
+                    `You have ${pendingRequests.length} pending duty change request(s)`,
+                    { type: 'request' }
+                );
+            }
+        }, 2000);
+    }
+
+    // Update the showToast function to work offline
     function showToast(message, type = 'info', duration = 3000) {
+        // Save toasts in localStorage if offline
+        if (!navigator.onLine) {
+            const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
+            offlineToasts.push({
+                message,
+                type,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('offlineToasts', JSON.stringify(offlineToasts));
+        }
+        
+        // Show toast normally
         const container = document.getElementById('toastContainer');
         if (!container) return;
         
@@ -2201,6 +2285,15 @@
         }, duration);
     }
 
+    // Show offline toasts when coming back online
+    window.addEventListener('online', () => {
+        const offlineToasts = JSON.parse(localStorage.getItem('offlineToasts') || '[]');
+        offlineToasts.forEach(toast => {
+            showToast(toast.message + ' (offline)', toast.type);
+        });
+        localStorage.removeItem('offlineToasts');
+    });
+    
     // SIMPLE BROWSER NOTIFICATIONS
     function requestNotificationPermission() {
         if ("Notification" in window) {
@@ -2243,9 +2336,8 @@
         
         const notification = new Notification(`${icon} ${title}`, {
             body: message,
-            icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%233498db"/%3E%3C/svg%3E',
-            badge: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%23e74c3c"/%3E%3C/svg%3E',
-            requireInteraction: true,
+            icon: getIconUrl('icon-192x192.png'),
+            badge: getIconUrl('icon-72x72.png'),
             tag: 'duty-manager',
             silent: false,
             vibrate: [200, 100, 200] // Vibration pattern for mobile
@@ -2272,6 +2364,12 @@
         }, 10000);
         
         return notification;
+    }
+
+    function getIconUrl(filename) {
+        // Try to get icon from correct path
+        const baseUrl = window.location.origin;
+        return `${baseUrl}/${filename}`;
     }
 
     // Check for new announcements and requests
@@ -2360,6 +2458,27 @@
             lastCheckTime = new Date();
             
         }, 30000); // Check every 30 seconds
+    }
+
+    // REST OF YOUR EXISTING FUNCTIONS (keep all the functions below as they are)
+    function detectMobile() {
+        isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            document.body.classList.add('mobile');
+        }
+    }
+
+    function showLoading(show, text = 'Loading...') {
+        const overlay = document.getElementById('loadingOverlay');
+        const textEl = document.getElementById('loadingText');
+        if (overlay) {
+            if (show) {
+                overlay.classList.add('active');
+                if (textEl) textEl.textContent = text;
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
     }
 
     function initApp() {
@@ -2492,58 +2611,6 @@
             showToast('Invalid username or password', 'error');
             showLoading(false);
         }
-    }
-
-    async function loginUser(userData) {
-        currentUser = userData;
-        allUsers = users || [];
-        
-        // Update UI
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('dashboardContainer').style.display = 'block';
-        
-        // Update user info
-        document.getElementById('mobileTitle').textContent = 'Dashboard';
-        document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
-        document.getElementById('navUserName').textContent = userData.name;
-        document.getElementById('navUserRC').textContent = userData.rcNo;
-        document.getElementById('navUserLevel').textContent = userData.level;
-        document.getElementById('welcomeName').textContent = userData.name;
-        
-        // Show/hide admin sections
-        const isAdmin = userData.level === 'Supervisor';
-        document.querySelectorAll('.admin-nav').forEach(el => {
-            el.style.display = isAdmin ? 'flex' : 'none';
-        });
-        
-        // Load data
-        await initializeData();
-        
-        // Setup event listeners
-        setupEventListeners();
-        
-        // Request notification permission
-        requestNotificationPermission();
-        
-        // Show welcome
-        showToast(`Welcome back, ${userData.name}!`, 'success');
-        
-        // Show immediate notification if there are pending requests
-        setTimeout(() => {
-            const pendingRequests = allRequests.filter(req => 
-                req.status === 'pending' && 
-                req.type === 'dutyChange' && 
-                req.toUsername === currentUser.username
-            );
-            
-            if (pendingRequests.length > 0) {
-                showBrowserNotification(
-                    'Pending Requests',
-                    `You have ${pendingRequests.length} pending duty change request(s)`,
-                    { type: 'request' }
-                );
-            }
-        }, 2000);
     }
 
     async function initializeData() {
