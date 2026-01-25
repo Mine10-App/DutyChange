@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duty Status Board - Public View</title>
+    <title>Duty Staff Dashboard - General View</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <!-- External Firebase Configuration -->
-    <script src="dcfire.js"></script>
     
     <style>
         * {
@@ -24,165 +22,80 @@
             padding: 20px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
+        /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .header .current-date {
-            color: #7f8c8d;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .refresh-btn {
-            margin-top: 10px;
-            padding: 8px 20px;
-            background: #3498db;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .refresh-btn:hover {
-            background: #2980b9;
-        }
-
-        .refresh-btn:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
             margin-bottom: 20px;
         }
 
-        @media (max-width: 1200px) {
-            .dashboard {
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .current-time {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1200px) {
+            .dashboard-container {
                 grid-template-columns: 1fr 1fr;
             }
         }
 
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-
+        /* Cards */
         .card {
             background: white;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             border: 1px solid #e0e6ed;
-            position: relative;
+            margin-bottom: 20px;
         }
 
-        .card h2 {
+        .card h3 {
             color: #2c3e50;
             margin-bottom: 15px;
-            font-size: 18px;
+            font-size: 16px;
             border-bottom: 2px solid #3498db;
             padding-bottom: 8px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
         }
 
-        .card h2 .icon {
-            font-size: 20px;
-        }
-
-        .card.full-width {
-            grid-column: 1 / -1;
-        }
-
-        /* Shift-specific colors */
-        .shift-morning {
-            border-left: 4px solid #f39c12;
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-        }
-
-        .shift-afternoon {
-            border-left: 4px solid #3498db;
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-        }
-
-        .shift-night {
-            border-left: 4px solid #2c3e50;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        .refresh-btn {
+            background: #3498db;
             color: white;
-        }
-
-        .shift-night td {
-            color: white;
-        }
-
-        .shift-night .staff-name {
-            color: white;
-        }
-
-        /* Connection Status */
-        .connection-status {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            padding: 4px 8px;
+            border: none;
             border-radius: 4px;
-            background: #f8f9fa;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .status-dot.online {
-            background: #27ae60;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.offline {
-            background: #e74c3c;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         /* Tables */
         .table-container {
             overflow-x: auto;
-            margin-top: 15px;
+            margin-top: 10px;
             border: 1px solid #e0e6ed;
             border-radius: 8px;
         }
@@ -194,21 +107,15 @@
         }
 
         th, td {
-            padding: 12px;
+            padding: 10px;
             text-align: left;
             border-bottom: 1px solid #e0e6ed;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         th {
             background: #f8f9fa;
             font-weight: 600;
-            color: #2c3e50;
-            position: sticky;
-            top: 0;
-        }
-
-        td {
             color: #2c3e50;
         }
 
@@ -216,224 +123,210 @@
             background: #f8f9fa;
         }
 
-        /* Status badges */
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .status-sick {
-            background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%);
-            color: #e8590c;
-        }
-
-        .status-frl {
-            background: linear-gradient(135deg, #a3daff 0%, #8bcbff 100%);
-            color: #0c63e4;
-        }
-
+        /* Status Indicators */
         .status-pending {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            color: #856404;
+            color: #f39c12;
+            font-weight: 500;
         }
 
         .status-approved {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            color: #155724;
+            color: #27ae60;
+            font-weight: 500;
         }
 
         .status-rejected {
-            background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
-            color: #721c24;
+            color: #e74c3c;
+            font-weight: 500;
         }
 
-        /* Duty time badges */
-        .duty-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-            margin: 2px;
+        .status-on-leave {
+            color: #e74c3c;
+            font-weight: bold;
+            background: #ffebee;
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
-        .duty-morning {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            color: #856404;
-            border: 1px solid #f39c12;
+        .status-duty-change {
+            color: #3498db;
+            font-weight: bold;
+            background: #e8f4fc;
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
-        .duty-afternoon {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            color: #0c5460;
-            border: 1px solid #3498db;
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-        .duty-night {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            border: 1px solid #1a252f;
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
         }
 
-        /* Staff cards */
-        .staff-card {
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 2px solid #e0e6ed;
-            background: white;
-        }
-
-        .staff-name {
-            font-weight: 600;
-            font-size: 16px;
+        .filter-group label {
+            display: block;
             color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .staff-rc {
             font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 5px;
-        }
-
-        .staff-duty {
-            font-size: 14px;
             font-weight: 500;
             margin-bottom: 5px;
         }
 
-        .staff-time {
-            font-size: 13px;
-            color: #2c3e50;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Shift panels */
-        .shift-panel {
-            margin-bottom: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .shift-header {
-            padding: 12px;
-            font-weight: 600;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .shift-staff-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-        }
-
-        .shift-staff-list {
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Current shift indicator */
-        .current-shift-indicator {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(52, 152, 219, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Time display */
-        .time-display {
-            font-size: 36px;
-            font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
-            color: #2c3e50;
-        }
-
-        .date-display {
-            font-size: 18px;
-            text-align: center;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-
-        /* Color key */
-        .color-key {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-            padding: 10px;
-            background: #f8f9fa;
+        .filter-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e6ed;
             border-radius: 6px;
-            border: 1px solid #e0e6ed;
+            font-size: 13px;
         }
 
-        .key-item {
+        /* Today's Highlights */
+        .highlights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .highlight-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e0e6ed;
+        }
+
+        .highlight-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 5px 0;
+        }
+
+        .highlight-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        /* Form for Manual Leave Entry */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e6ed;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219653;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            font-size: 13px;
+        }
+
+        .alert-info {
+            background: #e8f4fc;
+            border-color: #3498db;
+            color: #2c3e50;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #27ae60;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #f39c12;
+            color: #856404;
+        }
+
+        /* Staff List */
+        .staff-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .staff-tag {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 12px;
         }
 
-        .key-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
+        .staff-tag.on-leave {
+            background: #ffebee;
+            color: #e74c3c;
+            border-left: 3px solid #e74c3c;
         }
 
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 22px;
-            }
-            
-            .header .current-date {
-                font-size: 14px;
-            }
-            
-            .current-shift-indicator {
-                top: 10px;
-                padding: 8px 15px;
-                font-size: 14px;
-            }
-            
-            .time-display {
-                font-size: 28px;
-            }
-            
-            .date-display {
-                font-size: 16px;
-            }
-            
-            .connection-status {
-                position: static;
-                margin-top: 10px;
-                justify-content: center;
-            }
+        .staff-tag.duty-change {
+            background: #e8f4fc;
+            color: #3498db;
+            border-left: 3px solid #3498db;
         }
 
-        /* Loading spinner */
+        /* Loading */
         .loading {
             text-align: center;
             padding: 30px;
@@ -455,1182 +348,932 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Alert messages */
-        .alert {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            font-size: 14px;
+        /* Duty Change Details */
+        .change-details {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 11px;
         }
 
-        .alert-info {
-            background: #e8f4fc;
-            border-color: #3498db;
+        .change-details strong {
             color: #2c3e50;
         }
 
-        .alert-warning {
-            background: #fff3cd;
-            border-color: #f39c12;
-            color: #856404;
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
 
-        .alert-danger {
-            background: #f8d7da;
-            border-color: #e74c3c;
-            color: #721c24;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            border-color: #27ae60;
-            color: #155724;
-        }
-
-        /* Local storage indicator */
-        .local-storage-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #f39c12;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
             font-size: 12px;
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn.print {
+            background: #6c757d;
+            color: white;
+        }
+
+        .action-btn.export {
+            background: #17a2b8;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <!-- Current Shift Indicator -->
-    <div class="current-shift-indicator" id="currentShiftIndicator">
-        <span id="currentShiftText">Loading...</span>
-    </div>
-
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>📋 Duty Status Board</h1>
-            <div class="time-display" id="currentTime">--:--:--</div>
-            <div class="date-display" id="currentDate">-- --- ----</div>
-            <p style="color: #7f8c8d; margin-top: 5px; font-size: 14px;">Public View - No Login Required</p>
-            <button class="refresh-btn" onclick="loadAllData()" id="refreshBtn">🔄 Refresh Data</button>
-            
-            <!-- Connection Status -->
-            <div class="connection-status" id="connectionStatus">
-                <span class="status-dot offline" id="statusDot"></span>
-                <span id="statusText">Connecting...</span>
-            </div>
-        </div>
-
-        <!-- Color Key -->
-        <div class="card">
-            <h2><span class="icon">🎨</span> Shift Colors</h2>
-            <div class="color-key">
-                <div class="key-item">
-                    <div class="key-color" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 2px solid #f39c12;"></div>
-                    <span>Morning Shift (05:30-13:30, 07:30-15:30, 08:30-16:30)</span>
-                </div>
-                <div class="key-item">
-                    <div class="key-color" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #3498db;"></div>
-                    <span>Afternoon Shift (15:30-23:30, 16:30-00:30, 17:30-01:30)</span>
-                </div>
-                <div class="key-item">
-                    <div class="key-color" style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); border: 2px solid #1a252f;"></div>
-                    <span>Night Shift (00:30-08:30)</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Dashboard -->
-        <div class="dashboard">
-            <!-- Morning Shift Staff -->
-            <div class="card shift-morning">
-                <h2><span class="icon">🌅</span> Morning Shift Staff</h2>
-                <div class="alert alert-info">
-                    <strong>Shift Times:</strong><br>
-                    • 05:30 - 13:30<br>
-                    • 07:30 - 15:30<br>
-                    • 08:30 - 16:30
-                </div>
-                <div id="morningShiftStaff">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading morning shift...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Afternoon Shift Staff -->
-            <div class="card shift-afternoon">
-                <h2><span class="icon">🌇</span> Afternoon Shift Staff</h2>
-                <div class="alert alert-info">
-                    <strong>Shift Times:</strong><br>
-                    • 15:30 - 23:30<br>
-                    • 16:30 - 00:30<br>
-                    • 17:30 - 01:30
-                </div>
-                <div id="afternoonShiftStaff">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading afternoon shift...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Night Shift Staff -->
-            <div class="card shift-night">
-                <h2><span class="icon">🌙</span> Night Shift Staff</h2>
-                <div class="alert alert-info" style="background: rgba(255,255,255,0.1); color: white; border-color: #3498db;">
-                    <strong>Shift Times:</strong><br>
-                    • 00:30 - 08:30
-                </div>
-                <div id="nightShiftStaff">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading night shift...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Today's Sick Leave -->
-            <div class="card">
-                <h2><span class="icon">🤒</span> Today's Sick Leave</h2>
-                <div id="todaySickLeave">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading sick leave data...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Today's FRL -->
-            <div class="card">
-                <h2><span class="icon">🏝️</span> Today's FRL</h2>
-                <div id="todayFRL">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading FRL data...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Duty Changes -->
-            <div class="card">
-                <h2><span class="icon">🔄</span> Recent Duty Changes</h2>
-                <div id="dutyChanges">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading duty changes...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Staff Status Overview -->
-            <div class="card full-width">
-                <h2><span class="icon">👥</span> All Staff Status</h2>
-                <div id="staffStatusOverview">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading staff status...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Phone-Reported Leave Entry -->
-            <div class="card full-width">
-                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 8px; border: 2px dashed #3498db;">
-                    <h3><span class="icon">📞</span> Phone-Reported Leave Entry</h3>
-                    <p class="alert alert-info">Use this form to record leaves that are reported by phone. This will create a pending leave request for supervisor approval.</p>
-                    
-                    <form id="phoneLeaveForm" onsubmit="submitPhoneLeave(event)">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Staff Name *</label>
-                                <input type="text" id="phoneStaffName" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" placeholder="Enter staff name" required>
-                            </div>
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">RC Number *</label>
-                                <input type="text" id="phoneStaffRC" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" placeholder="Enter RC number" required>
-                            </div>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Leave Type *</label>
-                                <select id="phoneLeaveType" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" required>
-                                    <option value="">Select leave type</option>
-                                    <option value="Sick Leave">Sick Leave</option>
-                                    <option value="FRL">FRL</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Leave Date *</label>
-                                <input type="date" id="phoneLeaveDate" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" required>
-                            </div>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Duty Time *</label>
-                                <select id="phoneDutyTime" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" required>
-                                    <option value="">Select duty time</option>
-                                    <option value="0530-1330">05:30 - 13:30</option>
-                                    <option value="0730-1530">07:30 - 15:30</option>
-                                    <option value="0830-1630">08:30 - 16:30</option>
-                                    <option value="1530-2330">15:30 - 23:30</option>
-                                    <option value="1630-0030">16:30 - 00:30</option>
-                                    <option value="1730-0130">17:30 - 01:30</option>
-                                    <option value="0030-0830">00:30 - 08:30</option>
-                                    <option value="Off">Off Duty</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Duration *</label>
-                                <select id="phoneDuration" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" required>
-                                    <option value="1">1 Day</option>
-                                    <option value="0.5">Half Day</option>
-                                    <option value="2">2 Days</option>
-                                    <option value="3">3 Days</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Reason for Leave *</label>
-                            <textarea id="phoneReason" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px; min-height: 60px; resize: vertical;" placeholder="Enter reason for leave (e.g., fever, personal work, etc.)" required></textarea>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Reported By *</label>
-                                <input type="text" id="phoneReportedBy" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" placeholder="Your name" required>
-                            </div>
-                            <div>
-                                <label style="display: block; color: #2c3e50; font-size: 14px; font-weight: 500; margin-bottom: 5px;">Contact Number</label>
-                                <input type="text" id="phoneContact" style="width: 100%; padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 14px;" placeholder="Contact number (optional)">
-                            </div>
-                        </div>
-                        
-                        <div class="alert alert-warning" id="phoneFormAlert">
-                            Fill in all required fields marked with *
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px;">
-                            <button type="submit" class="btn-success" style="padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #27ae60; color: white;" id="submitPhoneBtn">📞 Submit Phone-Reported Leave</button>
-                            <button type="button" class="btn-danger" onclick="clearPhoneForm()" style="padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #e74c3c; color: white;">Clear Form</button>
-                        </div>
-                    </form>
-                    
-                    <div id="phoneFormSuccess" style="display: none;" class="alert alert-success">
-                        Leave successfully recorded! A pending request has been created for supervisor approval.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="text-align: center; margin-top: 30px; padding: 15px; color: #7f8c8d; font-size: 12px;">
-            Duty Status Board • Auto-refreshes every 30 seconds • Last updated: <span id="lastUpdatedTime">--:--:--</span>
+    <!-- Header -->
+    <div class="header">
+        <h1>Duty Staff Dashboard</h1>
+        <p>General View - Duty Changes & Leave Status</p>
+        <div class="current-time">
+            <span id="currentDate">Loading...</span>
+            <span id="currentTime">00:00:00</span>
         </div>
     </div>
 
-    <!-- Local Storage Indicator -->
-    <div class="local-storage-indicator" id="localStorageIndicator">
-        Using offline data
+    <!-- Dashboard -->
+    <div class="dashboard-container">
+        <!-- Left Column -->
+        <div>
+            <!-- Today's Highlights -->
+            <div class="card">
+                <h3>Today's Overview <span id="todayDate"></span></h3>
+                <div class="highlights-grid">
+                    <div class="highlight-box">
+                        <div class="highlight-label">On Duty</div>
+                        <div class="highlight-value" id="onDutyCount">0</div>
+                    </div>
+                    <div class="highlight-box">
+                        <div class="highlight-label">On Sick Leave</div>
+                        <div class="highlight-value" id="sickLeaveCount">0</div>
+                    </div>
+                    <div class="highlight-box">
+                        <div class="highlight-label">On FRL</div>
+                        <div class="highlight-value" id="frlCount">0</div>
+                    </div>
+                    <div class="highlight-box">
+                        <div class="highlight-label">Duty Changes</div>
+                        <div class="highlight-value" id="dutyChangesCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Staff Status -->
+            <div class="card">
+                <h3>Staff Status Today</h3>
+                <div id="staffStatusList" class="staff-list">
+                    <!-- Staff status will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Manual Leave Entry -->
+            <div class="card">
+                <h3>Report Leave (Phone/Manual Entry)</h3>
+                <div class="alert alert-info">
+                    Use this form to enter leave for staff who report by phone or other means.
+                </div>
+                
+                <form id="manualLeaveForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="leaveStaff">Staff Name *</label>
+                            <select id="leaveStaff" class="form-control" required>
+                                <option value="">Select staff member</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="leaveType">Leave Type *</label>
+                            <select id="leaveType" class="form-control" required>
+                                <option value="">Select type</option>
+                                <option value="Sick Leave">Sick Leave</option>
+                                <option value="FRL">FRL</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="leaveDate">Leave Date *</label>
+                            <input type="date" id="leaveDate" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="leaveDuration">Duration *</label>
+                            <select id="leaveDuration" class="form-control" required>
+                                <option value="1">1 Day</option>
+                                <option value="0.5">Half Day</option>
+                                <option value="2">2 Days</option>
+                                <option value="3">3 Days</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="leaveReason">Reason/Details *</label>
+                        <textarea id="leaveReason" class="form-control" rows="3" placeholder="Enter reason for leave (include who reported it, time, etc.)" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportedBy">Reported By</label>
+                        <input type="text" id="reportedBy" class="form-control" placeholder="Your name/initials">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">Submit Leave Entry</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+            <!-- Approved Duty Changes -->
+            <div class="card">
+                <h3>Approved Duty Changes <button class="refresh-btn" onclick="loadDutyChanges()">⟳</button></h3>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="changeDateFilter">Date</label>
+                        <input type="date" id="changeDateFilter" class="filter-control">
+                    </div>
+                    <div class="filter-group">
+                        <label for="changeStaffFilter">Staff</label>
+                        <select id="changeStaffFilter" class="filter-control">
+                            <option value="">All Staff</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Staff Involved</th>
+                                <th>Change Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dutyChangesTable">
+                            <!-- Duty changes will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Current Leave Status -->
+            <div class="card">
+                <h3>Current Leave Status <button class="refresh-btn" onclick="loadLeaveStatus()">⟳</button></h3>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="leaveDateFilter">Date</label>
+                        <input type="date" id="leaveDateFilter" class="filter-control">
+                    </div>
+                    <div class="filter-group">
+                        <label for="leaveTypeFilter">Leave Type</label>
+                        <select id="leaveTypeFilter" class="filter-control">
+                            <option value="">All Types</option>
+                            <option value="Sick Leave">Sick Leave</option>
+                            <option value="FRL">FRL</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Leave Type</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Reason</th>
+                                <th>Reported By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaveStatusTable">
+                            <!-- Leave status will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Duty Roster (Today) -->
+            <div class="card">
+                <h3>Today's Duty Roster</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Scheduled Duty</th>
+                                <th>Actual Duty</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="todayRosterTable">
+                            <!-- Today's roster will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn print" onclick="printReport()">
+                        📄 Print Report
+                    </button>
+                    <button class="action-btn export" onclick="exportToExcel()">
+                        📊 Export to Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading data...</p>
     </div>
 
     <script>
-        // Global variables - REMOVED the duplicate 'db' declaration
-        let allStaff = [];
-        let dutyRoster = {};
-        let leaveRequests = [];
-        let allRequests = [];
-        let refreshInterval;
-        let currentDate = new Date().toISOString().split('T')[0];
-        let isOnline = false;
-        // 'db' is already declared in dcfire.js, so we don't redeclare it here
-
-        // Define shift timings
-        const SHIFT_TIMINGS = {
-            MORNING: ['0530-1330', '0730-1530', '0830-1630'],
-            AFTERNOON: ['1530-2330', '1630-0030', '1730-0130'],
-            NIGHT: ['0030-0830']
+        // Firebase Configuration (Use your actual config)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        // Initialize when page loads
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let allUsers = [];
+        let dutyRoster = {};
+        let allRequests = [];
+        let leaveBalances = {};
+        let today = new Date().toISOString().split('T')[0];
+
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Duty Status Board loading...');
+            console.log('Initializing Duty Staff Dashboard...');
             
-            // Set default date for forms
-            document.getElementById('phoneLeaveDate').value = currentDate;
+            // Update current date and time
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
             
-            // Check if Firebase is initialized (from dcfire.js)
-            checkFirebaseInitialization();
+            // Set default dates
+            document.getElementById('leaveDate').value = today;
+            document.getElementById('changeDateFilter').value = today;
+            document.getElementById('leaveDateFilter').value = today;
+            document.getElementById('todayDate').textContent = formatDate(today);
             
-            // Start real-time updates
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
+            // Initialize page
+            initializePage();
             
-            // Set up offline/online detection
-            setupConnectionMonitoring();
+            // Setup event listeners
+            document.getElementById('manualLeaveForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitManualLeave();
+            });
             
-            // Load data
-            setTimeout(() => {
-                loadAllData();
-            }, 1000);
-            
-            // Start auto-refresh
-            startAutoRefresh();
+            document.getElementById('changeDateFilter').addEventListener('change', loadDutyChanges);
+            document.getElementById('changeStaffFilter').addEventListener('change', loadDutyChanges);
+            document.getElementById('leaveDateFilter').addEventListener('change', loadLeaveStatus);
+            document.getElementById('leaveTypeFilter').addEventListener('change', loadLeaveStatus);
         });
 
-        // Check if Firebase is initialized
-        function checkFirebaseInitialization() {
-            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-                console.log('Firebase initialized from dcfire.js');
-                // 'db' should already be available from dcfire.js
-                if (typeof db === 'undefined') {
-                    console.error('Firestore database (db) not initialized in dcfire.js');
-                    showErrorMessage('Firebase database not initialized. Please check dcfire.js configuration.');
-                    return;
-                }
-                
-                // Enable Firestore offline persistence
-                db.enablePersistence()
-                    .then(() => {
-                        console.log('Firestore persistence enabled');
-                        updateConnectionStatus(true);
-                    })
-                    .catch((err) => {
-                        console.warn('Firestore persistence error:', err.code);
-                        updateConnectionStatus(false);
-                    });
-            } else {
-                console.error('Firebase not initialized. Check dcfire.js');
-                updateConnectionStatus(false);
-                showErrorMessage('Firebase not initialized. Please check your internet connection and refresh the page.');
-            }
-        }
-
-        // Setup connection monitoring
-        function setupConnectionMonitoring() {
-            // Check initial connection
-            updateConnectionStatus(navigator.onLine);
-            
-            // Listen for online/offline events
-            window.addEventListener('online', () => {
-                updateConnectionStatus(true);
-                if (typeof db !== 'undefined') {
-                    loadAllData();
-                }
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
-            
-            window.addEventListener('offline', () => {
-                updateConnectionStatus(false);
-                showLocalStorageIndicator();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
             });
         }
 
-        // Update connection status display
-        function updateConnectionStatus(online) {
-            isOnline = online;
-            const statusDot = document.getElementById('statusDot');
-            const statusText = document.getElementById('statusText');
-            const refreshBtn = document.getElementById('refreshBtn');
-            
-            if (online) {
-                statusDot.className = 'status-dot online';
-                statusText.textContent = 'Online';
-                refreshBtn.disabled = false;
-                hideLocalStorageIndicator();
-            } else {
-                statusDot.className = 'status-dot offline';
-                statusText.textContent = 'Offline';
-                refreshBtn.disabled = true;
-                showLocalStorageIndicator();
-            }
-        }
-
-        // Show/hide local storage indicator
-        function showLocalStorageIndicator() {
-            const indicator = document.getElementById('localStorageIndicator');
-            indicator.style.display = 'block';
-            setTimeout(() => {
-                indicator.style.display = 'none';
-            }, 3000);
-        }
-
-        function hideLocalStorageIndicator() {
-            document.getElementById('localStorageIndicator').style.display = 'none';
-        }
-
-        // Load all data from Firebase
-        async function loadAllData() {
-            // Check if db is available
-            if (typeof db === 'undefined') {
-                console.warn('Firebase database (db) not available');
-                updateConnectionStatus(false);
-                showErrorMessage('Firebase database not available. Please check connection.');
-                return;
-            }
+        async function initializePage() {
+            showLoading(true);
             
             try {
-                console.log('Loading data from Firebase...');
-                
-                // Disable refresh button during load
-                const refreshBtn = document.getElementById('refreshBtn');
-                refreshBtn.disabled = true;
-                refreshBtn.innerHTML = '🔄 Loading...';
-                
-                // Update last updated time
-                updateLastUpdatedTime();
-                
-                // Load all data in parallel
+                // Load all data
                 await Promise.all([
-                    loadStaffData(),
+                    loadUsers(),
                     loadDutyRoster(),
-                    loadAllRequests()
+                    loadAllRequests(),
+                    loadLeaveBalances()
                 ]);
                 
-                // Update all displays
-                updateAllDisplays();
+                // Populate staff dropdowns
+                populateStaffDropdowns();
                 
-                console.log('Data loaded successfully');
-                updateConnectionStatus(true);
+                // Load all sections
+                loadTodayOverview();
+                loadDutyChanges();
+                loadLeaveStatus();
+                loadTodayRoster();
+                loadStaffStatus();
+                
+                showLoading(false);
+                console.log('Page initialized successfully');
                 
             } catch (error) {
-                console.error('Error loading data:', error);
-                showErrorMessage(`Failed to load data: ${error.message}.`);
-                updateConnectionStatus(false);
-            } finally {
-                // Re-enable refresh button
-                const refreshBtn = document.getElementById('refreshBtn');
-                refreshBtn.disabled = false;
-                refreshBtn.innerHTML = '🔄 Refresh Data';
+                console.error('Error initializing page:', error);
+                showLoading(false);
+                alert('Failed to load data. Please refresh the page.');
             }
         }
 
-        // Load staff data
-        async function loadStaffData() {
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        // FIREBASE FUNCTIONS
+        async function loadUsers() {
             try {
-                // Try to load from users collection
-                const usersSnapshot = await db.collection('users').get();
-                if (!usersSnapshot.empty) {
-                    allStaff = [];
-                    usersSnapshot.forEach(doc => {
-                        const userData = doc.data();
-                        if (userData.Level === 'User') {
-                            allStaff.push({
-                                name: userData.name,
-                                rcNo: userData.RCNo,
-                                username: userData.username
-                            });
-                        }
-                    });
-                    console.log('Staff data loaded from users collection:', allStaff.length);
+                // Try to load users from Firestore first
+                const snapshot = await db.collection('users').get();
+                if (!snapshot.empty) {
+                    allUsers = snapshot.docs.map(doc => doc.data());
                 } else {
-                    console.log('No staff data found in Firebase');
-                    allStaff = []; // Reset to empty array
+                    // Fallback to default users if none in Firestore
+                    allUsers = [
+                        { username: 'irufan1', name: 'Irufan', RCNo: '001', Level: 'User' },
+                        { username: 'hussain1', name: 'Hussain', RCNo: '002', Level: 'User' },
+                        { username: 'mohamed1', name: 'Mohamed', RCNo: '003', Level: 'User' },
+                        { username: 'staff4', name: 'Staff 4', RCNo: '004', Level: 'User' },
+                        { username: 'staff5', name: 'Staff 5', RCNo: '005', Level: 'User' }
+                    ];
                 }
+                console.log('Users loaded:', allUsers.length);
             } catch (error) {
-                console.error('Error loading staff data:', error);
-                // If error is due to permissions, try a different approach
-                if (error.code === 'permission-denied') {
-                    console.warn('Permission denied for users collection. Using fallback data.');
-                    // You could load from a public collection or use default data
-                    allStaff = getFallbackStaffData();
-                } else {
-                    throw error;
-                }
+                console.error('Error loading users:', error);
+                allUsers = [];
             }
         }
 
-        // Fallback staff data in case Firebase fails
-        function getFallbackStaffData() {
-            return [
-                { name: "Irufan1", rcNo: "001", username: "irufan1" },
-                { name: "Irufan2", rcNo: "002", username: "irufan2" },
-                { name: "Hussain", rcNo: "003", username: "hussain" },
-                { name: "Mohamed", rcNo: "004", username: "mohamed" },
-                { name: "Staff1", rcNo: "005", username: "staff1" },
-                { name: "Staff2", rcNo: "006", username: "staff2" },
-                { name: "Staff3", rcNo: "007", username: "staff3" },
-                { name: "Staff4", rcNo: "008", username: "staff4" }
-            ];
-        }
-
-        // Load duty roster
         async function loadDutyRoster() {
             try {
-                const rosterDoc = await db.collection('dutyRoster').doc('current').get();
-                if (rosterDoc.exists) {
-                    dutyRoster = rosterDoc.data() || {};
+                const doc = await db.collection('dutyRoster').doc('current').get();
+                if (doc.exists) {
+                    dutyRoster = doc.data() || {};
                     console.log('Duty roster loaded:', Object.keys(dutyRoster).length, 'dates');
                 } else {
                     dutyRoster = {};
-                    console.log('No duty roster found');
                 }
             } catch (error) {
                 console.error('Error loading duty roster:', error);
-                throw error;
+                dutyRoster = {};
             }
         }
 
-        // Load all requests
         async function loadAllRequests() {
             try {
-                const requestsDoc = await db.collection('requests').doc('all').get();
-                if (requestsDoc.exists && requestsDoc.data().requests) {
-                    allRequests = requestsDoc.data().requests;
-                    leaveRequests = allRequests.filter(req => req.type === 'leave');
-                    console.log('Requests loaded:', allRequests.length, 'requests');
+                const doc = await db.collection('requests').doc('all').get();
+                if (doc.exists && doc.data().requests) {
+                    allRequests = doc.data().requests;
+                    console.log('Requests loaded:', allRequests.length);
                 } else {
                     allRequests = [];
-                    leaveRequests = [];
-                    console.log('No requests found');
                 }
             } catch (error) {
                 console.error('Error loading requests:', error);
-                throw error;
+                allRequests = [];
             }
         }
 
-        // Update all displays
-        function updateAllDisplays() {
-            updateCurrentShift();
-            updateMorningShiftStaff();
-            updateAfternoonShiftStaff();
-            updateNightShiftStaff();
-            updateTodaySickLeave();
-            updateTodayFRL();
-            updateDutyChanges();
-            updateStaffStatusOverview();
-        }
-
-        // Update current shift indicator
-        function updateCurrentShift() {
-            const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
-            const currentTime = currentHour * 100 + currentMinute;
-            
-            let currentShift = '';
-            let shiftColor = '';
-            
-            // Determine current shift based on time
-            if (currentTime >= 530 && currentTime < 1330) {
-                currentShift = '🌅 Morning Shift (05:30 - 13:30)';
-                shiftColor = '#f39c12';
-            } else if (currentTime >= 730 && currentTime < 1530) {
-                currentShift = '🌅 Morning Shift (07:30 - 15:30)';
-                shiftColor = '#f39c12';
-            } else if (currentTime >= 830 && currentTime < 1630) {
-                currentShift = '🌅 Morning Shift (08:30 - 16:30)';
-                shiftColor = '#f39c12';
-            } else if (currentTime >= 1530 && currentTime < 2330) {
-                currentShift = '🌇 Afternoon Shift (15:30 - 23:30)';
-                shiftColor = '#3498db';
-            } else if ((currentTime >= 1630 && currentTime < 2400) || (currentTime >= 0 && currentTime < 30)) {
-                currentShift = '🌇 Afternoon Shift (16:30 - 00:30)';
-                shiftColor = '#3498db';
-            } else if ((currentTime >= 1730 && currentTime < 2400) || (currentTime >= 0 && currentTime < 130)) {
-                currentShift = '🌇 Afternoon Shift (17:30 - 01:30)';
-                shiftColor = '#3498db';
-            } else if ((currentTime >= 30 && currentTime < 830) || (currentTime >= 0 && currentTime < 830)) {
-                currentShift = '🌙 Night Shift (00:30 - 08:30)';
-                shiftColor = '#2c3e50';
-            } else {
-                currentShift = '📋 Between Shifts';
-                shiftColor = '#7f8c8d';
-            }
-            
-            document.getElementById('currentShiftText').textContent = currentShift;
-            document.getElementById('currentShiftIndicator').style.background = `rgba(${parseInt(shiftColor.slice(1,3), 16)}, ${parseInt(shiftColor.slice(3,5), 16)}, ${parseInt(shiftColor.slice(5,7), 16)}, 0.9)`;
-        }
-
-        // Update morning shift staff
-        function updateMorningShiftStaff() {
-            const container = document.getElementById('morningShiftStaff');
-            const today = currentDate;
-            
-            if (!dutyRoster[today] || allStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No duty roster data available for today</div>';
-                return;
-            }
-            
-            const morningStaff = [];
-            
-            // Find staff with morning shift duties
-            allStaff.forEach(staff => {
-                if (dutyRoster[today][staff.username]) {
-                    const dutyTime = dutyRoster[today][staff.username];
-                    if (SHIFT_TIMINGS.MORNING.includes(dutyTime)) {
-                        // Check if staff is on leave
-                        const onLeave = leaveRequests.find(req => 
-                            req.status === 'approved' && 
-                            req.date === today && 
-                            req.fromUsername === staff.username
-                        );
-                        
-                        if (!onLeave) {
-                            morningStaff.push({
-                                staff: staff,
-                                dutyTime: dutyTime
-                            });
-                        }
-                    }
+        async function loadLeaveBalances() {
+            try {
+                const doc = await db.collection('leaveBalances').doc('current').get();
+                if (doc.exists) {
+                    leaveBalances = doc.data() || {};
+                    console.log('Leave balances loaded:', Object.keys(leaveBalances).length, 'users');
+                } else {
+                    leaveBalances = {};
                 }
-            });
-            
-            if (morningStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No morning shift staff scheduled for today</div>';
-                return;
+            } catch (error) {
+                console.error('Error loading leave balances:', error);
+                leaveBalances = {};
             }
-            
-            let html = '';
-            morningStaff.forEach(item => {
-                html += `
-                    <div class="staff-card">
-                        <div class="staff-name">${item.staff.name}</div>
-                        <div class="staff-rc">RC: ${item.staff.rcNo}</div>
-                        <div class="staff-duty">
-                            <span class="duty-badge duty-morning">${formatDutyTime(item.dutyTime)}</span>
-                        </div>
-                        <div class="staff-time">📅 Today</div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
         }
 
-        // Update afternoon shift staff
-        function updateAfternoonShiftStaff() {
-            const container = document.getElementById('afternoonShiftStaff');
-            const today = currentDate;
+        // DATA DISPLAY FUNCTIONS
+        function populateStaffDropdowns() {
+            const leaveStaffSelect = document.getElementById('leaveStaff');
+            const changeStaffFilter = document.getElementById('changeStaffFilter');
             
-            if (!dutyRoster[today] || allStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No duty roster data available for today</div>';
-                return;
-            }
+            leaveStaffSelect.innerHTML = '<option value="">Select staff member</option>';
+            changeStaffFilter.innerHTML = '<option value="">All Staff</option>';
             
-            const afternoonStaff = [];
-            
-            // Find staff with afternoon shift duties
-            allStaff.forEach(staff => {
-                if (dutyRoster[today][staff.username]) {
-                    const dutyTime = dutyRoster[today][staff.username];
-                    if (SHIFT_TIMINGS.AFTERNOON.includes(dutyTime)) {
-                        // Check if staff is on leave
-                        const onLeave = leaveRequests.find(req => 
-                            req.status === 'approved' && 
-                            req.date === today && 
-                            req.fromUsername === staff.username
-                        );
-                        
-                        if (!onLeave) {
-                            afternoonStaff.push({
-                                staff: staff,
-                                dutyTime: dutyTime
-                            });
-                        }
-                    }
-                }
-            });
-            
-            if (afternoonStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No afternoon shift staff scheduled for today</div>';
-                return;
-            }
-            
-            let html = '';
-            afternoonStaff.forEach(item => {
-                html += `
-                    <div class="staff-card">
-                        <div class="staff-name">${item.staff.name}</div>
-                        <div class="staff-rc">RC: ${item.staff.rcNo}</div>
-                        <div class="staff-duty">
-                            <span class="duty-badge duty-afternoon">${formatDutyTime(item.dutyTime)}</span>
-                        </div>
-                        <div class="staff-time">📅 Today</div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Update night shift staff
-        function updateNightShiftStaff() {
-            const container = document.getElementById('nightShiftStaff');
-            const today = currentDate;
-            
-            if (!dutyRoster[today] || allStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No duty roster data available for today</div>';
-                return;
-            }
-            
-            const nightStaff = [];
-            
-            // Find staff with night shift duties
-            allStaff.forEach(staff => {
-                if (dutyRoster[today][staff.username]) {
-                    const dutyTime = dutyRoster[today][staff.username];
-                    if (SHIFT_TIMINGS.NIGHT.includes(dutyTime)) {
-                        // Check if staff is on leave
-                        const onLeave = leaveRequests.find(req => 
-                            req.status === 'approved' && 
-                            req.date === today && 
-                            req.fromUsername === staff.username
-                        );
-                        
-                        if (!onLeave) {
-                            nightStaff.push({
-                                staff: staff,
-                                dutyTime: dutyTime
-                            });
-                        }
-                    }
-                }
-            });
-            
-            if (nightStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No night shift staff scheduled for today</div>';
-                return;
-            }
-            
-            let html = '';
-            nightStaff.forEach(item => {
-                html += `
-                    <div class="staff-card" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
-                        <div class="staff-name" style="color: white;">${item.staff.name}</div>
-                        <div class="staff-rc" style="color: rgba(255,255,255,0.7);">RC: ${item.staff.rcNo}</div>
-                        <div class="staff-duty">
-                            <span class="duty-badge duty-night">${formatDutyTime(item.dutyTime)}</span>
-                        </div>
-                        <div class="staff-time" style="color: rgba(255,255,255,0.7);">📅 Today</div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Update today's sick leave display
-        function updateTodaySickLeave() {
-            const container = document.getElementById('todaySickLeave');
-            const today = currentDate;
-            
-            const todaySickRequests = leaveRequests.filter(req => 
-                req.status === 'approved' && 
-                req.date === today && 
-                req.leaveType === 'Sick Leave'
-            );
-            
-            if (todaySickRequests.length === 0) {
-                container.innerHTML = `
-                    <div class="alert alert-success">
-                        <strong>No sick leave today</strong><br>
-                        All staff are healthy!
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC</th><th>Duty Time</th><th>Duration</th></tr></thead><tbody>';
-            
-            todaySickRequests.forEach(req => {
-                const staff = allStaff.find(s => s.username === req.fromUsername) || { name: req.fromName, rcNo: req.fromRcNo };
-                const dutyTime = dutyRoster[today] ? dutyRoster[today][req.fromUsername] : 'Not scheduled';
+            allUsers.forEach(user => {
+                const option1 = document.createElement('option');
+                option1.value = user.username;
+                option1.textContent = `${user.name} (${user.RCNo})`;
+                leaveStaffSelect.appendChild(option1);
                 
-                html += `
-                    <tr>
-                        <td><strong>${staff.name}</strong></td>
-                        <td>${staff.rcNo}</td>
-                        <td>${formatDutyTime(dutyTime)}</td>
-                        <td><span class="status-badge status-sick">${req.duration} day(s)</span></td>
-                    </tr>
-                `;
+                const option2 = document.createElement('option');
+                option2.value = user.username;
+                option2.textContent = `${user.name} (${user.RCNo})`;
+                changeStaffFilter.appendChild(option2.cloneNode(true));
             });
-            
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
         }
 
-        // Update today's FRL display
-        function updateTodayFRL() {
-            const container = document.getElementById('todayFRL');
-            const today = currentDate;
+        function loadTodayOverview() {
+            const todayDate = today;
             
-            const todayFRLRequests = leaveRequests.filter(req => 
-                req.status === 'approved' && 
-                req.date === today && 
-                req.leaveType === 'FRL'
-            );
+            // Count staff on duty
+            let onDutyCount = 0;
+            let sickLeaveCount = 0;
+            let frlCount = 0;
             
-            if (todayFRLRequests.length === 0) {
-                container.innerHTML = `
-                    <div class="alert alert-success">
-                        <strong>No FRL today</strong><br>
-                        All staff are available!
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC</th><th>Duty Time</th><th>Duration</th></tr></thead><tbody>';
-            
-            todayFRLRequests.forEach(req => {
-                const staff = allStaff.find(s => s.username === req.fromUsername) || { name: req.fromName, rcNo: req.fromRcNo };
-                const dutyTime = dutyRoster[today] ? dutyRoster[today][req.fromUsername] : 'Not scheduled';
-                
-                html += `
-                    <tr>
-                        <td><strong>${staff.name}</strong></td>
-                        <td>${staff.rcNo}</td>
-                        <td>${formatDutyTime(dutyTime)}</td>
-                        <td><span class="status-badge status-frl">${req.duration} day(s)</span></td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
-        }
-
-        // Update duty changes
-        function updateDutyChanges() {
-            const container = document.getElementById('dutyChanges');
-            const today = currentDate;
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = tomorrow.toISOString().split('T')[0];
-            
-            const recentChanges = allRequests.filter(req => 
-                req.type === 'dutyChange' && 
-                req.status === 'approved' && 
-                (req.date === today || req.date === tomorrowStr)
-            ).slice(0, 5); // Show only 5 most recent
-            
-            if (recentChanges.length === 0) {
-                container.innerHTML = `
-                    <div class="alert alert-success">
-                        <strong>No recent duty changes</strong><br>
-                        All duties are as scheduled
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            recentChanges.forEach(req => {
-                const isToday = req.date === today;
-                const dateLabel = isToday ? 'Today' : 'Tomorrow';
-                
-                html += `
-                    <div class="staff-card" style="margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <div style="font-weight: 600; color: #2c3e50;">${dateLabel} (${req.date})</div>
-                                <div style="font-size: 13px; margin-top: 5px;">
-                                    ${req.fromName} ↔ ${req.toName}
-                                </div>
-                                <div style="font-size: 12px; color: #666; margin-top: 3px;">
-                                    ${req.dutyTime} → ${req.toDutyTime}
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="status-badge status-approved">Approved</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        // Update staff status overview
-        function updateStaffStatusOverview() {
-            const container = document.getElementById('staffStatusOverview');
-            const today = currentDate;
-            
-            if (allStaff.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No staff data available</div>';
-                return;
-            }
-            
-            let html = '<div class="table-container"><table><thead><tr><th>Staff</th><th>RC</th><th>Duty Time</th><th>Status</th><th>Shift</th></tr></thead><tbody>';
-            
-            allStaff.forEach(staff => {
-                let dutyTime = 'Not scheduled';
-                let status = 'On Duty';
-                let statusClass = 'status-approved';
-                let shift = '';
-                let shiftBadge = '';
-                
-                if (dutyRoster[today] && dutyRoster[today][staff.username]) {
-                    dutyTime = dutyRoster[today][staff.username];
-                    
-                    // Determine shift
-                    if (SHIFT_TIMINGS.MORNING.includes(dutyTime)) {
-                        shift = 'Morning';
-                        shiftBadge = 'duty-morning';
-                    } else if (SHIFT_TIMINGS.AFTERNOON.includes(dutyTime)) {
-                        shift = 'Afternoon';
-                        shiftBadge = 'duty-afternoon';
-                    } else if (SHIFT_TIMINGS.NIGHT.includes(dutyTime)) {
-                        shift = 'Night';
-                        shiftBadge = 'duty-night';
-                    } else if (dutyTime === 'Off') {
-                        shift = 'Off';
-                        shiftBadge = '';
-                    }
-                    
-                    // Check if staff is on leave
-                    const onLeave = leaveRequests.find(req => 
-                        req.status === 'approved' && 
-                        req.date === today && 
-                        req.fromUsername === staff.username
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === user.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === todayDate
                     );
                     
-                    if (onLeave) {
-                        status = onLeave.leaveType;
-                        statusClass = onLeave.leaveType === 'Sick Leave' ? 'status-sick' : 'status-frl';
+                    if (approvedLeave) {
+                        if (approvedLeave.leaveType === 'Sick Leave') {
+                            sickLeaveCount++;
+                        } else if (approvedLeave.leaveType === 'FRL') {
+                            frlCount++;
+                        }
+                    } else if (dutyRoster[todayDate] && dutyRoster[todayDate][user.username]) {
+                        if (dutyRoster[todayDate][user.username] !== 'Off') {
+                            onDutyCount++;
+                        }
                     }
                 }
-                
-                html += `
-                    <tr>
-                        <td><strong>${staff.name}</strong></td>
-                        <td>${staff.rcNo}</td>
-                        <td>${formatDutyTime(dutyTime)}</td>
-                        <td><span class="status-badge ${statusClass}">${status}</span></td>
-                        <td>${shiftBadge ? `<span class="duty-badge ${shiftBadge}">${shift}</span>` : shift}</td>
-                    </tr>
-                `;
             });
             
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
+            // Count duty changes for today
+            const dutyChangesCount = allRequests.filter(req => 
+                req.type === 'dutyChange' && 
+                req.status === 'approved' && 
+                req.date === todayDate
+            ).length;
+            
+            // Update display
+            document.getElementById('onDutyCount').textContent = onDutyCount;
+            document.getElementById('sickLeaveCount').textContent = sickLeaveCount;
+            document.getElementById('frlCount').textContent = frlCount;
+            document.getElementById('dutyChangesCount').textContent = dutyChangesCount;
         }
 
-        // Submit phone-reported leave
-        async function submitPhoneLeave(event) {
-            event.preventDefault();
+        function loadDutyChanges() {
+            const dateFilter = document.getElementById('changeDateFilter').value || today;
+            const staffFilter = document.getElementById('changeStaffFilter').value;
             
-            if (!isOnline) {
-                document.getElementById('phoneFormAlert').textContent = 'Cannot submit while offline. Please check your internet connection.';
-                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
-                document.getElementById('phoneFormAlert').style.display = 'block';
+            const tbody = document.getElementById('dutyChangesTable');
+            tbody.innerHTML = '';
+            
+            const approvedChanges = allRequests.filter(req => 
+                req.type === 'dutyChange' && 
+                req.status === 'approved' &&
+                (!dateFilter || req.date === dateFilter) &&
+                (!staffFilter || req.fromUsername === staffFilter || req.toUsername === staffFilter)
+            );
+            
+            if (approvedChanges.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">No approved duty changes found</td></tr>`;
                 return;
             }
             
-            // Check if db is available
-            if (typeof db === 'undefined') {
-                document.getElementById('phoneFormAlert').textContent = 'Database not available. Please refresh the page.';
-                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
-                document.getElementById('phoneFormAlert').style.display = 'block';
+            approvedChanges.forEach(change => {
+                const tr = document.createElement('tr');
+                
+                const fromUser = allUsers.find(u => u.username === change.fromUsername);
+                const toUser = allUsers.find(u => u.username === change.toUsername);
+                
+                const changeDetails = `
+                    <div class="change-details">
+                        <strong>${fromUser ? fromUser.name : change.fromUsername}</strong> (${change.dutyTime}) 
+                        ↔ 
+                        <strong>${toUser ? toUser.name : change.toUsername}</strong> (${change.toDutyTime})
+                        ${change.reason ? `<br><small>Reason: ${change.reason}</small>` : ''}
+                    </div>
+                `;
+                
+                tr.innerHTML = `
+                    <td>${change.date}</td>
+                    <td>${fromUser ? fromUser.name : change.fromUsername} ↔ ${toUser ? toUser.name : change.toUsername}</td>
+                    <td>${changeDetails}</td>
+                    <td class="status-approved">Approved</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadLeaveStatus() {
+            const dateFilter = document.getElementById('leaveDateFilter').value || today;
+            const typeFilter = document.getElementById('leaveTypeFilter').value;
+            
+            const tbody = document.getElementById('leaveStatusTable');
+            tbody.innerHTML = '';
+            
+            const leaveRequests = allRequests.filter(req => 
+                req.type === 'leave' && 
+                req.status === 'approved' &&
+                (!dateFilter || req.date === dateFilter) &&
+                (!typeFilter || req.leaveType === typeFilter)
+            );
+            
+            if (leaveRequests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No leave records found</td></tr>`;
                 return;
             }
             
-            const staffName = document.getElementById('phoneStaffName').value.trim();
-            const rcNo = document.getElementById('phoneStaffRC').value.trim();
-            const leaveType = document.getElementById('phoneLeaveType').value;
-            const leaveDate = document.getElementById('phoneLeaveDate').value;
-            const dutyTime = document.getElementById('phoneDutyTime').value;
-            const duration = document.getElementById('phoneDuration').value;
-            const reason = document.getElementById('phoneReason').value.trim();
-            const reportedBy = document.getElementById('phoneReportedBy').value.trim();
-            const contact = document.getElementById('phoneContact').value.trim();
+            leaveRequests.forEach(leave => {
+                const tr = document.createElement('tr');
+                
+                const user = allUsers.find(u => u.username === leave.fromUsername);
+                const reportedBy = leave.reportedBy || leave.approvedBy || 'System';
+                
+                tr.innerHTML = `
+                    <td>${user ? user.name : leave.fromUsername}</td>
+                    <td>${leave.leaveType}</td>
+                    <td>${leave.date}</td>
+                    <td>${leave.duration} day(s)</td>
+                    <td>${leave.reason || 'No reason provided'}</td>
+                    <td>${reportedBy}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadTodayRoster() {
+            const tbody = document.getElementById('todayRosterTable');
+            tbody.innerHTML = '';
             
-            // Validation
-            if (!staffName || !rcNo || !leaveType || !leaveDate || !dutyTime || !reason || !reportedBy) {
-                document.getElementById('phoneFormAlert').style.display = 'block';
-                document.getElementById('phoneFormAlert').textContent = 'Please fill all required fields marked with *';
-                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const tr = document.createElement('tr');
+                    
+                    // Get scheduled duty
+                    const scheduledDuty = dutyRoster[today] && dutyRoster[today][user.username] ?
+                        dutyRoster[today][user.username] : 'Not Scheduled';
+                    
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === user.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === today
+                    );
+                    
+                    let actualDuty = scheduledDuty;
+                    let notes = '';
+                    
+                    if (approvedLeave) {
+                        actualDuty = `${approvedLeave.leaveType}`;
+                        notes = `On leave: ${approvedLeave.reason || 'No reason provided'}`;
+                    } else if (scheduledDuty === 'Off') {
+                        actualDuty = 'Off Duty';
+                    }
+                    
+                    // Check for duty changes affecting this staff
+                    const dutyChange = allRequests.find(req => 
+                        req.type === 'dutyChange' &&
+                        req.status === 'approved' &&
+                        req.date === today &&
+                        (req.fromUsername === user.username || req.toUsername === user.username)
+                    );
+                    
+                    if (dutyChange) {
+                        const otherUser = allUsers.find(u => u.username === 
+                            (dutyChange.fromUsername === user.username ? dutyChange.toUsername : dutyChange.fromUsername));
+                        notes = `Swapped with ${otherUser ? otherUser.name : 'another staff'}`;
+                        actualDuty = user.username === dutyChange.fromUsername ? 
+                            dutyChange.toDutyTime : dutyChange.dutyTime;
+                    }
+                    
+                    tr.innerHTML = `
+                        <td>${user.name} (${user.RCNo})</td>
+                        <td>${scheduledDuty}</td>
+                        <td>${actualDuty}</td>
+                        <td>${notes}</td>
+                    `;
+                    
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        function loadStaffStatus() {
+            const container = document.getElementById('staffStatusList');
+            container.innerHTML = '';
+            
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const tag = document.createElement('div');
+                    tag.className = 'staff-tag';
+                    
+                    // Check for approved leave
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === user.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === today
+                    );
+                    
+                    // Check for duty changes
+                    const dutyChange = allRequests.find(req => 
+                        req.type === 'dutyChange' &&
+                        req.status === 'approved' &&
+                        req.date === today &&
+                        (req.fromUsername === user.username || req.toUsername === user.username)
+                    );
+                    
+                    if (approvedLeave) {
+                        tag.className += ' on-leave';
+                        tag.innerHTML = `${user.name} (${approvedLeave.leaveType === 'Sick Leave' ? 'SL' : 'FRL'})`;
+                    } else if (dutyChange) {
+                        tag.className += ' duty-change';
+                        tag.innerHTML = `${user.name} (Changed)`;
+                    } else {
+                        tag.innerHTML = user.name;
+                    }
+                    
+                    container.appendChild(tag);
+                }
+            });
+        }
+
+        async function submitManualLeave() {
+            const staff = document.getElementById('leaveStaff').value;
+            const leaveType = document.getElementById('leaveType').value;
+            const date = document.getElementById('leaveDate').value;
+            const duration = parseFloat(document.getElementById('leaveDuration').value);
+            const reason = document.getElementById('leaveReason').value.trim();
+            const reportedBy = document.getElementById('reportedBy').value.trim();
+            
+            if (!staff || !leaveType || !date || !reason) {
+                alert('Please fill in all required fields');
                 return;
             }
             
-            // Disable submit button
-            const submitBtn = document.getElementById('submitPhoneBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '📞 Submitting...';
+            if (!confirm(`Submit ${leaveType} for selected staff on ${date}?`)) {
+                return;
+            }
             
             try {
                 // Create leave request
                 const leaveRequest = {
-                    id: 'phone_' + Date.now(),
+                    id: 'manual_' + Date.now(),
                     type: 'leave',
                     leaveType: leaveType,
-                    fromUsername: staffName.toLowerCase().replace(/\s+/g, ''),
-                    fromName: staffName,
-                    fromRcNo: rcNo,
-                    date: leaveDate,
-                    dutyTime: dutyTime,
-                    duration: parseFloat(duration),
+                    fromUsername: staff,
+                    fromName: allUsers.find(u => u.username === staff)?.name || staff,
+                    fromRcNo: allUsers.find(u => u.username === staff)?.RCNo || '',
+                    date: date,
+                    dutyTime: 'Manual Entry',
+                    duration: duration,
                     reason: reason,
-                    status: 'pending',
-                    source: 'phone',
-                    reportedBy: reportedBy,
-                    contact: contact,
+                    reportedBy: reportedBy || 'Duty Staff',
+                    status: 'approved',
                     timestamp: new Date().toISOString(),
+                    approvedBy: 'Duty Staff (Manual Entry)',
+                    approvedAt: new Date().toISOString(),
                     history: [{
-                        action: 'phone_reported',
-                        by: reportedBy,
-                        timestamp: new Date().toISOString(),
-                        note: 'Reported via phone'
+                        action: 'created_manually',
+                        by: reportedBy || 'Duty Staff',
+                        timestamp: new Date().toISOString()
                     }]
                 };
                 
-                // Add to all requests
+                // Add to requests
                 allRequests.push(leaveRequest);
-                leaveRequests.push(leaveRequest);
                 
-                // Save to Firebase
+                // Update leave balance if applicable
+                if (leaveType === 'Sick Leave' || leaveType === 'FRL') {
+                    const balanceType = leaveType === 'Sick Leave' ? 'SL' : 'FRL';
+                    if (!leaveBalances[staff]) {
+                        leaveBalances[staff] = {SL: 12, FRL: 6};
+                    }
+                    leaveBalances[staff][balanceType] = Math.max(0, 
+                        (leaveBalances[staff][balanceType] || 0) - duration
+                    );
+                    
+                    // Save updated balances
+                    await db.collection('leaveBalances').doc('current').set(leaveBalances);
+                }
+                
+                // Save updated requests
                 await db.collection('requests').doc('all').set({ requests: allRequests });
                 
-                // Show success message
-                document.getElementById('phoneFormSuccess').style.display = 'block';
-                document.getElementById('phoneFormAlert').style.display = 'none';
+                alert(`${leaveType} recorded successfully for staff!`);
                 
                 // Clear form
-                clearPhoneForm();
+                document.getElementById('manualLeaveForm').reset();
+                document.getElementById('leaveDate').value = today;
                 
-                // Update displays
-                updateAllDisplays();
-                
-                console.log('Phone-reported leave submitted:', leaveRequest);
-                
-                // Hide success message after 5 seconds
-                setTimeout(() => {
-                    document.getElementById('phoneFormSuccess').style.display = 'none';
-                }, 5000);
+                // Refresh displays
+                loadTodayOverview();
+                loadLeaveStatus();
+                loadTodayRoster();
+                loadStaffStatus();
                 
             } catch (error) {
-                console.error('Error saving phone leave:', error);
-                document.getElementById('phoneFormAlert').textContent = `Error saving leave request: ${error.message}. Please try again.`;
-                document.getElementById('phoneFormAlert').className = 'alert alert-danger';
-                document.getElementById('phoneFormAlert').style.display = 'block';
-            } finally {
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '📞 Submit Phone-Reported Leave';
+                console.error('Error submitting leave:', error);
+                alert('Failed to submit leave. Please try again.');
             }
         }
 
-        // Clear phone form
-        function clearPhoneForm() {
-            document.getElementById('phoneLeaveForm').reset();
-            document.getElementById('phoneLeaveDate').value = currentDate;
-            document.getElementById('phoneFormAlert').style.display = 'block';
-            document.getElementById('phoneFormAlert').textContent = 'Fill in all required fields marked with *';
-            document.getElementById('phoneFormAlert').className = 'alert alert-warning';
+        function printReport() {
+            const printWindow = window.open('', '_blank');
+            const todayFormatted = formatDate(today);
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Duty Staff Report - ${todayFormatted}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #2c3e50; margin-bottom: 20px; }
+                        h3 { color: #3498db; margin-top: 30px; }
+                        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                        th { background-color: #f2f2f2; }
+                        .status-approved { color: #27ae60; }
+                        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+                        .summary-box { border: 1px solid #ddd; padding: 15px; text-align: center; }
+                        .footer { margin-top: 30px; font-size: 11px; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Duty Staff Report</h1>
+                    <p><strong>Date:</strong> ${todayFormatted}</p>
+                    <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+                    
+                    <div class="summary">
+                        <div class="summary-box">
+                            <strong>On Duty</strong><br>
+                            <span style="font-size: 24px;">${document.getElementById('onDutyCount').textContent}</span>
+                        </div>
+                        <div class="summary-box">
+                            <strong>Sick Leave</strong><br>
+                            <span style="font-size: 24px;">${document.getElementById('sickLeaveCount').textContent}</span>
+                        </div>
+                        <div class="summary-box">
+                            <strong>FRL</strong><br>
+                            <span style="font-size: 24px;">${document.getElementById('frlCount').textContent}</span>
+                        </div>
+                        <div class="summary-box">
+                            <strong>Duty Changes</strong><br>
+                            <span style="font-size: 24px;">${document.getElementById('dutyChangesCount').textContent}</span>
+                        </div>
+                    </div>
+                    
+                    <h3>Today's Duty Roster</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Scheduled Duty</th>
+                                <th>Actual Duty</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${document.getElementById('todayRosterTable').innerHTML}
+                        </tbody>
+                    </table>
+                    
+                    <h3>Leave Status Today</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Leave Type</th>
+                                <th>Duration</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${document.getElementById('leaveStatusTable').innerHTML}
+                        </tbody>
+                    </table>
+                    
+                    <div class="footer">
+                        <p>Duty Staff Dashboard - General View</p>
+                        <p>Report generated automatically</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
-        // Update date/time display
-        function updateDateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            });
-            const dateStr = now.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
+        function exportToExcel() {
+            // Simple CSV export
+            let csvContent = "data:text/csv;charset=utf-8,";
             
-            document.getElementById('currentTime').textContent = timeStr;
-            document.getElementById('currentDate').textContent = dateStr;
+            // Add headers
+            csvContent += "Staff,RC No,Scheduled Duty,Actual Duty,Status,Leave Type,Notes\r\n";
             
-            // Update current shift every minute
-            if (now.getSeconds() === 0) {
-                updateCurrentShift();
-            }
-        }
-
-        // Update last updated time
-        function updateLastUpdatedTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
-            });
-            document.getElementById('lastUpdatedTime').textContent = timeStr;
-        }
-
-        // Start auto-refresh
-        function startAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
-            
-            refreshInterval = setInterval(() => {
-                if (isOnline && typeof db !== 'undefined') {
-                    loadAllData();
-                    console.log('Auto-refreshing data...');
-                }
-            }, 30000); // Refresh every 30 seconds
-        }
-
-        // Show error message
-        function showErrorMessage(message) {
-            const header = document.querySelector('.header');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'alert alert-danger';
-            errorDiv.textContent = message;
-            errorDiv.style.marginTop = '10px';
-            
-            // Remove any existing error
-            const existingError = header.querySelector('.alert-danger');
-            if (existingError) {
-                existingError.remove();
-            }
-            
-            header.appendChild(errorDiv);
-            
-            // Auto-remove after 10 seconds
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 10000);
-        }
-
-        // Utility functions
-        function formatDutyTime(dutyTime) {
-            if (!dutyTime || dutyTime === 'Not scheduled' || dutyTime === 'Off') {
-                return dutyTime;
-            }
-            
-            // Format as HH:MM - HH:MM
-            if (dutyTime.includes('-')) {
-                const [start, end] = dutyTime.split('-');
-                const formatTime = (timeStr) => {
-                    if (timeStr.length === 4) {
-                        return timeStr.slice(0, 2) + ':' + timeStr.slice(2);
+            // Add data
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    const scheduledDuty = dutyRoster[today] && dutyRoster[today][user.username] ?
+                        dutyRoster[today][user.username] : 'Not Scheduled';
+                    
+                    const approvedLeave = allRequests.find(req => 
+                        req.fromUsername === user.username &&
+                        req.type === 'leave' &&
+                        req.status === 'approved' &&
+                        req.date === today
+                    );
+                    
+                    let actualDuty = scheduledDuty;
+                    let status = 'On Duty';
+                    let leaveType = '';
+                    let notes = '';
+                    
+                    if (approvedLeave) {
+                        actualDuty = approvedLeave.leaveType;
+                        status = 'On Leave';
+                        leaveType = approvedLeave.leaveType;
+                        notes = approvedLeave.reason || '';
+                    } else if (scheduledDuty === 'Off') {
+                        status = 'Off Duty';
+                        actualDuty = 'Off';
                     }
-                    return timeStr;
-                };
-                return `${formatTime(start)} - ${formatTime(end)}`;
-            }
+                    
+                    const row = [
+                        user.name,
+                        user.RCNo,
+                        scheduledDuty,
+                        actualDuty,
+                        status,
+                        leaveType,
+                        notes.replace(/,/g, ';') // Replace commas in notes to avoid CSV issues
+                    ].join(',');
+                    
+                    csvContent += row + "\r\n";
+                }
+            });
             
-            return dutyTime;
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `duty_staff_report_${today}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        // Manual refresh function
-        window.loadAllData = function() {
-            if (typeof db !== 'undefined') {
-                loadAllData();
-            } else {
-                showErrorMessage('Firebase database not available. Please check your connection.');
-            }
-        };
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Auto-refresh data every 5 minutes
+        setInterval(() => {
+            console.log('Auto-refreshing data...');
+            initializePage();
+        }, 300000); // 5 minutes
+
+        // Listen for changes in Firestore
+        db.collection('requests').doc('all')
+            .onSnapshot((doc) => {
+                if (doc.exists && doc.data().requests) {
+                    allRequests = doc.data().requests;
+                    loadTodayOverview();
+                    loadDutyChanges();
+                    loadLeaveStatus();
+                    loadTodayRoster();
+                    loadStaffStatus();
+                    console.log('Data updated from Firestore');
+                }
+            });
     </script>
 </body>
 </html>
