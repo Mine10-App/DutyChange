@@ -3,14 +3,9 @@ const CACHE_NAME = 'duty-manager-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/favicon.ico',
-  // Add other assets you want to cache
+  '/mobile.html'
 ];
 
-// Install event
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -22,7 +17,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate event
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -39,7 +33,6 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event (cache-first strategy)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
@@ -50,4 +43,10 @@ self.addEventListener('fetch', (event) => {
         return fetch(event.request);
       })
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
