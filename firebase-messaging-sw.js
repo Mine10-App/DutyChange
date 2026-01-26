@@ -13,21 +13,111 @@ firebase.initializeApp({
   measurementId: "G-3KD6ZYS599"
 });
 
+// Retrieve firebase messaging
 const messaging = firebase.messaging();
 
-// Background message handler
+// Background message handler (when app is closed)
 messaging.setBackgroundMessageHandler(function(payload) {
-    console.log('[SW] Background message:', payload);
+    console.log('[firebase-messaging-sw.js] Received background message:', payload);
     
+    // Customize notification here
+    const notificationTitle = payload.notification?.title || 'Duty Manager';
     const notificationOptions = {
-        body: payload.data?.body || 'New notification',
-        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#3498db"/><circle cx="50" cy="35" r="12" fill="white"/><path d="M50,55 C65,55 70,70 70,70 L30,70 C30,70 35,55 50,55 Z" fill="white"/><path d="M35,75 L65,75 L65,85 C65,90 60,95 50,95 C40,95 35,90 35,85 Z" fill="white"/><path d="M20,20 L20,40 L30,30 Z" fill="#27ae60"/></svg>',
-        tag: payload.data?.tag || 'default',
-        data: payload.data || {}
+        body: payload.notification?.body || 'You have a new notification',
+        icon: '/icon-192x192.png',
+        badge: '/icon-72x72.png',
+        tag: payload.data?.tag || 'duty-manager',
+        data: payload.data || {},
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        actions: [
+            {
+                action: 'view',
+                title: 'View',
+                icon: '/icon-72x72.png'
+            },
+            {
+                action: 'dismiss',
+                title: 'Dismiss',
+                icon: '/icon-72x72.png'
+            }
+        ]
     };
 
-    return self.registration.showNotification(
-        payload.data?.title || 'Duty Manager',
-        notificationOptions
+    // Show the notification
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', function(event) {
+    console.log('[firebase-messaging-sw.js] Notification click received.');
+    
+    const notification = event.notification;
+    const action = event.action;
+    
+    event.notification.close();
+
+    if (action === 'dismiss') {
+        console.log('Dismiss was clicked');
+        return;
+    }
+
+    // Open the app
+    event.waitUntil(
+        clients.matchAll({
+            type: "window",
+            includeUncontrolled: true
+        }).then(function(clientList) {
+            // Check if there's already a window/tab open
+            for (let i = 0; i < clientList.length; i++) {
+                const client = clientList[i];
+                if (client.url.includes('/') && 'focus' in client) {
+                    client.focus();
+                    client.postMessage({
+                        type: 'notification_click',
+                        data: notification.data
+                    });
+                    return;
+                }
+            }
+            
+            // If no window is open, open a new one
+            if (clients.openWindow) {
+                return clients.openWindow('/');
+            }
+        })
     );
 });
+
+// Handle push subscription change
+self.addEventListener('pushsubscriptionchange', function(event) {
+    console.log('[firebase-messaging-sw.js] Push subscription changed.');
+    
+    event.waitUntil(
+        self.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_KEY_HERE')
+        })
+        .then(function(newSubscription) {
+            // Send new subscription to your server
+            console.log('New subscription:', newSubscription);
+            // You would typically send this to your server to update the subscription
+        })
+    );
+});
+
+// Convert base64 to Uint8Array
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+    
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
