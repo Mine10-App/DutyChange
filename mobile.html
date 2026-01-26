@@ -1474,75 +1474,99 @@ if ('serviceWorker' in navigator) {
 
     // Initialize Firebase Messaging
     async function initializeFirebaseMessaging() {
+    try {
+        // Check if Firebase messaging is supported
+        if (!firebase.messaging.isSupported()) {
+            console.log('Firebase Messaging not supported');
+            return;
+        }
+        
+        // Request notification permission
+        const permission = await Notification.requestPermission();
+        console.log('Notification permission:', permission);
+        
+        if (permission !== 'granted') {
+            console.log('Notification permission not granted');
+            return;
+        }
+        
+        // Check if service worker is ready
+        if (!('serviceWorker' in navigator)) {
+            console.log('Service Worker not supported');
+            return;
+        }
+        
+        // Wait for service worker to be ready
+        const registration = await navigator.serviceWorker.ready;
+        console.log('Service Worker ready:', registration);
+        
+        // Initialize Firebase Messaging with service worker
+        messaging = firebase.messaging();
+        
+        // Use your VAPID key
+        const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o';
+        
+        // Get FCM token
         try {
-            // Check if Firebase messaging is supported
-            if (!firebase.messaging.isSupported()) {
-                console.log('Firebase Messaging not supported');
-                return;
-            }
-            
-            // Initialize Firebase Messaging
-            messaging = firebase.messaging();
-            
-            // Use your VAPID key
-            const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o';
-            
-            // Request notification permission if not already granted
-            if (Notification.permission === 'default') {
-                const permission = await Notification.requestPermission();
-                if (permission !== 'granted') {
-                    console.log('Notification permission denied');
-                    return;
-                }
-            }
-            
-            // Get FCM token
             fcmToken = await messaging.getToken({
-                vapidKey: vapidKey
+                vapidKey: vapidKey,
+                serviceWorkerRegistration: registration
             });
             
             if (fcmToken) {
-                console.log('FCM Token:', fcmToken);
-                // Save token to Firestore for this user
+                console.log('FCM Token obtained:', fcmToken.substring(0, 20) + '...');
+                // Save token to Firestore
                 await saveFCMToken(fcmToken);
+                
+                // Show success message
+                showToast('Notifications enabled! You will receive alerts even when app is closed.', 'success');
             } else {
                 console.log('No registration token available');
+                showToast('Failed to get notification token. Please refresh the page.', 'warning');
+            }
+        } catch (tokenError) {
+            console.error('Error getting FCM token:', tokenError);
+            showToast('Error setting up notifications. Please check browser permissions.', 'error');
+        }
+        
+        // Handle token refresh
+        messaging.onTokenRefresh(async () => {
+            try {
+                console.log('Refreshing FCM token...');
+                const registration = await navigator.serviceWorker.ready;
+                const refreshedToken = await messaging.getToken({
+                    vapidKey: vapidKey,
+                    serviceWorkerRegistration: registration
+                });
+                console.log('Token refreshed:', refreshedToken.substring(0, 20) + '...');
+                await saveFCMToken(refreshedToken);
+            } catch (error) {
+                console.error('Unable to refresh token:', error);
+            }
+        });
+        
+        // Handle foreground messages
+        messaging.onMessage((payload) => {
+            console.log('Foreground message received:', payload);
+            
+            // Show in-app notification
+            if (payload.notification) {
+                showToast(payload.notification.body, 'info');
             }
             
-            // Handle token refresh
-            messaging.onTokenRefresh(async () => {
-                try {
-                    const refreshedToken = await messaging.getToken({
-                        vapidKey: vapidKey
-                    });
-                    console.log('Token refreshed:', refreshedToken);
-                    await saveFCMToken(refreshedToken);
-                } catch (error) {
-                    console.error('Unable to refresh token:', error);
-                }
-            });
-            
-            // Handle foreground messages
-            messaging.onMessage((payload) => {
-                console.log('Foreground message received:', payload);
-                showPushNotification(
-                    payload.notification?.title || 'Duty Manager',
-                    payload.notification?.body || 'New notification',
-                    payload.data?.tag || 'default'
-                );
-                
-                // Also show toast
-                if (payload.notification) {
-                    showToast(payload.notification.body, 'info');
-                }
-            });
-            
-        } catch (error) {
-            console.error('Error initializing FCM:', error);
-            // Fallback to regular notifications
-            console.log('Using fallback notifications');
-        }
+            // Show browser notification
+            showPushNotification(
+                payload.notification?.title || 'Duty Manager',
+                payload.notification?.body || 'New notification',
+                payload.data?.tag || 'default'
+            );
+        });
+        
+    } catch (error) {
+        console.error('Error initializing FCM:', error);
+        showToast('Notification setup failed. Some features may not work.', 'warning');
     }
+}
 
     // Save FCM token to Firestore
     async function saveFCMToken(token) {
