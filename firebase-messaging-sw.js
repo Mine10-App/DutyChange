@@ -96,7 +96,7 @@ self.addEventListener('pushsubscriptionchange', function(event) {
     event.waitUntil(
         self.registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_KEY_HERE')
+            applicationServerKey: urlBase64ToUint8Array('BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o')
         })
         .then(function(newSubscription) {
             // Send new subscription to your server
