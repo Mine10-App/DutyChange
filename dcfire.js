@@ -7,7 +7,8 @@ const firebaseConfig = {
   storageBucket: "leelidc-1f753.firebasestorage.app",
   messagingSenderId: "43622932335",
   appId: "1:43622932335:web:a7529bce1f19714687129a",
-  measurementId: "G-3KD6ZYS599"
+  measurementId: "G-3KD6ZYS599",
+  vapidKey: "your-public-vapid-key-here"
 };
 
 firebase.initializeApp(firebaseConfig);
