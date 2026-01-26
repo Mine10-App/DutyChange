@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+
     <!-- PWA Meta Tags -->
     <meta name="application-name" content="Duty Manager">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,35 +15,25 @@
     <meta name="msapplication-TileColor" content="#3498db">
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="theme-color" content="#3498db">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/icon-192x192.png">
-    <link rel="apple-touch-startup-image" href="/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Favicon -->
-    <!-- Replace the icon links in your <head> section with these data URLs -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E" type="image/svg+xml">
-    
+
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='90' fill='%233498db'/%3E%3Ccircle cx='96' cy='50' r='25' fill='white'/%3E%3Cpath d='M96,85 Q120,85 130,110 L62,110 Q72,85 96,85 Z' fill='white'/%3E%3Crect x='75' y='110' width='42' height='40' rx='10' fill='white'/%3E%3Cpath d='M30,30 L30,60 L45,45 Z' fill='%2327ae60'/%3E%3Ctext x='96' y='165' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold' font-size='24'%3EDM%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+
     <title>Duty Management System</title>
-    
-    <!-- Firebase SDKs -->
+
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
-    
-    <!-- SHA-256 Library -->
+
+    <!-- SHA-256 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
-    
-    <!-- External files -->
+
+    <!-- Your scripts -->
     <script src="dcfire.js" defer></script>
     <script src="user.js" defer></script>
-    
+
     <style>
-        /* Mobile-First CSS */
         * {
             margin: 0;
             padding: 0;
@@ -56,1133 +46,335 @@
             background: #f5f7fa;
             min-height: 100vh;
             overflow-x: hidden;
-            padding: 0;
-            margin: 0;
         }
 
-        /* Loading Overlay */
+        /* ────────────────────────────────────────
+           Loading + Toasts + Network + Install
+        ──────────────────────────────────────── */
         #loadingOverlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
+            inset: 0;
+            background: rgba(255,255,255,0.96);
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            display: none;
         }
-
-        #loadingOverlay.active {
-            display: flex;
-        }
-
+        #loadingOverlay.active { display: flex; }
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            width: 56px; height: 56px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
             animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
-        /* Toast Container */
         #toastContainer {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 16px; right: 16px;
             z-index: 10000;
-            max-width: calc(100% - 40px);
+            max-width: calc(100% - 32px);
         }
-
         .toast {
             background: white;
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 14px 18px;
             margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
             display: flex;
             align-items: center;
-            gap: 10px;
-            animation: slideInRight 0.3s ease;
-            max-width: 350px;
+            gap: 12px;
+            animation: slideInRight 0.4s ease;
         }
+        .toast.success   { border-left: 5px solid #27ae60; }
+        .toast.error     { border-left: 5px solid #e74c3c; }
+        .toast.warning   { border-left: 5px solid #f39c12; }
+        .toast.info      { border-left: 5px solid #3498db; }
 
-        .toast.success {
-            border-left: 4px solid #27ae60;
+        .network-status {
+            position: fixed;
+            top: 12px; right: 12px;
+            z-index: 1001;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            color: white;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         }
+        .network-status.online  { background: #27ae60; }
+        .network-status.offline { background: #e74c3c; display: flex; }
 
-        .toast.error {
-            border-left: 4px solid #e74c3c;
+        .install-prompt, .update-available {
+            position: fixed;
+            bottom: 90px;
+            right: 16px;
+            z-index: 1000;
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            max-width: 320px;
+            border: 1px solid #e0e6ed;
         }
+        .install-prompt.hidden, .update-available.hidden { display: none; }
 
-        .toast.warning {
-            border-left: 4px solid #f39c12;
-        }
-
-        .toast.info {
-            border-left: 4px solid #3498db;
-        }
-
-        /* Login Page */
+        /* ────────────────────────────────────────
+           Login & Dashboard Layout
+        ──────────────────────────────────────── */
         .login-container {
             background: white;
-            width: 100%;
             min-height: 100vh;
             padding: 40px 20px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
+        .logo h1 { color: #2c3e50; font-size: 2.1rem; font-weight: 700; }
+        .logo p  { color: #7f8c8d; font-size: 1.05rem; }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo h1 {
-            color: #2c3e50;
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .logo p {
-            color: #7f8c8d;
-            font-size: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
+        .form-group { margin-bottom: 22px; }
         .form-group label {
             display: block;
             color: #2c3e50;
-            font-size: 15px;
             font-weight: 500;
             margin-bottom: 8px;
         }
-
         .form-control {
             width: 100%;
-            padding: 16px;
-            border: 2px solid #e0e6ed;
+            padding: 15px 16px;
+            border: 2px solid #dfe6ed;
             border-radius: 10px;
             font-size: 16px;
-            transition: all 0.3s;
-            -webkit-appearance: none;
-            appearance: none;
+            transition: 0.25s;
         }
-
         .form-control:focus {
             outline: none;
             border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            box-shadow: 0 0 0 4px rgba(52,152,219,0.12);
         }
 
-        /* Buttons */
         .btn {
-            padding: 16px 24px;
+            padding: 15px 24px;
             border: none;
             border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            display: flex;
+            transition: all 0.22s;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            touch-action: manipulation;
         }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary   { background: #3498db; color: white; }
+        .btn-success   { background: #27ae60; color: white; }
+        .btn-danger    { background: #e74c3c; color: white; }
+        .btn-warning   { background: #f39c12; color: white; }
+        .btn-block     { width: 100%; }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
+        .dashboard-container { display: none; min-height: 100vh; background: #f5f7fa; }
 
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #219653;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-warning {
-            background: #f39c12;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #d68910;
-        }
-
-        .btn-block {
-            width: 100%;
-        }
-
-        /* Dashboard */
-        .dashboard-container {
-            display: none;
-            width: 100%;
-            min-height: 100vh;
-            background: #f5f7fa;
-        }
-
-        /* Mobile Header */
+        /* Mobile Header + Side Nav + Bottom Nav */
         .mobile-header {
             background: linear-gradient(135deg, #2c3e50, #3498db);
             color: white;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 14px 16px;
             position: sticky;
             top: 0;
             z-index: 100;
-            height: 60px;
-        }
-
-        .menu-toggle {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 8px;
-            margin: -8px;
-        }
-
-        .mobile-title {
-            font-size: 18px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60%;
-        }
-
-        .mobile-user {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
         }
-
-        .mobile-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        /* Mobile Navigation */
-        .mobile-nav-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-        }
-
-        .mobile-nav-overlay.active {
-            display: block;
-        }
+        .menu-toggle { background: none; border: none; color: white; font-size: 26px; }
 
         .mobile-nav {
             position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            inset: 0  auto 0 0;
             width: 280px;
             background: white;
-            z-index: 1001;
             transform: translateX(-100%);
-            transition: transform 0.3s ease;
+            transition: transform 0.32s ease;
+            z-index: 1001;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
         }
+        .mobile-nav.active { transform: translateX(0); }
 
-        .mobile-nav.active {
-            transform: translateX(0);
-        }
-
-        .nav-header {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
-            color: white;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .nav-user-name {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .nav-user-details {
-            font-size: 14px;
-            opacity: 0.9;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .nav-items {
-            flex: 1;
-            padding: 10px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
-            color: #2c3e50;
-            text-decoration: none;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 15px;
-        }
-
-        .nav-item.active {
-            background: #e8f4fc;
-            color: #3498db;
-            border-left: 4px solid #3498db;
-        }
-
-        .nav-item-icon {
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .nav-item-badge {
-            margin-left: auto;
-            background: #e74c3c;
-            color: white;
-            border-radius: 10px;
-            padding: 2px 8px;
-            font-size: 12px;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .nav-footer {
-            padding: 20px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             background: white;
             border-top: 1px solid #e0e6ed;
             display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
+            padding: 8px 0;
             z-index: 99;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -3px 12px rgba(0,0,0,0.08);
         }
-
         .bottom-nav-btn {
+            flex: 1;
             background: none;
             border: none;
-            padding: 8px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
             color: #7f8c8d;
             font-size: 12px;
-            cursor: pointer;
-            flex: 1;
+            padding: 6px 0;
         }
+        .bottom-nav-btn.active { color: #3498db; }
 
-        .bottom-nav-btn.active {
-            color: #3498db;
-        }
-
-        .bottom-nav-icon {
-            font-size: 20px;
-        }
-
-        /* Content Area */
         .dashboard-content {
-            padding: 20px;
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding: 16px;
+            padding-bottom: 90px;
             min-height: calc(100vh - 60px);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
-        .section {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        /* Cards */
+        /* Cards, Alerts, Tables, etc. — same as your improved version */
         .card {
             background: white;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e0e6ed;
+            margin-bottom: 16px;
+            border: 1px solid #e8eff7;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
         }
-
         .card h3 {
             color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 16px;
+            font-size: 1.15rem;
             border-bottom: 2px solid #3498db;
             padding-bottom: 8px;
-            font-weight: 600;
+            margin-bottom: 16px;
         }
 
-        /* Balance Display */
         .balance-display {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 12px;
+            margin: 16px 0;
         }
-
         .balance-box {
-            background: #f8f9fa;
-            padding: 15px;
+            background: #fafbfc;
+            padding: 16px;
             border-radius: 10px;
             text-align: center;
-            border: 2px solid #e0e6ed;
-        }
-
-        .balance-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 5px 0;
-        }
-
-        .balance-label {
-            font-size: 13px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-
-        /* Form Rows */
-        .form-row {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        /* Alerts */
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .alert-info {
-            background: #e8f4fc;
-            border-color: #3498db;
-            color: #2c3e50;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            border-color: #27ae60;
-            color: #155724;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            border-color: #f39c12;
-            color: #856404;
-        }
-
-        .alert-danger {
-            background: #f8d7da;
-            border-color: #e74c3c;
-            color: #721c24;
-        }
-
-        /* Tables */
-        .table-container {
-            overflow-x: auto;
-            margin-top: 15px;
             border: 1px solid #e0e6ed;
-            border-radius: 8px;
-            -webkit-overflow-scrolling: touch;
         }
+        .balance-value { font-size: 2.1rem; font-weight: 700; color: #2c3e50; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            min-width: 600px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e6ed;
+        .alert {
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            border-left: 5px solid;
             font-size: 14px;
         }
+        .alert-info    { background:#e8f4fc; border-color:#3498db; }
+        .alert-success { background:#e8f5e9; border-color:#27ae60; }
+        .alert-warning { background:#fff8e1; border-color:#f39c12; }
+        .alert-danger  { background:#ffebee; border-color:#e74c3c; }
 
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #2c3e50;
-            position: sticky;
-            top: 0;
-        }
+        /* Duty colors with better contrast */
+        .duty-0730-1530 { background: linear-gradient(135deg, #fff3cd, #ffeaa7); color: #856404; border: 1px solid #ffeaa7; }
+        .duty-0830-1630 { background: linear-gradient(135deg, #e2d9f3, #d6c6f7); color: #563d7c; border: 1px solid #d6c6f7; }
+        .duty-1030-1830 { background: linear-gradient(135deg, #fffde7, #fff9c4); color: #827717; border: 1px solid #fff9c4; }
+        .duty-1530-2330 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); color: #0d47a1; border: 1px solid #bbdefb; }
+        .duty-1630-0030 { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); color: #424242; border: 1px solid #e0e0e0; }
+        .duty-leave     { background: linear-gradient(135deg, #ffd8a6, #ffc078); color: #e8590c; border: 1px dashed #fd7e14; }
+        .off-day-cell   { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); color: #1b5e20; border: 1px solid #a5d6a7; }
 
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        .action-btn.approve {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .action-btn.reject {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-btn.view {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        /* Announcement Banner */
-        .announcement-banner {
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .announcement-banner.priority-high {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        .announcement-banner.priority-medium {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .announcement-banner.priority-low {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-
-        .announcement-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Duty Time Colors */
-        .duty-0730-1530 {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
-            color: #856404 !important;
-            border: 1px solid #ffeaa7 !important;
-        }
-
-        .duty-0830-1630 {
-            background: linear-gradient(135deg, #e2d9f3 0%, #d6c6f7 100%) !important;
-            color: #563d7c !important;
-            border: 1px solid #d6c6f7 !important;
-        }
-
-        .duty-1030-1830 {
-            background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%) !important;
-            color: #827717 !important;
-            border: 1px solid #fff9c4 !important;
-        }
-
-        .duty-1530-2330 {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
-            color: #0d47a1 !important;
-            border: 1px solid #bbdefb !important;
-        }
-
-        .duty-1630-0030 {
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%) !important;
-            color: #424242 !important;
-            border: 1px solid #e0e0e0 !important;
-        }
-
-        .duty-leave {
-            background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%) !important;
-            color: #e8590c !important;
-            border: 1px dashed #fd7e14 !important;
-        }
-
-        .off-day-cell {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
-            color: #155724 !important;
-            font-weight: 500;
-            border: 1px solid #c3e6cb !important;
-        }
-
-        /* Empty States */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #7f8c8d;
-        }
-
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        .empty-state-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-
-        /* Mobile Optimized Form Elements */
-        select.form-control {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237f8c8d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 12px;
-            padding-right: 40px;
-        }
-
-        textarea.form-control {
-            min-height: 100px;
-            resize: vertical;
-            line-height: 1.4;
-        }
-
-        /* Touch-friendly Date Inputs */
-        input[type="date"] {
-            min-height: 48px;
-        }
-
-        /* Roster Styles */
+        /* Roster improvements */
         .roster-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
             margin-top: 20px;
         }
-
         .roster-card {
             background: white;
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 16px;
             border: 1px solid #e0e6ed;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-
         .roster-date {
-            font-weight: bold;
+            font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             padding-bottom: 8px;
             border-bottom: 2px solid #3498db;
         }
 
-        .roster-staff-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .roster-staff-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            border-radius: 6px;
-            background: #f8f9fa;
-        }
-
-        .roster-staff-name {
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .roster-staff-duty {
-            font-weight: 600;
-        }
-
-        /* Calendar View */
-        .calendar-view {
-            width: 100%;
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-
-        .calendar-header {
-            display: flex;
-            background: #3498db;
-            color: white;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .calendar-day {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            min-width: 100px;
-        }
-
-        .calendar-body {
-            display: flex;
-        }
-
-        .calendar-staff {
-            min-width: 120px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-right: 1px solid #e0e6ed;
-        }
-
-        .calendar-staff-name {
-            font-weight: 500;
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .calendar-staff-rc {
-            font-size: 11px;
-            color: #7f8c8d;
-        }
-
-        .calendar-duties {
-            display: flex;
-            flex: 1;
-        }
-
-        .calendar-duty-day {
-            flex: 1;
-            min-width: 100px;
-            padding: 10px;
-            border-right: 1px solid #e0e6ed;
-            border-bottom: 1px solid #e0e6ed;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        /* Responsive Grids */
-        @media (min-width: 768px) {
-            .balance-display {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .form-row {
-                flex-direction: row;
-                flex-wrap: wrap;
-            }
-            
-            .form-group {
-                flex: 1;
-                min-width: 200px;
-            }
-            
-            .roster-grid {
-                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            }
-        }
-
         /* Animations */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin    { to { transform: rotate(360deg); } }
+        @keyframes fadeIn  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+        @keyframes slideInRight { from { transform:translateX(120%); opacity:0; } to { transform:none; opacity:1; } }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Mobile Specific */
         @media (max-width: 767px) {
-            .dashboard-content {
-                padding: 15px;
-                padding-bottom: 70px;
-            }
-            
-            .card {
-                padding: 15px;
-            }
-            
-            .btn {
-                padding: 14px 20px;
-                font-size: 15px;
-            }
-            
-            th, td {
-                padding: 10px;
-                font-size: 13px;
-            }
-            
-            .action-btn {
-                padding: 5px 10px;
-                font-size: 11px;
-            }
-            
-            .roster-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .calendar-day {
-                min-width: 70px;
-                padding: 8px 4px;
-                font-size: 12px;
-            }
-            
-            .calendar-staff {
-                min-width: 80px;
-                padding: 8px 4px;
-            }
-            
-            .calendar-duty-day {
-                min-width: 70px;
-                padding: 8px 4px;
-                font-size: 12px;
-            }
-        }
-        /* PWA Install Prompt Styles */
-        .install-prompt {
-            position: fixed;
-            bottom: 80px;
-            right: 15px;
-            z-index: 1000;
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            max-width: 300px;
-            animation: slideInUp 0.3s ease;
-            border: 2px solid #3498db;
-        }
-        
-        .install-prompt.hidden {
-            display: none;
-        }
-        
-        .install-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .install-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: #3498db;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-        }
-        
-        .install-title {
-            font-weight: bold;
-            font-size: 14px;
-            color: #2c3e50;
-        }
-        
-        .install-subtitle {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .install-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .install-btn {
-            flex: 1;
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .install-btn:hover {
-            background: #2980b9;
-        }
-        
-        .install-btn.secondary {
-            background: #f0f0f0;
-            color: #666;
-        }
-        
-        /* Online/Offline Indicator */
-        .network-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1001;
-            background: #e74c3c;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: none;
-            align-items: center;
-            gap: 5px;
-            animation: fadeIn 0.3s;
-        }
-        
-        .network-status.online {
-            background: #27ae60;
-        }
-        
-        .network-status.offline {
-            background: #e74c3c;
-            display: flex;
-        }
-        
-        /* Refresh Button for updates */
-        .update-available {
-            position: fixed;
-            bottom: 80px;
-            left: 15px;
-            z-index: 1000;
-            background: #f39c12;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes slideInUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes slideOutDown {
-            from {
-                transform: translateY(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-        
-        /* Notification Permission Prompt */
-        .notification-permission {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            z-index: 1001;
-            background: #3498db;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .notification-permission.show {
-            display: flex;
-        }
-        
-        .notification-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .notification-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .notification-btn.allow {
-            background: white;
-            color: #3498db;
-        }
-        
-        .notification-btn.later {
-            background: rgba(255,255,255,0.2);
-            color: white;
+            .dashboard-content { padding: 14px; padding-bottom: 80px; }
+            .roster-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     
-    <!-- Loading Overlay -->
+    <!-- Loading -->
     <div id="loadingOverlay">
         <div class="spinner"></div>
         <div id="loadingText">Loading...</div>
     </div>
 
-    <!-- Toast Container -->
+        <!-- Toasts -->
     <div id="toastContainer"></div>
 
-    <!-- Login Container -->
+    <!-- Network status -->
+    <div class="network-status" id="networkStatus">
+        <span id="networkIcon">⚠️</span>
+        <span id="networkText">Offline Mode</span>
+    </div>
+
+    <!-- Install / Update prompts -->
+    <div class="install-prompt hidden" id="installPrompt">
+        <strong>Install Duty Manager</strong>
+        <p style="margin:8px 0; font-size:14px; color:#555;">Add to home screen for quick access</p>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" id="installNowBtn">Install</button>
+            <button class="btn btn-warning" id="installLaterBtn">Later</button>
+        </div>
+    </div>
+
+    <div class="update-available hidden" id="updatePrompt">
+        <span>🔄 New version available</span>
+        <button class="btn btn-primary" style="margin-left:12px; font-size:13px; padding:8px 14px;">Update</button>
+    </div>
+
+    <!-- Login -->
     <div class="login-container" id="loginContainer">
         <div class="logo">
-            <h1>Duty Management</h1>
-            <p>Secure Login System</p>
+            <h1>Duty Manager</h1>
+            <p>Staff Duty & Leave System</p>
         </div>
-        
+
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" class="form-control" placeholder="Enter username" required autofocus>
             </div>
-            
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" class="form-control" placeholder="Enter password" required>
             </div>
-            
-            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+            <button type="submit" class="btn btn-primary btn-block">
                 <span>🔐</span> Login
             </button>
-            
-            <div class="error-message" id="errorMessage">
-                Invalid username or password
+            <div class="error-message" id="errorMessage" style="color:#e74c3c; text-align:center; margin-top:12px; display:none;">
+                Invalid credentials
             </div>
         </form>
     </div>
@@ -1227,19 +419,7 @@
         <span>Update Available</span>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay">
-        <div class="spinner"></div>
-        <div id="loadingText">Loading...</div>
-    </div>
-
-    <!-- Toast Container -->
-    <div id="toastContainer"></div>
-
-    <!-- Login Container -->
-    <div class="login-container" id="loginContainer">
-        <!-- ... (keep existing login HTML) ... -->
-    </div>
+    
     <!-- Dashboard Container -->
     <div class="dashboard-container" id="dashboardContainer">
         <!-- Mobile Header -->
