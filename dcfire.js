@@ -8,7 +8,7 @@ const firebaseConfig = {
   messagingSenderId: "43622932335",
   appId: "1:43622932335:web:a7529bce1f19714687129a",
   measurementId: "G-3KD6ZYS599",
-  vapidKey: "your-public-vapid-key-here"
+  vapidKey: "BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o"
 };
 
 firebase.initializeApp(firebaseConfig);
