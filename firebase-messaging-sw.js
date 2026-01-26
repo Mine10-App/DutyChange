@@ -1,6 +1,6 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
 // Your Firebase configuration
 firebase.initializeApp({
@@ -13,17 +13,61 @@ firebase.initializeApp({
   measurementId: "G-3KD6ZYS599"
 });
 
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Retrieve Firebase Messaging object
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(payload => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-
-  const notificationTitle = payload.notification.title;
+// Background message handler (when app is closed)
+messaging.setBackgroundMessageHandler(function(payload) {
+  console.log('[firebase-messaging-sw.js] Received background message:', payload);
+  
+  // Customize notification here
+  const notificationTitle = payload.data?.title || 'Duty Manager';
   const notificationOptions = {
-    body: payload.notification.body,
+    body: payload.data?.body || 'You have a new notification',
     icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png'
+    badge: '/icon-72x72.png',
+    tag: payload.data?.tag || 'duty-manager',
+    data: payload.data || {},
+    vibrate: [200, 100, 200],
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      },
+      {
+        action: 'close',
+        title: 'Close'
+      }
+    ]
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', function(event) {
+  console.log('Notification clicked:', event.notification.tag);
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({type: 'window', includeUncontrolled: true})
+      .then(function(clientList) {
+        // Check if there's already a window/tab open
+        for (var i = 0; i < clientList.length; i++) {
+          var client = clientList[i];
+          // If so, just focus it
+          if (client.url === '/' && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // If not, open a new window
+        if (clients.openWindow) {
+          return clients.openWindow('/');
+        }
+      })
+  );
 });
