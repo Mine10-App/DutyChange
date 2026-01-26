@@ -1,175 +1,107 @@
+// firebase-functions/index.js
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
-// Cloud Function to send notifications
-exports.sendNotification = functions.https.onCall(async (data, context) => {
-    // Check if user is authenticated
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+// Send notification when new announcement is created
+exports.sendAnnouncementNotification = functions.firestore
+  .document('announcements/{announcementId}')
+  .onCreate(async (snapshot, context) => {
+    const announcement = snapshot.data();
+    
+    // Get all user FCM tokens
+    const tokensSnapshot = await admin.firestore().collection('fcmTokens').get();
+    const tokens = [];
+    
+    tokensSnapshot.forEach(doc => {
+      const tokenData = doc.data();
+      if (tokenData.token) {
+        tokens.push(tokenData.token);
+      }
+    });
+    
+    if (tokens.length === 0) {
+      console.log('No FCM tokens found');
+      return null;
     }
     
-    const { to, title, body, data: notificationData } = data;
+    // Create notification payload
+    const payload = {
+      notification: {
+        title: 'New Announcement',
+        body: announcement.title,
+        icon: 'https://your-domain.com/icon-192x192.png',
+        click_action: 'FLUTTER_NOTIFICATION_CLICK'
+      },
+      data: {
+        type: 'announcement',
+        announcementId: announcement.id,
+        priority: announcement.priority || 'medium',
+        timestamp: new Date().toISOString()
+      }
+    };
+    
+    // Send to all tokens
+    const response = await admin.messaging().sendToDevice(tokens, payload);
+    
+    // Cleanup failed tokens
+    const failedTokens = [];
+    response.results.forEach((result, index) => {
+      const error = result.error;
+      if (error) {
+        console.error('Failure sending notification to', tokens[index], error);
+        if (error.code === 'messaging/invalid-registration-token' ||
+            error.code === 'messaging/registration-token-not-registered') {
+          failedTokens.push(tokensSnapshot.docs[index].ref);
+        }
+      }
+    });
+    
+    // Delete failed tokens
+    await Promise.all(failedTokens.map(tokenRef => tokenRef.delete()));
+    
+    return null;
+  });
+
+// Send notification when new duty change request is created
+exports.sendDutyChangeNotification = functions.firestore
+  .document('notifications/{notificationId}')
+  .onCreate(async (snapshot, context) => {
+    const notification = snapshot.data();
+    
+    if (!notification.to || notification.status !== 'pending') {
+      return null;
+    }
+    
+    const payload = {
+      notification: {
+        title: notification.title || 'New Notification',
+        body: notification.body || 'You have a new notification',
+        icon: 'https://your-domain.com/icon-192x192.png'
+      },
+      data: {
+        ...notification.data,
+        notificationId: snapshot.id
+      }
+    };
     
     try {
-        // Get FCM token for the user
-        const tokenDoc = await admin.firestore().collection('fcmTokens').doc(to).get();
-        
-        if (!tokenDoc.exists) {
-            return { success: false, message: 'User has no FCM token' };
-        }
-        
-        const tokenData = tokenDoc.data();
-        
-        // Prepare notification message
-        const message = {
-            token: tokenData.token,
-            notification: {
-                title: title,
-                body: body
-            },
-            data: {
-                ...notificationData,
-                click_action: 'FLUTTER_NOTIFICATION_CLICK',
-                icon: '/icon-192x192.png'
-            },
-            webpush: {
-                notification: {
-                    icon: '/icon-192x192.png',
-                    badge: '/icon-72x72.png',
-                    vibrate: [200, 100, 200]
-                },
-                fcmOptions: {
-                    link: 'https://your-firebase-app.web.app' // Your Firebase Hosting URL
-                }
-            }
-        };
-        
-        // Send notification
-        const response = await admin.messaging().send(message);
-        console.log('Successfully sent message:', response);
-        
-        return { success: true, messageId: response };
+      // Send notification
+      const response = await admin.messaging().sendToDevice(notification.to, payload);
+      console.log('Notification sent:', response);
+      
+      // Update notification status
+      await snapshot.ref.update({
+        status: 'sent',
+        sentAt: admin.firestore.FieldValue.serverTimestamp()
+      });
     } catch (error) {
-        console.error('Error sending notification:', error);
-        throw new functions.https.HttpsError('internal', 'Failed to send notification');
+      console.error('Error sending notification:', error);
+      await snapshot.ref.update({
+        status: 'failed',
+        error: error.message
+      });
     }
-});
-
-// Function to send announcement notifications
-exports.sendAnnouncementNotification = functions.firestore
-    .document('announcements/{announcementId}')
-    .onCreate(async (snap, context) => {
-        const announcement = snap.data();
-        
-        // Get all FCM tokens
-        const tokensSnapshot = await admin.firestore().collection('fcmTokens').get();
-        
-        if (tokensSnapshot.empty) {
-            console.log('No FCM tokens found');
-            return;
-        }
-        
-        const tokens = tokensSnapshot.docs.map(doc => doc.data().token);
-        
-        // Prepare multicast message
-        const message = {
-            notification: {
-                title: '📢 New Announcement',
-                body: announcement.title
-            },
-            data: {
-                type: 'announcement',
-                announcementId: announcement.id,
-                title: announcement.title,
-                body: announcement.content,
-                priority: announcement.priority || 'medium',
-                click_action: 'FLUTTER_NOTIFICATION_CLICK'
-            },
-            webpush: {
-                notification: {
-                    icon: '/icon-192x192.png',
-                    badge: '/icon-72x72.png',
-                    vibrate: [200, 100, 200]
-                },
-                fcmOptions: {
-                    link: 'https://your-firebase-app.web.app'
-                }
-            },
-            tokens: tokens
-        };
-        
-        try {
-            const response = await admin.messaging().sendMulticast(message);
-            console.log(`Successfully sent announcement to ${response.successCount} devices`);
-            
-            if (response.failureCount > 0) {
-                const failedTokens = [];
-                response.responses.forEach((resp, idx) => {
-                    if (!resp.success) {
-                        failedTokens.push(tokens[idx]);
-                    }
-                });
-                console.log('List of tokens that caused failures:', failedTokens);
-            }
-        } catch (error) {
-            console.error('Error sending announcement notification:', error);
-        }
-    });
-
-// Function to send duty change notifications
-exports.sendDutyChangeNotification = functions.firestore
-    .document('requests/{requestId}')
-    .onCreate(async (snap, context) => {
-        const request = snap.data();
-        
-        // Only handle duty change requests
-        if (request.type !== 'dutyChange' || request.status !== 'pending') {
-            return;
-        }
-        
-        // Get recipient's FCM token
-        const tokenDoc = await admin.firestore().collection('fcmTokens').doc(request.toUsername).get();
-        
-        if (!tokenDoc.exists) {
-            console.log('Recipient has no FCM token');
-            return;
-        }
-        
-        const tokenData = tokenDoc.data();
-        
-        // Prepare notification message
-        const message = {
-            token: tokenData.token,
-            notification: {
-                title: '🔄 Duty Change Request',
-                body: `${request.fromName} wants to swap duty with you on ${request.date}`
-            },
-            data: {
-                type: 'duty_change',
-                requestId: request.id,
-                fromName: request.fromName,
-                date: request.date,
-                dutyTime: request.dutyTime,
-                toDutyTime: request.toDutyTime,
-                click_action: 'FLUTTER_NOTIFICATION_CLICK'
-            },
-            webpush: {
-                notification: {
-                    icon: '/icon-192x192.png',
-                    badge: '/icon-72x72.png',
-                    vibrate: [200, 100, 200]
-                },
-                fcmOptions: {
-                    link: 'https://your-firebase-app.web.app'
-                }
-            }
-        };
-        
-        try {
-            await admin.messaging().send(message);
-            console.log('Duty change notification sent successfully');
-        } catch (error) {
-            console.error('Error sending duty change notification:', error);
-        }
-    });
+    
+    return null;
+  });
