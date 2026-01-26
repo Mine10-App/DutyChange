@@ -2,7 +2,7 @@
   "name": "Duty Manager",
   "short_name": "DutyManager",
   "description": "Duty and Leave Management System",
-  "start_url": "/",
+  "start_url": "https://duty-change.vercel.app/mobile.html?",
   "display": "standalone",
   "background_color": "#3498db",
   "theme_color": "#3498db",
