@@ -36,6 +36,41 @@
     <!-- External Firebase and User files -->
     <script src="dcfire.js" defer></script>
     <script src="user.js" defer></script>
+
+    <script>
+// Register service workers
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    // Register main service worker
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(function(registration) {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        
+        // Check if Firebase messaging service worker is already registered
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration()
+            .then(function(registration) {
+              if (registration && registration.active) {
+                console.log('Service worker is active');
+              }
+            });
+        }
+      })
+      .catch(function(err) {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    
+    // Register Firebase messaging service worker
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then(function(registration) {
+        console.log('Firebase messaging ServiceWorker registration successful with scope: ', registration.scope);
+      })
+      .catch(function(err) {
+        console.log('Firebase messaging ServiceWorker registration failed: ', err);
+      });
+  });
+}
+</script>
     
     <style>
         /* All your existing CSS remains the same */
