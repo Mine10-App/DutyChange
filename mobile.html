@@ -1656,6 +1656,181 @@
             }
         }
 
+        // Add these variables at the top
+let messaging = null;
+let fcmToken = null;
+
+// Update loginUser function to initialize FCM
+async function loginUser(userData) {
+    currentUser = userData;
+    allUsers = users || [];
+    
+    // Update UI
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'block';
+    
+    // Update user info
+    document.getElementById('mobileTitle').textContent = 'Dashboard';
+    document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
+    document.getElementById('navUserName').textContent = userData.name;
+    document.getElementById('navUserRC').textContent = userData.rcNo;
+    document.getElementById('navUserLevel').textContent = userData.level;
+    document.getElementById('welcomeName').textContent = userData.name;
+    
+    // Show/hide admin sections
+    const isAdmin = userData.level === 'Supervisor';
+    document.querySelectorAll('.admin-nav').forEach(el => {
+        el.style.display = isAdmin ? 'flex' : 'none';
+    });
+    
+    // Initialize Firebase Messaging
+    await initializeFirebaseMessaging();
+    
+    // Load data
+    await initializeData();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Setup real-time listeners
+    setupRealtimeListeners();
+    
+    // Show welcome
+    showToast(`Welcome back, ${userData.name}!`, 'success');
+}
+
+// Initialize Firebase Messaging
+async function initializeFirebaseMessaging() {
+    try {
+        // Check if Firebase messaging is supported
+        if (!firebase.messaging.isSupported()) {
+            console.log('Firebase Messaging not supported');
+            return;
+        }
+        
+        // Initialize Firebase Messaging
+        messaging = firebase.messaging();
+        
+        // Request notification permission
+        await Notification.requestPermission();
+        
+        // Get FCM token
+        fcmToken = await messaging.getToken({
+            vapidKey: 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o' 
+        });
+        
+        if (fcmToken) {
+            console.log('FCM Token:', fcmToken);
+            // Save token to Firestore for this user
+            await saveFCMToken(fcmToken);
+        } else {
+            console.log('No registration token available');
+        }
+        
+        // Handle token refresh
+        messaging.onTokenRefresh(async () => {
+            try {
+                const refreshedToken = await messaging.getToken({
+                    vapidKey: 'YOUR_VAPID_KEY'
+                });
+                console.log('Token refreshed:', refreshedToken);
+                await saveFCMToken(refreshedToken);
+            } catch (error) {
+                console.error('Unable to refresh token:', error);
+            }
+        });
+        
+        // Handle foreground messages
+        messaging.onMessage((payload) => {
+            console.log('Foreground message received:', payload);
+            showPushNotification(
+                payload.notification?.title || 'Duty Manager',
+                payload.notification?.body || 'New notification',
+                payload.data?.tag || 'default'
+            );
+        });
+        
+    } catch (error) {
+        console.error('Error initializing FCM:', error);
+    }
+}
+
+// Save FCM token to Firestore
+async function saveFCMToken(token) {
+    if (!currentUser || !token) return;
+    
+    try {
+        await db.collection('fcmTokens').doc(currentUser.username).set({
+            token: token,
+            username: currentUser.username,
+            name: currentUser.name,
+            updatedAt: new Date().toISOString()
+        });
+        console.log('FCM token saved');
+    } catch (error) {
+        console.error('Error saving FCM token:', error);
+    }
+}
+
+// Function to send push notification to specific user
+async function sendPushNotificationToUser(username, title, body, data = {}) {
+    try {
+        // Get user's FCM token
+        const tokenDoc = await db.collection('fcmTokens').doc(username).get();
+        if (!tokenDoc.exists) {
+            console.log('User has no FCM token');
+            return false;
+        }
+        
+        const tokenData = tokenDoc.data();
+        
+        // Send notification via your server or Firebase Cloud Functions
+        // For now, we'll store the notification to be sent by a Cloud Function
+        await db.collection('pendingNotifications').add({
+            to: tokenData.token,
+            notification: {
+                title: title,
+                body: body
+            },
+            data: {
+                ...data,
+                click_action: 'FLUTTER_NOTIFICATION_CLICK'
+            },
+            createdAt: new Date().toISOString(),
+            status: 'pending'
+        });
+        
+        return true;
+    } catch (error) {
+        console.error('Error sending push notification:', error);
+        return false;
+    }
+}
+
+// Update the send notification functions to use FCM
+async function sendDutyChangeNotification(request) {
+    if (Notification.permission === 'granted') {
+        // Local notification
+        showPushNotification(
+            'Duty Change Request',
+            `${request.fromName} wants to swap duty with you on ${request.date}`,
+            `duty-change-${request.id}`
+        );
+        
+        // Send FCM notification
+        await sendPushNotificationToUser(
+            request.toUsername,
+            'Duty Change Request',
+            `${request.fromName} wants to swap duty with you on ${request.date}`,
+            {
+                type: 'duty_change',
+                requestId: request.id,
+                tag: `duty-change-${request.id}`
+            }
+        );
+    }
+}
+
         async function initializeData() {
             showLoading(true, 'Loading data...');
             
