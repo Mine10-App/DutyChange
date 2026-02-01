@@ -16,21 +16,53 @@
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="theme-color" content="#3498db">
     
-    <!-- PWA Manifest (external) -->
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/icons/icon-192x192.png">
     
     <title>Duty Management System</title>
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
-    
-    <!-- SHA-256 Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
-    
     <style>
-        /* Add these styles to your existing CSS */
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Offline Indicator */
+        .offline-indicator {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .offline-indicator.active {
+            display: block;
+        }
+
+        /* PWA Install Prompt */
         .install-prompt {
             position: fixed;
             bottom: 90px;
@@ -93,105 +125,6 @@
         .install-btn.secondary {
             background: #f0f0f0;
             color: #666;
-        }
-        
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        /* Animation for PWA install prompt */
-        @keyframes slideInUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes slideOutDown {
-            from {
-                transform: translateY(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-        }
-        
-        /* Offline indicator */
-        .offline-indicator {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #e74c3c;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 1001;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        
-        .offline-indicator.active {
-            display: block;
-        }
-        
-        /* Update body for standalone mode */
-        body.standalone-app {
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        
-        /* Rest of your existing CSS remains here... */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background: #f5f7fa;
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding: 0;
-            margin: 0;
-        }
-
-          /* Mobile-First CSS */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background: #f5f7fa;
-            min-height: 100vh;
-            overflow-x: hidden;
-            padding: 0;
-            margin: 0;
         }
 
         /* Loading Overlay */
@@ -580,7 +513,7 @@
         /* Content Area */
         .dashboard-content {
             padding: 20px;
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding-bottom: 80px;
             min-height: calc(100vh - 60px);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -783,44 +716,6 @@
             gap: 10px;
         }
 
-        /* Duty Time Colors */
-        .duty-0730-1530 {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
-            color: #856404 !important;
-        }
-
-        .duty-0830-1630 {
-            background: linear-gradient(135deg, #e2d9f3 0%, #d6c6f7 100%) !important;
-            color: #563d7c !important;
-        }
-
-        .duty-1030-1830 {
-            background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%) !important;
-            color: #827717 !important;
-        }
-
-        .duty-1530-2330 {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
-            color: #0d47a1 !important;
-        }
-
-        .duty-1630-0030 {
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%) !important;
-            color: #424242 !important;
-        }
-
-        .duty-leave {
-            background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%) !important;
-            color: #e8590c !important;
-            border: 1px dashed #fd7e14 !important;
-        }
-
-        .off-day-cell {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
-            color: #155724 !important;
-            font-weight: 500;
-        }
-
         /* Empty States */
         .empty-state {
             text-align: center;
@@ -856,11 +751,6 @@
             line-height: 1.4;
         }
 
-        /* Touch-friendly Date Inputs */
-        input[type="date"] {
-            min-height: 48px;
-        }
-
         /* Responsive Grids */
         @media (min-width: 768px) {
             .balance-display {
@@ -892,6 +782,16 @@
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideOutDown {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
         }
 
         /* Custom Scrollbar */
@@ -940,7 +840,65 @@
                 font-size: 11px;
             }
         }
-        
+
+        /* Duty Time Colors */
+        .duty-0730-1530 {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+            color: #856404 !important;
+        }
+
+        .duty-0830-1630 {
+            background: linear-gradient(135deg, #e2d9f3 0%, #d6c6f7 100%) !important;
+            color: #563d7c !important;
+        }
+
+        .duty-1030-1830 {
+            background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%) !important;
+            color: #827717 !important;
+        }
+
+        .duty-1530-2330 {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+            color: #0d47a1 !important;
+        }
+
+        .duty-1630-0030 {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%) !important;
+            color: #424242 !important;
+        }
+
+        .duty-leave {
+            background: linear-gradient(135deg, #ffd8a6 0%, #ffc078 100%) !important;
+            color: #e8590c !important;
+            border: 1px dashed #fd7e14 !important;
+        }
+
+        .off-day-cell {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+            color: #155724 !important;
+            font-weight: 500;
+        }
+
+        /* Status Colors */
+        .status-pending {
+            color: #f39c12;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .status-rejected {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .status-cancelled {
+            color: #7f8c8d;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -995,7 +953,7 @@
                 <span>🔐</span> Login
             </button>
             
-            <div class="error-message" id="errorMessage">
+            <div class="error-message" id="errorMessage" style="color: #e74c3c; margin-top: 15px; display: none;">
                 Invalid username or password
             </div>
         </form>
@@ -1043,18 +1001,14 @@
                     <span>My Requests</span>
                     <span class="nav-item-badge" id="myRequestsBadge" style="display: none;">0</span>
                 </a>
-                <a href="#" class="nav-item" data-section="viewMyRoster">
-                    <span class="nav-item-icon">📊</span>
-                    <span>My Roster</span>
-                </a>
-                <a href="#" class="nav-item" data-section="viewAllRoster">
-                    <span class="nav-item-icon">👥</span>
-                    <span>All Roster</span>
-                </a>
                 <a href="#" class="nav-item" data-section="pendingRequests" id="pendingRequestsNav" style="display: none;">
                     <span class="nav-item-icon">⏳</span>
                     <span>Pending</span>
                     <span class="nav-item-badge" id="pendingRequestsBadge">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="viewAllRoster">
+                    <span class="nav-item-icon">👥</span>
+                    <span>All Roster</span>
                 </a>
                 
                 <!-- Admin Sections -->
@@ -1062,22 +1016,9 @@
                     <span class="nav-item-icon">📢</span>
                     <span>Announcements</span>
                 </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminDutyRoster" style="display: none;">
-                    <span class="nav-item-icon">📝</span>
-                    <span>Duty Roster</span>
-                </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminLeaveBalance" style="display: none;">
-                    <span class="nav-item-icon">💰</span>
-                    <span>Leave Balance</span>
-                </a>
                 <a href="#" class="nav-item admin-nav" data-section="adminApprovals" style="display: none;">
                     <span class="nav-item-icon">✅</span>
                     <span>Approvals</span>
-                </a>
-                <a href="#" class="nav-item admin-nav" data-section="adminRequestHistory" style="display: none;">
-                    <span class="nav-item-icon">📜</span>
-                    <span>History</span>
-                    <span class="nav-item-badge" id="historyNotificationBadge" style="display: none;">!</span>
                 </a>
             </div>
             
@@ -1127,6 +1068,22 @@
                         </button>
                         <button class="btn btn-success" onclick="showSection('leaveApplication')">
                             <span>📅</span> Apply Leave
+                        </button>
+                        <button class="btn btn-primary" onclick="showSection('pendingRequests')">
+                            <span>⏳</span> Pending
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Test Push Notification Button (Remove in production) -->
+                <div class="card" style="margin-top: 15px;">
+                    <h3>Push Notification Test</h3>
+                    <div class="form-row">
+                        <button class="btn btn-warning" onclick="testPushNotification()">
+                            <span>🔔</span> Test Push Notification
+                        </button>
+                        <button class="btn btn-success" onclick="enablePushNotifications()">
+                            <span>✅</span> Enable Notifications
                         </button>
                     </div>
                 </div>
@@ -1361,6 +1318,29 @@
                     <div id="activeAnnouncementsList"></div>
                 </div>
             </div>
+
+            <!-- Admin Approvals -->
+            <div class="section" id="adminApprovalsSection">
+                <div class="card">
+                    <h3>Pending Approvals</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Staff</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminApprovalsTable">
+                                <!-- Filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Bottom Navigation -->
@@ -1388,39 +1368,14 @@
         </div>
     </div>
 
-    <!-- Service Worker Registration -->
-    <script>
-    // Check if service workers are supported
-    if ('serviceWorker' in navigator) {
-        // Register main service worker
-        navigator.serviceWorker.register('/sw.js')
-            .then(function(registration) {
-                console.log('Main Service Worker registered with scope:', registration.scope);
-                
-                // Check for updates every hour
-                setInterval(() => {
-                    registration.update();
-                }, 60 * 60 * 1000);
-            })
-            .catch(function(error) {
-                console.log('Service Worker registration failed:', error);
-                // Don't block the app if service worker fails
-            });
-    }
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
     
-    // Check if running as PWA
-    function isRunningStandalone() {
-        return window.matchMedia('(display-mode: standalone)').matches || 
-               window.navigator.standalone ||
-               document.referrer.includes('android-app://');
-    }
-    
-    // Add standalone class if running as PWA
-    if (isRunningStandalone()) {
-        document.body.classList.add('standalone-app');
-        console.log('Running as installed PWA');
-    }
-    </script>
+    <!-- SHA-256 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
 
     <!-- Main Application Script -->
     <script>
@@ -1435,6 +1390,52 @@
     let currentToastId = 0;
     let deferredPrompt = null;
     let messaging = null;
+    let analytics = null;
+
+    // Firebase Configuration - REPLACE WITH YOUR VALUES
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID",
+        measurementId: "YOUR_MEASUREMENT_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    messaging = firebase.messaging();
+    analytics = firebase.analytics();
+
+    // User Database - Replace with your actual users
+    const users = [
+        {
+            username: "john",
+            passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", // "123"
+            name: "John Doe",
+            RCNo: "101",
+            Level: "User",
+            email: "john@example.com"
+        },
+        {
+            username: "jane",
+            passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", // "123"
+            name: "Jane Smith",
+            RCNo: "102",
+            Level: "Supervisor",
+            email: "jane@example.com"
+        },
+        {
+            username: "admin",
+            passwordHash: "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", // "123"
+            name: "Administrator",
+            RCNo: "001",
+            Level: "Admin",
+            email: "admin@example.com"
+        }
+    ];
 
     // Initialize App
     document.addEventListener('DOMContentLoaded', function() {
@@ -1443,6 +1444,7 @@
         checkSession();
         setupOnlineStatus();
         setupServiceWorker();
+        setupPWAInstallPrompt();
     });
 
     function detectMobile() {
@@ -1463,35 +1465,16 @@
         if (!navigator.onLine) {
             indicator.classList.add('active');
             showToast('You are offline. Some features may not work.', 'warning');
-            // Disable submit buttons that require network
-            document.querySelectorAll('button[type="submit"]').forEach(btn => {
-                btn.disabled = true;
-                btn.innerHTML = '<span>📴</span> Offline - Try Later';
-            });
         } else {
             indicator.classList.remove('active');
-            // Re-enable submit buttons
-            document.querySelectorAll('button[type="submit"]').forEach(btn => {
-                btn.disabled = false;
-                // Restore original button text based on form type
-                if (btn.closest('#dutyChangeForm')) {
-                    btn.innerHTML = '<span>📤</span> Submit Request';
-                } else if (btn.closest('#leaveApplicationForm')) {
-                    btn.innerHTML = '<span>📤</span> Submit Application';
-                } else if (btn.closest('#announcementForm')) {
-                    btn.innerHTML = '<span>📢</span> Create Announcement';
-                }
-            });
-            
-            // Sync any offline data
             syncOfflineData();
         }
     }
 
     function setupServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
                     console.log('Service Worker registered with scope:', registration.scope);
                     
                     // Check for updates every hour
@@ -1499,25 +1482,32 @@
                         registration.update();
                     }, 60 * 60 * 1000);
                 })
-                .catch(error => {
+                .catch(function(error) {
                     console.log('Service Worker registration failed:', error);
                 });
         }
     }
 
-    // PWA Install Prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        
-        // Show install prompt after 3 seconds if not shown before
-        const installPromptShown = localStorage.getItem('installPromptShown') === 'true';
-        if (!installPromptShown && !isRunningStandalone()) {
-            setTimeout(() => {
-                showInstallPrompt();
-            }, 3000);
-        }
-    });
+    function setupPWAInstallPrompt() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install prompt after 3 seconds if not shown before
+            const installPromptShown = localStorage.getItem('installPromptShown') === 'true';
+            if (!installPromptShown && !isRunningStandalone()) {
+                setTimeout(() => {
+                    showInstallPrompt();
+                }, 3000);
+            }
+        });
+    }
+
+    function isRunningStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
+    }
 
     function showInstallPrompt() {
         if (deferredPrompt && !isRunningStandalone()) {
@@ -1551,6 +1541,7 @@
             if (outcome === 'accepted') {
                 console.log('User accepted the install prompt');
                 showToast('App installed successfully! You can now find it on your home screen.', 'success');
+                logEvent('pwa_installed');
             } else {
                 console.log('User dismissed the install prompt');
             }
@@ -1611,6 +1602,16 @@
                 }, 300);
             }
         }, duration);
+    }
+
+    function logEvent(eventName, eventParams = {}) {
+        if (analytics) {
+            analytics.logEvent(eventName, {
+                ...eventParams,
+                user_id: currentUser?.username,
+                timestamp: new Date().toISOString()
+            });
+        }
     }
 
     function initApp() {
@@ -1722,17 +1723,6 @@
             if (e.key === 'Escape' && !document.getElementById('mobileNav').classList.contains('active')) {
                 showSection('home');
             }
-            
-            // Number shortcuts for navigation
-            if (e.altKey) {
-                switch(e.key) {
-                    case '1': showSection('home'); break;
-                    case '2': showSection('dutyChange'); break;
-                    case '3': showSection('leaveApplication'); break;
-                    case '4': showSection('myRequests'); break;
-                    case '5': showSection('viewAllRoster'); break;
-                }
-            }
         });
     }
 
@@ -1788,11 +1778,13 @@
                 name: user.name,
                 rcNo: user.RCNo,
                 level: user.Level,
+                email: user.email,
                 expiry: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
             };
             
             localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
             await loginUser(sessionData);
+            logEvent('login');
             showLoading(false);
         } else {
             showToast('Invalid username or password', 'error');
@@ -1825,7 +1817,7 @@
         // Show/hide pending requests nav based on user level
         const pendingNav = document.getElementById('pendingRequestsNav');
         if (pendingNav) {
-            pendingNav.style.display = 'flex'; // Always show for now, badge will handle visibility
+            pendingNav.style.display = 'flex';
         }
         
         // Initialize Firebase Messaging for push notifications
@@ -1879,7 +1871,7 @@
             
             try {
                 // Get FCM token with VAPID key
-                const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o';
+                const vapidKey = 'YOUR_VAPID_KEY'; // Get from Firebase Console
                 
                 const token = await messaging.getToken({
                     vapidKey: vapidKey,
@@ -1889,23 +1881,22 @@
                 if (token) {
                     console.log('FCM Token:', token.substring(0, 20) + '...');
                     
-                    // Save token to Firestore if available
-                    if (typeof db !== 'undefined') {
-                        await db.collection('fcmTokens').doc(currentUser.username).set({
-                            token: token,
-                            userId: currentUser.username,
-                            name: currentUser.name,
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
-                        
-                        console.log('Token saved to Firestore');
-                    }
+                    // Save token to Firestore
+                    await db.collection('fcmTokens').doc(currentUser.username).set({
+                        token: token,
+                        userId: currentUser.username,
+                        name: currentUser.name,
+                        email: currentUser.email,
+                        level: currentUser.level,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                    console.log('Token saved to Firestore');
                 } else {
                     console.log('No FCM token available');
                 }
             } catch (tokenError) {
                 console.error('Error getting FCM token:', tokenError);
-                // Continue without token - app will still work
             }
             
             // Handle incoming messages
@@ -1922,13 +1913,6 @@
             
         } catch (error) {
             console.error('Error in Firebase Messaging:', error);
-            
-            // Don't crash the app for notification errors
-            if (error.code === 'messaging/permission-blocked') {
-                console.log('Notifications blocked by user');
-            } else if (error.code === 'messaging/unsupported-browser') {
-                console.log('Browser does not support messaging');
-            }
         }
     }
 
@@ -1955,7 +1939,6 @@
             // Update UI
             updateUserBalance();
             updateRequestCounts();
-            updateNotificationBadge();
             loadHomeAnnouncements();
             
             // Check for offline data
@@ -1965,7 +1948,7 @@
         } catch (error) {
             console.error('Error initializing data:', error);
             
-            // Try to load from cache/local storage if offline
+            // Try to load from cache if offline
             if (!navigator.onLine) {
                 loadFromCache();
                 showToast('Loaded cached data. Some features limited.', 'warning');
@@ -2335,41 +2318,6 @@
         }
     }
 
-    async function updateNotificationBadge() {
-        if (!currentUser || typeof db === 'undefined') return;
-        
-        try {
-            const snapshot = await db.collection('notifications')
-                .where('userId', '==', currentUser.username)
-                .where('read', '==', false)
-                .get();
-            
-            const unreadCount = snapshot.size;
-            
-            // Update badge in navigation
-            const badge = document.getElementById('notificationBadge');
-            if (badge) {
-                if (unreadCount > 0) {
-                    badge.textContent = unreadCount;
-                    badge.style.display = 'flex';
-                } else {
-                    badge.style.display = 'none';
-                }
-            }
-            
-            // Update browser tab badge if supported
-            if ('setAppBadge' in navigator) {
-                if (unreadCount > 0) {
-                    navigator.setAppBadge(unreadCount);
-                } else {
-                    navigator.clearAppBadge();
-                }
-            }
-        } catch (error) {
-            console.error('Error updating notification badge:', error);
-        }
-    }
-
     // Navigation Functions
     function showSection(sectionId) {
         // Update mobile title
@@ -2379,13 +2327,9 @@
             leaveApplication: 'Apply Leave',
             myRequests: 'My Requests',
             pendingRequests: 'Pending Requests',
-            viewMyRoster: 'My Roster',
             viewAllRoster: 'All Roster',
             adminAnnouncements: 'Announcements',
-            adminDutyRoster: 'Manage Roster',
-            adminLeaveBalance: 'Leave Balance',
-            adminApprovals: 'Approvals',
-            adminRequestHistory: 'History'
+            adminApprovals: 'Approvals'
         };
         
         const mobileTitle = document.getElementById('mobileTitle');
@@ -2434,6 +2378,9 @@
         if (dashboardContent) {
             dashboardContent.scrollTop = 0;
         }
+        
+        // Log section view
+        logEvent('view_section', { section: sectionId });
     }
 
     function loadSectionData(sectionId) {
@@ -2459,11 +2406,8 @@
             case 'adminAnnouncements':
                 loadAnnouncementsAdmin();
                 break;
-            default:
-                // For other admin sections
-                if (sectionId.startsWith('admin')) {
-                    showToast(`${sectionId.replace('admin', '')} - to be implemented`, 'info');
-                }
+            case 'adminApprovals':
+                loadAdminApprovals();
                 break;
         }
     }
@@ -2513,9 +2457,6 @@
         
         // Load announcements
         loadHomeAnnouncements();
-        
-        // Load notifications
-        updateNotificationBadge();
         
         // Check for upcoming leave
         checkUpcomingLeave();
@@ -2661,10 +2602,7 @@
     }
 
     async function submitDutyChange() {
-        if (!currentUser || !navigator.onLine) {
-            showToast('Cannot submit while offline', 'error');
-            return;
-        }
+        if (!currentUser) return;
         
         const date = document.getElementById('changeDate').value;
         const dutyTime = document.getElementById('changeDutyTime').value;
@@ -2730,6 +2668,7 @@
             
             updateRequestCounts();
             showToast('Duty change request submitted!', 'success');
+            logEvent('duty_change_requested');
             showSection('home');
             
             // Reset form
@@ -2818,10 +2757,7 @@
     }
 
     async function submitLeaveApplication() {
-        if (!currentUser || !navigator.onLine) {
-            showToast('Cannot submit while offline', 'error');
-            return;
-        }
+        if (!currentUser) return;
         
         const leaveType = document.getElementById('leaveType').value;
         const date = document.getElementById('leaveDate').value;
@@ -2901,6 +2837,7 @@
             
             // Show success message with balance deduction info
             showToast(`${leaveType} application submitted successfully! ${duration} day(s) deducted from your balance.`, 'success');
+            logEvent('leave_applied', { type: leaveType, duration: duration });
             
             // Send notification to supervisor
             await notifySupervisorAboutLeave(request);
@@ -2908,34 +2845,18 @@
             // Reset form and go to dashboard
             showSection('home');
             document.getElementById('leaveApplicationForm').reset();
-            
-            // Show updated balance
-            showToast(`New ${leaveType} balance: ${leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`, 'info', 2000);
         }
     }
 
     async function notifySupervisorAboutLeave(leaveRequest) {
         try {
-            if (typeof db === 'undefined') return;
-            
             // Find supervisors
             const supervisors = allUsers.filter(user => user.Level === 'Supervisor' || user.Level === 'Admin');
             
-            // Create notification for each supervisor
+            // Send push notifications to supervisors
             for (const supervisor of supervisors) {
-                await db.collection('notifications').add({
-                    userId: supervisor.username,
-                    title: 'New Leave Application',
-                    message: `${leaveRequest.fromName} has applied for ${leaveRequest.leaveType} on ${leaveRequest.date}`,
-                    type: 'leave_application',
-                    data: {
-                        requestId: leaveRequest.id,
-                        fromUser: leaveRequest.fromUsername,
-                        date: leaveRequest.date
-                    },
-                    read: false,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                await sendPushNotification(supervisor.username, 'New Leave Application',
+                    `${leaveRequest.fromName} has applied for ${leaveRequest.leaveType} on ${leaveRequest.date}`);
             }
         } catch (error) {
             console.error('Error notifying supervisor:', error);
@@ -3029,6 +2950,7 @@
             loadMyRequests();
             updateRequestCounts();
             showToast('Request cancelled', 'success');
+            logEvent('request_cancelled', { type: request.type });
             
             // Notify the other user if it's a duty change
             if (request.type === 'dutyChange') {
@@ -3160,6 +3082,7 @@
         const success = await saveAllRequests();
         if (success) {
             showToast(`Request ${response} successfully!`, 'success');
+            logEvent('request_responded', { response: response, type: request.type });
             
             // Send push notification to requester
             await sendPushNotification(request.fromUsername, 
@@ -3319,8 +3242,6 @@
                     By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
                     <button class="action-btn reject" onclick="deleteAnnouncement('${ann.id}')" 
                             style="float: right; margin-left: 5px;">Delete</button>
-                    <button class="action-btn view" onclick="editAnnouncement('${ann.id}')" 
-                            style="float: right;">Edit</button>
                 </div>
             `;
             
@@ -3329,10 +3250,7 @@
     }
 
     async function createAnnouncement() {
-        if (!currentUser || !navigator.onLine) {
-            showToast('Cannot create announcement while offline', 'error');
-            return;
-        }
+        if (!currentUser) return;
         
         const title = document.getElementById('announcementTitle').value.trim();
         const content = document.getElementById('announcementContent').value.trim();
@@ -3360,12 +3278,13 @@
         const success = await saveAnnouncements();
         if (success) {
             showToast('Announcement created!', 'success');
+            logEvent('announcement_created');
             document.getElementById('announcementForm').reset();
             loadAnnouncementsAdmin();
             loadHomeAnnouncements();
             
             // Send push notification to all users
-            await sendPushNotificationToAll('New Announcement', title);
+            await sendNotificationToAllUsers('New Announcement', title);
         }
     }
 
@@ -3384,39 +3303,217 @@
         }
     }
 
-    async function sendPushNotification(userId, title, body) {
+    // Admin Approvals Functions
+    function loadAdminApprovals() {
+        const tbody = document.getElementById('adminApprovalsTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const pendingApprovals = allRequests.filter(req => 
+            req.status === 'pending' && 
+            req.type === 'dutyChange'
+        );
+        
+        if (pendingApprovals.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px;">
+                        <div style="color: #7f8c8d; font-size: 16px;">
+                            No pending approvals
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        pendingApprovals.forEach(req => {
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td>${req.type === 'dutyChange' ? '🔄 Duty Change' : '📅 Leave'}</td>
+                <td>${req.fromName}<br><small>RC: ${req.fromRcNo}</small></td>
+                <td>${req.date}</td>
+                <td>Swap ${req.dutyTime} with ${req.toName} (${req.toDutyTime})</td>
+                <td class="action-buttons">
+                    <button class="action-btn approve" onclick="adminApproveRequest('${req.id}')">Approve</button>
+                    <button class="action-btn reject" onclick="adminRejectRequest('${req.id}')">Reject</button>
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function adminApproveRequest(requestId) {
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        request.status = 'approved';
+        request.approvedBy = currentUser.name;
+        request.approvedAt = new Date().toISOString();
+        request.history.push({
+            action: 'admin_approved',
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            showToast('Request approved', 'success');
+            logEvent('admin_request_approved');
+            
+            // Send push notification to both users
+            await sendPushNotification(request.fromUsername, 'Request Approved',
+                `Your duty change request for ${request.date} has been approved by admin`);
+            
+            await sendPushNotification(request.toUsername, 'Request Approved',
+                `Duty change request involving you for ${request.date} has been approved by admin`);
+            
+            loadAdminApprovals();
+            updateRequestCounts();
+        }
+    }
+
+    async function adminRejectRequest(requestId) {
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        request.status = 'rejected';
+        request.rejectedBy = currentUser.name;
+        request.rejectedAt = new Date().toISOString();
+        request.history.push({
+            action: 'admin_rejected',
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            showToast('Request rejected', 'success');
+            logEvent('admin_request_rejected');
+            
+            // Send push notification to requester
+            await sendPushNotification(request.fromUsername, 'Request Rejected',
+                `Your duty change request for ${request.date} has been rejected by admin`);
+            
+            loadAdminApprovals();
+            updateRequestCounts();
+        }
+    }
+
+    // Push Notification Functions
+    async function sendPushNotification(userId, title, body, data = {}) {
         try {
             if (typeof db === 'undefined') return;
             
-            // Save notification to Firestore
+            // Get user's FCM token
+            const tokenDoc = await db.collection('fcmTokens').doc(userId).get();
+            if (!tokenDoc.exists) {
+                console.log('No FCM token found for user:', userId);
+                return;
+            }
+            
+            const tokenData = tokenDoc.data();
+            const token = tokenData.token;
+            
+            // Save to notifications collection
             await db.collection('notifications').add({
                 userId: userId,
                 title: title,
                 message: body,
                 type: 'push_notification',
+                data: data,
                 read: false,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
+            
+            console.log('Notification saved for user:', userId);
+            
+            // Note: In production, you would call a cloud function to send the push notification
+            // or use Firebase Cloud Messaging REST API
             
         } catch (error) {
             console.error('Error sending push notification:', error);
         }
     }
 
-    async function sendPushNotificationToAll(title, body) {
+    async function sendNotificationToAllUsers(title, body, data = {}) {
         try {
-            if (typeof db === 'undefined') return;
-            
-            // Get all FCM tokens
             const tokensSnapshot = await db.collection('fcmTokens').get();
             
-            tokensSnapshot.forEach(async (doc) => {
+            const batch = db.batch();
+            
+            tokensSnapshot.forEach((doc) => {
                 const tokenData = doc.data();
-                await sendPushNotification(tokenData.userId, title, body);
+                
+                // Add to notifications collection
+                const notificationRef = db.collection('notifications').doc();
+                batch.set(notificationRef, {
+                    userId: tokenData.userId,
+                    title: title,
+                    message: body,
+                    type: 'broadcast',
+                    data: data,
+                    read: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Send push notification
+                sendPushNotification(tokenData.userId, title, body, data);
             });
             
+            await batch.commit();
+            
+            return true;
         } catch (error) {
-            console.error('Error sending push notification to all:', error);
+            console.error('Error sending to all users:', error);
+            return false;
+        }
+    }
+
+    // Test Functions
+    async function testPushNotification() {
+        if (!currentUser) {
+            showToast('Please login first', 'warning');
+            return;
+        }
+        
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            // Send test notification to yourself
+            await sendPushNotification(
+                currentUser.username,
+                'Test Notification',
+                'This is a test push notification from Duty Manager!',
+                { test: true, timestamp: Date.now() }
+            );
+            showToast('Test notification sent! Check your notifications.', 'success');
+            logEvent('test_notification_sent');
+        } else {
+            showToast('Notification permission denied', 'warning');
+        }
+    }
+
+    async function enablePushNotifications() {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                await initFirebaseMessaging();
+                showToast('Push notifications enabled!', 'success');
+            } else {
+                showToast('Notification permission denied', 'warning');
+            }
+        } catch (error) {
+            console.error('Error enabling push notifications:', error);
+            showToast('Failed to enable notifications', 'error');
         }
     }
 
@@ -3522,40 +3619,6 @@
         });
     }
 
-    function logout() {
-        // Clear FCM token on logout
-        if (currentUser && typeof db !== 'undefined') {
-            db.collection('fcmTokens').doc(currentUser.username).delete()
-                .catch(error => console.error('Error removing FCM token:', error));
-        }
-        
-        // Clear session
-        localStorage.removeItem('dutySystemSession');
-        
-        // Clear cache
-        localStorage.removeItem('dutyRosterCache');
-        localStorage.removeItem('leaveBalancesCache');
-        localStorage.removeItem('requestsCache');
-        localStorage.removeItem('announcementsCache');
-        
-        // Reset state
-        currentUser = null;
-        allUsers = [];
-        dutyRoster = {};
-        leaveBalances = {};
-        allRequests = [];
-        announcements = [];
-        
-        // Show login screen
-        document.getElementById('loginContainer').style.display = 'flex';
-        document.getElementById('dashboardContainer').style.display = 'none';
-        
-        // Reset form
-        document.getElementById('loginForm').reset();
-        
-        showToast('Logged out successfully', 'success');
-    }
-
     function setupRealtimeListeners() {
         if (typeof db === 'undefined') return;
         
@@ -3585,6 +3648,7 @@
                     const activeSection = document.querySelector('.section.active')?.id;
                     if (activeSection === 'myRequestsSection') loadMyRequests();
                     if (activeSection === 'pendingRequestsSection') loadPendingRequests();
+                    if (activeSection === 'adminApprovalsSection') loadAdminApprovals();
                 }
             }, (error) => {
                 console.error('Requests listener error:', error);
@@ -3623,8 +3687,6 @@
                 .where('userId', '==', currentUser.username)
                 .where('read', '==', false)
                 .onSnapshot((snapshot) => {
-                    updateNotificationBadge();
-                    
                     // Show desktop notifications for new notifications
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === 'added') {
@@ -3664,6 +3726,42 @@
         }
     }
 
+    function logout() {
+        // Clear FCM token on logout
+        if (currentUser && typeof db !== 'undefined') {
+            db.collection('fcmTokens').doc(currentUser.username).delete()
+                .catch(error => console.error('Error removing FCM token:', error));
+        }
+        
+        // Clear session
+        localStorage.removeItem('dutySystemSession');
+        
+        // Clear cache
+        localStorage.removeItem('dutyRosterCache');
+        localStorage.removeItem('leaveBalancesCache');
+        localStorage.removeItem('requestsCache');
+        localStorage.removeItem('announcementsCache');
+        localStorage.removeItem('offlineQueue');
+        
+        // Reset state
+        currentUser = null;
+        allUsers = [];
+        dutyRoster = {};
+        leaveBalances = {};
+        allRequests = [];
+        announcements = [];
+        
+        // Show login screen
+        document.getElementById('loginContainer').style.display = 'flex';
+        document.getElementById('dashboardContainer').style.display = 'none';
+        
+        // Reset form
+        document.getElementById('loginForm').reset();
+        
+        showToast('Logged out successfully', 'success');
+        logEvent('logout');
+    }
+
     // Initialize on window load
     window.addEventListener('load', function() {
         // Add PWA install prompt for iOS
@@ -3685,10 +3783,12 @@
         showToast,
         updateDashboard,
         showSection,
-        logout
+        logout,
+        testPushNotification,
+        enablePushNotifications
     };
 
-    console.log('Duty Manager PWA initialized');
+    console.log('Duty Manager PWA initialized with Firebase');
     </script>
 </body>
 </html>
