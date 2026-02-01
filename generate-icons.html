@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div id="icon" style="width: 512px; height: 512px; background: #3498db; border-radius: 25%; display: flex; align-items: center; justify-content: center;">
+        <div style="color: white; font-size: 200px; font-weight: bold; font-family: Arial;">DM</div>
+    </div>
+    
+    <button onclick="generateIcons()">Generate Icons</button>
+    
+    <script>
+    async function generateIcons() {
+        const sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512];
+        
+        for (const size of sizes) {
+            // Scale the icon
+            const icon = document.getElementById('icon');
+            icon.style.width = size + 'px';
+            icon.style.height = size + 'px';
+            icon.style.fontSize = (size * 0.4) + 'px';
+            
+            // Wait for render
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Generate image
+            const canvas = await html2canvas(icon);
+            const dataUrl = canvas.toDataURL('image/png');
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
+        
+        alert('Icons generated! Check your downloads folder.');
+    }
+    </script>
+</body>
+</html>
