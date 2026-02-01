@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+// Run this in browser console to create icons
+function createIcon(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    
+    // Blue background
+    ctx.fillStyle = '#3498db';
+    ctx.fillRect(0, 0, size, size);
+    
+    // White text "DM"
+    ctx.fillStyle = 'white';
+    ctx.font = `bold ${size * 0.4}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DM', size/2, size/2);
+    
+    return canvas.toDataURL('image/png');
+}
+
+// Sizes to create
+const sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512];
+
+sizes.forEach(size => {
+    const imgData = createIcon(size);
+    const link = document.createElement('a');
+    link.download = `icon-${size}x${size}.png`;
+    link.href = imgData;
+    link.click();
+});
+
+alert('Icons generated! Check your downloads.');
+</script>
+</body>
+</html>
