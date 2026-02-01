@@ -1459,7 +1459,7 @@
 
     <!-- Firebase Cloud Messaging and PWA Script -->
     <script>
-      // Mobile Duty Management System with PWA Features
+// Mobile Duty Management System with PWA Features
 let currentUser = null;
 let allUsers = [];
 let dutyRoster = {};
@@ -1653,12 +1653,12 @@ function showToast(message, type = 'info', duration = 3000) {
         }
     }, duration);
     
-    // Vibrate on mobile for important notifications
-    if (type === 'error' || type === 'success') {
-        if (navigator.vibrate) {
-            navigator.vibrate(200);
-        }
-    }
+    // Remove vibration for Chrome intervention
+    // if (type === 'error' || type === 'success') {
+    //     if (navigator.vibrate) {
+    //         navigator.vibrate(200);
+    //     }
+    // }
 }
 
 function initApp() {
@@ -1748,10 +1748,10 @@ function setupMobileNavigation() {
             let section = 'home';
             
             if (btnText === 'home') section = 'home';
-            else if (btnText === 'change') section = 'dutyChange';
-            else if (btnText === 'leave') section = 'leaveApplication';
-            else if (btnText === 'requests') section = 'myRequests';
-            else if (btnText === 'roster') section = 'viewAllRoster';
+            if (btnText === 'change') section = 'dutyChange';
+            if (btnText === 'leave') section = 'leaveApplication';
+            if (btnText === 'requests') section = 'myRequests';
+            if (btnText === 'roster') section = 'viewAllRoster';
             
             showSection(section);
         });
@@ -1895,6 +1895,9 @@ async function loginUser(userData) {
     checkForUpdates();
 }
 
+// ============================================================================
+// FIXED FIREBASE MESSAGING FUNCTION
+// ============================================================================
 async function initFirebaseMessaging() {
     try {
         // Check prerequisites
@@ -1928,7 +1931,7 @@ async function initFirebaseMessaging() {
         try {
             // Get FCM token with VAPID key
             // Note: Get VAPID key from Firebase Console -> Project Settings -> Cloud Messaging
-            const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o'; // Replace with your actual key
+            const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o';
             
             const token = await messaging.getToken({
                 vapidKey: vapidKey,
@@ -2000,160 +2003,9 @@ function showInAppNotification(notification) {
     }
 }
 
-// Update showToast to remove vibration for Chrome intervention
-function showToast(message, type = 'info', duration = 3000) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toastId = 'toast-' + Date.now();
-    const toast = document.createElement('div');
-    toast.id = toastId;
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span class="toast-icon">
-            ${type === 'success' ? '✅' : 
-              type === 'error' ? '❌' : 
-              type === 'warning' ? '⚠️' : 'ℹ️'}
-        </span>
-        <span>${message}</span>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto-remove
-    setTimeout(() => {
-        const elem = document.getElementById(toastId);
-        if (elem) {
-            elem.style.opacity = '0';
-            setTimeout(() => {
-                if (elem.parentNode) {
-                    elem.parentNode.removeChild(elem);
-                }
-            }, 300);
-        }
-    }, duration);
-}
-    try {
-        // Check if Firebase messaging is available
-        if (typeof firebase === 'undefined' || !firebase.messaging || !currentUser) {
-            console.log('Firebase messaging not available');
-            return;
-        }
-        
-        messaging = firebase.messaging();
-        
-        // Request notification permission
-        if (Notification.permission === 'default') {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                console.log('Notification permission granted');
-            }
-        }
-        
-        // Get FCM token
-        const token = await messaging.getToken({
-            vapidKey: 'YOUR_VAPID_KEY_HERE' // Replace with your VAPID key from Firebase Console
-        });
-        
-        if (token && typeof db !== 'undefined') {
-            // Save token to Firestore
-            await db.collection('fcmTokens').doc(currentUser.username).set({
-                token: token,
-                userId: currentUser.username,
-                name: currentUser.name,
-                rcNo: currentUser.rcNo,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                platform: isMobile ? 'mobile' : 'desktop',
-                isPWA: isRunningStandalone()
-            }, { merge: true });
-            
-            console.log('FCM Token saved:', token);
-            
-            // Show notification permission success
-            showToast('Push notifications enabled!', 'success');
-        }
-        
-        // Handle incoming messages when app is in foreground
-        messaging.onMessage((payload) => {
-            console.log('Foreground message received:', payload);
-            
-            // Show notification
-            if (payload.notification) {
-                showNotification(payload.notification.title, payload.notification.body);
-            }
-            
-            // Update UI if needed
-            if (payload.data) {
-                handleNotificationData(payload.data);
-            }
-        });
-        
-    } catch (error) {
-        console.error('Error initializing Firebase Messaging:', error);
-        
-        // Don't show error toast if it's just permission denied
-        if (error.code !== 'messaging/permission-blocked') {
-            showToast('Push notifications may not work properly', 'warning');
-        }
-    }
-}
-
-function showNotification(title, body) {
-    // Show in-app notification
-    showToast(`${title}: ${body}`, 'info', 5000);
-    
-    // Show system notification if permission granted
-    if (Notification.permission === 'granted' && !document.hasFocus()) {
-        const options = {
-            body: body,
-            icon: 'icons/icon-192x192.png',
-            badge: 'icons/icon-72x72.png',
-            tag: 'duty-manager-notification',
-            renotify: true,
-            silent: false,
-            data: {
-                url: window.location.href,
-                timestamp: Date.now()
-            },
-            actions: [
-                {
-                    action: 'view',
-                    title: 'View'
-                },
-                {
-                    action: 'dismiss',
-                    title: 'Dismiss'
-                }
-            ]
-        };
-        
-        navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(title, options);
-        }).catch(error => {
-            console.log('Service Worker notification failed, falling back to Web API');
-            new Notification(title, options);
-        });
-    }
-}
-
-function handleNotificationData(data) {
-    // Handle different types of notification data
-    switch(data.type) {
-        case 'new_request':
-            updateRequestCounts();
-            break;
-        case 'request_approved':
-        case 'request_rejected':
-            loadMyRequests();
-            break;
-        case 'announcement':
-            loadHomeAnnouncements();
-            break;
-        case 'roster_updated':
-            loadDutyRoster();
-            break;
-    }
-}
+// ============================================================================
+// FIX ENDS HERE
+// ============================================================================
 
 async function initializeData() {
     showLoading(true, 'Loading data...');
@@ -3889,7 +3741,7 @@ function setupRealtimeListeners() {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added') {
                         const data = change.doc.data();
-                        showNotification(data.title, data.message);
+                        showInAppNotification(data);
                     }
                 });
             }, (error) => {
