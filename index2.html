@@ -39,37 +39,56 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-   <script>
-    // Register service workers
+   <!-- Service Worker Registration -->
+<script>
+    // Check if service workers are supported
     if ('serviceWorker' in navigator) {
         // Register main service worker
-        navigator.serviceWorker.register('./sw.js', { scope: './' })
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(function(registration) {
                 console.log('Main Service Worker registered with scope:', registration.scope);
                 
-                // Register Firebase messaging service worker
-                return navigator.serviceWorker.register('./firebase-messaging-sw.js', {
-                    scope: '/firebase-cloud-messaging-push-scope'
-                });
+                // Check for updates every hour
+                setInterval(() => {
+                    registration.update();
+                }, 60 * 60 * 1000);
+                
+                // Check if Firebase messaging service worker is already registered
+                return navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope');
             })
             .then(function(messagingRegistration) {
-                console.log('Firebase Messaging Service Worker registered with scope:', messagingRegistration.scope);
+                if (!messagingRegistration) {
+                    // Register Firebase messaging service worker
+                    return navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                        scope: '/firebase-cloud-messaging-push-scope'
+                    });
+                }
+                console.log('Firebase Messaging Service Worker already registered');
+                return messagingRegistration;
+            })
+            .then(function(messagingRegistration) {
+                if (messagingRegistration) {
+                    console.log('Firebase Messaging Service Worker registered with scope:', 
+                        messagingRegistration.scope);
+                }
             })
             .catch(function(error) {
                 console.log('Service Worker registration failed:', error);
+                // Don't block the app if service worker fails
             });
     }
     
-    // Check if running as installed app
+    // Check if running as PWA
     function isRunningStandalone() {
         return window.matchMedia('(display-mode: standalone)').matches || 
                window.navigator.standalone ||
                document.referrer.includes('android-app://');
     }
     
+    // Add standalone class if running as PWA
     if (isRunningStandalone()) {
-        console.log('Running as installed PWA');
         document.body.classList.add('standalone-app');
+        console.log('Running as installed PWA');
     }
 </script>
     
