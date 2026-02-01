@@ -39,31 +39,39 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- Service Worker Registration -->
-    <script>
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
+   <script>
+    // Register service workers
+    if ('serviceWorker' in navigator) {
+        // Register main service worker
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+            .then(function(registration) {
+                console.log('Main Service Worker registered with scope:', registration.scope);
+                
+                // Register Firebase messaging service worker
+                return navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+                    scope: '/firebase-cloud-messaging-push-scope'
                 });
+            })
+            .then(function(messagingRegistration) {
+                console.log('Firebase Messaging Service Worker registered with scope:', messagingRegistration.scope);
+            })
+            .catch(function(error) {
+                console.log('Service Worker registration failed:', error);
             });
-        }
-        
-        // Check if running as installed app
-        function isRunningStandalone() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
-                   window.navigator.standalone ||
-                   document.referrer.includes('android-app://');
-        }
-        
-        if (isRunningStandalone()) {
-            console.log('Running as installed PWA');
-            document.body.classList.add('standalone-app');
-        }
-    </script>
+    }
+    
+    // Check if running as installed app
+    function isRunningStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
+    }
+    
+    if (isRunningStandalone()) {
+        console.log('Running as installed PWA');
+        document.body.classList.add('standalone-app');
+    }
+</script>
     
     <!-- External Firebase and User files -->
     <script src="dcfire.js" defer></script>
