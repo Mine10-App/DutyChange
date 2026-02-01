@@ -1,89 +1,73 @@
-// sw.js - Main Service Worker
-const CACHE_NAME = 'duty-manager-v3';
-const STATIC_CACHE = 'duty-manager-static-v3';
-
-// Files to cache
-const urlsToCache = [
+// sw.js - Service Worker for Duty Manager PWA
+const CACHE_NAME = 'duty-manager-v1.0';
+const FILES_TO_CACHE = [
   '/',
   '/index2.html',
   '/manifest.json',
-  '/dcfire.js',
-  '/user.js',
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
-  '/icons/icon-512x512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js',
-  'https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js'
+  'https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js',
+  'https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js'
 ];
 
-// Install event
-self.addEventListener('install', function(event) {
+// Install Service Worker
+self.addEventListener('install', (event) => {
   console.log('[Service Worker] Installing...');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then(function(cache) {
+    caches.open(CACHE_NAME)
+      .then((cache) => {
         console.log('[Service Worker] Caching app shell');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(FILES_TO_CACHE);
       })
-      .then(function() {
-        console.log('[Service Worker] Skip waiting');
+      .then(() => {
+        console.log('[Service Worker] Install completed');
         return self.skipWaiting();
       })
   );
 });
 
-// Activate event
-self.addEventListener('activate', function(event) {
+// Activate Service Worker
+self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activating...');
-  
-  // Clean up old caches
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          if (cacheName !== STATIC_CACHE && cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-    .then(function() {
-      console.log('[Service Worker] Claiming clients');
-      return self.clients.claim();
+    caches.keys().then((keyList) => {
+      return Promise.all(keyList.map((key) => {
+        if (key !== CACHE_NAME) {
+          console.log('[Service Worker] Removing old cache:', key);
+          return caches.delete(key);
+        }
+      }));
     })
   );
+  console.log('[Service Worker] Activated');
+  return self.clients.claim();
 });
 
-// Fetch event
-self.addEventListener('fetch', function(event) {
-  // Skip non-GET requests and Firebase messaging scope
-  if (event.request.method !== 'GET' || 
-      event.request.url.includes('firebase-cloud-messaging-push-scope')) {
+// Fetch Strategy: Cache First, Network Fallback
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+  
+  // Skip Firebase requests
+  if (event.request.url.includes('firebase')) {
     return;
   }
   
   event.respondWith(
     caches.match(event.request)
-      .then(function(response) {
-        // Cache hit - return response
-        if (response) {
-          return response;
+      .then((cachedResponse) => {
+        // Return cached response if found
+        if (cachedResponse) {
+          console.log('[Service Worker] Serving from cache:', event.request.url);
+          return cachedResponse;
         }
         
-        // Clone the request
-        const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest)
-          .then(function(response) {
-            // Check if we received a valid response
+        // Otherwise fetch from network
+        console.log('[Service Worker] Fetching from network:', event.request.url);
+        return fetch(event.request)
+          .then((response) => {
+            // Don't cache if not a valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
@@ -91,23 +75,24 @@ self.addEventListener('fetch', function(event) {
             // Clone the response
             const responseToCache = response.clone();
             
+            // Cache the new response
             caches.open(CACHE_NAME)
-              .then(function(cache) {
+              .then((cache) => {
                 cache.put(event.request, responseToCache);
+                console.log('[Service Worker] Cached new resource:', event.request.url);
               });
             
             return response;
           })
-          .catch(function(error) {
-            console.log('[Service Worker] Fetch failed; returning offline page:', error);
+          .catch((error) => {
+            console.log('[Service Worker] Fetch failed:', error);
             
-            // For navigation requests, return the cached page
+            // Return offline page if available
             if (event.request.mode === 'navigate') {
               return caches.match('/');
             }
             
-            // For other requests, return a custom offline response
-            return new Response('Offline', {
+            return new Response('You are offline. Please check your internet connection.', {
               status: 503,
               statusText: 'Service Unavailable',
               headers: new Headers({
@@ -119,67 +104,272 @@ self.addEventListener('fetch', function(event) {
   );
 });
 
-// Push event
-self.addEventListener('push', function(event) {
-  console.log('[Service Worker] Push received');
+// Background Sync for Offline Data
+self.addEventListener('sync', (event) => {
+  console.log('[Service Worker] Background sync:', event.tag);
   
-  let data = {};
-  if (event.data) {
-    data = event.data.json();
+  if (event.tag === 'sync-offline-data') {
+    event.waitUntil(syncOfflineData());
   }
-  
-  const title = data.title || 'Duty Manager';
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-    tag: 'duty-manager-push',
-    data: data.data || {},
-    actions: [
-      {
-        action: 'view',
-        title: 'View'
-      },
-      {
-        action: 'dismiss',
-        title: 'Dismiss'
-      }
-    ]
-  };
-  
-  event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Notification click
-self.addEventListener('notificationclick', function(event) {
-  console.log('[Service Worker] Notification click:', event.action);
+async function syncOfflineData() {
+  console.log('[Service Worker] Syncing offline data...');
   
-  event.notification.close();
+  try {
+    // Get offline requests from IndexedDB
+    const db = await openIndexedDB();
+    const offlineRequests = await getAllFromStore(db, 'offlineRequests');
+    
+    console.log('[Service Worker] Found', offlineRequests.length, 'offline requests');
+    
+    // Process each offline request
+    for (const request of offlineRequests) {
+      try {
+        // Send the request
+        const response = await fetch(request.url, {
+          method: request.method,
+          headers: request.headers,
+          body: request.body
+        });
+        
+        if (response.ok) {
+          console.log('[Service Worker] Successfully synced:', request.url);
+          
+          // Remove from offline storage on success
+          await deleteFromStore(db, 'offlineRequests', request.id);
+        } else {
+          console.log('[Service Worker] Failed to sync:', request.url, response.status);
+        }
+      } catch (error) {
+        console.error('[Service Worker] Error syncing request:', error);
+      }
+    }
+    
+    // Notify clients that sync is complete
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SYNC_COMPLETE',
+        data: { synced: offlineRequests.length }
+      });
+    });
+    
+  } catch (error) {
+    console.error('[Service Worker] Error in syncOfflineData:', error);
+  }
+}
+
+// Push Notifications
+self.addEventListener('push', (event) => {
+  console.log('[Service Worker] Push received:', event);
   
-  if (event.action === 'dismiss') {
+  if (!event.data) {
+    console.log('[Service Worker] Push event but no data');
     return;
   }
   
-  const urlToOpen = event.notification.data.url || '/';
+  let data;
+  try {
+    data = event.data.json();
+  } catch (error) {
+    console.log('[Service Worker] Push data is not JSON, using text:', event.data.text());
+    data = {
+      title: 'Duty Manager',
+      body: event.data.text(),
+      icon: '/icons/icon-192x192.png'
+    };
+  }
+  
+  const options = {
+    body: data.body || 'New notification from Duty Manager',
+    icon: data.icon || '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    tag: data.tag || 'duty-manager-notification',
+    data: data.data || {},
+    actions: data.actions || [],
+    requireInteraction: data.requireInteraction || false,
+    silent: data.silent || false
+  };
+  
+  // Add vibrate if supported
+  if ('vibrate' in navigator) {
+    options.vibrate = [200, 100, 200];
+  }
   
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(function(windowClients) {
-      // Check if there's already a window open
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if (client.url.includes(urlToOpen) && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      
-      // Open new window
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
+    self.registration.showNotification(data.title || 'Duty Manager', options)
   );
 });
+
+// Notification Click Handler
+self.addEventListener('notificationclick', (event) => {
+  console.log('[Service Worker] Notification click:', event.notification.tag);
+  
+  event.notification.close();
+  
+  const notificationData = event.notification.data || {};
+  const urlToOpen = notificationData.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({ 
+      type: 'window', 
+      includeUncontrolled: true 
+    })
+      .then((clientList) => {
+        // Check if there's already a window/tab open with the target URL
+        for (const client of clientList) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        
+        // If not, open a new window/tab
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});
+
+// Notification Close Handler
+self.addEventListener('notificationclose', (event) => {
+  console.log('[Service Worker] Notification closed:', event.notification.tag);
+});
+
+// Message Handler for Communication with App
+self.addEventListener('message', (event) => {
+  console.log('[Service Worker] Message received:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CACHE_DATA') {
+    cacheData(event.data);
+  }
+});
+
+// Helper Functions for IndexedDB
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('DutyManagerDB', 2);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      // Create object store for offline requests
+      if (!db.objectStoreNames.contains('offlineRequests')) {
+        const store = db.createObjectStore('offlineRequests', { keyPath: 'id' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('userId', 'userId', { unique: false });
+      }
+      
+      // Create object store for cached data
+      if (!db.objectStoreNames.contains('cachedData')) {
+        const store = db.createObjectStore('cachedData', { keyPath: 'key' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+    };
+    
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function getAllFromStore(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function deleteFromStore(db, storeName, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], 'readwrite');
+    const store = transaction.objectStore(storeName);
+    const request = store.delete(id);
+    
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function cacheData(data) {
+  return openIndexedDB()
+    .then(db => {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['cachedData'], 'readwrite');
+        const store = transaction.objectStore('cachedData');
+        
+        const item = {
+          key: data.key,
+          data: data.data,
+          timestamp: Date.now()
+        };
+        
+        const request = store.put(item);
+        
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    });
+}
+
+// Periodic Sync (if supported)
+if ('periodicSync' in self.registration) {
+  self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'update-cache') {
+      console.log('[Service Worker] Periodic sync triggered');
+      event.waitUntil(updateCache());
+    }
+  });
+}
+
+async function updateCache() {
+  const cache = await caches.open(CACHE_NAME);
+  const requests = FILES_TO_CACHE.map(url => new Request(url));
+  
+  for (const request of requests) {
+    try {
+      const response = await fetch(request);
+      if (response.ok) {
+        await cache.put(request, response);
+        console.log('[Service Worker] Updated cache for:', request.url);
+      }
+    } catch (error) {
+      console.error('[Service Worker] Failed to update cache for:', request.url, error);
+    }
+  }
+}
+
+// Handle Firebase Messaging
+self.addEventListener('pushsubscriptionchange', (event) => {
+  console.log('[Service Worker] Push subscription changed');
+  
+  event.waitUntil(
+    self.registration.pushManager.subscribe(event.oldSubscription.options)
+      .then((subscription) => {
+        // Send new subscription to server
+        return fetch('/api/update-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            oldSubscription: event.oldSubscription,
+            newSubscription: subscription
+          })
+        });
+      })
+  );
+});
+
+console.log('[Service Worker] Loaded successfully');
