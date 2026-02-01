@@ -13,111 +13,21 @@ firebase.initializeApp({
   measurementId: "G-3KD6ZYS599"
 });
 
-// Retrieve firebase messaging
+firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Background message handler (when app is closed)
-messaging.setBackgroundMessageHandler(function(payload) {
-    console.log('[firebase-messaging-sw.js] Received background message:', payload);
-    
-    // Customize notification here
-    const notificationTitle = payload.notification?.title || 'Duty Manager';
-    const notificationOptions = {
-        body: payload.notification?.body || 'You have a new notification',
-        icon: '/icon-192x192.png',
-        badge: '/icon-72x72.png',
-        tag: payload.data?.tag || 'duty-manager',
-        data: payload.data || {},
-        requireInteraction: true,
-        vibrate: [200, 100, 200],
-        actions: [
-            {
-                action: 'view',
-                title: 'View',
-                icon: '/icon-72x72.png'
-            },
-            {
-                action: 'dismiss',
-                title: 'Dismiss',
-                icon: '/icon-72x72.png'
-            }
-        ]
-    };
-
-    // Show the notification
-    return self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// Handle notification click
-self.addEventListener('notificationclick', function(event) {
-    console.log('[firebase-messaging-sw.js] Notification click received.');
-    
-    const notification = event.notification;
-    const action = event.action;
-    
-    event.notification.close();
-
-    if (action === 'dismiss') {
-        console.log('Dismiss was clicked');
-        return;
+messaging.onBackgroundMessage((payload) => {
+  console.log('Background message received:', payload);
+  
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: 'icons/icon-192x192.png',
+    badge: 'icons/icon-72x72.png',
+    data: {
+      url: payload.data?.url || './'
     }
-
-    // Open the app
-    event.waitUntil(
-        clients.matchAll({
-            type: "window",
-            includeUncontrolled: true
-        }).then(function(clientList) {
-            // Check if there's already a window/tab open
-            for (let i = 0; i < clientList.length; i++) {
-                const client = clientList[i];
-                if (client.url.includes('/') && 'focus' in client) {
-                    client.focus();
-                    client.postMessage({
-                        type: 'notification_click',
-                        data: notification.data
-                    });
-                    return;
-                }
-            }
-            
-            // If no window is open, open a new one
-            if (clients.openWindow) {
-                return clients.openWindow('/');
-            }
-        })
-    );
+  };
+  
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
-
-// Handle push subscription change
-self.addEventListener('pushsubscriptionchange', function(event) {
-    console.log('[firebase-messaging-sw.js] Push subscription changed.');
-    
-    event.waitUntil(
-        self.registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o')
-        })
-        .then(function(newSubscription) {
-            // Send new subscription to your server
-            console.log('New subscription:', newSubscription);
-            // You would typically send this to your server to update the subscription
-        })
-    );
-});
-
-// Convert base64 to Uint8Array
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\-/g, '+')
-        .replace(/_/g, '/');
-    
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-}
