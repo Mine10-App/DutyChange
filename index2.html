@@ -1857,7 +1857,133 @@ async function loginUser(userData) {
     }
     
     // Initialize Firebase Messaging for push notifications
-    await initFirebaseMessaging();
+   async function initFirebaseMessaging() {
+    try {
+        // Check if Firebase messaging is available
+        if (typeof firebase === 'undefined' || !firebase.messaging || !currentUser) {
+            console.log('Firebase messaging not available');
+            return;
+        }
+        
+        // Check if we're in a supported browser
+        if (!('Notification' in window)) {
+            console.log('This browser does not support notifications');
+            return;
+        }
+        
+        // Request notification permission
+        let permission = Notification.permission;
+        if (permission === 'default') {
+            permission = await Notification.requestPermission();
+        }
+        
+        if (permission !== 'granted') {
+            console.log('Notification permission not granted');
+            return;
+        }
+        
+        console.log('Notification permission granted');
+        
+        // Get messaging instance
+        messaging = firebase.messaging();
+        
+        // Configure Firebase Cloud Messaging
+        // Use public VAPID key from Firebase Console -> Project Settings -> Cloud Messaging
+        const vapidKey = 'YOUR_VAPID_KEY_HERE'; // Get this from Firebase Console
+        
+        try {
+            // Get FCM token
+            const token = await messaging.getToken({
+                vapidKey: vapidKey,
+                serviceWorkerRegistration: await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+                    scope: '/firebase-cloud-messaging-push-scope'
+                })
+            });
+            
+            if (token) {
+                console.log('FCM Token obtained:', token);
+                
+                // Save token to Firestore
+                if (typeof db !== 'undefined') {
+                    await db.collection('fcmTokens').doc(currentUser.username).set({
+                        token: token,
+                        userId: currentUser.username,
+                        name: currentUser.name,
+                        rcNo: currentUser.rcNo,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                        platform: isMobile ? 'mobile' : 'desktop',
+                        isPWA: isRunningStandalone()
+                    }, { merge: true });
+                    
+                    console.log('FCM Token saved to Firestore');
+                }
+            } else {
+                console.log('No registration token available');
+            }
+        } catch (tokenError) {
+            console.error('Error getting FCM token:', tokenError);
+            // Don't fail the whole function if token fails
+        }
+        
+        // Handle foreground messages
+        messaging.onMessage((payload) => {
+            console.log('Foreground message received:', payload);
+            
+            // Show in-app notification
+            if (payload.notification) {
+                showNotification(payload.notification.title, payload.notification.body, payload);
+            }
+        });
+        
+        console.log('Firebase Messaging initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing Firebase Messaging:', error);
+        
+        // Don't show error for permission denied (user might have blocked)
+        if (error.code === 'messaging/permission-blocked' || 
+            error.code === 'messaging/permission-default') {
+            console.log('User has blocked notifications or not granted permission yet');
+        } else {
+            console.error('Messaging initialization error:', error);
+        }
+    }
+}
+
+// Updated showNotification function
+function showNotification(title, body, payload = null) {
+    // Show in-app toast notification
+    showToast(`${title}: ${body}`, 'info', 5000);
+    
+    // Show system notification if permission granted and app is not in focus
+    if (Notification.permission === 'granted' && !document.hasFocus()) {
+        const options = {
+            body: body,
+            icon: './icons/icon-192x192.png',
+            badge: './icons/icon-72x72.png',
+            tag: 'duty-manager-notification',
+            renotify: true,
+            data: payload?.data || {
+                url: window.location.href,
+                timestamp: Date.now(),
+                type: payload?.data?.type || 'general'
+            }
+        };
+        
+        // Use Service Worker for notification if available
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(title, options);
+            }).catch(swError => {
+                console.log('Service Worker notification failed, using Web API');
+                new Notification(title, options);
+            });
+        } else {
+            // Fallback to Web Notifications API
+            new Notification(title, options);
+        }
+    }
+}
     
     // Load data
     await initializeData();
