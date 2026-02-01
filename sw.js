@@ -2,7 +2,7 @@
 const CACHE_NAME = 'duty-manager-v1.0';
 const FILES_TO_CACHE = [
   '/',
-  '/index2.html',
+  '/index.html',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
@@ -44,13 +44,38 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Fetch Strategy: Cache First, Network Fallback
+// Fetch Strategy: Cache First, Network Fallback with Firestore exception
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
   
-  // Skip Firebase requests
-  if (event.request.url.includes('firebase')) {
+  const url = new URL(event.request.url);
+  
+  // Handle Firestore requests specially - always try network first
+  if (url.hostname === 'firestore.googleapis.com') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return response;
+        })
+        .catch((error) => {
+          console.log('[Service Worker] Firestore request failed, returning offline response');
+          
+          // Return a placeholder response for Firestore when offline
+          return new Response(JSON.stringify({
+            error: 'offline',
+            message: 'You are offline. Firestore data will sync when online.'
+          }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
+    );
+    return;
+  }
+  
+  // Skip Firebase SDK requests (let them go to network)
+  if (url.hostname.includes('firebase') || url.hostname.includes('googleapis')) {
     return;
   }
   
@@ -111,6 +136,10 @@ self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-offline-data') {
     event.waitUntil(syncOfflineData());
   }
+  
+  if (event.tag === 'send-pending-notifications') {
+    event.waitUntil(sendPendingNotifications());
+  }
 });
 
 async function syncOfflineData() {
@@ -157,6 +186,20 @@ async function syncOfflineData() {
     
   } catch (error) {
     console.error('[Service Worker] Error in syncOfflineData:', error);
+  }
+}
+
+async function sendPendingNotifications() {
+  console.log('[Service Worker] Sending pending notifications...');
+  
+  // Notify the client to send pending notifications
+  const clients = await self.clients.matchAll();
+  if (clients.length > 0) {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'PROCESS_PENDING_NOTIFICATIONS'
+      });
+    });
   }
 }
 
@@ -247,6 +290,17 @@ self.addEventListener('message', (event) => {
   
   if (event.data && event.data.type === 'CACHE_DATA') {
     cacheData(event.data);
+  }
+  
+  if (event.data && event.data.type === 'PROCESS_PENDING_NOTIFICATIONS') {
+    // Forward to all clients
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'PROCESS_PENDING_NOTIFICATIONS'
+        });
+      });
+    });
   }
 });
 
