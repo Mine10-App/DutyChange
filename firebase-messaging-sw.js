@@ -1,7 +1,4 @@
-// firebase-messaging-sw.js
-// Import Firebase scripts
-importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+
 
 // Your Firebase configuration
 firebase.initializeApp({
@@ -14,38 +11,57 @@ firebase.initializeApp({
   measurementId: "G-3KD6ZYS599"
 });
 
+// Import Firebase scripts
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Retrieve Firebase Messaging instance
+// Initialize Firebase Messaging
 const messaging = firebase.messaging();
 
-// Customize background message handler
+// Background message handler
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
   
-  // Customize notification here
-  const notificationTitle = payload.notification.title || 'Duty Manager';
+  // Customize notification
+  const notificationTitle = payload.notification?.title || 'Duty Manager';
   const notificationOptions = {
-    body: payload.notification.body || 'New notification',
-    icon: './icons/icon-192x192.png', // Relative path from root
-    badge: './icons/icon-72x72.png',
+    body: payload.notification?.body || 'New notification',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
     data: payload.data || {},
-    tag: 'duty-manager-notification',
-    renotify: true
+    tag: 'duty-manager',
+    requireInteraction: false,
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      },
+      {
+        action: 'close',
+        title: 'Close'
+      }
+    ]
   };
-
+  
   // Show notification
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // Notification click handler
 self.addEventListener('notificationclick', function(event) {
-  console.log('[firebase-messaging-sw.js] Notification click received.');
+  console.log('[firebase-messaging-sw.js] Notification clicked:', event.notification.tag);
   
   event.notification.close();
-
-  const urlToOpen = event.notification.data.url || './';
+  
+  const action = event.action;
+  const urlToOpen = event.notification.data.url || '/';
+  
+  if (action === 'close') {
+    return;
+  }
   
   event.waitUntil(
     clients.matchAll({
@@ -53,40 +69,18 @@ self.addEventListener('notificationclick', function(event) {
       includeUncontrolled: true
     })
     .then(function(windowClients) {
-      // Check if there's already a window/tab open with the target URL
+      // Check for existing window
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
-        // If so, focus it
-        if (client.url === urlToOpen && 'focus' in client) {
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
           return client.focus();
         }
       }
-      // If not, open a new tab
+      
+      // Open new window if none exists
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
-    })
-  );
-});
-
-// Handle push subscription change
-self.addEventListener('pushsubscriptionchange', function(event) {
-  console.log('[firebase-messaging-sw.js] Push subscription change detected.');
-  event.waitUntil(
-    self.registration.pushManager.subscribe(event.oldSubscription.options)
-    .then(function(subscription) {
-      console.log('Subscription renewed:', subscription);
-      // Send new subscription to your server
-      return fetch('/api/update-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          oldSubscription: event.oldSubscription,
-          newSubscription: subscription
-        })
-      });
     })
   );
 });
