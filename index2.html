@@ -16,18 +16,8 @@
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="theme-color" content="#3498db">
     
-    <!-- PWA Manifest (now external) -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
-    <link rel="shortcut icon" href="icons/favicon.ico">
+    <!-- PWA Manifest (external) -->
+    <link rel="manifest" href="/manifest.json">
     
     <title>Duty Management System</title>
     
@@ -39,66 +29,7 @@
     <!-- SHA-256 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     
-    <!-- Service Worker Registration -->
-    <!-- Service Worker Registration -->
-<script>
-    // Check if service workers are supported
-    if ('serviceWorker' in navigator) {
-        // Register main service worker
-        navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(function(registration) {
-                console.log('Main Service Worker registered with scope:', registration.scope);
-                
-                // Check for updates every hour
-                setInterval(() => {
-                    registration.update();
-                }, 60 * 60 * 1000);
-                
-                // Check if Firebase messaging service worker is already registered
-                return navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope');
-            })
-            .then(function(messagingRegistration) {
-                if (!messagingRegistration) {
-                    // Register Firebase messaging service worker
-                    return navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-                        scope: '/firebase-cloud-messaging-push-scope'
-                    });
-                }
-                console.log('Firebase Messaging Service Worker already registered');
-                return messagingRegistration;
-            })
-            .then(function(messagingRegistration) {
-                if (messagingRegistration) {
-                    console.log('Firebase Messaging Service Worker registered with scope:', 
-                        messagingRegistration.scope);
-                }
-            })
-            .catch(function(error) {
-                console.log('Service Worker registration failed:', error);
-                // Don't block the app if service worker fails
-            });
-    }
-    
-    // Check if running as PWA
-    function isRunningStandalone() {
-        return window.matchMedia('(display-mode: standalone)').matches || 
-               window.navigator.standalone ||
-               document.referrer.includes('android-app://');
-    }
-    
-    // Add standalone class if running as PWA
-    if (isRunningStandalone()) {
-        document.body.classList.add('standalone-app');
-        console.log('Running as installed PWA');
-    }
-</script>
-    
-    <!-- External Firebase and User files -->
-    <script src="dcfire.js" defer></script>
-    <script src="user.js" defer></script>
-    
     <style>
-        
         /* Add these styles to your existing CSS */
         .install-prompt {
             position: fixed;
@@ -1457,2384 +1388,2307 @@
         </div>
     </div>
 
-    <!-- Firebase Cloud Messaging and PWA Script -->
+    <!-- Service Worker Registration -->
     <script>
-// Mobile Duty Management System with PWA Features
-let currentUser = null;
-let allUsers = [];
-let dutyRoster = {};
-let leaveBalances = {};
-let allRequests = [];
-let announcements = [];
-let isMobile = false;
-let currentToastId = 0;
-let deferredPrompt = null;
-let messaging = null;
-
-// Initialize App
-document.addEventListener('DOMContentLoaded', function() {
-    detectMobile();
-    initApp();
-    checkSession();
-    setupOnlineStatus();
-    setupServiceWorker();
-});
-
-function detectMobile() {
-    isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        document.body.classList.add('mobile');
-    }
-}
-
-function setupOnlineStatus() {
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-}
-
-function updateOnlineStatus() {
-    const indicator = document.getElementById('offlineIndicator');
-    if (!navigator.onLine) {
-        indicator.classList.add('active');
-        showToast('You are offline. Some features may not work.', 'warning');
-        // Disable submit buttons that require network
-        document.querySelectorAll('button[type="submit"]').forEach(btn => {
-            btn.disabled = true;
-            btn.innerHTML = '<span>📴</span> Offline - Try Later';
-        });
-    } else {
-        indicator.classList.remove('active');
-        // Re-enable submit buttons
-        document.querySelectorAll('button[type="submit"]').forEach(btn => {
-            btn.disabled = false;
-            // Restore original button text based on form type
-            if (btn.closest('#dutyChangeForm')) {
-                btn.innerHTML = '<span>📤</span> Submit Request';
-            } else if (btn.closest('#leaveApplicationForm')) {
-                btn.innerHTML = '<span>📤</span> Submit Application';
-            } else if (btn.closest('#announcementForm')) {
-                btn.innerHTML = '<span>📢</span> Create Announcement';
-            }
-        });
-        
-        // Sync any offline data
-        syncOfflineData();
-    }
-}
-
-function setupServiceWorker() {
+    // Check if service workers are supported
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(registration => {
-                console.log('Service Worker registered with scope:', registration.scope);
+        // Register main service worker
+        navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+                console.log('Main Service Worker registered with scope:', registration.scope);
                 
                 // Check for updates every hour
                 setInterval(() => {
                     registration.update();
                 }, 60 * 60 * 1000);
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.log('Service Worker registration failed:', error);
+                // Don't block the app if service worker fails
             });
     }
-}
-
-// PWA Install Prompt
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
     
-    // Show install prompt after 3 seconds if not shown before
-    const installPromptShown = localStorage.getItem('installPromptShown') === 'true';
-    if (!installPromptShown && !isRunningStandalone()) {
-        setTimeout(() => {
-            showInstallPrompt();
-        }, 3000);
+    // Check if running as PWA
+    function isRunningStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
     }
-});
-
-function isRunningStandalone() {
-    return window.matchMedia('(display-mode: standalone)').matches || 
-           window.navigator.standalone ||
-           document.referrer.includes('android-app://');
-}
-
-function showInstallPrompt() {
-    if (deferredPrompt && !isRunningStandalone()) {
-        const prompt = document.getElementById('installPrompt');
-        prompt.classList.add('active');
-        
-        // Auto-hide after 15 seconds
-        setTimeout(() => {
-            hideInstallPrompt();
-        }, 15000);
-    }
-}
-
-function hideInstallPrompt() {
-    const prompt = document.getElementById('installPrompt');
-    prompt.style.animation = 'slideOutDown 0.3s ease';
-    setTimeout(() => {
-        prompt.classList.remove('active');
-        prompt.style.animation = '';
-    }, 300);
-    localStorage.setItem('installPromptShown', 'true');
-}
-
-document.getElementById('installNowBtn').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
     
-    try {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        if (outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-            showToast('App installed successfully! You can now find it on your home screen.', 'success');
-        } else {
-            console.log('User dismissed the install prompt');
-        }
-        
-        deferredPrompt = null;
-        hideInstallPrompt();
-    } catch (error) {
-        console.error('Install prompt error:', error);
+    // Add standalone class if running as PWA
+    if (isRunningStandalone()) {
+        document.body.classList.add('standalone-app');
+        console.log('Running as installed PWA');
     }
-});
+    </script>
 
-document.getElementById('installLaterBtn').addEventListener('click', () => {
-    hideInstallPrompt();
-});
+    <!-- Main Application Script -->
+    <script>
+    // Mobile Duty Management System with PWA Features
+    let currentUser = null;
+    let allUsers = [];
+    let dutyRoster = {};
+    let leaveBalances = {};
+    let allRequests = [];
+    let announcements = [];
+    let isMobile = false;
+    let currentToastId = 0;
+    let deferredPrompt = null;
+    let messaging = null;
 
-function showLoading(show, text = 'Loading...') {
-    const overlay = document.getElementById('loadingOverlay');
-    const textEl = document.getElementById('loadingText');
-    if (overlay) {
-        if (show) {
-            overlay.classList.add('active');
-            if (textEl) textEl.textContent = text;
-        } else {
-            overlay.classList.remove('active');
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', function() {
+        detectMobile();
+        initApp();
+        checkSession();
+        setupOnlineStatus();
+        setupServiceWorker();
+    });
+
+    function detectMobile() {
+        isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            document.body.classList.add('mobile');
         }
     }
-}
 
-function showToast(message, type = 'info', duration = 3000) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toastId = 'toast-' + (++currentToastId);
-    const toast = document.createElement('div');
-    toast.id = toastId;
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <span class="toast-icon">
-            ${type === 'success' ? '✅' : 
-              type === 'error' ? '❌' : 
-              type === 'warning' ? '⚠️' : 'ℹ️'}
-        </span>
-        <span>${message}</span>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto-remove after duration
-    setTimeout(() => {
-        const toastElem = document.getElementById(toastId);
-        if (toastElem) {
-            toastElem.style.opacity = '0';
-            toastElem.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (toastElem.parentNode) {
-                    toastElem.parentNode.removeChild(toastElem);
+    function setupOnlineStatus() {
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+    }
+
+    function updateOnlineStatus() {
+        const indicator = document.getElementById('offlineIndicator');
+        if (!navigator.onLine) {
+            indicator.classList.add('active');
+            showToast('You are offline. Some features may not work.', 'warning');
+            // Disable submit buttons that require network
+            document.querySelectorAll('button[type="submit"]').forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = '<span>📴</span> Offline - Try Later';
+            });
+        } else {
+            indicator.classList.remove('active');
+            // Re-enable submit buttons
+            document.querySelectorAll('button[type="submit"]').forEach(btn => {
+                btn.disabled = false;
+                // Restore original button text based on form type
+                if (btn.closest('#dutyChangeForm')) {
+                    btn.innerHTML = '<span>📤</span> Submit Request';
+                } else if (btn.closest('#leaveApplicationForm')) {
+                    btn.innerHTML = '<span>📤</span> Submit Application';
+                } else if (btn.closest('#announcementForm')) {
+                    btn.innerHTML = '<span>📢</span> Create Announcement';
                 }
-            }, 300);
-        }
-    }, duration);
-    
-    // Remove vibration for Chrome intervention
-    // if (type === 'error' || type === 'success') {
-    //     if (navigator.vibrate) {
-    //         navigator.vibrate(200);
-    //     }
-    // }
-}
-
-function initApp() {
-    // Setup login form
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            handleLogin();
-        });
-        
-        // Auto-focus username on load
-        document.getElementById('username').focus();
-    }
-    
-    // Setup mobile navigation
-    setupMobileNavigation();
-    
-    // Set minimum dates
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('changeDate').min = today;
-    document.getElementById('leaveDate').min = today;
-    document.getElementById('allRosterStartDate').min = today;
-    document.getElementById('allRosterEndDate').min = today;
-    
-    // Set default dates for forms
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
-    document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
-    
-    // Set roster default dates (today + 7 days)
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    document.getElementById('allRosterStartDate').value = today;
-    document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
-    
-    // Add shortcut keys
-    setupKeyboardShortcuts();
-}
-
-function setupMobileNavigation() {
-    const menuToggle = document.getElementById('menuToggle');
-    const mobileNav = document.getElementById('mobileNav');
-    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
-    
-    if (menuToggle && mobileNav && mobileNavOverlay) {
-        menuToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            mobileNav.classList.add('active');
-            mobileNavOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-        
-        mobileNavOverlay.addEventListener('click', function() {
-            mobileNav.classList.remove('active');
-            mobileNavOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        });
-        
-        // Close menu when clicking a nav item
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                mobileNav.classList.remove('active');
-                mobileNavOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-                
-                const sectionId = this.getAttribute('data-section');
-                showSection(sectionId);
-            });
-        });
-        
-        // Close on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
-                mobileNav.classList.remove('active');
-                mobileNavOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
-    }
-    
-    // Bottom nav buttons
-    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const btnText = this.querySelector('span:last-child').textContent.toLowerCase();
-            let section = 'home';
-            
-            if (btnText === 'home') section = 'home';
-            if (btnText === 'change') section = 'dutyChange';
-            if (btnText === 'leave') section = 'leaveApplication';
-            if (btnText === 'requests') section = 'myRequests';
-            if (btnText === 'roster') section = 'viewAllRoster';
-            
-            showSection(section);
-        });
-    });
-}
-
-function setupKeyboardShortcuts() {
-    document.addEventListener('keydown', function(e) {
-        // Ctrl + S for save/refresh
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            updateDashboard();
-        }
-        
-        // Escape to go home
-        if (e.key === 'Escape' && !document.getElementById('mobileNav').classList.contains('active')) {
-            showSection('home');
-        }
-        
-        // Number shortcuts for navigation
-        if (e.altKey) {
-            switch(e.key) {
-                case '1': showSection('home'); break;
-                case '2': showSection('dutyChange'); break;
-                case '3': showSection('leaveApplication'); break;
-                case '4': showSection('myRequests'); break;
-                case '5': showSection('viewAllRoster'); break;
-            }
-        }
-    });
-}
-
-function checkSession() {
-    const session = localStorage.getItem('dutySystemSession');
-    if (session) {
-        try {
-            const user = JSON.parse(session);
-            if (user.expiry > Date.now()) {
-                loginUser(user);
-            } else {
-                localStorage.removeItem('dutySystemSession');
-                showToast('Session expired. Please login again.', 'warning');
-            }
-        } catch (e) {
-            localStorage.removeItem('dutySystemSession');
-        }
-    }
-}
-
-async function handleLogin() {
-    showLoading(true, 'Authenticating...');
-    
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    
-    if (!username || !password) {
-        showToast('Please enter both username and password', 'warning');
-        showLoading(false);
-        return;
-    }
-    
-    if (!users || !Array.isArray(users)) {
-        showToast('System error. Please try again.', 'error');
-        showLoading(false);
-        return;
-    }
-    
-    const user = users.find(u => u.username === username);
-    
-    if (!user) {
-        showToast('Invalid username or password', 'error');
-        showLoading(false);
-        return;
-    }
-    
-    // Hash and check password
-    const hashedPassword = sha256(password);
-    
-    if (hashedPassword === user.passwordHash) {
-        const sessionData = {
-            username: user.username,
-            name: user.name,
-            rcNo: user.RCNo,
-            level: user.Level,
-            expiry: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
-        };
-        
-        localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
-        await loginUser(sessionData);
-        showLoading(false);
-    } else {
-        showToast('Invalid username or password', 'error');
-        showLoading(false);
-    }
-}
-
-async function loginUser(userData) {
-    currentUser = userData;
-    allUsers = users || [];
-    
-    // Update UI
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('dashboardContainer').style.display = 'block';
-    
-    // Update user info
-    document.getElementById('mobileTitle').textContent = 'Dashboard';
-    document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
-    document.getElementById('navUserName').textContent = userData.name;
-    document.getElementById('navUserRC').textContent = userData.rcNo;
-    document.getElementById('navUserLevel').textContent = userData.level;
-    document.getElementById('welcomeName').textContent = userData.name;
-    
-    // Show/hide admin sections
-    const isAdmin = userData.level === 'Supervisor' || userData.level === 'Admin';
-    document.querySelectorAll('.admin-nav').forEach(el => {
-        el.style.display = isAdmin ? 'flex' : 'none';
-    });
-    
-    // Show/hide pending requests nav based on user level
-    const pendingNav = document.getElementById('pendingRequestsNav');
-    if (pendingNav) {
-        pendingNav.style.display = 'flex'; // Always show for now, badge will handle visibility
-    }
-    
-    // Initialize Firebase Messaging for push notifications
-    await initFirebaseMessaging();
-    
-    // Load data
-    await initializeData();
-    
-    // Setup event listeners
-    setupEventListeners();
-    
-    // Setup real-time listeners
-    setupRealtimeListeners();
-    
-    // Show welcome
-    showToast(`Welcome back, ${userData.name}!`, 'success');
-    
-    // Check for updates
-    checkForUpdates();
-}
-
-// ============================================================================
-// FIXED FIREBASE MESSAGING FUNCTION
-// ============================================================================
-async function initFirebaseMessaging() {
-    try {
-        // Check prerequisites
-        if (!firebase || !firebase.messaging || !currentUser) {
-            console.log('Firebase messaging prerequisites not met');
-            return;
-        }
-        
-        // Check browser support
-        if (!('Notification' in window)) {
-            console.log('This browser does not support notifications');
-            return;
-        }
-        
-        // Request permission if not already granted
-        let permission = Notification.permission;
-        if (permission === 'default') {
-            permission = await Notification.requestPermission();
-        }
-        
-        if (permission !== 'granted') {
-            console.log('Notification permission not granted');
-            return;
-        }
-        
-        console.log('Notification permission:', permission);
-        
-        // Get messaging instance
-        messaging = firebase.messaging();
-        
-        try {
-            // Get FCM token with VAPID key
-            // Note: Get VAPID key from Firebase Console -> Project Settings -> Cloud Messaging
-            const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o';
-            
-            const token = await messaging.getToken({
-                vapidKey: vapidKey,
-                serviceWorkerRegistration: await navigator.serviceWorker.ready
             });
             
-            if (token) {
-                console.log('FCM Token:', token.substring(0, 20) + '...');
-                
-                // Save token to Firestore if available
-                if (typeof db !== 'undefined') {
-                    await db.collection('fcmTokens').doc(currentUser.username).set({
-                        token: token,
-                        userId: currentUser.username,
-                        name: currentUser.name,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
+            // Sync any offline data
+            syncOfflineData();
+        }
+    }
+
+    function setupServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
                     
-                    console.log('Token saved to Firestore');
-                }
+                    // Check for updates every hour
+                    setInterval(() => {
+                        registration.update();
+                    }, 60 * 60 * 1000);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    }
+
+    // PWA Install Prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install prompt after 3 seconds if not shown before
+        const installPromptShown = localStorage.getItem('installPromptShown') === 'true';
+        if (!installPromptShown && !isRunningStandalone()) {
+            setTimeout(() => {
+                showInstallPrompt();
+            }, 3000);
+        }
+    });
+
+    function showInstallPrompt() {
+        if (deferredPrompt && !isRunningStandalone()) {
+            const prompt = document.getElementById('installPrompt');
+            prompt.classList.add('active');
+            
+            // Auto-hide after 15 seconds
+            setTimeout(() => {
+                hideInstallPrompt();
+            }, 15000);
+        }
+    }
+
+    function hideInstallPrompt() {
+        const prompt = document.getElementById('installPrompt');
+        prompt.style.animation = 'slideOutDown 0.3s ease';
+        setTimeout(() => {
+            prompt.classList.remove('active');
+            prompt.style.animation = '';
+        }, 300);
+        localStorage.setItem('installPromptShown', 'true');
+    }
+
+    document.getElementById('installNowBtn').addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        
+        try {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+                showToast('App installed successfully! You can now find it on your home screen.', 'success');
             } else {
-                console.log('No FCM token available');
+                console.log('User dismissed the install prompt');
             }
-        } catch (tokenError) {
-            console.error('Error getting FCM token:', tokenError);
-            // Continue without token - app will still work
+            
+            deferredPrompt = null;
+            hideInstallPrompt();
+        } catch (error) {
+            console.error('Install prompt error:', error);
+        }
+    });
+
+    document.getElementById('installLaterBtn').addEventListener('click', () => {
+        hideInstallPrompt();
+    });
+
+    function showLoading(show, text = 'Loading...') {
+        const overlay = document.getElementById('loadingOverlay');
+        const textEl = document.getElementById('loadingText');
+        if (overlay) {
+            if (show) {
+                overlay.classList.add('active');
+                if (textEl) textEl.textContent = text;
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+    }
+
+    function showToast(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        const toastId = 'toast-' + (++currentToastId);
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span class="toast-icon">
+                ${type === 'success' ? '✅' : 
+                  type === 'error' ? '❌' : 
+                  type === 'warning' ? '⚠️' : 'ℹ️'}
+            </span>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto-remove after duration
+        setTimeout(() => {
+            const toastElem = document.getElementById(toastId);
+            if (toastElem) {
+                toastElem.style.opacity = '0';
+                toastElem.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toastElem.parentNode) {
+                        toastElem.parentNode.removeChild(toastElem);
+                    }
+                }, 300);
+            }
+        }, duration);
+    }
+
+    function initApp() {
+        // Setup login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+            
+            // Auto-focus username on load
+            document.getElementById('username').focus();
         }
         
-        // Handle incoming messages
-        messaging.onMessage((payload) => {
-            console.log('Message received in foreground:', payload);
+        // Setup mobile navigation
+        setupMobileNavigation();
+        
+        // Set minimum dates
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('changeDate').min = today;
+        document.getElementById('leaveDate').min = today;
+        document.getElementById('allRosterStartDate').min = today;
+        document.getElementById('allRosterEndDate').min = today;
+        
+        // Set default dates for forms
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('changeDate').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+        
+        // Set roster default dates (today + 7 days)
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        document.getElementById('allRosterStartDate').value = today;
+        document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+        
+        // Add shortcut keys
+        setupKeyboardShortcuts();
+    }
+
+    function setupMobileNavigation() {
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileNav = document.getElementById('mobileNav');
+        const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+        
+        if (menuToggle && mobileNav && mobileNavOverlay) {
+            menuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                mobileNav.classList.add('active');
+                mobileNavOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
             
-            // Show in-app notification
-            if (payload.notification) {
-                showInAppNotification(payload.notification);
+            mobileNavOverlay.addEventListener('click', function() {
+                mobileNav.classList.remove('active');
+                mobileNavOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close menu when clicking a nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    mobileNavOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                    
+                    const sectionId = this.getAttribute('data-section');
+                    showSection(sectionId);
+                });
+            });
+            
+            // Close on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && mobileNav.classList.contains('active')) {
+                    mobileNav.classList.remove('active');
+                    mobileNavOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+        
+        // Bottom nav buttons
+        document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const btnText = this.querySelector('span:last-child').textContent.toLowerCase();
+                let section = 'home';
+                
+                if (btnText === 'home') section = 'home';
+                if (btnText === 'change') section = 'dutyChange';
+                if (btnText === 'leave') section = 'leaveApplication';
+                if (btnText === 'requests') section = 'myRequests';
+                if (btnText === 'roster') section = 'viewAllRoster';
+                
+                showSection(section);
+            });
+        });
+    }
+
+    function setupKeyboardShortcuts() {
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + S for save/refresh
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                updateDashboard();
+            }
+            
+            // Escape to go home
+            if (e.key === 'Escape' && !document.getElementById('mobileNav').classList.contains('active')) {
+                showSection('home');
+            }
+            
+            // Number shortcuts for navigation
+            if (e.altKey) {
+                switch(e.key) {
+                    case '1': showSection('home'); break;
+                    case '2': showSection('dutyChange'); break;
+                    case '3': showSection('leaveApplication'); break;
+                    case '4': showSection('myRequests'); break;
+                    case '5': showSection('viewAllRoster'); break;
+                }
             }
         });
-        
-        console.log('Firebase Messaging initialized');
-        
-    } catch (error) {
-        console.error('Error in Firebase Messaging:', error);
-        
-        // Don't crash the app for notification errors
-        if (error.code === 'messaging/permission-blocked') {
-            console.log('Notifications blocked by user');
-        } else if (error.code === 'messaging/unsupported-browser') {
-            console.log('Browser does not support messaging');
+    }
+
+    function checkSession() {
+        const session = localStorage.getItem('dutySystemSession');
+        if (session) {
+            try {
+                const user = JSON.parse(session);
+                if (user.expiry > Date.now()) {
+                    loginUser(user);
+                } else {
+                    localStorage.removeItem('dutySystemSession');
+                    showToast('Session expired. Please login again.', 'warning');
+                }
+            } catch (e) {
+                localStorage.removeItem('dutySystemSession');
+            }
         }
     }
-}
 
-// Simple in-app notification function
-function showInAppNotification(notification) {
-    const title = notification.title || 'Notification';
-    const body = notification.body || '';
-    
-    // Show toast notification
-    showToast(`${title}: ${body}`, 'info', 5000);
-    
-    // Play sound if needed
-    if (Notification.permission === 'granted' && !document.hasFocus()) {
-        // Create a simple notification sound
-        try {
-            const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
-            audio.volume = 0.3;
-            audio.play().catch(() => {});
-        } catch (e) {}
+    async function handleLogin() {
+        showLoading(true, 'Authenticating...');
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        
+        if (!username || !password) {
+            showToast('Please enter both username and password', 'warning');
+            showLoading(false);
+            return;
+        }
+        
+        if (!users || !Array.isArray(users)) {
+            showToast('System error. Please try again.', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        const user = users.find(u => u.username === username);
+        
+        if (!user) {
+            showToast('Invalid username or password', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        // Hash and check password
+        const hashedPassword = sha256(password);
+        
+        if (hashedPassword === user.passwordHash) {
+            const sessionData = {
+                username: user.username,
+                name: user.name,
+                rcNo: user.RCNo,
+                level: user.Level,
+                expiry: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
+            };
+            
+            localStorage.setItem('dutySystemSession', JSON.stringify(sessionData));
+            await loginUser(sessionData);
+            showLoading(false);
+        } else {
+            showToast('Invalid username or password', 'error');
+            showLoading(false);
+        }
     }
-}
 
-// ============================================================================
-// FIX ENDS HERE
-// ============================================================================
-
-async function initializeData() {
-    showLoading(true, 'Loading data...');
-    
-    try {
-        // Load all data
-        await Promise.all([
-            loadDutyRoster(),
-            loadLeaveBalances(),
-            loadAllRequests(),
-            loadAnnouncements()
-        ]);
+    async function loginUser(userData) {
+        currentUser = userData;
+        allUsers = users || [];
         
         // Update UI
-        updateUserBalance();
-        updateRequestCounts();
-        updateNotificationBadge();
-        loadHomeAnnouncements();
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'block';
         
-        // Check for offline data
-        syncOfflineData();
+        // Update user info
+        document.getElementById('mobileTitle').textContent = 'Dashboard';
+        document.getElementById('mobileAvatar').textContent = userData.name.charAt(0).toUpperCase();
+        document.getElementById('navUserName').textContent = userData.name;
+        document.getElementById('navUserRC').textContent = userData.rcNo;
+        document.getElementById('navUserLevel').textContent = userData.level;
+        document.getElementById('welcomeName').textContent = userData.name;
         
-        showLoading(false);
-    } catch (error) {
-        console.error('Error initializing data:', error);
-        
-        // Try to load from cache/local storage if offline
-        if (!navigator.onLine) {
-            loadFromCache();
-            showToast('Loaded cached data. Some features limited.', 'warning');
-        } else {
-            showToast('Failed to load data. Please refresh.', 'error');
-        }
-        showLoading(false);
-    }
-}
-
-// Firebase Functions
-async function loadDutyRoster() {
-    try {
-        const doc = await db.collection('dutyRoster').doc('current').get();
-        dutyRoster = doc.exists ? doc.data() || {} : {};
-        
-        // Cache locally
-        localStorage.setItem('dutyRosterCache', JSON.stringify({
-            data: dutyRoster,
-            timestamp: Date.now()
-        }));
-        
-        return dutyRoster;
-    } catch (error) {
-        console.error('Error loading duty roster:', error);
-        
-        // Try to load from cache
-        const cache = localStorage.getItem('dutyRosterCache');
-        if (cache) {
-            const cachedData = JSON.parse(cache);
-            // Use cache if less than 1 hour old
-            if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
-                dutyRoster = cachedData.data;
-                return dutyRoster;
-            }
-        }
-        
-        dutyRoster = {};
-        return dutyRoster;
-    }
-}
-
-async function saveDutyRoster() {
-    try {
-        await db.collection('dutyRoster').doc('current').set(dutyRoster);
-        
-        // Update cache
-        localStorage.setItem('dutyRosterCache', JSON.stringify({
-            data: dutyRoster,
-            timestamp: Date.now()
-        }));
-        
-        return true;
-    } catch (error) {
-        console.error('Error saving duty roster:', error);
-        
-        // Save to offline queue if network error
-        if (!navigator.onLine) {
-            saveToOfflineQueue('updateDutyRoster', { roster: dutyRoster });
-            showToast('Changes saved offline and will sync when online', 'info');
-            return false; // Return false but don't show error
-        }
-        
-        showToast('Failed to save roster', 'error');
-        return false;
-    }
-}
-
-async function loadLeaveBalances() {
-    try {
-        const doc = await db.collection('leaveBalances').doc('current').get();
-        if (doc.exists) {
-            leaveBalances = doc.data() || {};
-        } else {
-            // Initialize default balances
-            leaveBalances = {};
-            allUsers.forEach(user => {
-                leaveBalances[user.username] = {
-                    SL: 12,
-                    FRL: 6,
-                    lastUpdated: new Date().toISOString()
-                };
-            });
-            await saveLeaveBalances();
-        }
-        
-        // Cache locally
-        localStorage.setItem('leaveBalancesCache', JSON.stringify({
-            data: leaveBalances,
-            timestamp: Date.now()
-        }));
-        
-        return leaveBalances;
-    } catch (error) {
-        console.error('Error loading leave balances:', error);
-        
-        // Try to load from cache
-        const cache = localStorage.getItem('leaveBalancesCache');
-        if (cache) {
-            const cachedData = JSON.parse(cache);
-            // Use cache if less than 1 hour old
-            if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
-                leaveBalances = cachedData.data;
-                return leaveBalances;
-            }
-        }
-        
-        leaveBalances = {};
-        return leaveBalances;
-    }
-}
-
-async function saveLeaveBalances() {
-    try {
-        await db.collection('leaveBalances').doc('current').set(leaveBalances);
-        
-        // Update cache
-        localStorage.setItem('leaveBalancesCache', JSON.stringify({
-            data: leaveBalances,
-            timestamp: Date.now()
-        }));
-        
-        return true;
-    } catch (error) {
-        console.error('Error saving leave balances:', error);
-        showToast('Failed to save leave balances', 'error');
-        return false;
-    }
-}
-
-async function loadAllRequests() {
-    try {
-        const doc = await db.collection('requests').doc('all').get();
-        if (doc.exists && doc.data().requests) {
-            allRequests = doc.data().requests;
-        } else {
-            allRequests = [];
-        }
-        
-        // Cache locally
-        localStorage.setItem('requestsCache', JSON.stringify({
-            data: allRequests,
-            timestamp: Date.now()
-        }));
-        
-        return allRequests;
-    } catch (error) {
-        console.error('Error loading requests:', error);
-        
-        // Try to load from cache
-        const cache = localStorage.getItem('requestsCache');
-        if (cache) {
-            const cachedData = JSON.parse(cache);
-            // Use cache if less than 1 hour old
-            if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
-                allRequests = cachedData.data;
-                return allRequests;
-            }
-        }
-        
-        allRequests = [];
-        return allRequests;
-    }
-}
-
-async function saveAllRequests() {
-    try {
-        await db.collection('requests').doc('all').set({ requests: allRequests });
-        
-        // Update cache
-        localStorage.setItem('requestsCache', JSON.stringify({
-            data: allRequests,
-            timestamp: Date.now()
-        }));
-        
-        return true;
-    } catch (error) {
-        console.error('Error saving requests:', error);
-        
-        // Save to offline queue if network error
-        if (!navigator.onLine) {
-            saveToOfflineQueue('updateRequests', { requests: allRequests });
-            return false; // Return false but don't show error
-        }
-        
-        showToast('Failed to save requests', 'error');
-        return false;
-    }
-}
-
-async function loadAnnouncements() {
-    try {
-        const doc = await db.collection('announcements').doc('all').get();
-        if (doc.exists && doc.data().announcements) {
-            announcements = doc.data().announcements;
-        } else {
-            announcements = [];
-            await saveAnnouncements();
-        }
-        
-        // Cache locally
-        localStorage.setItem('announcementsCache', JSON.stringify({
-            data: announcements,
-            timestamp: Date.now()
-        }));
-        
-        return announcements;
-    } catch (error) {
-        console.error('Error loading announcements:', error);
-        
-        // Try to load from cache
-        const cache = localStorage.getItem('announcementsCache');
-        if (cache) {
-            const cachedData = JSON.parse(cache);
-            // Use cache if less than 1 hour old
-            if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
-                announcements = cachedData.data;
-                return announcements;
-            }
-        }
-        
-        announcements = [];
-        return announcements;
-    }
-}
-
-async function saveAnnouncements() {
-    try {
-        await db.collection('announcements').doc('all').set({ announcements: announcements });
-        
-        // Update cache
-        localStorage.setItem('announcementsCache', JSON.stringify({
-            data: announcements,
-            timestamp: Date.now()
-        }));
-        
-        return true;
-    } catch (error) {
-        console.error('Error saving announcements:', error);
-        showToast('Failed to save announcements', 'error');
-        return false;
-    }
-}
-
-// Offline data management
-function saveToOfflineQueue(action, data) {
-    const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
-    queue.push({
-        action: action,
-        data: data,
-        timestamp: Date.now(),
-        userId: currentUser.username
-    });
-    localStorage.setItem('offlineQueue', JSON.stringify(queue));
-    
-    // Register background sync if available
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        navigator.serviceWorker.ready.then(registration => {
-            registration.sync.register('offline-sync');
+        // Show/hide admin sections
+        const isAdmin = userData.level === 'Supervisor' || userData.level === 'Admin';
+        document.querySelectorAll('.admin-nav').forEach(el => {
+            el.style.display = isAdmin ? 'flex' : 'none';
         });
+        
+        // Show/hide pending requests nav based on user level
+        const pendingNav = document.getElementById('pendingRequestsNav');
+        if (pendingNav) {
+            pendingNav.style.display = 'flex'; // Always show for now, badge will handle visibility
+        }
+        
+        // Initialize Firebase Messaging for push notifications
+        await initFirebaseMessaging();
+        
+        // Load data
+        await initializeData();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Setup real-time listeners
+        setupRealtimeListeners();
+        
+        // Show welcome
+        showToast(`Welcome back, ${userData.name}!`, 'success');
+        
+        // Check for updates
+        checkForUpdates();
     }
-}
 
-async function syncOfflineData() {
-    if (!navigator.onLine) return;
-    
-    const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
-    if (queue.length === 0) return;
-    
-    showLoading(true, 'Syncing offline data...');
-    
-    for (const item of queue) {
+    async function initFirebaseMessaging() {
         try {
-            switch(item.action) {
-                case 'updateDutyRoster':
-                    await db.collection('dutyRoster').doc('current').set(item.data.roster);
-                    break;
-                case 'updateRequests':
-                    await db.collection('requests').doc('all').set({ requests: item.data.requests });
-                    break;
-                case 'newRequest':
-                    await db.collection('requests').doc('all').set({ 
-                        requests: firebase.firestore.FieldValue.arrayUnion(item.data.request) 
-                    });
-                    break;
+            // Check prerequisites
+            if (!firebase || !firebase.messaging || !currentUser) {
+                console.log('Firebase messaging prerequisites not met');
+                return;
             }
             
-            // Remove from queue after successful sync
-            queue.splice(queue.indexOf(item), 1);
+            // Check browser support
+            if (!('Notification' in window)) {
+                console.log('This browser does not support notifications');
+                return;
+            }
+            
+            // Request permission if not already granted
+            let permission = Notification.permission;
+            if (permission === 'default') {
+                permission = await Notification.requestPermission();
+            }
+            
+            if (permission !== 'granted') {
+                console.log('Notification permission not granted');
+                return;
+            }
+            
+            console.log('Notification permission:', permission);
+            
+            // Get messaging instance
+            messaging = firebase.messaging();
+            
+            try {
+                // Get FCM token with VAPID key
+                const vapidKey = 'BCMEhQHZvwuii0Pul11PRfM68N_C4iox9c6jUwWoj21lvKZ2hhAfRe-5KwG_A1xMsQ04aelb8XM7x-mXNYzak1o';
+                
+                const token = await messaging.getToken({
+                    vapidKey: vapidKey,
+                    serviceWorkerRegistration: await navigator.serviceWorker.ready
+                });
+                
+                if (token) {
+                    console.log('FCM Token:', token.substring(0, 20) + '...');
+                    
+                    // Save token to Firestore if available
+                    if (typeof db !== 'undefined') {
+                        await db.collection('fcmTokens').doc(currentUser.username).set({
+                            token: token,
+                            userId: currentUser.username,
+                            name: currentUser.name,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                        
+                        console.log('Token saved to Firestore');
+                    }
+                } else {
+                    console.log('No FCM token available');
+                }
+            } catch (tokenError) {
+                console.error('Error getting FCM token:', tokenError);
+                // Continue without token - app will still work
+            }
+            
+            // Handle incoming messages
+            messaging.onMessage((payload) => {
+                console.log('Message received in foreground:', payload);
+                
+                // Show in-app notification
+                if (payload.notification) {
+                    showInAppNotification(payload.notification);
+                }
+            });
+            
+            console.log('Firebase Messaging initialized');
+            
         } catch (error) {
-            console.error('Error syncing offline data:', error);
+            console.error('Error in Firebase Messaging:', error);
+            
+            // Don't crash the app for notification errors
+            if (error.code === 'messaging/permission-blocked') {
+                console.log('Notifications blocked by user');
+            } else if (error.code === 'messaging/unsupported-browser') {
+                console.log('Browser does not support messaging');
+            }
         }
     }
-    
-    localStorage.setItem('offlineQueue', JSON.stringify(queue));
-    showLoading(false);
-    
-    if (queue.length === 0) {
-        showToast('Offline data synced successfully!', 'success');
-    } else {
-        showToast('Some offline data failed to sync', 'warning');
-    }
-}
 
-function loadFromCache() {
-    // Load all data from cache
-    const caches = ['dutyRosterCache', 'leaveBalancesCache', 'requestsCache', 'announcementsCache'];
-    
-    caches.forEach(cacheName => {
-        const cache = localStorage.getItem(cacheName);
-        if (cache) {
-            const cachedData = JSON.parse(cache);
-            if (Date.now() - cachedData.timestamp < 24 * 60 * 60 * 1000) { // 24 hours
-                switch(cacheName) {
-                    case 'dutyRosterCache':
-                        dutyRoster = cachedData.data;
+    function showInAppNotification(notification) {
+        const title = notification.title || 'Notification';
+        const body = notification.body || '';
+        
+        // Show toast notification
+        showToast(`${title}: ${body}`, 'info', 5000);
+    }
+
+    async function initializeData() {
+        showLoading(true, 'Loading data...');
+        
+        try {
+            // Load all data
+            await Promise.all([
+                loadDutyRoster(),
+                loadLeaveBalances(),
+                loadAllRequests(),
+                loadAnnouncements()
+            ]);
+            
+            // Update UI
+            updateUserBalance();
+            updateRequestCounts();
+            updateNotificationBadge();
+            loadHomeAnnouncements();
+            
+            // Check for offline data
+            syncOfflineData();
+            
+            showLoading(false);
+        } catch (error) {
+            console.error('Error initializing data:', error);
+            
+            // Try to load from cache/local storage if offline
+            if (!navigator.onLine) {
+                loadFromCache();
+                showToast('Loaded cached data. Some features limited.', 'warning');
+            } else {
+                showToast('Failed to load data. Please refresh.', 'error');
+            }
+            showLoading(false);
+        }
+    }
+
+    // Firebase Functions
+    async function loadDutyRoster() {
+        try {
+            const doc = await db.collection('dutyRoster').doc('current').get();
+            dutyRoster = doc.exists ? doc.data() || {} : {};
+            
+            // Cache locally
+            localStorage.setItem('dutyRosterCache', JSON.stringify({
+                data: dutyRoster,
+                timestamp: Date.now()
+            }));
+            
+            return dutyRoster;
+        } catch (error) {
+            console.error('Error loading duty roster:', error);
+            
+            // Try to load from cache
+            const cache = localStorage.getItem('dutyRosterCache');
+            if (cache) {
+                const cachedData = JSON.parse(cache);
+                // Use cache if less than 1 hour old
+                if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
+                    dutyRoster = cachedData.data;
+                    return dutyRoster;
+                }
+            }
+            
+            dutyRoster = {};
+            return dutyRoster;
+        }
+    }
+
+    async function saveDutyRoster() {
+        try {
+            await db.collection('dutyRoster').doc('current').set(dutyRoster);
+            
+            // Update cache
+            localStorage.setItem('dutyRosterCache', JSON.stringify({
+                data: dutyRoster,
+                timestamp: Date.now()
+            }));
+            
+            return true;
+        } catch (error) {
+            console.error('Error saving duty roster:', error);
+            
+            // Save to offline queue if network error
+            if (!navigator.onLine) {
+                saveToOfflineQueue('updateDutyRoster', { roster: dutyRoster });
+                showToast('Changes saved offline and will sync when online', 'info');
+                return false;
+            }
+            
+            showToast('Failed to save roster', 'error');
+            return false;
+        }
+    }
+
+    async function loadLeaveBalances() {
+        try {
+            const doc = await db.collection('leaveBalances').doc('current').get();
+            if (doc.exists) {
+                leaveBalances = doc.data() || {};
+            } else {
+                // Initialize default balances
+                leaveBalances = {};
+                allUsers.forEach(user => {
+                    leaveBalances[user.username] = {
+                        SL: 12,
+                        FRL: 6,
+                        lastUpdated: new Date().toISOString()
+                    };
+                });
+                await saveLeaveBalances();
+            }
+            
+            // Cache locally
+            localStorage.setItem('leaveBalancesCache', JSON.stringify({
+                data: leaveBalances,
+                timestamp: Date.now()
+            }));
+            
+            return leaveBalances;
+        } catch (error) {
+            console.error('Error loading leave balances:', error);
+            
+            // Try to load from cache
+            const cache = localStorage.getItem('leaveBalancesCache');
+            if (cache) {
+                const cachedData = JSON.parse(cache);
+                // Use cache if less than 1 hour old
+                if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
+                    leaveBalances = cachedData.data;
+                    return leaveBalances;
+                }
+            }
+            
+            leaveBalances = {};
+            return leaveBalances;
+        }
+    }
+
+    async function saveLeaveBalances() {
+        try {
+            await db.collection('leaveBalances').doc('current').set(leaveBalances);
+            
+            // Update cache
+            localStorage.setItem('leaveBalancesCache', JSON.stringify({
+                data: leaveBalances,
+                timestamp: Date.now()
+            }));
+            
+            return true;
+        } catch (error) {
+            console.error('Error saving leave balances:', error);
+            showToast('Failed to save leave balances', 'error');
+            return false;
+        }
+    }
+
+    async function loadAllRequests() {
+        try {
+            const doc = await db.collection('requests').doc('all').get();
+            if (doc.exists && doc.data().requests) {
+                allRequests = doc.data().requests;
+            } else {
+                allRequests = [];
+            }
+            
+            // Cache locally
+            localStorage.setItem('requestsCache', JSON.stringify({
+                data: allRequests,
+                timestamp: Date.now()
+            }));
+            
+            return allRequests;
+        } catch (error) {
+            console.error('Error loading requests:', error);
+            
+            // Try to load from cache
+            const cache = localStorage.getItem('requestsCache');
+            if (cache) {
+                const cachedData = JSON.parse(cache);
+                // Use cache if less than 1 hour old
+                if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
+                    allRequests = cachedData.data;
+                    return allRequests;
+                }
+            }
+            
+            allRequests = [];
+            return allRequests;
+        }
+    }
+
+    async function saveAllRequests() {
+        try {
+            await db.collection('requests').doc('all').set({ requests: allRequests });
+            
+            // Update cache
+            localStorage.setItem('requestsCache', JSON.stringify({
+                data: allRequests,
+                timestamp: Date.now()
+            }));
+            
+            return true;
+        } catch (error) {
+            console.error('Error saving requests:', error);
+            
+            // Save to offline queue if network error
+            if (!navigator.onLine) {
+                saveToOfflineQueue('updateRequests', { requests: allRequests });
+                return false;
+            }
+            
+            showToast('Failed to save requests', 'error');
+            return false;
+        }
+    }
+
+    async function loadAnnouncements() {
+        try {
+            const doc = await db.collection('announcements').doc('all').get();
+            if (doc.exists && doc.data().announcements) {
+                announcements = doc.data().announcements;
+            } else {
+                announcements = [];
+                await saveAnnouncements();
+            }
+            
+            // Cache locally
+            localStorage.setItem('announcementsCache', JSON.stringify({
+                data: announcements,
+                timestamp: Date.now()
+            }));
+            
+            return announcements;
+        } catch (error) {
+            console.error('Error loading announcements:', error);
+            
+            // Try to load from cache
+            const cache = localStorage.getItem('announcementsCache');
+            if (cache) {
+                const cachedData = JSON.parse(cache);
+                // Use cache if less than 1 hour old
+                if (Date.now() - cachedData.timestamp < 60 * 60 * 1000) {
+                    announcements = cachedData.data;
+                    return announcements;
+                }
+            }
+            
+            announcements = [];
+            return announcements;
+        }
+    }
+
+    async function saveAnnouncements() {
+        try {
+            await db.collection('announcements').doc('all').set({ announcements: announcements });
+            
+            // Update cache
+            localStorage.setItem('announcementsCache', JSON.stringify({
+                data: announcements,
+                timestamp: Date.now()
+            }));
+            
+            return true;
+        } catch (error) {
+            console.error('Error saving announcements:', error);
+            showToast('Failed to save announcements', 'error');
+            return false;
+        }
+    }
+
+    // Offline data management
+    function saveToOfflineQueue(action, data) {
+        const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+        queue.push({
+            action: action,
+            data: data,
+            timestamp: Date.now(),
+            userId: currentUser.username
+        });
+        localStorage.setItem('offlineQueue', JSON.stringify(queue));
+    }
+
+    async function syncOfflineData() {
+        if (!navigator.onLine) return;
+        
+        const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+        if (queue.length === 0) return;
+        
+        showLoading(true, 'Syncing offline data...');
+        
+        for (const item of queue) {
+            try {
+                switch(item.action) {
+                    case 'updateDutyRoster':
+                        await db.collection('dutyRoster').doc('current').set(item.data.roster);
                         break;
-                    case 'leaveBalancesCache':
-                        leaveBalances = cachedData.data;
+                    case 'updateRequests':
+                        await db.collection('requests').doc('all').set({ requests: item.data.requests });
                         break;
-                    case 'requestsCache':
-                        allRequests = cachedData.data;
-                        break;
-                    case 'announcementsCache':
-                        announcements = cachedData.data;
-                        break;
+                }
+                
+                // Remove from queue after successful sync
+                queue.splice(queue.indexOf(item), 1);
+            } catch (error) {
+                console.error('Error syncing offline data:', error);
+            }
+        }
+        
+        localStorage.setItem('offlineQueue', JSON.stringify(queue));
+        showLoading(false);
+        
+        if (queue.length === 0) {
+            showToast('Offline data synced successfully!', 'success');
+        } else {
+            showToast('Some offline data failed to sync', 'warning');
+        }
+    }
+
+    function loadFromCache() {
+        // Load all data from cache
+        const caches = ['dutyRosterCache', 'leaveBalancesCache', 'requestsCache', 'announcementsCache'];
+        
+        caches.forEach(cacheName => {
+            const cache = localStorage.getItem(cacheName);
+            if (cache) {
+                const cachedData = JSON.parse(cache);
+                if (Date.now() - cachedData.timestamp < 24 * 60 * 60 * 1000) {
+                    switch(cacheName) {
+                        case 'dutyRosterCache':
+                            dutyRoster = cachedData.data;
+                            break;
+                        case 'leaveBalancesCache':
+                            leaveBalances = cachedData.data;
+                            break;
+                        case 'requestsCache':
+                            allRequests = cachedData.data;
+                            break;
+                        case 'announcementsCache':
+                            announcements = cachedData.data;
+                            break;
+                    }
+                }
+            }
+        });
+    }
+
+    function updateUserBalance() {
+        if (!currentUser) return;
+        
+        const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+        document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
+        document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
+    }
+
+    function updateRequestCounts() {
+        if (!currentUser) return;
+        
+        // Pending requests for user (duty change requests)
+        const pendingForUser = allRequests.filter(req => 
+            req.status === 'pending' && 
+            req.type === 'dutyChange' && 
+            req.toUsername === currentUser.username
+        ).length;
+        
+        const pendingNav = document.getElementById('pendingRequestsNav');
+        const pendingBadge = document.getElementById('pendingRequestsBadge');
+        
+        if (pendingForUser > 0) {
+            if (pendingNav) pendingNav.style.display = 'flex';
+            if (pendingBadge) {
+                pendingBadge.textContent = pendingForUser;
+                pendingBadge.style.display = 'inline-block';
+            }
+        } else {
+            if (pendingNav) pendingNav.style.display = 'none';
+            if (pendingBadge) pendingBadge.style.display = 'none';
+        }
+        
+        // My pending requests
+        const myPending = allRequests.filter(req => 
+            req.fromUsername === currentUser.username && 
+            req.status === 'pending'
+        ).length;
+        
+        const myBadge = document.getElementById('myRequestsBadge');
+        if (myBadge) {
+            if (myPending > 0) {
+                myBadge.textContent = myPending;
+                myBadge.style.display = 'inline-block';
+            } else {
+                myBadge.style.display = 'none';
+            }
+        }
+    }
+
+    async function updateNotificationBadge() {
+        if (!currentUser || typeof db === 'undefined') return;
+        
+        try {
+            const snapshot = await db.collection('notifications')
+                .where('userId', '==', currentUser.username)
+                .where('read', '==', false)
+                .get();
+            
+            const unreadCount = snapshot.size;
+            
+            // Update badge in navigation
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
+            // Update browser tab badge if supported
+            if ('setAppBadge' in navigator) {
+                if (unreadCount > 0) {
+                    navigator.setAppBadge(unreadCount);
+                } else {
+                    navigator.clearAppBadge();
+                }
+            }
+        } catch (error) {
+            console.error('Error updating notification badge:', error);
+        }
+    }
+
+    // Navigation Functions
+    function showSection(sectionId) {
+        // Update mobile title
+        const titles = {
+            home: 'Dashboard',
+            dutyChange: 'Duty Change',
+            leaveApplication: 'Apply Leave',
+            myRequests: 'My Requests',
+            pendingRequests: 'Pending Requests',
+            viewMyRoster: 'My Roster',
+            viewAllRoster: 'All Roster',
+            adminAnnouncements: 'Announcements',
+            adminDutyRoster: 'Manage Roster',
+            adminLeaveBalance: 'Leave Balance',
+            adminApprovals: 'Approvals',
+            adminRequestHistory: 'History'
+        };
+        
+        const mobileTitle = document.getElementById('mobileTitle');
+        if (mobileTitle) {
+            mobileTitle.textContent = titles[sectionId] || sectionId;
+        }
+        
+        // Update sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        const targetSection = document.getElementById(sectionId + 'Section');
+        if (targetSection) {
+            targetSection.classList.add('active');
+        } else {
+            // Fallback to home if section doesn't exist
+            showSection('home');
+            return;
+        }
+        
+        // Update navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-section') === sectionId) {
+                item.classList.add('active');
+            }
+        });
+        
+        // Update bottom nav
+        document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            const btnText = btn.querySelector('span:last-child').textContent.toLowerCase();
+            if (sectionId === 'home' && btnText === 'home') btn.classList.add('active');
+            if (sectionId === 'dutyChange' && btnText === 'change') btn.classList.add('active');
+            if (sectionId === 'leaveApplication' && btnText === 'leave') btn.classList.add('active');
+            if (sectionId === 'myRequests' && btnText === 'requests') btn.classList.add('active');
+            if (sectionId === 'viewAllRoster' && btnText === 'roster') btn.classList.add('active');
+        });
+        
+        // Load section data
+        loadSectionData(sectionId);
+        
+        // Scroll to top
+        const dashboardContent = document.getElementById('dashboardContent');
+        if (dashboardContent) {
+            dashboardContent.scrollTop = 0;
+        }
+    }
+
+    function loadSectionData(sectionId) {
+        switch(sectionId) {
+            case 'home':
+                updateDashboard();
+                break;
+            case 'dutyChange':
+                loadDutyChangeForm();
+                break;
+            case 'leaveApplication':
+                loadLeaveForm();
+                break;
+            case 'myRequests':
+                loadMyRequests();
+                break;
+            case 'pendingRequests':
+                loadPendingRequests();
+                break;
+            case 'viewAllRoster':
+                loadAllRoster();
+                break;
+            case 'adminAnnouncements':
+                loadAnnouncementsAdmin();
+                break;
+            default:
+                // For other admin sections
+                if (sectionId.startsWith('admin')) {
+                    showToast(`${sectionId.replace('admin', '')} - to be implemented`, 'info');
+                }
+                break;
+        }
+    }
+
+    // Dashboard Functions
+    function updateDashboard() {
+        if (!currentUser) return;
+        
+        const today = new Date().toISOString().split('T')[0];
+        const todayDutyTime = document.getElementById('todayDutyTime');
+        const nextDutyTime = document.getElementById('nextDutyTime');
+        
+        // Today's duty
+        if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
+            const duty = dutyRoster[today][currentUser.username];
+            todayDutyTime.textContent = duty === 'Off' ? 'Off Duty' : duty;
+            todayDutyTime.className = duty === 'Off' ? 'status-off' : '';
+        } else {
+            todayDutyTime.textContent = 'Not Scheduled';
+        }
+        
+        // Next duty
+        const tomorrow = new Date();
+        let foundNext = false;
+        
+        for (let i = 1; i <= 14; i++) {
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+            if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
+                const duty = dutyRoster[dateStr][currentUser.username];
+                if (duty !== 'Off') {
+                    const date = new Date(dateStr);
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                    nextDutyTime.textContent = `${dayName} ${dateStr.split('-')[2]}: ${duty}`;
+                    foundNext = true;
+                    break;
                 }
             }
         }
-    });
-}
-
-function updateUserBalance() {
-    if (!currentUser) return;
-    
-    const balance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-    document.getElementById('slBalance').textContent = balance.SL.toFixed(1);
-    document.getElementById('frlBalance').textContent = balance.FRL.toFixed(1);
-}
-
-function updateRequestCounts() {
-    if (!currentUser) return;
-    
-    // Pending requests for user (duty change requests)
-    const pendingForUser = allRequests.filter(req => 
-        req.status === 'pending' && 
-        req.type === 'dutyChange' && 
-        req.toUsername === currentUser.username
-    ).length;
-    
-    const pendingNav = document.getElementById('pendingRequestsNav');
-    const pendingBadge = document.getElementById('pendingRequestsBadge');
-    
-    if (pendingForUser > 0) {
-        if (pendingNav) pendingNav.style.display = 'flex';
-        if (pendingBadge) {
-            pendingBadge.textContent = pendingForUser;
-            pendingBadge.style.display = 'inline-block';
-        }
-    } else {
-        if (pendingNav) pendingNav.style.display = 'none';
-        if (pendingBadge) pendingBadge.style.display = 'none';
-    }
-    
-    // My pending requests
-    const myPending = allRequests.filter(req => 
-        req.fromUsername === currentUser.username && 
-        req.status === 'pending'
-    ).length;
-    
-    const myBadge = document.getElementById('myRequestsBadge');
-    if (myBadge) {
-        if (myPending > 0) {
-            myBadge.textContent = myPending;
-            myBadge.style.display = 'inline-block';
-        } else {
-            myBadge.style.display = 'none';
-        }
-    }
-}
-
-async function updateNotificationBadge() {
-    if (!currentUser || typeof db === 'undefined') return;
-    
-    try {
-        const snapshot = await db.collection('notifications')
-            .where('userId', '==', currentUser.username)
-            .where('read', '==', false)
-            .get();
         
-        const unreadCount = snapshot.size;
-        
-        // Update badge in navigation
-        const badge = document.getElementById('notificationBadge');
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
+        if (!foundNext) {
+            nextDutyTime.textContent = 'No upcoming duty';
         }
         
-        // Update browser tab badge if supported
-        if ('setAppBadge' in navigator) {
-            if (unreadCount > 0) {
-                navigator.setAppBadge(unreadCount);
-            } else {
-                navigator.clearAppBadge();
-            }
-        }
-    } catch (error) {
-        console.error('Error updating notification badge:', error);
-    }
-}
-
-// Navigation Functions
-function showSection(sectionId) {
-    // Update mobile title
-    const titles = {
-        home: 'Dashboard',
-        dutyChange: 'Duty Change',
-        leaveApplication: 'Apply Leave',
-        myRequests: 'My Requests',
-        pendingRequests: 'Pending Requests',
-        viewMyRoster: 'My Roster',
-        viewAllRoster: 'All Roster',
-        adminAnnouncements: 'Announcements',
-        adminDutyRoster: 'Manage Roster',
-        adminLeaveBalance: 'Leave Balance',
-        adminApprovals: 'Approvals',
-        adminRequestHistory: 'History'
-    };
-    
-    const mobileTitle = document.getElementById('mobileTitle');
-    if (mobileTitle) {
-        mobileTitle.textContent = titles[sectionId] || sectionId;
-    }
-    
-    // Update sections
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    const targetSection = document.getElementById(sectionId + 'Section');
-    if (targetSection) {
-        targetSection.classList.add('active');
-    } else {
-        // Fallback to home if section doesn't exist
-        showSection('home');
-        return;
-    }
-    
-    // Update navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('data-section') === sectionId) {
-            item.classList.add('active');
-        }
-    });
-    
-    // Update bottom nav
-    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-        const btnText = btn.querySelector('span:last-child').textContent.toLowerCase();
-        if (sectionId === 'home' && btnText === 'home') btn.classList.add('active');
-        if (sectionId === 'dutyChange' && btnText === 'change') btn.classList.add('active');
-        if (sectionId === 'leaveApplication' && btnText === 'leave') btn.classList.add('active');
-        if (sectionId === 'myRequests' && btnText === 'requests') btn.classList.add('active');
-        if (sectionId === 'viewAllRoster' && btnText === 'roster') btn.classList.add('active');
-    });
-    
-    // Load section data
-    loadSectionData(sectionId);
-    
-    // Scroll to top
-    const dashboardContent = document.getElementById('dashboardContent');
-    if (dashboardContent) {
-        dashboardContent.scrollTop = 0;
-    }
-    
-    // Update URL without page reload
-    if (history.pushState) {
-        const url = new URL(window.location);
-        url.searchParams.set('section', sectionId);
-        history.pushState({ section: sectionId }, '', url);
-    }
-}
-
-// Handle browser back/forward buttons
-window.addEventListener('popstate', function(event) {
-    if (event.state && event.state.section) {
-        showSection(event.state.section);
-    }
-});
-
-function loadSectionData(sectionId) {
-    switch(sectionId) {
-        case 'home':
-            updateDashboard();
-            break;
-        case 'dutyChange':
-            loadDutyChangeForm();
-            break;
-        case 'leaveApplication':
-            loadLeaveForm();
-            break;
-        case 'myRequests':
-            loadMyRequests();
-            break;
-        case 'pendingRequests':
-            loadPendingRequests();
-            break;
-        case 'viewAllRoster':
-            loadAllRoster();
-            break;
-        case 'adminAnnouncements':
-            loadAnnouncementsAdmin();
-            break;
-        case 'adminDutyRoster':
-            loadAdminDutyRoster();
-            break;
-        case 'adminLeaveBalance':
-            loadAdminLeaveBalance();
-            break;
-        case 'adminApprovals':
-            loadAdminApprovals();
-            break;
-        case 'adminRequestHistory':
-            loadAdminRequestHistory();
-            break;
-    }
-}
-
-// Dashboard Functions
-function updateDashboard() {
-    if (!currentUser) return;
-    
-    const today = new Date().toISOString().split('T')[0];
-    const todayDutyTime = document.getElementById('todayDutyTime');
-    const nextDutyTime = document.getElementById('nextDutyTime');
-    
-    // Today's duty
-    if (dutyRoster[today] && dutyRoster[today][currentUser.username]) {
-        const duty = dutyRoster[today][currentUser.username];
-        todayDutyTime.textContent = duty === 'Off' ? 'Off Duty' : duty;
-        todayDutyTime.className = duty === 'Off' ? 'status-off' : '';
-    } else {
-        todayDutyTime.textContent = 'Not Scheduled';
-    }
-    
-    // Next duty
-    const tomorrow = new Date();
-    let foundNext = false;
-    
-    for (let i = 1; i <= 14; i++) { // Check next 14 days
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dateStr = tomorrow.toISOString().split('T')[0];
-        if (dutyRoster[dateStr] && dutyRoster[dateStr][currentUser.username]) {
-            const duty = dutyRoster[dateStr][currentUser.username];
-            if (duty !== 'Off') {
-                const date = new Date(dateStr);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                nextDutyTime.textContent = `${dayName} ${dateStr.split('-')[2]}: ${duty}`;
-                foundNext = true;
-                break;
-            }
-        }
-    }
-    
-    if (!foundNext) {
-        nextDutyTime.textContent = 'No upcoming duty';
-    }
-    
-    // Update balance
-    updateUserBalance();
-    
-    // Load announcements
-    loadHomeAnnouncements();
-    
-    // Load notifications
-    updateNotificationBadge();
-    
-    // Check for upcoming leave
-    checkUpcomingLeave();
-}
-
-function checkUpcomingLeave() {
-    if (!currentUser) return;
-    
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    
-    const upcomingLeave = allRequests.filter(req => 
-        req.fromUsername === currentUser.username &&
-        req.type === 'leave' &&
-        req.status === 'approved' &&
-        new Date(req.date) >= today &&
-        new Date(req.date) <= nextWeek
-    );
-    
-    if (upcomingLeave.length > 0) {
-        const notificationsDiv = document.getElementById('homeNotifications');
-        if (notificationsDiv) {
-            notificationsDiv.style.display = 'block';
-            notificationsDiv.innerHTML = '<strong>Upcoming Leave:</strong><br>';
-            
-            upcomingLeave.forEach(leave => {
-                notificationsDiv.innerHTML += `${leave.date}: ${leave.leaveType} (${leave.duration} day(s))<br>`;
-            });
-        }
-    }
-}
-
-function loadHomeAnnouncements() {
-    const container = document.getElementById('homeAnnouncements');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    const now = new Date();
-    const activeAnnouncements = announcements.filter(ann => {
-        if (ann.status === 'expired' || ann.status === 'archived') return false;
-        if (ann.expiry && new Date(ann.expiry) < now) return false;
-        return ann.target === 'all' || 
-               (ann.target === 'specific' && ann.targetUsers && 
-                ann.targetUsers.includes(currentUser.username));
-    });
-    
-    if (activeAnnouncements.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = `
-            <div class="empty-state-icon">📢</div>
-            <div class="empty-state-title">No Announcements</div>
-        `;
-        container.appendChild(emptyState);
-        return;
-    }
-    
-    // Show only 2 announcements on mobile
-    const displayAnnouncements = isMobile ? 
-        activeAnnouncements.slice(0, 2) : activeAnnouncements;
-    
-    displayAnnouncements.forEach(ann => {
-        const announcementDiv = document.createElement('div');
-        announcementDiv.className = `announcement-banner priority-${ann.priority}`;
-        
-        announcementDiv.innerHTML = `
-            <div class="announcement-title">
-                <span>📢</span> ${ann.title}
-            </div>
-            <div style="margin-bottom: 10px; font-size: 14px;">${ann.content}</div>
-            <div style="font-size: 12px; opacity: 0.9;">
-                By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
-            </div>
-        `;
-        
-        container.appendChild(announcementDiv);
-    });
-}
-
-function formatTimeAgo(timestamp) {
-    if (!timestamp) return 'recently';
-    
-    const now = new Date();
-    const past = new Date(timestamp);
-    const diffMs = now - past;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return past.toLocaleDateString();
-}
-
-// Duty Change Functions
-function loadDutyChangeForm() {
-    if (!currentUser) return;
-    
-    // Set tomorrow as default
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateInput = document.getElementById('changeDate');
-    if (dateInput) {
-        dateInput.min = tomorrow.toISOString().split('T')[0];
-        dateInput.value = tomorrow.toISOString().split('T')[0];
-    }
-    
-    // Populate staff dropdown
-    const staffSelect = document.getElementById('requestToStaff');
-    if (staffSelect) {
-        staffSelect.innerHTML = '<option value="">Select staff member</option>';
-        allUsers.forEach(user => {
-            if (user.username !== currentUser.username && user.Level === 'User') {
-                const option = document.createElement('option');
-                option.value = user.username;
-                option.textContent = `${user.name} (RC: ${user.RCNo})`;
-                staffSelect.appendChild(option);
-            }
-        });
-    }
-    
-    // Load duty times
-    loadUserDutyTimes('changeDutyTime', tomorrow.toISOString().split('T')[0]);
-}
-
-function loadUserDutyTimes(selectId, date) {
-    const select = document.getElementById(selectId);
-    if (!select || !date || !currentUser) return;
-    
-    select.innerHTML = '<option value="">Select duty time</option>';
-    const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
-    
-    if (dutyTime) {
-        const option = document.createElement('option');
-        option.value = dutyTime;
-        option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
-        select.appendChild(option);
-    }
-}
-
-async function submitDutyChange() {
-    if (!currentUser || !navigator.onLine) {
-        showToast('Cannot submit while offline', 'error');
-        return;
-    }
-    
-    const date = document.getElementById('changeDate').value;
-    const dutyTime = document.getElementById('changeDutyTime').value;
-    const toStaff = document.getElementById('requestToStaff').value;
-    const toDutyTime = document.getElementById('requestToDutyTime').value;
-    const reason = document.getElementById('changeReason').value;
-    
-    if (!date || !dutyTime || !toStaff || !toDutyTime) {
-        showToast('Please fill all required fields', 'warning');
-        return;
-    }
-    
-    if (dutyTime === 'Off' || toDutyTime === 'Off') {
-        showToast('Cannot request duty change on off days', 'warning');
-        return;
-    }
-    
-    // Check if date is at least 24 hours from now
-    const requestDate = new Date(date);
-    const now = new Date();
-    const hoursDiff = (requestDate - now) / (1000 * 60 * 60);
-    
-    if (hoursDiff < 24) {
-        showToast('Duty changes must be requested at least 24 hours in advance', 'warning');
-        return;
-    }
-    
-    const toUser = allUsers.find(u => u.username === toStaff);
-    if (!toUser) {
-        showToast('Selected staff not found', 'error');
-        return;
-    }
-    
-    const request = {
-        id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-        type: 'dutyChange',
-        fromUsername: currentUser.username,
-        fromName: currentUser.name,
-        fromRcNo: currentUser.rcNo,
-        date: date,
-        dutyTime: dutyTime,
-        toUsername: toStaff,
-        toName: toUser.name,
-        toRcNo: toUser.RCNo,
-        toDutyTime: toDutyTime,
-        reason: reason,
-        status: 'pending',
-        timestamp: new Date().toISOString(),
-        history: [{
-            action: 'created',
-            by: currentUser.name,
-            timestamp: new Date().toISOString()
-        }]
-    };
-    
-    allRequests.push(request);
-    
-    const success = await saveAllRequests();
-    if (success) {
-        // Send push notification to recipient
-        await sendPushNotification(toUser.username, 'New Duty Change Request', 
-            `${currentUser.name} wants to swap duty with you on ${date}`);
-        
-        updateRequestCounts();
-        showToast('Duty change request submitted!', 'success');
-        showSection('home');
-        
-        // Reset form
-        const form = document.getElementById('dutyChangeForm');
-        if (form) form.reset();
-        
-        // Reload form with defaults
-        loadDutyChangeForm();
-    }
-}
-
-// Leave Application Functions
-function loadLeaveForm() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
-    loadUserDutyTimes('leaveDutyTime', tomorrow.toISOString().split('T')[0]);
-    updateLeaveRules();
-}
-
-function updateLeaveRules() {
-    const leaveType = document.getElementById('leaveType').value;
-    const leaveDate = document.getElementById('leaveDate').value;
-    const dutyTime = document.getElementById('leaveDutyTime').value;
-    const alertDiv = document.getElementById('leaveRulesAlert');
-    const submitBtn = document.getElementById('submitLeaveBtn');
-    
-    if (!leaveType || !leaveDate || !dutyTime) {
-        if (alertDiv) {
-            alertDiv.className = 'alert alert-warning';
-            alertDiv.textContent = 'Please select leave type, date and duty time';
-        }
-        if (submitBtn) submitBtn.disabled = true;
-        return;
-    }
-    
-    // Check if user is off duty
-    if (dutyTime === 'Off' || dutyTime === '') {
-        if (alertDiv) {
-            alertDiv.className = 'alert alert-warning';
-            alertDiv.textContent = 'You are off duty on this date. No leave needed.';
-        }
-        if (submitBtn) submitBtn.disabled = true;
-        return;
-    }
-    
-    const dutyStart = dutyTime.split('-')[0];
-    const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
-    const now = new Date();
-    const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
-    
-    let canApply = false;
-    let message = '';
-    
-    if (leaveType === 'Sick Leave') {
-        canApply = hoursBeforeDuty >= 2;
-        message = canApply 
-            ? '✅ You can apply for Sick Leave (2+ hours before duty)'
-            : `❌ Need ${Math.ceil(2 - hoursBeforeDuty)} more hours before duty`;
-    } else if (leaveType === 'FRL') {
-        canApply = hoursBeforeDuty >= 1;
-        message = canApply
-            ? '✅ You can apply for FRL (1+ hour before duty)'
-            : `❌ Need ${Math.ceil(1 - hoursBeforeDuty)} more hours before duty`;
-    }
-    
-    // Check balance if user can apply
-    if (canApply) {
-        const duration = parseFloat(document.getElementById('leaveDuration').value) || 1;
-        const userBalance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
-        
-        if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
-            canApply = false;
-            message = `❌ Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`;
-        } else if (leaveType === 'FRL' && userBalance.FRL < duration) {
-            canApply = false;
-            message = `❌ Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`;
-        }
-    }
-    
-    if (alertDiv) {
-        alertDiv.className = canApply ? 'alert alert-success' : 'alert alert-danger';
-        alertDiv.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
-    }
-    if (submitBtn) submitBtn.disabled = !canApply;
-}
-
-async function submitLeaveApplication() {
-    if (!currentUser || !navigator.onLine) {
-        showToast('Cannot submit while offline', 'error');
-        return;
-    }
-    
-    const leaveType = document.getElementById('leaveType').value;
-    const date = document.getElementById('leaveDate').value;
-    const dutyTime = document.getElementById('leaveDutyTime').value;
-    const duration = parseFloat(document.getElementById('leaveDuration').value);
-    const reason = document.getElementById('leaveReason').value;
-    
-    if (!leaveType || !date || !dutyTime || !reason) {
-        showToast('Please fill all required fields', 'warning');
-        return;
-    }
-    
-    if (dutyTime === 'Off' || dutyTime === '') {
-        showToast('You are off duty on this date', 'warning');
-        return;
-    }
-    
-    // Check balance
-    const userBalance = leaveBalances[currentUser.username];
-    if (!userBalance) {
-        showToast('Error: User balance not found', 'error');
-        return;
-    }
-    
-    // IMMEDIATELY DEDUCT FROM BALANCE
-    if (leaveType === 'Sick Leave') {
-        if (userBalance.SL < duration) {
-            showToast(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`, 'warning');
-            return;
-        }
-        userBalance.SL -= duration;
-        userBalance.SL = Math.max(0, userBalance.SL); // Ensure non-negative
-    } else if (leaveType === 'FRL') {
-        if (userBalance.FRL < duration) {
-            showToast(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`, 'warning');
-            return;
-        }
-        userBalance.FRL -= duration;
-        userBalance.FRL = Math.max(0, userBalance.FRL);
-    }
-    
-    // Save updated balance immediately
-    await saveLeaveBalances();
-    
-    // Create leave request (auto-approved since balance already deducted)
-    const request = {
-        id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-        type: 'leave',
-        leaveType: leaveType,
-        fromUsername: currentUser.username,
-        fromName: currentUser.name,
-        fromRcNo: currentUser.rcNo,
-        date: date,
-        dutyTime: dutyTime,
-        duration: duration,
-        reason: reason,
-        status: 'approved', // Auto-approved since balance deducted
-        timestamp: new Date().toISOString(),
-        approvedBy: 'System (Auto-approved)',
-        approvedAt: new Date().toISOString(),
-        history: [{
-            action: 'created_and_approved',
-            by: currentUser.name,
-            timestamp: new Date().toISOString(),
-            note: 'Leave balance deducted immediately upon application'
-        }]
-    };
-    
-    allRequests.push(request);
-    
-    // Save request
-    const success = await saveAllRequests();
-    if (success) {
-        // Update UI immediately
+        // Update balance
         updateUserBalance();
-        updateRequestCounts();
         
-        // Show success message with balance deduction info
-        showToast(`${leaveType} application submitted successfully! ${duration} day(s) deducted from your balance.`, 'success');
+        // Load announcements
+        loadHomeAnnouncements();
         
-        // Send notification to supervisor
-        await notifySupervisorAboutLeave(request);
+        // Load notifications
+        updateNotificationBadge();
         
-        // Reset form and go to dashboard
-        showSection('home');
-        document.getElementById('leaveApplicationForm').reset();
-        
-        // Show updated balance
-        showToast(`New ${leaveType} balance: ${leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`, 'info', 2000);
+        // Check for upcoming leave
+        checkUpcomingLeave();
     }
-}
 
-async function notifySupervisorAboutLeave(leaveRequest) {
-    try {
-        if (typeof db === 'undefined') return;
+    function checkUpcomingLeave() {
+        if (!currentUser) return;
         
-        // Find supervisors
-        const supervisors = allUsers.filter(user => user.Level === 'Supervisor' || user.Level === 'Admin');
-        
-        // Create notification for each supervisor
-        for (const supervisor of supervisors) {
-            await db.collection('notifications').add({
-                userId: supervisor.username,
-                title: 'New Leave Application',
-                message: `${leaveRequest.fromName} has applied for ${leaveRequest.leaveType} on ${leaveRequest.date}`,
-                type: 'leave_application',
-                data: {
-                    requestId: leaveRequest.id,
-                    fromUser: leaveRequest.fromUsername,
-                    date: leaveRequest.date
-                },
-                read: false,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-    } catch (error) {
-        console.error('Error notifying supervisor:', error);
-    }
-}
-
-// My Requests Functions
-function loadMyRequests() {
-    const tbody = document.getElementById('myRequestsTable');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
-    
-    if (myReqs.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align: center; padding: 40px;">
-                    <div style="color: #7f8c8d; font-size: 16px;">
-                        No requests found
-                    </div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    // Sort by timestamp (newest first)
-    myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    myReqs.forEach(req => {
-        const tr = document.createElement('tr');
-        
-        let details = '';
-        let statusClass = 'status-' + req.status;
-        let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
-        
-        if (req.type === 'dutyChange') {
-            details = `Swap ${req.dutyTime} with ${req.toName} (${req.toDutyTime})`;
-            if (req.reason) {
-                details += `<br><small>Reason: ${req.reason}</small>`;
-            }
-        } else {
-            details = `${req.leaveType} - ${req.duration} day(s)`;
-            if (req.reason) {
-                details += `<br><small>Reason: ${req.reason}</small>`;
-            }
-        }
-        
-        tr.innerHTML = `
-            <td>${req.type === 'dutyChange' ? '🔄 Duty Change' : '📅 Leave'}</td>
-            <td>${req.date}</td>
-            <td>${details}</td>
-            <td class="${statusClass}">${statusText}</td>
-            <td>
-                ${req.status === 'pending' ? 
-                    `<button class="action-btn reject" onclick="cancelRequest('${req.id}')">Cancel</button>` : 
-                    `<button class="action-btn view" onclick="viewRequestDetails('${req.id}')">View</button>`}
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-}
-
-async function cancelRequest(requestId) {
-    if (!confirm('Are you sure you want to cancel this request?')) return;
-    
-    const request = allRequests.find(req => req.id === requestId);
-    if (!request) {
-        showToast('Request not found', 'error');
-        return;
-    }
-    
-    if (request.status !== 'pending') {
-        showToast('Only pending requests can be cancelled', 'warning');
-        return;
-    }
-    
-    // Update status
-    request.status = 'cancelled';
-    request.history.push({
-        action: 'cancelled',
-        by: currentUser.name,
-        timestamp: new Date().toISOString()
-    });
-    
-    const success = await saveAllRequests();
-    if (success) {
-        loadMyRequests();
-        updateRequestCounts();
-        showToast('Request cancelled', 'success');
-        
-        // Notify the other user if it's a duty change
-        if (request.type === 'dutyChange') {
-            await sendPushNotification(request.toUsername, 'Request Cancelled',
-                `${currentUser.name} cancelled the duty change request for ${request.date}`);
-        }
-    }
-}
-
-function viewRequestDetails(requestId) {
-    const request = allRequests.find(req => req.id === requestId);
-    if (!request) {
-        showToast('Request not found', 'error');
-        return;
-    }
-    
-    let details = '';
-    if (request.type === 'dutyChange') {
-        details = `
-            <strong>Duty Change Request</strong><br>
-            Date: ${request.date}<br>
-            Your Duty: ${request.dutyTime}<br>
-            Swap With: ${request.toName} (${request.toDutyTime})<br>
-            ${request.reason ? `Reason: ${request.reason}<br>` : ''}
-            Status: ${request.status}<br>
-            Submitted: ${new Date(request.timestamp).toLocaleString()}
-        `;
-    } else {
-        details = `
-            <strong>Leave Application</strong><br>
-            Type: ${request.leaveType}<br>
-            Date: ${request.date}<br>
-            Duration: ${request.duration} day(s)<br>
-            Duty Time: ${request.dutyTime}<br>
-            Reason: ${request.reason}<br>
-            Status: ${request.status}<br>
-            ${request.approvedBy ? `Approved By: ${request.approvedBy}<br>` : ''}
-            Submitted: ${new Date(request.timestamp).toLocaleString()}
-        `;
-    }
-    
-    // Show history if available
-    if (request.history && request.history.length > 0) {
-        details += '<br><br><strong>History:</strong><br>';
-        request.history.forEach(entry => {
-            details += `${new Date(entry.timestamp).toLocaleString()}: ${entry.action} by ${entry.by}<br>`;
-        });
-    }
-    
-    alert(details);
-}
-
-// Pending Requests Functions
-function loadPendingRequests() {
-    const tbody = document.getElementById('pendingRequestsTable');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    const pendingReqs = allRequests.filter(req => 
-        req.status === 'pending' && 
-        req.type === 'dutyChange' && 
-        req.toUsername === currentUser.username
-    );
-    
-    if (pendingReqs.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align: center; padding: 40px;">
-                    <div style="color: #7f8c8d; font-size: 16px;">
-                        No pending requests
-                    </div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    pendingReqs.forEach(req => {
-        const tr = document.createElement('tr');
-        
-        tr.innerHTML = `
-            <td>${req.fromName}<br><small>RC: ${req.fromRcNo}</small></td>
-            <td>${req.date}<br><small>${new Date(req.date).toLocaleDateString('en-US', { weekday: 'short' })}</small></td>
-            <td>Swap ${req.dutyTime} with ${req.toDutyTime}<br>
-                ${req.reason ? `<small>Reason: ${req.reason}</small>` : ''}
-            </td>
-            <td class="action-buttons">
-                <button class="action-btn approve" onclick="respondToRequest('${req.id}', 'approved')">Accept</button>
-                <button class="action-btn reject" onclick="respondToRequest('${req.id}', 'rejected')">Reject</button>
-                <button class="action-btn view" onclick="viewRequestDetails('${req.id}')">View</button>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-}
-
-async function respondToRequest(requestId, response) {
-    const request = allRequests.find(req => req.id === requestId);
-    if (!request) {
-        showToast('Request not found', 'error');
-        return;
-    }
-    
-    if (response === 'approved') {
-        // Swap duty times
-        const date = request.date;
-        if (dutyRoster[date]) {
-            const fromDuty = dutyRoster[date][request.fromUsername];
-            const toDuty = dutyRoster[date][request.toUsername];
-            
-            dutyRoster[date][request.fromUsername] = toDuty;
-            dutyRoster[date][request.toUsername] = fromDuty;
-            
-            await saveDutyRoster();
-        }
-    }
-    
-    request.status = response;
-    request.respondedBy = currentUser.name;
-    request.respondedAt = new Date().toISOString();
-    request.history.push({
-        action: response,
-        by: currentUser.name,
-        timestamp: new Date().toISOString()
-    });
-    
-    const success = await saveAllRequests();
-    if (success) {
-        showToast(`Request ${response} successfully!`, 'success');
-        
-        // Send push notification to requester
-        await sendPushNotification(request.fromUsername, 
-            `Request ${response.charAt(0).toUpperCase() + response.slice(1)}`,
-            `${currentUser.name} ${response} your duty change request for ${request.date}`);
-        
-        showSection('home');
-        updateRequestCounts();
-    }
-}
-
-// All Roster Functions
-function loadAllRoster() {
-    const container = document.getElementById('allRosterContainer');
-    if (!container) return;
-    
-    const startDate = document.getElementById('allRosterStartDate').value;
-    const endDate = document.getElementById('allRosterEndDate').value;
-    
-    if (!startDate || !endDate) {
-        // Default to next 7 days
         const today = new Date();
         const nextWeek = new Date(today);
         nextWeek.setDate(nextWeek.getDate() + 7);
         
-        document.getElementById('allRosterStartDate').value = today.toISOString().split('T')[0];
-        document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+        const upcomingLeave = allRequests.filter(req => 
+            req.fromUsername === currentUser.username &&
+            req.type === 'leave' &&
+            req.status === 'approved' &&
+            new Date(req.date) >= today &&
+            new Date(req.date) <= nextWeek
+        );
         
-        loadAllRoster();
-        return;
-    }
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (start > end) {
-        showToast('Start date must be before end date', 'warning');
-        return;
-    }
-    
-    // Limit to 30 days maximum
-    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    if (daysDiff > 30) {
-        showToast('Maximum 30 days allowed', 'warning');
-        return;
-    }
-    
-    // Generate roster table
-    const today = new Date().toISOString().split('T')[0];
-    let html = '<div class="table-container"><table>';
-    
-    // Header
-    html += '<thead><tr><th>Date</th><th>Day</th>';
-    allUsers.forEach(user => {
-        if (user.Level === 'User') {
-            html += `<th>${user.name}<br><small>${user.RCNo}</small></th>`;
+        if (upcomingLeave.length > 0) {
+            const notificationsDiv = document.getElementById('homeNotifications');
+            if (notificationsDiv) {
+                notificationsDiv.style.display = 'block';
+                notificationsDiv.innerHTML = '<strong>Upcoming Leave:</strong><br>';
+                
+                upcomingLeave.forEach(leave => {
+                    notificationsDiv.innerHTML += `${leave.date}: ${leave.leaveType} (${leave.duration} day(s))<br>`;
+                });
+            }
         }
-    });
-    html += '</tr></thead><tbody>';
-    
-    // Rows
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
-        const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-        const isToday = dateStr === today;
+    }
+
+    function loadHomeAnnouncements() {
+        const container = document.getElementById('homeAnnouncements');
+        if (!container) return;
         
-        html += `<tr ${isToday ? 'style="background-color: rgba(52, 152, 219, 0.1);"' : ''}>`;
-        html += `<td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>`;
-        html += `<td>${dayName}</td>`;
+        container.innerHTML = '';
         
-        // Staff duties
+        const now = new Date();
+        const activeAnnouncements = announcements.filter(ann => {
+            if (ann.status === 'expired' || ann.status === 'archived') return false;
+            if (ann.expiry && new Date(ann.expiry) < now) return false;
+            return ann.target === 'all' || 
+                   (ann.target === 'specific' && ann.targetUsers && 
+                    ann.targetUsers.includes(currentUser.username));
+        });
+        
+        if (activeAnnouncements.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.innerHTML = `
+                <div class="empty-state-icon">📢</div>
+                <div class="empty-state-title">No Announcements</div>
+            `;
+            container.appendChild(emptyState);
+            return;
+        }
+        
+        // Show only 2 announcements on mobile
+        const displayAnnouncements = isMobile ? 
+            activeAnnouncements.slice(0, 2) : activeAnnouncements;
+        
+        displayAnnouncements.forEach(ann => {
+            const announcementDiv = document.createElement('div');
+            announcementDiv.className = `announcement-banner priority-${ann.priority}`;
+            
+            announcementDiv.innerHTML = `
+                <div class="announcement-title">
+                    <span>📢</span> ${ann.title}
+                </div>
+                <div style="margin-bottom: 10px; font-size: 14px;">${ann.content}</div>
+                <div style="font-size: 12px; opacity: 0.9;">
+                    By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                </div>
+            `;
+            
+            container.appendChild(announcementDiv);
+        });
+    }
+
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return 'recently';
+        
+        const now = new Date();
+        const past = new Date(timestamp);
+        const diffMs = now - past;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return past.toLocaleDateString();
+    }
+
+    // Duty Change Functions
+    function loadDutyChangeForm() {
+        if (!currentUser) return;
+        
+        // Set tomorrow as default
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dateInput = document.getElementById('changeDate');
+        if (dateInput) {
+            dateInput.min = tomorrow.toISOString().split('T')[0];
+            dateInput.value = tomorrow.toISOString().split('T')[0];
+        }
+        
+        // Populate staff dropdown
+        const staffSelect = document.getElementById('requestToStaff');
+        if (staffSelect) {
+            staffSelect.innerHTML = '<option value="">Select staff member</option>';
+            allUsers.forEach(user => {
+                if (user.username !== currentUser.username && user.Level === 'User') {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.name} (RC: ${user.RCNo})`;
+                    staffSelect.appendChild(option);
+                }
+            });
+        }
+        
+        // Load duty times
+        loadUserDutyTimes('changeDutyTime', tomorrow.toISOString().split('T')[0]);
+    }
+
+    function loadUserDutyTimes(selectId, date) {
+        const select = document.getElementById(selectId);
+        if (!select || !date || !currentUser) return;
+        
+        select.innerHTML = '<option value="">Select duty time</option>';
+        const dutyTime = dutyRoster[date] && dutyRoster[date][currentUser.username];
+        
+        if (dutyTime) {
+            const option = document.createElement('option');
+            option.value = dutyTime;
+            option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+            select.appendChild(option);
+        }
+    }
+
+    async function submitDutyChange() {
+        if (!currentUser || !navigator.onLine) {
+            showToast('Cannot submit while offline', 'error');
+            return;
+        }
+        
+        const date = document.getElementById('changeDate').value;
+        const dutyTime = document.getElementById('changeDutyTime').value;
+        const toStaff = document.getElementById('requestToStaff').value;
+        const toDutyTime = document.getElementById('requestToDutyTime').value;
+        const reason = document.getElementById('changeReason').value;
+        
+        if (!date || !dutyTime || !toStaff || !toDutyTime) {
+            showToast('Please fill all required fields', 'warning');
+            return;
+        }
+        
+        if (dutyTime === 'Off' || toDutyTime === 'Off') {
+            showToast('Cannot request duty change on off days', 'warning');
+            return;
+        }
+        
+        // Check if date is at least 24 hours from now
+        const requestDate = new Date(date);
+        const now = new Date();
+        const hoursDiff = (requestDate - now) / (1000 * 60 * 60);
+        
+        if (hoursDiff < 24) {
+            showToast('Duty changes must be requested at least 24 hours in advance', 'warning');
+            return;
+        }
+        
+        const toUser = allUsers.find(u => u.username === toStaff);
+        if (!toUser) {
+            showToast('Selected staff not found', 'error');
+            return;
+        }
+        
+        const request = {
+            id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'dutyChange',
+            fromUsername: currentUser.username,
+            fromName: currentUser.name,
+            fromRcNo: currentUser.rcNo,
+            date: date,
+            dutyTime: dutyTime,
+            toUsername: toStaff,
+            toName: toUser.name,
+            toRcNo: toUser.RCNo,
+            toDutyTime: toDutyTime,
+            reason: reason,
+            status: 'pending',
+            timestamp: new Date().toISOString(),
+            history: [{
+                action: 'created',
+                by: currentUser.name,
+                timestamp: new Date().toISOString()
+            }]
+        };
+        
+        allRequests.push(request);
+        
+        const success = await saveAllRequests();
+        if (success) {
+            // Send push notification to recipient
+            await sendPushNotification(toUser.username, 'New Duty Change Request', 
+                `${currentUser.name} wants to swap duty with you on ${date}`);
+            
+            updateRequestCounts();
+            showToast('Duty change request submitted!', 'success');
+            showSection('home');
+            
+            // Reset form
+            const form = document.getElementById('dutyChangeForm');
+            if (form) form.reset();
+            
+            // Reload form with defaults
+            loadDutyChangeForm();
+        }
+    }
+
+    // Leave Application Functions
+    function loadLeaveForm() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('leaveDate').value = tomorrow.toISOString().split('T')[0];
+        loadUserDutyTimes('leaveDutyTime', tomorrow.toISOString().split('T')[0]);
+        updateLeaveRules();
+    }
+
+    function updateLeaveRules() {
+        const leaveType = document.getElementById('leaveType').value;
+        const leaveDate = document.getElementById('leaveDate').value;
+        const dutyTime = document.getElementById('leaveDutyTime').value;
+        const alertDiv = document.getElementById('leaveRulesAlert');
+        const submitBtn = document.getElementById('submitLeaveBtn');
+        
+        if (!leaveType || !leaveDate || !dutyTime) {
+            if (alertDiv) {
+                alertDiv.className = 'alert alert-warning';
+                alertDiv.textContent = 'Please select leave type, date and duty time';
+            }
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+        }
+        
+        // Check if user is off duty
+        if (dutyTime === 'Off' || dutyTime === '') {
+            if (alertDiv) {
+                alertDiv.className = 'alert alert-warning';
+                alertDiv.textContent = 'You are off duty on this date. No leave needed.';
+            }
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+        }
+        
+        const dutyStart = dutyTime.split('-')[0];
+        const dutyDateTime = new Date(leaveDate + 'T' + dutyStart + ':00');
+        const now = new Date();
+        const hoursBeforeDuty = (dutyDateTime - now) / (1000 * 60 * 60);
+        
+        let canApply = false;
+        let message = '';
+        
+        if (leaveType === 'Sick Leave') {
+            canApply = hoursBeforeDuty >= 2;
+            message = canApply 
+                ? '✅ You can apply for Sick Leave (2+ hours before duty)'
+                : `❌ Need ${Math.ceil(2 - hoursBeforeDuty)} more hours before duty`;
+        } else if (leaveType === 'FRL') {
+            canApply = hoursBeforeDuty >= 1;
+            message = canApply
+                ? '✅ You can apply for FRL (1+ hour before duty)'
+                : `❌ Need ${Math.ceil(1 - hoursBeforeDuty)} more hours before duty`;
+        }
+        
+        // Check balance if user can apply
+        if (canApply) {
+            const duration = parseFloat(document.getElementById('leaveDuration').value) || 1;
+            const userBalance = leaveBalances[currentUser.username] || {SL: 0, FRL: 0};
+            
+            if (leaveType === 'Sick Leave' && userBalance.SL < duration) {
+                canApply = false;
+                message = `❌ Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`;
+            } else if (leaveType === 'FRL' && userBalance.FRL < duration) {
+                canApply = false;
+                message = `❌ Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`;
+            }
+        }
+        
+        if (alertDiv) {
+            alertDiv.className = canApply ? 'alert alert-success' : 'alert alert-danger';
+            alertDiv.innerHTML = `<strong>${leaveType} Rules:</strong><br>${message}`;
+        }
+        if (submitBtn) submitBtn.disabled = !canApply;
+    }
+
+    async function submitLeaveApplication() {
+        if (!currentUser || !navigator.onLine) {
+            showToast('Cannot submit while offline', 'error');
+            return;
+        }
+        
+        const leaveType = document.getElementById('leaveType').value;
+        const date = document.getElementById('leaveDate').value;
+        const dutyTime = document.getElementById('leaveDutyTime').value;
+        const duration = parseFloat(document.getElementById('leaveDuration').value);
+        const reason = document.getElementById('leaveReason').value;
+        
+        if (!leaveType || !date || !dutyTime || !reason) {
+            showToast('Please fill all required fields', 'warning');
+            return;
+        }
+        
+        if (dutyTime === 'Off' || dutyTime === '') {
+            showToast('You are off duty on this date', 'warning');
+            return;
+        }
+        
+        // Check balance
+        const userBalance = leaveBalances[currentUser.username];
+        if (!userBalance) {
+            showToast('Error: User balance not found', 'error');
+            return;
+        }
+        
+        // IMMEDIATELY DEDUCT FROM BALANCE
+        if (leaveType === 'Sick Leave') {
+            if (userBalance.SL < duration) {
+                showToast(`Insufficient Sick Leave balance. Available: ${userBalance.SL.toFixed(1)} days`, 'warning');
+                return;
+            }
+            userBalance.SL -= duration;
+            userBalance.SL = Math.max(0, userBalance.SL);
+        } else if (leaveType === 'FRL') {
+            if (userBalance.FRL < duration) {
+                showToast(`Insufficient FRL balance. Available: ${userBalance.FRL.toFixed(1)} days`, 'warning');
+                return;
+            }
+            userBalance.FRL -= duration;
+            userBalance.FRL = Math.max(0, userBalance.FRL);
+        }
+        
+        // Save updated balance immediately
+        await saveLeaveBalances();
+        
+        // Create leave request (auto-approved since balance already deducted)
+        const request = {
+            id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            type: 'leave',
+            leaveType: leaveType,
+            fromUsername: currentUser.username,
+            fromName: currentUser.name,
+            fromRcNo: currentUser.rcNo,
+            date: date,
+            dutyTime: dutyTime,
+            duration: duration,
+            reason: reason,
+            status: 'approved',
+            timestamp: new Date().toISOString(),
+            approvedBy: 'System (Auto-approved)',
+            approvedAt: new Date().toISOString(),
+            history: [{
+                action: 'created_and_approved',
+                by: currentUser.name,
+                timestamp: new Date().toISOString(),
+                note: 'Leave balance deducted immediately upon application'
+            }]
+        };
+        
+        allRequests.push(request);
+        
+        // Save request
+        const success = await saveAllRequests();
+        if (success) {
+            // Update UI immediately
+            updateUserBalance();
+            updateRequestCounts();
+            
+            // Show success message with balance deduction info
+            showToast(`${leaveType} application submitted successfully! ${duration} day(s) deducted from your balance.`, 'success');
+            
+            // Send notification to supervisor
+            await notifySupervisorAboutLeave(request);
+            
+            // Reset form and go to dashboard
+            showSection('home');
+            document.getElementById('leaveApplicationForm').reset();
+            
+            // Show updated balance
+            showToast(`New ${leaveType} balance: ${leaveType === 'Sick Leave' ? userBalance.SL.toFixed(1) : userBalance.FRL.toFixed(1)} days`, 'info', 2000);
+        }
+    }
+
+    async function notifySupervisorAboutLeave(leaveRequest) {
+        try {
+            if (typeof db === 'undefined') return;
+            
+            // Find supervisors
+            const supervisors = allUsers.filter(user => user.Level === 'Supervisor' || user.Level === 'Admin');
+            
+            // Create notification for each supervisor
+            for (const supervisor of supervisors) {
+                await db.collection('notifications').add({
+                    userId: supervisor.username,
+                    title: 'New Leave Application',
+                    message: `${leaveRequest.fromName} has applied for ${leaveRequest.leaveType} on ${leaveRequest.date}`,
+                    type: 'leave_application',
+                    data: {
+                        requestId: leaveRequest.id,
+                        fromUser: leaveRequest.fromUsername,
+                        date: leaveRequest.date
+                    },
+                    read: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (error) {
+            console.error('Error notifying supervisor:', error);
+        }
+    }
+
+    // My Requests Functions
+    function loadMyRequests() {
+        const tbody = document.getElementById('myRequestsTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const myReqs = allRequests.filter(req => req.fromUsername === currentUser.username);
+        
+        if (myReqs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px;">
+                        <div style="color: #7f8c8d; font-size: 16px;">
+                            No requests found
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        // Sort by timestamp (newest first)
+        myReqs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        myReqs.forEach(req => {
+            const tr = document.createElement('tr');
+            
+            let details = '';
+            let statusClass = 'status-' + req.status;
+            let statusText = req.status.charAt(0).toUpperCase() + req.status.slice(1);
+            
+            if (req.type === 'dutyChange') {
+                details = `Swap ${req.dutyTime} with ${req.toName} (${req.toDutyTime})`;
+                if (req.reason) {
+                    details += `<br><small>Reason: ${req.reason}</small>`;
+                }
+            } else {
+                details = `${req.leaveType} - ${req.duration} day(s)`;
+                if (req.reason) {
+                    details += `<br><small>Reason: ${req.reason}</small>`;
+                }
+            }
+            
+            tr.innerHTML = `
+                <td>${req.type === 'dutyChange' ? '🔄 Duty Change' : '📅 Leave'}</td>
+                <td>${req.date}</td>
+                <td>${details}</td>
+                <td class="${statusClass}">${statusText}</td>
+                <td>
+                    ${req.status === 'pending' ? 
+                        `<button class="action-btn reject" onclick="cancelRequest('${req.id}')">Cancel</button>` : 
+                        `<button class="action-btn view" onclick="viewRequestDetails('${req.id}')">View</button>`}
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function cancelRequest(requestId) {
+        if (!confirm('Are you sure you want to cancel this request?')) return;
+        
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        if (request.status !== 'pending') {
+            showToast('Only pending requests can be cancelled', 'warning');
+            return;
+        }
+        
+        // Update status
+        request.status = 'cancelled';
+        request.history.push({
+            action: 'cancelled',
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            loadMyRequests();
+            updateRequestCounts();
+            showToast('Request cancelled', 'success');
+            
+            // Notify the other user if it's a duty change
+            if (request.type === 'dutyChange') {
+                await sendPushNotification(request.toUsername, 'Request Cancelled',
+                    `${currentUser.name} cancelled the duty change request for ${request.date}`);
+            }
+        }
+    }
+
+    function viewRequestDetails(requestId) {
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        let details = '';
+        if (request.type === 'dutyChange') {
+            details = `
+                <strong>Duty Change Request</strong><br>
+                Date: ${request.date}<br>
+                Your Duty: ${request.dutyTime}<br>
+                Swap With: ${request.toName} (${request.toDutyTime})<br>
+                ${request.reason ? `Reason: ${request.reason}<br>` : ''}
+                Status: ${request.status}<br>
+                Submitted: ${new Date(request.timestamp).toLocaleString()}
+            `;
+        } else {
+            details = `
+                <strong>Leave Application</strong><br>
+                Type: ${request.leaveType}<br>
+                Date: ${request.date}<br>
+                Duration: ${request.duration} day(s)<br>
+                Duty Time: ${request.dutyTime}<br>
+                Reason: ${request.reason}<br>
+                Status: ${request.status}<br>
+                ${request.approvedBy ? `Approved By: ${request.approvedBy}<br>` : ''}
+                Submitted: ${new Date(request.timestamp).toLocaleString()}
+            `;
+        }
+        
+        // Show history if available
+        if (request.history && request.history.length > 0) {
+            details += '<br><br><strong>History:</strong><br>';
+            request.history.forEach(entry => {
+                details += `${new Date(entry.timestamp).toLocaleString()}: ${entry.action} by ${entry.by}<br>`;
+            });
+        }
+        
+        alert(details);
+    }
+
+    // Pending Requests Functions
+    function loadPendingRequests() {
+        const tbody = document.getElementById('pendingRequestsTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const pendingReqs = allRequests.filter(req => 
+            req.status === 'pending' && 
+            req.type === 'dutyChange' && 
+            req.toUsername === currentUser.username
+        );
+        
+        if (pendingReqs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px;">
+                        <div style="color: #7f8c8d; font-size: 16px;">
+                            No pending requests
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        pendingReqs.forEach(req => {
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td>${req.fromName}<br><small>RC: ${req.fromRcNo}</small></td>
+                <td>${req.date}<br><small>${new Date(req.date).toLocaleDateString('en-US', { weekday: 'short' })}</small></td>
+                <td>Swap ${req.dutyTime} with ${req.toDutyTime}<br>
+                    ${req.reason ? `<small>Reason: ${req.reason}</small>` : ''}
+                </td>
+                <td class="action-buttons">
+                    <button class="action-btn approve" onclick="respondToRequest('${req.id}', 'approved')">Accept</button>
+                    <button class="action-btn reject" onclick="respondToRequest('${req.id}', 'rejected')">Reject</button>
+                    <button class="action-btn view" onclick="viewRequestDetails('${req.id}')">View</button>
+                </td>
+            `;
+            
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function respondToRequest(requestId, response) {
+        const request = allRequests.find(req => req.id === requestId);
+        if (!request) {
+            showToast('Request not found', 'error');
+            return;
+        }
+        
+        if (response === 'approved') {
+            // Swap duty times
+            const date = request.date;
+            if (dutyRoster[date]) {
+                const fromDuty = dutyRoster[date][request.fromUsername];
+                const toDuty = dutyRoster[date][request.toUsername];
+                
+                dutyRoster[date][request.fromUsername] = toDuty;
+                dutyRoster[date][request.toUsername] = fromDuty;
+                
+                await saveDutyRoster();
+            }
+        }
+        
+        request.status = response;
+        request.respondedBy = currentUser.name;
+        request.respondedAt = new Date().toISOString();
+        request.history.push({
+            action: response,
+            by: currentUser.name,
+            timestamp: new Date().toISOString()
+        });
+        
+        const success = await saveAllRequests();
+        if (success) {
+            showToast(`Request ${response} successfully!`, 'success');
+            
+            // Send push notification to requester
+            await sendPushNotification(request.fromUsername, 
+                `Request ${response.charAt(0).toUpperCase() + response.slice(1)}`,
+                `${currentUser.name} ${response} your duty change request for ${request.date}`);
+            
+            showSection('home');
+            updateRequestCounts();
+        }
+    }
+
+    // All Roster Functions
+    function loadAllRoster() {
+        const container = document.getElementById('allRosterContainer');
+        if (!container) return;
+        
+        const startDate = document.getElementById('allRosterStartDate').value;
+        const endDate = document.getElementById('allRosterEndDate').value;
+        
+        if (!startDate || !endDate) {
+            // Default to next 7 days
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            document.getElementById('allRosterStartDate').value = today.toISOString().split('T')[0];
+            document.getElementById('allRosterEndDate').value = nextWeek.toISOString().split('T')[0];
+            
+            loadAllRoster();
+            return;
+        }
+        
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        if (start > end) {
+            showToast('Start date must be before end date', 'warning');
+            return;
+        }
+        
+        // Limit to 30 days maximum
+        const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        if (daysDiff > 30) {
+            showToast('Maximum 30 days allowed', 'warning');
+            return;
+        }
+        
+        // Generate roster table
+        const today = new Date().toISOString().split('T')[0];
+        let html = '<div class="table-container"><table>';
+        
+        // Header
+        html += '<thead><tr><th>Date</th><th>Day</th>';
         allUsers.forEach(user => {
             if (user.Level === 'User') {
-                let dutyTime = 'Off';
-                let cellClass = 'off-day-cell';
-                
-                if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
-                    dutyTime = dutyRoster[dateStr][user.username];
-                    if (dutyTime !== 'Off') {
-                        cellClass = getDutyTimeClass(dutyTime);
-                    }
-                }
-                
-                // Highlight current user
-                if (currentUser && user.username === currentUser.username) {
-                    cellClass += ' current-user';
-                }
-                
-                html += `<td class="${cellClass}">${dutyTime}</td>`;
+                html += `<th>${user.name}<br><small>${user.RCNo}</small></th>`;
             }
         });
+        html += '</tr></thead><tbody>';
         
-        html += '</tr>';
-    }
-    
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
-    
-    // Add CSS for current user highlight
-    const style = document.createElement('style');
-    style.textContent = '.current-user { border: 2px solid #3498db !important; }';
-    document.head.appendChild(style);
-}
-
-function getDutyTimeClass(dutyTime) {
-    if (!dutyTime || dutyTime === 'Off') return 'off-day-cell';
-    if (dutyTime.includes('Leave')) return 'duty-leave';
-    
-    const normalizedTime = dutyTime.replace(/\s/g, '').toUpperCase();
-    
-    if (normalizedTime.includes('0730-1530') || normalizedTime.includes('0700-1500')) 
-        return 'duty-0730-1530';
-    if (normalizedTime.includes('0830-1630') || normalizedTime.includes('0800-1600')) 
-        return 'duty-0830-1630';
-    if (normalizedTime.includes('1030-1830') || normalizedTime.includes('1000-1800')) 
-        return 'duty-1030-1830';
-    if (normalizedTime.includes('1530-2330') || normalizedTime.includes('1500-2300')) 
-        return 'duty-1530-2330';
-    if (normalizedTime.includes('1630-0030') || normalizedTime.includes('1600-0000')) 
-        return 'duty-1630-0030';
-    
-    return 'duty-other';
-}
-
-// Admin Announcements Functions
-function loadAnnouncementsAdmin() {
-    const container = document.getElementById('activeAnnouncementsList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    const activeAnnouncements = announcements.filter(ann => 
-        ann.status !== 'expired' && ann.status !== 'archived'
-    );
-    
-    if (activeAnnouncements.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📢</div>
-                <div class="empty-state-title">No Active Announcements</div>
-            </div>
-        `;
-        return;
-    }
-    
-    activeAnnouncements.forEach(ann => {
-        const announcementDiv = document.createElement('div');
-        announcementDiv.className = `announcement-banner priority-${ann.priority}`;
-        announcementDiv.style.marginBottom = '15px';
+        // Rows
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const isToday = dateStr === today;
+            
+            html += `<tr ${isToday ? 'style="background-color: rgba(52, 152, 219, 0.1);"' : ''}>`;
+            html += `<td>${dateStr}${isToday ? ' <strong>(Today)</strong>' : ''}</td>`;
+            html += `<td>${dayName}</td>`;
+            
+            // Staff duties
+            allUsers.forEach(user => {
+                if (user.Level === 'User') {
+                    let dutyTime = 'Off';
+                    let cellClass = 'off-day-cell';
+                    
+                    if (dutyRoster[dateStr] && dutyRoster[dateStr][user.username]) {
+                        dutyTime = dutyRoster[dateStr][user.username];
+                        if (dutyTime !== 'Off') {
+                            cellClass = getDutyTimeClass(dutyTime);
+                        }
+                    }
+                    
+                    // Highlight current user
+                    if (currentUser && user.username === currentUser.username) {
+                        cellClass += ' current-user';
+                    }
+                    
+                    html += `<td class="${cellClass}">${dutyTime}</td>`;
+                }
+            });
+            
+            html += '</tr>';
+        }
         
-        announcementDiv.innerHTML = `
-            <div class="announcement-title">
-                <span>📢</span> ${ann.title}
-            </div>
-            <div style="margin-bottom: 10px;">${ann.content}</div>
-            <div style="font-size: 12px; opacity: 0.9;">
-                By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
-                <button class="action-btn reject" onclick="deleteAnnouncement('${ann.id}')" 
-                        style="float: right; margin-left: 5px;">Delete</button>
-                <button class="action-btn view" onclick="editAnnouncement('${ann.id}')" 
-                        style="float: right;">Edit</button>
-            </div>
-        `;
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
         
-        container.appendChild(announcementDiv);
-    });
-}
+        // Add CSS for current user highlight
+        const style = document.createElement('style');
+        style.textContent = '.current-user { border: 2px solid #3498db !important; }';
+        document.head.appendChild(style);
+    }
 
-async function createAnnouncement() {
-    if (!currentUser || !navigator.onLine) {
-        showToast('Cannot create announcement while offline', 'error');
-        return;
-    }
-    
-    const title = document.getElementById('announcementTitle').value.trim();
-    const content = document.getElementById('announcementContent').value.trim();
-    const priority = document.getElementById('announcementPriority').value;
-    
-    if (!title || !content) {
-        showToast('Please fill title and content', 'warning');
-        return;
-    }
-    
-    const announcement = {
-        id: 'ann_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-        title: title,
-        content: content,
-        priority: priority,
-        target: 'all',
-        createdBy: currentUser.name,
-        createdByUsername: currentUser.username,
-        createdAt: new Date().toISOString(),
-        status: 'active'
-    };
-    
-    announcements.push(announcement);
-    
-    const success = await saveAnnouncements();
-    if (success) {
-        showToast('Announcement created!', 'success');
-        document.getElementById('announcementForm').reset();
-        loadAnnouncementsAdmin();
-        loadHomeAnnouncements();
+    function getDutyTimeClass(dutyTime) {
+        if (!dutyTime || dutyTime === 'Off') return 'off-day-cell';
+        if (dutyTime.includes('Leave')) return 'duty-leave';
         
-        // Send push notification to all users
-        await sendPushNotificationToAll('New Announcement', title);
+        const normalizedTime = dutyTime.replace(/\s/g, '').toUpperCase();
+        
+        if (normalizedTime.includes('0730-1530') || normalizedTime.includes('0700-1500')) 
+            return 'duty-0730-1530';
+        if (normalizedTime.includes('0830-1630') || normalizedTime.includes('0800-1600')) 
+            return 'duty-0830-1630';
+        if (normalizedTime.includes('1030-1830') || normalizedTime.includes('1000-1800')) 
+            return 'duty-1030-1830';
+        if (normalizedTime.includes('1530-2330') || normalizedTime.includes('1500-2300')) 
+            return 'duty-1530-2330';
+        if (normalizedTime.includes('1630-0030') || normalizedTime.includes('1600-0000')) 
+            return 'duty-1630-0030';
+        
+        return 'duty-other';
     }
-}
 
-async function deleteAnnouncement(announcementId) {
-    if (!confirm('Delete this announcement?')) return;
-    
-    const index = announcements.findIndex(ann => ann.id === announcementId);
-    if (index !== -1) {
-        announcements[index].status = 'archived';
+    // Admin Announcements Functions
+    function loadAnnouncementsAdmin() {
+        const container = document.getElementById('activeAnnouncementsList');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const activeAnnouncements = announcements.filter(ann => 
+            ann.status !== 'expired' && ann.status !== 'archived'
+        );
+        
+        if (activeAnnouncements.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📢</div>
+                    <div class="empty-state-title">No Active Announcements</div>
+                </div>
+            `;
+            return;
+        }
+        
+        activeAnnouncements.forEach(ann => {
+            const announcementDiv = document.createElement('div');
+            announcementDiv.className = `announcement-banner priority-${ann.priority}`;
+            announcementDiv.style.marginBottom = '15px';
+            
+            announcementDiv.innerHTML = `
+                <div class="announcement-title">
+                    <span>📢</span> ${ann.title}
+                </div>
+                <div style="margin-bottom: 10px;">${ann.content}</div>
+                <div style="font-size: 12px; opacity: 0.9;">
+                    By: ${ann.createdBy} • ${formatTimeAgo(ann.createdAt)}
+                    <button class="action-btn reject" onclick="deleteAnnouncement('${ann.id}')" 
+                            style="float: right; margin-left: 5px;">Delete</button>
+                    <button class="action-btn view" onclick="editAnnouncement('${ann.id}')" 
+                            style="float: right;">Edit</button>
+                </div>
+            `;
+            
+            container.appendChild(announcementDiv);
+        });
+    }
+
+    async function createAnnouncement() {
+        if (!currentUser || !navigator.onLine) {
+            showToast('Cannot create announcement while offline', 'error');
+            return;
+        }
+        
+        const title = document.getElementById('announcementTitle').value.trim();
+        const content = document.getElementById('announcementContent').value.trim();
+        const priority = document.getElementById('announcementPriority').value;
+        
+        if (!title || !content) {
+            showToast('Please fill title and content', 'warning');
+            return;
+        }
+        
+        const announcement = {
+            id: 'ann_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            title: title,
+            content: content,
+            priority: priority,
+            target: 'all',
+            createdBy: currentUser.name,
+            createdByUsername: currentUser.username,
+            createdAt: new Date().toISOString(),
+            status: 'active'
+        };
+        
+        announcements.push(announcement);
+        
         const success = await saveAnnouncements();
         if (success) {
-            showToast('Announcement deleted', 'success');
+            showToast('Announcement created!', 'success');
+            document.getElementById('announcementForm').reset();
             loadAnnouncementsAdmin();
             loadHomeAnnouncements();
+            
+            // Send push notification to all users
+            await sendPushNotificationToAll('New Announcement', title);
         }
     }
-}
 
-async function sendPushNotification(userId, title, body) {
-    try {
-        if (typeof db === 'undefined') return;
+    async function deleteAnnouncement(announcementId) {
+        if (!confirm('Delete this announcement?')) return;
         
-        // Save notification to Firestore
-        await db.collection('notifications').add({
-            userId: userId,
-            title: title,
-            message: body,
-            type: 'push_notification',
-            read: false,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Get FCM token for user
-        const tokenDoc = await db.collection('fcmTokens').doc(userId).get();
-        if (!tokenDoc.exists) return;
-        
-        const tokenData = tokenDoc.data();
-        
-        // Send via Firebase Cloud Messaging
-        if (typeof firebase !== 'undefined' && firebase.messaging) {
-            // In a real implementation, you would call your server endpoint
-            // or use Cloud Functions to send the notification
-            console.log('Would send notification to:', userId, 'Title:', title, 'Body:', body);
+        const index = announcements.findIndex(ann => ann.id === announcementId);
+        if (index !== -1) {
+            announcements[index].status = 'archived';
+            const success = await saveAnnouncements();
+            if (success) {
+                showToast('Announcement deleted', 'success');
+                loadAnnouncementsAdmin();
+                loadHomeAnnouncements();
+            }
+        }
+    }
+
+    async function sendPushNotification(userId, title, body) {
+        try {
+            if (typeof db === 'undefined') return;
+            
+            // Save notification to Firestore
+            await db.collection('notifications').add({
+                userId: userId,
+                title: title,
+                message: body,
+                type: 'push_notification',
+                read: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+        } catch (error) {
+            console.error('Error sending push notification:', error);
+        }
+    }
+
+    async function sendPushNotificationToAll(title, body) {
+        try {
+            if (typeof db === 'undefined') return;
+            
+            // Get all FCM tokens
+            const tokensSnapshot = await db.collection('fcmTokens').get();
+            
+            tokensSnapshot.forEach(async (doc) => {
+                const tokenData = doc.data();
+                await sendPushNotification(tokenData.userId, title, body);
+            });
+            
+        } catch (error) {
+            console.error('Error sending push notification to all:', error);
+        }
+    }
+
+    // Setup Event Listeners
+    function setupEventListeners() {
+        // Duty Change Form
+        const dutyChangeForm = document.getElementById('dutyChangeForm');
+        if (dutyChangeForm) {
+            dutyChangeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitDutyChange();
+            });
         }
         
-    } catch (error) {
-        console.error('Error sending push notification:', error);
-    }
-}
-
-async function sendPushNotificationToAll(title, body) {
-    try {
-        if (typeof db === 'undefined') return;
+        // Leave Application Form
+        const leaveApplicationForm = document.getElementById('leaveApplicationForm');
+        if (leaveApplicationForm) {
+            leaveApplicationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitLeaveApplication();
+            });
+        }
         
-        // Get all FCM tokens
-        const tokensSnapshot = await db.collection('fcmTokens').get();
+        // Announcement Form
+        const announcementForm = document.getElementById('announcementForm');
+        if (announcementForm) {
+            announcementForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                createAnnouncement();
+            });
+        }
         
-        tokensSnapshot.forEach(async (doc) => {
-            const tokenData = doc.data();
-            await sendPushNotification(tokenData.userId, title, body);
-        });
+        // Date change handlers
+        const changeDate = document.getElementById('changeDate');
+        if (changeDate) {
+            changeDate.addEventListener('change', function() {
+                loadUserDutyTimes('changeDutyTime', this.value);
+            });
+        }
         
-    } catch (error) {
-        console.error('Error sending push notification to all:', error);
-    }
-}
-
-// Setup Event Listeners
-function setupEventListeners() {
-    // Duty Change Form
-    const dutyChangeForm = document.getElementById('dutyChangeForm');
-    if (dutyChangeForm) {
-        dutyChangeForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitDutyChange();
-        });
-    }
-    
-    // Leave Application Form
-    const leaveApplicationForm = document.getElementById('leaveApplicationForm');
-    if (leaveApplicationForm) {
-        leaveApplicationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitLeaveApplication();
-        });
-    }
-    
-    // Announcement Form
-    const announcementForm = document.getElementById('announcementForm');
-    if (announcementForm) {
-        announcementForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            createAnnouncement();
-        });
-    }
-    
-    // Date change handlers
-    const changeDate = document.getElementById('changeDate');
-    if (changeDate) {
-        changeDate.addEventListener('change', function() {
-            loadUserDutyTimes('changeDutyTime', this.value);
-        });
-    }
-    
-    const requestToStaff = document.getElementById('requestToStaff');
-    if (requestToStaff) {
-        requestToStaff.addEventListener('change', function() {
-            const user = allUsers.find(u => u.username === this.value);
-            if (user) {
-                document.getElementById('requestToRcNo').value = user.RCNo;
-                const date = document.getElementById('changeDate').value;
-                if (date) {
-                    // Load staff's duty time
-                    const select = document.getElementById('requestToDutyTime');
-                    select.innerHTML = '<option value="">Select duty time</option>';
-                    const dutyTime = dutyRoster[date] && dutyRoster[date][user.username];
-                    if (dutyTime) {
-                        const option = document.createElement('option');
-                        option.value = dutyTime;
-                        option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
-                        select.appendChild(option);
+        const requestToStaff = document.getElementById('requestToStaff');
+        if (requestToStaff) {
+            requestToStaff.addEventListener('change', function() {
+                const user = allUsers.find(u => u.username === this.value);
+                if (user) {
+                    document.getElementById('requestToRcNo').value = user.RCNo;
+                    const date = document.getElementById('changeDate').value;
+                    if (date) {
+                        // Load staff's duty time
+                        const select = document.getElementById('requestToDutyTime');
+                        select.innerHTML = '<option value="">Select duty time</option>';
+                        const dutyTime = dutyRoster[date] && dutyRoster[date][user.username];
+                        if (dutyTime) {
+                            const option = document.createElement('option');
+                            option.value = dutyTime;
+                            option.textContent = dutyTime === 'Off' ? 'Off Duty' : dutyTime;
+                            select.appendChild(option);
+                        }
                     }
                 }
+            });
+        }
+        
+        // Leave form handlers
+        const leaveDate = document.getElementById('leaveDate');
+        if (leaveDate) {
+            leaveDate.addEventListener('change', function() {
+                loadUserDutyTimes('leaveDutyTime', this.value);
+                updateLeaveRules();
+            });
+        }
+        
+        const leaveType = document.getElementById('leaveType');
+        if (leaveType) {
+            leaveType.addEventListener('change', updateLeaveRules);
+        }
+        
+        const leaveDutyTime = document.getElementById('leaveDutyTime');
+        if (leaveDutyTime) {
+            leaveDutyTime.addEventListener('change', updateLeaveRules);
+        }
+        
+        const leaveDuration = document.getElementById('leaveDuration');
+        if (leaveDuration) {
+            leaveDuration.addEventListener('change', updateLeaveRules);
+        }
+        
+        // Logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to logout?')) {
+                    logout();
+                }
+            });
+        }
+        
+        // Check for app updates
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                checkForUpdates();
             }
         });
     }
-    
-    // Leave form handlers
-    const leaveDate = document.getElementById('leaveDate');
-    if (leaveDate) {
-        leaveDate.addEventListener('change', function() {
-            loadUserDutyTimes('leaveDutyTime', this.value);
-            updateLeaveRules();
-        });
+
+    function logout() {
+        // Clear FCM token on logout
+        if (currentUser && typeof db !== 'undefined') {
+            db.collection('fcmTokens').doc(currentUser.username).delete()
+                .catch(error => console.error('Error removing FCM token:', error));
+        }
+        
+        // Clear session
+        localStorage.removeItem('dutySystemSession');
+        
+        // Clear cache
+        localStorage.removeItem('dutyRosterCache');
+        localStorage.removeItem('leaveBalancesCache');
+        localStorage.removeItem('requestsCache');
+        localStorage.removeItem('announcementsCache');
+        
+        // Reset state
+        currentUser = null;
+        allUsers = [];
+        dutyRoster = {};
+        leaveBalances = {};
+        allRequests = [];
+        announcements = [];
+        
+        // Show login screen
+        document.getElementById('loginContainer').style.display = 'flex';
+        document.getElementById('dashboardContainer').style.display = 'none';
+        
+        // Reset form
+        document.getElementById('loginForm').reset();
+        
+        showToast('Logged out successfully', 'success');
     }
-    
-    const leaveType = document.getElementById('leaveType');
-    if (leaveType) {
-        leaveType.addEventListener('change', updateLeaveRules);
+
+    function setupRealtimeListeners() {
+        if (typeof db === 'undefined') return;
+        
+        // Listen for announcements
+        db.collection('announcements').doc('all')
+            .onSnapshot((doc) => {
+                if (doc.exists && doc.data().announcements) {
+                    announcements = doc.data().announcements;
+                    if (document.getElementById('homeSection').classList.contains('active')) {
+                        loadHomeAnnouncements();
+                    }
+                    if (document.getElementById('adminAnnouncementsSection').classList.contains('active')) {
+                        loadAnnouncementsAdmin();
+                    }
+                }
+            }, (error) => {
+                console.error('Announcements listener error:', error);
+            });
+        
+        // Listen for requests
+        db.collection('requests').doc('all')
+            .onSnapshot((doc) => {
+                if (doc.exists && doc.data().requests) {
+                    allRequests = doc.data().requests;
+                    updateRequestCounts();
+                    
+                    const activeSection = document.querySelector('.section.active')?.id;
+                    if (activeSection === 'myRequestsSection') loadMyRequests();
+                    if (activeSection === 'pendingRequestsSection') loadPendingRequests();
+                }
+            }, (error) => {
+                console.error('Requests listener error:', error);
+            });
+        
+        // Listen for duty roster updates
+        db.collection('dutyRoster').doc('current')
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    dutyRoster = doc.data() || {};
+                    if (document.getElementById('homeSection').classList.contains('active')) {
+                        updateDashboard();
+                    }
+                    if (document.getElementById('viewAllRosterSection').classList.contains('active')) {
+                        loadAllRoster();
+                    }
+                }
+            }, (error) => {
+                console.error('Duty roster listener error:', error);
+            });
+        
+        // Listen for leave balance updates
+        db.collection('leaveBalances').doc('current')
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    leaveBalances = doc.data() || {};
+                    updateUserBalance();
+                }
+            }, (error) => {
+                console.error('Leave balances listener error:', error);
+            });
+        
+        // Listen for user notifications
+        if (currentUser) {
+            db.collection('notifications')
+                .where('userId', '==', currentUser.username)
+                .where('read', '==', false)
+                .onSnapshot((snapshot) => {
+                    updateNotificationBadge();
+                    
+                    // Show desktop notifications for new notifications
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            showInAppNotification(data);
+                        }
+                    });
+                }, (error) => {
+                    console.error('Notifications listener error:', error);
+                });
+        }
     }
-    
-    const leaveDutyTime = document.getElementById('leaveDutyTime');
-    if (leaveDutyTime) {
-        leaveDutyTime.addEventListener('change', updateLeaveRules);
+
+    function checkForUpdates() {
+        // Check if service worker has an update
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(registration => {
+                if (registration) {
+                    registration.update();
+                }
+            });
+        }
+        
+        // Check for data updates if online
+        if (navigator.onLine) {
+            // Reload critical data
+            Promise.all([
+                loadDutyRoster(),
+                loadLeaveBalances(),
+                loadAllRequests(),
+                loadAnnouncements()
+            ]).then(() => {
+                console.log('Data refreshed');
+            }).catch(error => {
+                console.error('Error refreshing data:', error);
+            });
+        }
     }
-    
-    const leaveDuration = document.getElementById('leaveDuration');
-    if (leaveDuration) {
-        leaveDuration.addEventListener('change', updateLeaveRules);
-    }
-    
-    // Logout
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to logout?')) {
-                logout();
-            }
-        });
-    }
-    
-    // Check for app updates
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            checkForUpdates();
+
+    // Initialize on window load
+    window.addEventListener('load', function() {
+        // Add PWA install prompt for iOS
+        if (isMobile && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.navigator.standalone) {
+            setTimeout(() => {
+                showInstallPrompt();
+            }, 3000);
         }
     });
-}
 
-function logout() {
-    // Clear FCM token on logout
-    if (currentUser && typeof db !== 'undefined') {
-        db.collection('fcmTokens').doc(currentUser.username).delete()
-            .catch(error => console.error('Error removing FCM token:', error));
-    }
-    
-    // Clear session
-    localStorage.removeItem('dutySystemSession');
-    
-    // Clear cache
-    localStorage.removeItem('dutyRosterCache');
-    localStorage.removeItem('leaveBalancesCache');
-    localStorage.removeItem('requestsCache');
-    localStorage.removeItem('announcementsCache');
-    
-    // Reset state
-    currentUser = null;
-    allUsers = [];
-    dutyRoster = {};
-    leaveBalances = {};
-    allRequests = [];
-    announcements = [];
-    
-    // Show login screen
-    document.getElementById('loginContainer').style.display = 'flex';
-    document.getElementById('dashboardContainer').style.display = 'none';
-    
-    // Reset form
-    document.getElementById('loginForm').reset();
-    
-    showToast('Logged out successfully', 'success');
-}
+    // Export for debugging
+    window.dutyManager = {
+        currentUser,
+        allUsers,
+        dutyRoster,
+        leaveBalances,
+        allRequests,
+        announcements,
+        showToast,
+        updateDashboard,
+        showSection,
+        logout
+    };
 
-function setupRealtimeListeners() {
-    if (typeof db === 'undefined') return;
-    
-    // Listen for announcements
-    db.collection('announcements').doc('all')
-        .onSnapshot((doc) => {
-            if (doc.exists && doc.data().announcements) {
-                announcements = doc.data().announcements;
-                if (document.getElementById('homeSection').classList.contains('active')) {
-                    loadHomeAnnouncements();
-                }
-                if (document.getElementById('adminAnnouncementsSection').classList.contains('active')) {
-                    loadAnnouncementsAdmin();
-                }
-            }
-        }, (error) => {
-            console.error('Announcements listener error:', error);
-        });
-    
-    // Listen for requests
-    db.collection('requests').doc('all')
-        .onSnapshot((doc) => {
-            if (doc.exists && doc.data().requests) {
-                allRequests = doc.data().requests;
-                updateRequestCounts();
-                
-                const activeSection = document.querySelector('.section.active')?.id;
-                if (activeSection === 'myRequestsSection') loadMyRequests();
-                if (activeSection === 'pendingRequestsSection') loadPendingRequests();
-            }
-        }, (error) => {
-            console.error('Requests listener error:', error);
-        });
-    
-    // Listen for duty roster updates
-    db.collection('dutyRoster').doc('current')
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                dutyRoster = doc.data() || {};
-                if (document.getElementById('homeSection').classList.contains('active')) {
-                    updateDashboard();
-                }
-                if (document.getElementById('viewAllRosterSection').classList.contains('active')) {
-                    loadAllRoster();
-                }
-            }
-        }, (error) => {
-            console.error('Duty roster listener error:', error);
-        });
-    
-    // Listen for leave balance updates
-    db.collection('leaveBalances').doc('current')
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                leaveBalances = doc.data() || {};
-                updateUserBalance();
-            }
-        }, (error) => {
-            console.error('Leave balances listener error:', error);
-        });
-    
-    // Listen for user notifications
-    if (currentUser) {
-        db.collection('notifications')
-            .where('userId', '==', currentUser.username)
-            .where('read', '==', false)
-            .onSnapshot((snapshot) => {
-                updateNotificationBadge();
-                
-                // Show desktop notifications for new notifications
-                snapshot.docChanges().forEach((change) => {
-                    if (change.type === 'added') {
-                        const data = change.doc.data();
-                        showInAppNotification(data);
-                    }
-                });
-            }, (error) => {
-                console.error('Notifications listener error:', error);
-            });
-    }
-}
-
-function checkForUpdates() {
-    // Check if service worker has an update
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistration().then(registration => {
-            if (registration) {
-                registration.update();
-            }
-        });
-    }
-    
-    // Check for data updates if online
-    if (navigator.onLine) {
-        // Reload critical data
-        Promise.all([
-            loadDutyRoster(),
-            loadLeaveBalances(),
-            loadAllRequests(),
-            loadAnnouncements()
-        ]).then(() => {
-            console.log('Data refreshed');
-        }).catch(error => {
-            console.error('Error refreshing data:', error);
-        });
-    }
-}
-
-// Admin functions (stubs - implement based on your needs)
-function loadAdminDutyRoster() {
-    showToast('Admin duty roster management - to be implemented', 'info');
-}
-
-function loadAdminLeaveBalance() {
-    showToast('Admin leave balance management - to be implemented', 'info');
-}
-
-function loadAdminApprovals() {
-    showToast('Admin approvals management - to be implemented', 'info');
-}
-
-function loadAdminRequestHistory() {
-    showToast('Admin request history - to be implemented', 'info');
-}
-
-// Initialize on window load
-window.addEventListener('load', function() {
-    // Add PWA install prompt for iOS
-    if (isMobile && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.navigator.standalone) {
-        setTimeout(() => {
-            showInstallPrompt();
-        }, 3000);
-    }
-    
-    // Check if there's a section in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
-    if (section && currentUser) {
-        showSection(section);
-    }
-});
-
-// Prevent leaving page with unsaved changes
-window.addEventListener('beforeunload', function(e) {
-    const offlineQueue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
-    if (offlineQueue.length > 0) {
-        e.preventDefault();
-        e.returnValue = 'You have unsaved changes that will be lost if you leave.';
-        return e.returnValue;
-    }
-});
-
-// Export for debugging
-window.dutyManager = {
-    currentUser,
-    allUsers,
-    dutyRoster,
-    leaveBalances,
-    allRequests,
-    announcements,
-    showToast,
-    updateDashboard,
-    showSection,
-    logout
-};
-
-console.log('Duty Manager PWA initialized');
+    console.log('Duty Manager PWA initialized');
     </script>
 </body>
 </html>
