@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="theme-color" content="#1E3A5F">
+    <title>Duty Manager - Login</title>
+    <link rel="manifest" href="data:application/manifest+json,{
+        %22name%22:%22Duty%20Manager%22,
+        %22short_name%22:%22DutyMgr%22,
+        %22start_url%22:%22/%22,
+        %22display%22:%22standalone%22,
+        %22background_color%22:%22%231E3A5F%22,
+        %22theme_color%22:%22%231E3A5F%22,
+        %22icons%22:[
+            {%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20192%20192'%3E%3Crect%20width='192'%20height='192'%20fill='%231E3A5F'/%3E%3Ctext%20x='96'%20y='120'%20font-size='90'%20text-anchor='middle'%20fill='white'%20font-family='Arial'%3EDM%3C/text%3E%3C/svg%3E%22,%22sizes%22192x192%22,%22type%22:%22image/svg+xml%22%7D
+        ]
+    }">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.98);
+            border-radius: 40px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1E3A5F, #2a4a6e);
+            padding: 40px 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 32px 28px 40px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1e2a3a;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 28px;
+            outline: none;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        input:focus {
+            border-color: #1E3A5F;
+            box-shadow: 0 0 0 3px rgba(30,58,95,0.2);
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #1E3A5F, #2a4a6e);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 40px;
+            margin-top: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 28px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .loader {
+            text-align: center;
+            padding: 20px;
+            color: #1E3A5F;
+            font-weight: 500;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            padding: 16px;
+            color: #94a3b8;
+            border-top: 1px solid #eef2f6;
+            background: white;
+        }
+
+        .demo-hint {
+            background: #f0f9ff;
+            padding: 12px;
+            border-radius: 16px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #0369a1;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="header">
+        <h1>📋 Duty Manager</h1>
+        <p>Shift & Operations Management System</p>
+    </div>
+    <div class="content" id="loginContent">
+        <div class="loader">Loading secure portal...</div>
+    </div>
+    <footer>
+        Secure Access Only • v2.0
+    </footer>
+</div>
+
+<script src="dcfire.js"></script>
+<script>
+    // User data from your requirement
+    const users = [
+        { username: "Irufan", name: "Abdulla Irufan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "Supervisor", RCNo: "979" }
+    ];
+
+    // SHA-256 hash function
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+
+    // Validate user
+    async function validateUser(username, password) {
+        const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+        if (!user) return null;
+        const hashedInput = await hashPassword(password);
+        if (hashedInput === user.passwordHash) {
+            return { ...user };
+        }
+        return null;
+    }
+
+    // Render login form
+    function renderLogin(errorMsg = "") {
+        const contentDiv = document.getElementById('loginContent');
+        contentDiv.innerHTML = `
+            ${errorMsg ? `<div class="error-message">❌ ${errorMsg}</div>` : ''}
+            <div class="input-group">
+                <label>👤 Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label>🔒 Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+            </div>
+            <button id="loginBtn">Sign In →</button>
+            <div class="demo-hint">
+                ℹ️ Demo credentials: Username: Irufan | Password: [your known password]
+            </div>
+        `;
+        
+        const loginBtn = document.getElementById('loginBtn');
+        const usernameInput = document.getElementById('loginUsername');
+        const passwordInput = document.getElementById('loginPassword');
+        
+        loginBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!username || !password) {
+                renderLogin("Please enter both username and password");
+                return;
+            }
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = "Verifying...";
+            
+            try {
+                const validUser = await validateUser(username, password);
+                if (validUser) {
+                    // Store user session
+                    const sessionData = {
+                        username: validUser.username,
+                        name: validUser.name,
+                        level: validUser.Level,
+                        rcNo: validUser.RCNo,
+                        loginTime: Date.now()
+                    };
+                    localStorage.setItem('dutyManagerSession', JSON.stringify(sessionData));
+                    
+                    // Redirect to duty manager page
+                    window.location.href = 'dutymanage.html';
+                } else {
+                    renderLogin("Invalid username or password. Access denied.");
+                }
+            } catch (err) {
+                console.error(err);
+                renderLogin("Authentication error. Please try again.");
+            } finally {
+                loginBtn.disabled = false;
+            }
+        });
+        
+        // Enter key support
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
+    }
+    
+    // Check if already logged in
+    function checkExistingSession() {
+        const session = localStorage.getItem('dutyManagerSession');
+        if (session) {
+            try {
+                const sessionData = JSON.parse(session);
+                if (sessionData.username && sessionData.loginTime) {
+                    // Redirect to duty manager if session exists
+                    window.location.href = 'dutymanage.html';
+                    return true;
+                }
+            } catch(e) {
+                localStorage.removeItem('dutyManagerSession');
+            }
+        }
+        return false;
+    }
+    
+    // Initialize
+    if (!checkExistingSession()) {
+        renderLogin();
+    }
+</script>
+</body>
+</html>
