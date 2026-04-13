@@ -4,19 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <meta name="theme-color" content="#1E3A5F">
-    <title>Duty Manager</title>
-    <!-- PWA manifest for installability -->
-    <link rel="manifest" href="data:application/manifest+json,{
-        %22name%22:%22Duty%20Manager%22,
-        %22short_name%22:%22DutyMgr%22,
-        %22start_url%22:%22/%22,
-        %22display%22:%22standalone%22,
-        %22background_color%22:%22%231E3A5F%22,
-        %22theme_color%22:%22%231E3A5F%22,
-        %22icons%22:[
-            {%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20192%20192'%3E%3Crect%20width='192'%20height='192'%20fill='%231E3A5F'/%3E%3Ctext%20x='96'%20y='120'%20font-size='90'%20text-anchor='middle'%20fill='white'%20font-family='Arial'%3EDM%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22%7D
-        ]
-    }">
+    <title>Duty Manager - Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -26,485 +14,578 @@
 
         body {
             font-family: 'Segoe UI', Roboto, system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background: #f0f4f8;
             min-height: 100vh;
+        }
+
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #1E3A5F, #2a4a6e);
+            color: white;
+            padding: 20px 20px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 16px;
-        }
-
-        .app-container {
-            max-width: 500px;
-            width: 100%;
-            margin: 0 auto;
-            background: rgba(255,255,255,0.95);
-            border-radius: 40px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
-            overflow: hidden;
-            backdrop-filter: blur(2px);
-            transition: all 0.3s ease;
-        }
-
-        .header {
-            background: #1E3A5F;
-            padding: 24px 20px;
-            color: white;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.85;
-            margin-top: 6px;
-        }
-
-        .content {
-            padding: 28px 24px 36px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #1e2a3a;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 28px;
-            outline: none;
-            transition: all 0.2s;
-            background: white;
-        }
-
-        input:focus {
-            border-color: #1E3A5F;
-            box-shadow: 0 0 0 3px rgba(30,58,95,0.2);
-        }
-
-        button {
-            width: 100%;
-            background: #1E3A5F;
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 40px;
-            margin-top: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        button:active {
-            transform: scale(0.97);
-            background: #0f2a46;
-        }
-
-        .logout-btn {
-            background: #dc2626;
-            margin-top: 20px;
-            box-shadow: none;
-        }
-
-        .logout-btn:active {
-            background: #b91c1c;
-        }
-
-        .welcome-card {
-            background: linear-gradient(135deg, #f0f9ff, #e6f0fa);
-            border-radius: 28px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border-left: 6px solid #1E3A5F;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-        }
-
-        .welcome-card h2 {
-            color: #1E3A5F;
-            font-size: 26px;
             margin-bottom: 16px;
         }
 
-        .info-row {
-            display: flex;
-            align-items: baseline;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.08);
-        }
-
-        .info-label {
+        .app-header h1 {
+            font-size: 24px;
             font-weight: 700;
-            width: 110px;
-            color: #334155;
-            font-size: 15px;
         }
 
-        .info-value {
-            flex: 1;
-            color: #0f172a;
-            font-size: 16px;
-            font-weight: 500;
-            word-break: break-word;
-        }
-
-        .designation-badge {
-            background: #1E3A5F;
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
             color: white;
-            padding: 6px 14px;
-            border-radius: 40px;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
-            display: inline-block;
-            margin-top: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .error-message {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 12px;
-            border-radius: 28px;
+        .logout-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.95);
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .user-detail {
             font-size: 14px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 500;
         }
 
-        .loader {
-            text-align: center;
-            padding: 30px;
+        .user-detail strong {
+            font-weight: 700;
+        }
+
+        .badge {
+            background: #fbbf24;
             color: #1E3A5F;
-            font-weight: 500;
-        }
-
-        footer {
-            text-align: center;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 12px;
-            padding: 16px;
-            color: #94a3b8;
-            border-top: 1px solid #eef2f6;
-            background: white;
+            font-weight: 700;
         }
 
-        @media (max-width: 480px) {
-            .content {
-                padding: 20px 18px 28px;
-            }
-            .info-label {
-                width: 90px;
-                font-size: 13px;
-            }
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:active {
+            transform: scale(0.98);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1E3A5F;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Section */
+        .section {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1E3A5F;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Duty List */
+        .duty-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .duty-item {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 16px;
+            border-left: 4px solid #1E3A5F;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .duty-info h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+
+        .duty-info p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Quick Actions */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1E3A5F;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn:active {
+            background: #e2e8f0;
+            transform: scale(0.97);
+        }
+
+        /* Footer */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active {
+            color: #1E3A5F;
+            background: #f0f9ff;
+        }
+
+        .nav-item span:first-child {
+            font-size: 22px;
+        }
+
+        /* Spacing for bottom nav */
+        .content-spacing {
+            padding-bottom: 80px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 16px;
+            color: #1E3A5F;
+        }
+
+        .modal-content button {
+            background: #1E3A5F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 24px;
+            margin-top: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-<div class="app-container" id="appRoot">
-    <div class="header">
-        <h1>📋 Duty Manager</h1>
-        <p>Shift & Operations Hub</p>
+    <div class="app-header">
+        <div class="header-top">
+            <h1>📋 Duty Manager</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <div class="user-info" id="userInfo">
+            <div class="user-detail">
+                <strong>Loading...</strong>
+            </div>
+            <div class="badge" id="designationBadge">-</div>
+        </div>
     </div>
-    <div class="content" id="dynamicContent">
-        <div class="loader">Initializing secure access...</div>
+
+    <div class="main-content content-spacing" id="mainContent">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="activeDutyCount">0</div>
+                <div class="stat-label">Active Duties</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="completedCount">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Current Duties Section -->
+        <div class="section">
+            <div class="section-title">
+                <span>📌</span> Current Duties
+            </div>
+            <div class="duty-list" id="dutyList">
+                <div style="text-align: center; color: #94a3b8; padding: 20px;">Loading duties...</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section">
+            <div class="section-title">
+                <span>⚡</span> Quick Actions
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="showNotification('Assign Duty feature coming soon')">
+                    ➕ Assign Duty
+                </button>
+                <button class="action-btn" onclick="showNotification('View Reports feature coming soon')">
+                    📈 View Reports
+                </button>
+                <button class="action-btn" onclick="showNotification('Staff Management coming soon')">
+                    👥 Staff
+                </button>
+                <button class="action-btn" onclick="showNotification('Settings coming soon')">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
     </div>
-    <footer>
-        v1.0 • Secure Access
-    </footer>
-</div>
 
-<!-- Import external dcfire.js for Firebase config, then load main app -->
-<script src="dcfire.js"></script>
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('dashboard')">
+            <span>🏠</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('duties')">
+            <span>📋</span>
+            <span>Duties</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('profile')">
+            <span>👤</span>
+            <span>Profile</span>
+        </button>
+    </div>
 
-<script>
-    // Wait for dcfire.js to load and initialize Firebase globally
-    // The dcfire.js should expose firebase, db (firestore), and firebaseConfig
-    // We'll use a polling mechanism or wait for the script to set up
-    
-    function initApp() {
-        // Check if firebase is initialized from dcfire.js
-        if (typeof firebase === 'undefined') {
-            console.error("Firebase not loaded from dcfire.js");
-            document.getElementById('dynamicContent').innerHTML = `
-                <div class="error-message">
-                    ⚠️ Configuration error: dcfire.js not found. Please ensure the file exists.
-                </div>
-                <button onclick="location.reload()">Retry</button>
-            `;
-            return;
-        }
-        
-        // Access Firebase services initialized in dcfire.js
-        // dcfire.js should have: firebase.initializeApp(config) and const db = firebase.firestore()
-        // We'll also need auth from the main Firebase namespace
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        // ==================== User Data (as provided) ====================
-        const localUsers = [
-            { username: "Irufan", name: "Abdulla Irufan", passwordHash: "557808176cfefce664c3694042b720e1be6a41974527178598622edc21dc6d9d", Level: "Supervisor", RCNo: "979" }
+    <!-- Modal for notifications -->
+    <div id="notificationModal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="modalMessage">Notification</h3>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <script src="dcfire.js"></script>
+    <script>
+        // Sample duty data
+        let duties = [
+            { id: 1, title: "Morning Shift", time: "06:00 - 14:00", status: "active", assignedTo: "Irufan" },
+            { id: 2, title: "Equipment Inspection", time: "08:00 - 10:00", status: "pending", assignedTo: "Team A" },
+            { id: 3, title: "Safety Round", time: "14:00 - 15:00", status: "pending", assignedTo: "Irufan" }
         ];
-        
-        // Helper: SHA256 hash function (browser crypto)
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
-        }
-        
-        // Validate user credentials against local user array
-        async function validateUser(username, password) {
-            const user = localUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
-            if (!user) return null;
-            const hashedInput = await hashPassword(password);
-            if (hashedInput === user.passwordHash) {
-                return { ...user, passwordHash: undefined }; // remove hash from returned object
+
+        let currentUser = null;
+
+        // Load user session
+        function loadSession() {
+            const session = localStorage.getItem('dutyManagerSession');
+            if (!session) {
+                window.location.href = 'index.html';
+                return null;
             }
-            return null;
-        }
-        
-        // Sync user to Firestore (ensure user document exists)
-        async function syncUserToFirestore(userData) {
-            if (!userData || !userData.username) return;
             try {
-                const userRef = db.collection("users").doc(userData.username);
-                const docSnap = await userRef.get();
-                if (!docSnap.exists) {
-                    await userRef.set({
-                        name: userData.name,
-                        username: userData.username,
-                        Level: userData.Level,
-                        RCNo: userData.RCNo,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } else {
-                    // update any missing fields
-                    await userRef.update({
-                        name: userData.name,
-                        Level: userData.Level,
-                        RCNo: userData.RCNo,
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                    }).catch(() => {});
-                }
-            } catch (err) {
-                console.warn("Firestore sync warning:", err);
+                const userData = JSON.parse(session);
+                currentUser = userData;
+                return userData;
+            } catch(e) {
+                window.location.href = 'index.html';
+                return null;
             }
         }
-        
-        // Render Login Screen
-        function renderLogin(errorMsg = "") {
-            const contentDiv = document.getElementById('dynamicContent');
-            contentDiv.innerHTML = `
-                ${errorMsg ? `<div class="error-message">${errorMsg}</div>` : ''}
-                <div class="input-group">
-                    <label>👤 Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username">
-                </div>
-                <div class="input-group">
-                    <label>🔒 Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
-                </div>
-                <button id="loginBtn">Sign In</button>
-            `;
-            
-            document.getElementById('loginBtn')?.addEventListener('click', async () => {
-                const username = document.getElementById('loginUsername').value.trim();
-                const password = document.getElementById('loginPassword').value;
-                
-                if (!username || !password) {
-                    renderLogin("Please enter both username and password");
-                    return;
-                }
-                
-                // Show loading state
-                const btn = document.getElementById('loginBtn');
-                const originalText = btn.innerText;
-                btn.innerText = "Verifying...";
-                btn.disabled = true;
-                
-                try {
-                    const validUser = await validateUser(username, password);
-                    if (validUser) {
-                        // Create a custom Firebase Auth user (or just manage session via localStorage)
-                        // Since we don't want to create email/password in Firebase Auth for every user,
-                        // we'll use a secure session token stored in localStorage + Firestore sync.
-                        const session = {
-                            username: validUser.username,
-                            name: validUser.name,
-                            Level: validUser.Level,
-                            RCNo: validUser.RCNo,
-                            loginTime: Date.now()
-                        };
-                        localStorage.setItem('dutyManagerSession', JSON.stringify(session));
-                        // Sync user data to Firestore
-                        await syncUserToFirestore(validUser);
-                        // Also sign in anonymously to Firebase Auth to maintain Firestore rules if needed
-                        try {
-                            await auth.signInAnonymously();
-                        } catch (e) { console.warn("anon auth", e); }
-                        renderWelcome(session);
-                    } else {
-                        renderLogin("Invalid username or password. Access denied.");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    renderLogin("Authentication error. Please try again.");
-                } finally {
-                    if(btn) btn.disabled = false;
-                }
-            });
-            
-            // Enter key support
-            const passField = document.getElementById('loginPassword');
-            if(passField) {
-                passField.addEventListener('keypress', (e) => {
-                    if(e.key === 'Enter') document.getElementById('loginBtn')?.click();
-                });
-            }
-        }
-        
-        // Render Welcome Dashboard
-        function renderWelcome(userSession) {
-            const contentDiv = document.getElementById('dynamicContent');
-            contentDiv.innerHTML = `
-                <div class="welcome-card">
-                    <h2>👋 Welcome, ${userSession.name?.split(' ')[0] || userSession.name}!</h2>
-                    <div class="info-row">
-                        <div class="info-label">Full Name</div>
-                        <div class="info-value">${escapeHtml(userSession.name)}</div>
+
+        // Update user info in header
+        function updateUserInfo() {
+            if (currentUser) {
+                const userInfoDiv = document.getElementById('userInfo');
+                userInfoDiv.innerHTML = `
+                    <div class="user-detail">
+                        <strong>${currentUser.name}</strong><br>
+                        <span style="font-size: 12px;">RC: ${currentUser.rcNo}</span>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Username</div>
-                        <div class="info-value">${escapeHtml(userSession.username)}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">RC Number</div>
-                        <div class="info-value">${escapeHtml(userSession.RCNo)}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Designation</div>
-                        <div class="info-value">
-                            <span class="designation-badge">${escapeHtml(userSession.Level)}</span>
-                        </div>
-                    </div>
-                </div>
-                <div style="background: #f8fafc; border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                    <p style="color: #1e293b; margin-bottom: 12px;">✅ You are logged in as <strong>${escapeHtml(userSession.Level)}</strong></p>
-                    <p style="font-size: 14px; color: #475569;">Access to duty management panel</p>
-                </div>
-                <button id="logoutBtn" class="logout-btn">🚪 Sign Out</button>
-            `;
-            
-            document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-                localStorage.removeItem('dutyManagerSession');
-                try {
-                    await auth.signOut();
-                } catch(e) {}
-                renderLogin();
-            });
-        }
-        
-        // Simple escape helper
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if(m === '&') return '&amp;';
-                if(m === '<') return '&lt;';
-                if(m === '>') return '&gt;';
-                return m;
-            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-                return c;
-            });
-        }
-        
-        // Check existing session
-        function checkSession() {
-            const sessionJson = localStorage.getItem('dutyManagerSession');
-            if (sessionJson) {
-                try {
-                    const session = JSON.parse(sessionJson);
-                    // Validate session structure and ensure not too old (optional, but add expiry 7 days)
-                    if (session.username && session.name && session.RCNo && session.Level) {
-                        const loginTime = session.loginTime || 0;
-                        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-                        if (Date.now() - loginTime < maxAge) {
-                            renderWelcome(session);
-                            return true;
-                        } else {
-                            localStorage.removeItem('dutyManagerSession');
-                        }
-                    } else {
-                        localStorage.removeItem('dutyManagerSession');
-                    }
-                } catch(e) {
-                    localStorage.removeItem('dutyManagerSession');
-                }
-            }
-            return false;
-        }
-        
-        // Monitor auth state changes from Firebase (if needed for sync)
-        onAuthStateChanged(auth, (user) => {
-            // Just to keep auth state consistent, we don't override session but we log
-            if (!user && !localStorage.getItem('dutyManagerSession')) {
-                // No session, already on login screen maybe
-            }
-        });
-        
-        // Bootstrap: first check session, else render login
-        if (!checkSession()) {
-            renderLogin();
-        }
-    }
-    
-    // Ensure dcfire.js has loaded and firebase is defined
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            // Wait a tiny bit for dcfire.js script to fully execute (since it's loaded synchronously above)
-            setTimeout(() => {
-                if (typeof firebase !== 'undefined') {
-                    initApp();
-                } else {
-                    document.getElementById('dynamicContent').innerHTML = `
-                        <div class="error-message">
-                            ❌ dcfire.js loaded but Firebase not initialized. Check your dcfire.js file.
-                        </div>
-                        <button onclick="location.reload()">Retry</button>
-                    `;
-                }
-            }, 100);
-        });
-    } else {
-        setTimeout(() => {
-            if (typeof firebase !== 'undefined') {
-                initApp();
-            } else {
-                document.getElementById('dynamicContent').innerHTML = `
-                    <div class="error-message">
-                        ❌ Firebase configuration missing. Please ensure dcfire.js exists and initializes firebase.
-                    </div>
-                    <button onclick="location.reload()">Retry</button>
+                    <div class="badge" id="designationBadge">${currentUser.level}</div>
                 `;
             }
-        }, 100);
-    }
-</script>
+        }
+
+        // Update stats
+        function updateStats() {
+            const activeCount = duties.filter(d => d.status === 'active').length;
+            const completedCount = duties.filter(d => d.status === 'completed').length;
+            document.getElementById('activeDutyCount').textContent = activeCount;
+            document.getElementById('completedCount').textContent = completedCount;
+        }
+
+        // Render duty list
+        function renderDuties() {
+            const dutyListDiv = document.getElementById('dutyList');
+            const activeDuties = duties.filter(d => d.status !== 'completed');
+            
+            if (activeDuties.length === 0) {
+                dutyListDiv.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px;">No active duties 🎉</div>';
+                return;
+            }
+            
+            dutyListDiv.innerHTML = activeDuties.map(duty => `
+                <div class="duty-item">
+                    <div class="duty-info">
+                        <h4>${duty.title}</h4>
+                        <p>🕐 ${duty.time} | 👤 ${duty.assignedTo}</p>
+                    </div>
+                    <div>
+                        <span class="status ${duty.status === 'active' ? 'status-active' : 'status-pending'}">
+                            ${duty.status === 'active' ? '● Active' : '⏳ Pending'}
+                        </span>
+                        ${duty.status === 'pending' ? `<button onclick="completeDuty(${duty.id})" style="margin-left: 8px; padding: 4px 8px; background: #1E3A5F; color: white; border: none; border-radius: 12px; font-size: 11px; cursor: pointer;">Mark Complete</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Complete duty function
+        window.completeDuty = function(dutyId) {
+            const duty = duties.find(d => d.id === dutyId);
+            if (duty) {
+                duty.status = 'completed';
+                updateStats();
+                renderDuties();
+                showNotification(`✅ "${duty.title}" marked as completed!`);
+                
+                // Sync to Firestore if available
+                if (typeof firebase !== 'undefined' && firebase.firestore) {
+                    const db = firebase.firestore();
+                    db.collection('duties').doc(dutyId.toString()).set({
+                        title: duty.title,
+                        status: duty.status,
+                        completedAt: new Date(),
+                        completedBy: currentUser?.username
+                    }).catch(e => console.log('Firestore sync optional'));
+                }
+            }
+        };
+
+        // Tab switching
+        window.switchTab = function(tab) {
+            const mainContent = document.getElementById('mainContent');
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
+            if (tab === 'dashboard') {
+                mainContent.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-value" id="activeDutyCount">0</div>
+                            <div class="stat-label">Active Duties</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-value" id="completedCount">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><span>📌</span> Current Duties</div>
+                        <div class="duty-list" id="dutyList"></div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title"><span>⚡</span> Quick Actions</div>
+                        <div class="action-buttons">
+                            <button class="action-btn" onclick="showNotification('Assign Duty feature coming soon')">➕ Assign Duty</button>
+                            <button class="action-btn" onclick="showNotification('View Reports feature coming soon')">📈 View Reports</button>
+                            <button class="action-btn" onclick="showNotification('Staff Management coming soon')">👥 Staff</button>
+                            <button class="action-btn" onclick="showNotification('Settings coming soon')">⚙️ Settings</button>
+                        </div>
+                    </div>
+                `;
+                updateStats();
+                renderDuties();
+            } else if (tab === 'duties') {
+                mainContent.innerHTML = `
+                    <div class="section">
+                        <div class="section-title"><span>📋</span> All Duties</div>
+                        <div class="duty-list" id="dutyList"></div>
+                    </div>
+                `;
+                renderDuties();
+            } else if (tab === 'profile') {
+                mainContent.innerHTML = `
+                    <div class="section">
+                        <div class="section-title"><span>👤</span> Profile Information</div>
+                        <div class="duty-item" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                            <div><strong>Full Name:</strong> ${currentUser?.name || 'N/A'}</div>
+                            <div><strong>Username:</strong> ${currentUser?.username || 'N/A'}</div>
+                            <div><strong>RC Number:</strong> ${currentUser?.rcNo || 'N/A'}</div>
+                            <div><strong>Designation:</strong> ${currentUser?.level || 'N/A'}</div>
+                            <div><strong>Role:</strong> Duty Manager</div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        // Notification
+        window.showNotification = function(message) {
+            const modal = document.getElementById('notificationModal');
+            const modalMessage = document.getElementById('modalMessage');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+        };
+
+        window.closeModal = function() {
+            const modal = document.getElementById('notificationModal');
+            modal.style.display = 'none';
+        };
+
+        // Logout
+        window.logout = function() {
+            localStorage.removeItem('dutyManagerSession');
+            window.location.href = 'index.html';
+        };
+
+        // Initialize page
+        function init() {
+            if (!loadSession()) return;
+            updateUserInfo();
+            updateStats();
+            renderDuties();
+            
+            // Optional: Sync with Firebase Firestore if available
+            if (typeof firebase !== 'undefined' && firebase.firestore && currentUser) {
+                const db = firebase.firestore();
+                db.collection('users').doc(currentUser.username).set({
+                    name: currentUser.name,
+                    rcNo: currentUser.rcNo,
+                    level: currentUser.level,
+                    lastActive: new Date()
+                }, { merge: true }).catch(e => console.log('Firestore optional sync'));
+            }
+        }
+        
+        init();
+    </script>
 </body>
 </html>
